@@ -43,6 +43,9 @@
 .topic-report-preview-item strong { color:#102847; font-size:14px; }
 .topic-report-preview-item p { margin:0; color:#425a77; font-size:12px; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .topic-report-preview-item small { color:#8494a8; }
+a.topic-report-preview-item { color:inherit; text-decoration:none; cursor:pointer; }
+a.topic-report-preview-item:hover strong { color:#2457a7; text-decoration:underline; text-underline-offset:3px; }
+a.topic-report-preview-item:focus-visible { outline:2px solid #426ba0; outline-offset:2px; }
 .topic-report-preview-tags,.topic-report-owner-tags { display:flex; flex-wrap:wrap; gap:5px; }
 .topic-report-preview-tags span,.topic-report-owner-tags span { padding:4px 7px; border-radius:999px; background:#edf4ff; color:#2e5ca2; font-size:9px; font-weight:900; }
 .topic-report-preview-tags .is-official_integrated { background:#e5f3ff; color:#075bb5; }

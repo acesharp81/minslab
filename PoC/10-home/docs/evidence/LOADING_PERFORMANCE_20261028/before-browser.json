@@ -1,0 +1,1235 @@
+[
+  {
+    "view": "policy-progress",
+    "ready_ms": 7970,
+    "done_ms": 7989,
+    "requests": [
+      {
+        "path": "admin/status",
+        "finished_ms": 707,
+        "duration_ms": 34.2,
+        "timing": {
+          "startTime": 1793140586252.022,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.433,
+          "responseStart": 33.49,
+          "responseEnd": 34.22
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "policies",
+        "finished_ms": 731,
+        "duration_ms": 72.2,
+        "timing": {
+          "startTime": 1793140586252.1912,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.262,
+          "responseStart": 71.508,
+          "responseEnd": 72.166
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "sources?compact=true",
+        "finished_ms": 943,
+        "duration_ms": 282.8,
+        "timing": {
+          "startTime": 1793140586252.2659,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.211,
+          "responseStart": 281.933,
+          "responseEnd": 282.799
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "publication-reviews/summary",
+        "finished_ms": 1135,
+        "duration_ms": 188.7,
+        "timing": {
+          "startTime": 1793140586541.41,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.193,
+          "responseStart": 185.79,
+          "responseEnd": 188.746
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "view-version?view=policy-progress",
+        "finished_ms": 1200,
+        "duration_ms": 243.3,
+        "timing": {
+          "startTime": 1793140586548.09,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.111,
+          "responseStart": 242.657,
+          "responseEnd": 243.325
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "policy-monitor?as_of_date=2026-10-28&policy_id=POL_2025_0907",
+        "finished_ms": 3210,
+        "duration_ms": 2255.1,
+        "timing": {
+          "startTime": 1793140586545.449,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.12,
+          "responseStart": 2253.97,
+          "responseEnd": 2255.093
+        },
+        "status": 200,
+        "cache": "MISS"
+      },
+      {
+        "path": "mappings?as_of_date=2026-10-28&policy_id=POL_2025_0907&compact=true",
+        "finished_ms": 3936,
+        "duration_ms": 2968.7,
+        "timing": {
+          "startTime": 1793140586546.9092,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.12,
+          "responseStart": 2966.423,
+          "responseEnd": 2968.707
+        },
+        "status": 200,
+        "cache": "MISS"
+      },
+      {
+        "path": "policy-delivery/view?as_of_date=2026-10-28&group=policy&scope=policy",
+        "finished_ms": 7191,
+        "duration_ms": 6189.9,
+        "timing": {
+          "startTime": 1793140586544.503,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.137,
+          "responseStart": 6155.117,
+          "responseEnd": 6189.889
+        },
+        "status": 200,
+        "cache": "MISS"
+      },
+      {
+        "path": "area-outlook?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+        "finished_ms": 7942,
+        "duration_ms": 57.5,
+        "timing": {
+          "startTime": 1793140593055.9941,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.14,
+          "responseStart": 54.273,
+          "responseEnd": 57.525
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-context?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&year=2026",
+        "finished_ms": 7942,
+        "duration_ms": 65.0,
+        "timing": {
+          "startTime": 1793140593051.323,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.115,
+          "responseStart": 61.581,
+          "responseEnd": 65.004
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+        "finished_ms": 7942,
+        "duration_ms": 65.7,
+        "timing": {
+          "startTime": 1793140593050.688,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.122,
+          "responseStart": 62.875,
+          "responseEnd": 65.658
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+        "finished_ms": 7942,
+        "duration_ms": 66.7,
+        "timing": {
+          "startTime": 1793140593049.839,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.213,
+          "responseStart": 64.236,
+          "responseEnd": 66.656
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-outlook?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C",
+        "finished_ms": 7942,
+        "duration_ms": 63.6,
+        "timing": {
+          "startTime": 1793140593057.314,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 8.905,
+          "responseStart": 57.593,
+          "responseEnd": 63.559
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-outlook?region=%EA%B2%BD%EA%B8%B0%EB%8F%84",
+        "finished_ms": 7945,
+        "duration_ms": 64.8,
+        "timing": {
+          "startTime": 1793140593055.781,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 3.01,
+          "responseStart": 61.214,
+          "responseEnd": 64.794
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      }
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "policy-progress",
+    "ready_ms": 1744,
+    "done_ms": 1779,
+    "requests": [
+      {
+        "path": "admin/status",
+        "finished_ms": 569,
+        "duration_ms": 16.3,
+        "timing": {
+          "startTime": 1793140594273.2,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.155,
+          "responseStart": 15.684,
+          "responseEnd": 16.281
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "policies",
+        "finished_ms": 591,
+        "duration_ms": 48.1,
+        "timing": {
+          "startTime": 1793140594274.135,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.397,
+          "responseStart": 47.002,
+          "responseEnd": 48.109
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "sources?compact=true",
+        "finished_ms": 721,
+        "duration_ms": 176.4,
+        "timing": {
+          "startTime": 1793140594274.356,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 1.181,
+          "responseStart": 175.112,
+          "responseEnd": 176.388
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "publication-reviews/summary",
+        "finished_ms": 777,
+        "duration_ms": 54.0,
+        "timing": {
+          "startTime": 1793140594456.012,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.203,
+          "responseStart": 51.607,
+          "responseEnd": 54.018
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "policy-monitor?as_of_date=2026-10-28&policy_id=POL_2025_0907",
+        "finished_ms": 806,
+        "duration_ms": 69.2,
+        "timing": {
+          "startTime": 1793140594461.312,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.362,
+          "responseStart": 66.397,
+          "responseEnd": 69.207
+        },
+        "status": 200,
+        "cache": "HIT"
+      },
+      {
+        "path": "view-version?view=policy-progress",
+        "finished_ms": 807,
+        "duration_ms": 75.5,
+        "timing": {
+          "startTime": 1793140594461.578,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.233,
+          "responseStart": 72.654,
+          "responseEnd": 75.527
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "mappings?as_of_date=2026-10-28&policy_id=POL_2025_0907&compact=true",
+        "finished_ms": 987,
+        "duration_ms": 245.9,
+        "timing": {
+          "startTime": 1793140594461.4612,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.29,
+          "responseStart": 241.158,
+          "responseEnd": 245.95
+        },
+        "status": 200,
+        "cache": "HIT"
+      },
+      {
+        "path": "policy-delivery/view?as_of_date=2026-10-28&group=policy&scope=policy",
+        "finished_ms": 1105,
+        "duration_ms": 323.6,
+        "timing": {
+          "startTime": 1793140594458.784,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.128,
+          "responseStart": 247.467,
+          "responseEnd": 323.647
+        },
+        "status": 200,
+        "cache": "HIT"
+      },
+      {
+        "path": "area-context?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&year=2026",
+        "finished_ms": 1744,
+        "duration_ms": 26.8,
+        "timing": {
+          "startTime": 1793140595076.028,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 2.208,
+          "responseStart": 23.321,
+          "responseEnd": 26.845
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-outlook?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+        "finished_ms": 1744,
+        "duration_ms": 25.5,
+        "timing": {
+          "startTime": 1793140595077.133,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 1.398,
+          "responseStart": 22.633,
+          "responseEnd": 25.534
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+        "finished_ms": 1744,
+        "duration_ms": 27.2,
+        "timing": {
+          "startTime": 1793140595075.262,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 2.461,
+          "responseStart": 24.644,
+          "responseEnd": 27.203
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-outlook?region=%EA%B2%BD%EA%B8%B0%EB%8F%84",
+        "finished_ms": 1744,
+        "duration_ms": 34.8,
+        "timing": {
+          "startTime": 1793140595076.376,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 2.042,
+          "responseStart": 27.76,
+          "responseEnd": 34.807
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+        "finished_ms": 1750,
+        "duration_ms": 37.6,
+        "timing": {
+          "startTime": 1793140595074.596,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 2.955,
+          "responseStart": 30.5,
+          "responseEnd": 37.617
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-outlook?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C",
+        "finished_ms": 1750,
+        "duration_ms": 39.6,
+        "timing": {
+          "startTime": 1793140595077.357,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 23.105,
+          "responseStart": 32.591,
+          "responseEnd": 39.55
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      }
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "publication-reviews",
+    "ready_ms": 1189,
+    "done_ms": 1201,
+    "requests": [
+      {
+        "path": "admin/status",
+        "finished_ms": 833,
+        "duration_ms": 34.8,
+        "timing": {
+          "startTime": 1793140596478.3772,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.181,
+          "responseStart": 33.635,
+          "responseEnd": 34.76
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "policies",
+        "finished_ms": 909,
+        "duration_ms": 110.9,
+        "timing": {
+          "startTime": 1793140596478.782,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.208,
+          "responseStart": 109.591,
+          "responseEnd": 110.89
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "sources?compact=true",
+        "finished_ms": 989,
+        "duration_ms": 193.7,
+        "timing": {
+          "startTime": 1793140596478.8918,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.144,
+          "responseStart": 192.106,
+          "responseEnd": 193.658
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "publication-reviews/summary",
+        "finished_ms": 1021,
+        "duration_ms": 29.8,
+        "timing": {
+          "startTime": 1793140596677.4329,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.313,
+          "responseStart": 27.272,
+          "responseEnd": 29.792
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "publication-reviews",
+        "finished_ms": 1102,
+        "duration_ms": 108.1,
+        "timing": {
+          "startTime": 1793140596677.633,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.205,
+          "responseStart": 106.408,
+          "responseEnd": 108.055
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "publication-reviews/summary",
+        "finished_ms": 1181,
+        "duration_ms": 26.6,
+        "timing": {
+          "startTime": 1793140596798.2712,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.209,
+          "responseStart": 25.841,
+          "responseEnd": 26.559
+        },
+        "status": 200,
+        "cache": null
+      }
+    ],
+    "errors": [],
+    "error": null
+  },
+  {
+    "view": "projects",
+    "ready_ms": null,
+    "done_ms": 90634,
+    "requests": [
+      {
+        "path": "admin/status",
+        "finished_ms": 648,
+        "duration_ms": 17.1,
+        "timing": {
+          "startTime": 1793140597638.345,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.164,
+          "responseStart": 16.374,
+          "responseEnd": 17.105
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "policies",
+        "finished_ms": 673,
+        "duration_ms": 47.6,
+        "timing": {
+          "startTime": 1793140597639.657,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.291,
+          "responseStart": 46.101,
+          "responseEnd": 47.62
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "sources?compact=true",
+        "finished_ms": 798,
+        "duration_ms": 170.3,
+        "timing": {
+          "startTime": 1793140597639.8462,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.151,
+          "responseStart": 168.287,
+          "responseEnd": 170.308
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "publication-reviews/summary",
+        "finished_ms": 832,
+        "duration_ms": 31.3,
+        "timing": {
+          "startTime": 1793140597814.624,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.194,
+          "responseStart": 28.904,
+          "responseEnd": 31.294
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "view-version?view=projects",
+        "finished_ms": 867,
+        "duration_ms": 59.6,
+        "timing": {
+          "startTime": 1793140597815.3857,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.128,
+          "responseStart": 58.311,
+          "responseEnd": 59.631
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "project-workspace",
+        "finished_ms": 1578,
+        "duration_ms": 707.6,
+        "timing": {
+          "startTime": 1793140597880.178,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.195,
+          "responseStart": 703.579,
+          "responseEnd": 707.645
+        },
+        "status": 200,
+        "cache": "MISS"
+      },
+      {
+        "path": "project-information/PRO_97cb44fc1d3d65cddf98e848",
+        "finished_ms": 6205,
+        "duration_ms": 4616.2,
+        "timing": {
+          "startTime": 1793140598597.663,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.281,
+          "responseStart": 4614.579,
+          "responseEnd": 4616.198
+        },
+        "status": 200,
+        "cache": "MISS"
+      },
+      {
+        "path": "project-locations",
+        "finished_ms": 6366,
+        "duration_ms": 56.8,
+        "timing": {
+          "startTime": 1793140603320.1033,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 20.213,
+          "responseStart": 54.024,
+          "responseEnd": 56.771
+        },
+        "status": 200,
+        "cache": "HIT"
+      },
+      {
+        "path": "area-context?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&municipality=%EC%A0%9C%EB%AC%BC%ED%8F%AC%EA%B5%AC&year=2026",
+        "finished_ms": 6748,
+        "duration_ms": 377.9,
+        "timing": {
+          "startTime": 1793140603379.171,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.108,
+          "responseStart": 377.007,
+          "responseEnd": 377.897
+        },
+        "status": 200,
+        "cache": "MISS"
+      },
+      {
+        "path": "tiles/15/27909/12701.png",
+        "finished_ms": 6816,
+        "duration_ms": 522.9,
+        "timing": {
+          "startTime": 1793140603304.756,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.394,
+          "responseStart": 520.002,
+          "responseEnd": 522.85
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "tiles/15/27909/12700.png",
+        "finished_ms": 6877,
+        "duration_ms": 577.4,
+        "timing": {
+          "startTime": 1793140603304.487,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.533,
+          "responseStart": 575.859,
+          "responseEnd": 577.392
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "tiles/15/27910/12701.png",
+        "finished_ms": 6887,
+        "duration_ms": 593.8,
+        "timing": {
+          "startTime": 1793140603304.843,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.343,
+          "responseStart": 589.289,
+          "responseEnd": 593.776
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "tiles/15/27910/12700.png",
+        "finished_ms": 6927,
+        "duration_ms": 633.5,
+        "timing": {
+          "startTime": 1793140603304.646,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.459,
+          "responseStart": 631.955,
+          "responseEnd": 633.476
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "map/infrastructure?project_id=PRO_97cb44fc1d3d65cddf98e848",
+        "finished_ms": 7665,
+        "duration_ms": 1299.2,
+        "timing": {
+          "startTime": 1793140603378.757,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.174,
+          "responseStart": 1298.129,
+          "responseEnd": 1299.159
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "tiles/14/13954/6350.png",
+        "finished_ms": 7735,
+        "duration_ms": 52.5,
+        "timing": {
+          "startTime": 1793140604695.2568,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.616,
+          "responseStart": 51.595,
+          "responseEnd": 52.52
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "tiles/14/13955/6350.png",
+        "finished_ms": 7746,
+        "duration_ms": 64.6,
+        "timing": {
+          "startTime": 1793140604695.586,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.389,
+          "responseStart": 63.529,
+          "responseEnd": 64.552
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "tiles/14/13954/6351.png",
+        "finished_ms": 7782,
+        "duration_ms": 99.0,
+        "timing": {
+          "startTime": 1793140604695.6858,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.358,
+          "responseStart": 98.2,
+          "responseEnd": 98.999
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "tiles/14/13955/6351.png",
+        "finished_ms": 7790,
+        "duration_ms": 107.8,
+        "timing": {
+          "startTime": 1793140604695.77,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.352,
+          "responseStart": 106.846,
+          "responseEnd": 107.825
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "view-version?view=projects",
+        "finished_ms": 20665,
+        "duration_ms": 48.9,
+        "timing": {
+          "startTime": 1793140617629.3792,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.399,
+          "responseStart": 47.752,
+          "responseEnd": 48.889
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "view-version?view=projects",
+        "finished_ms": 40669,
+        "duration_ms": 51.4,
+        "timing": {
+          "startTime": 1793140637629.709,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.566,
+          "responseStart": 49.938,
+          "responseEnd": 51.444
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "view-version?view=projects",
+        "finished_ms": 60653,
+        "duration_ms": 35.3,
+        "timing": {
+          "startTime": 1793140657629.11,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.301,
+          "responseStart": 33.863,
+          "responseEnd": 35.26
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "view-version?view=projects",
+        "finished_ms": 80659,
+        "duration_ms": 42.6,
+        "timing": {
+          "startTime": 1793140677629.01,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.364,
+          "responseStart": 41.287,
+          "responseEnd": 42.61
+        },
+        "status": 200,
+        "cache": null
+      }
+    ],
+    "errors": [],
+    "error": "Locator.wait_for: Timeout 90000ms exceeded.\nCall log:\n  - waiting for locator(\"#project-list table\").first\n"
+  },
+  {
+    "view": "program-progress",
+    "ready_ms": 1838,
+    "done_ms": 1872,
+    "requests": [
+      {
+        "path": "admin/status",
+        "finished_ms": 788,
+        "duration_ms": 40.1,
+        "timing": {
+          "startTime": 1793140688570.333,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.726,
+          "responseStart": 32.061,
+          "responseEnd": 40.129
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "policies",
+        "finished_ms": 825,
+        "duration_ms": 75.5,
+        "timing": {
+          "startTime": 1793140688570.524,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.684,
+          "responseStart": 67.12,
+          "responseEnd": 75.5
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "sources?compact=true",
+        "finished_ms": 972,
+        "duration_ms": 221.5,
+        "timing": {
+          "startTime": 1793140688570.661,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.661,
+          "responseStart": 213.116,
+          "responseEnd": 221.509
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "publication-reviews/summary",
+        "finished_ms": 1023,
+        "duration_ms": 43.7,
+        "timing": {
+          "startTime": 1793140688787.911,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.277,
+          "responseStart": 43.016,
+          "responseEnd": 43.662
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "view-version?view=program-progress",
+        "finished_ms": 1037,
+        "duration_ms": 58.7,
+        "timing": {
+          "startTime": 1793140688795.166,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.217,
+          "responseStart": 55.606,
+          "responseEnd": 58.727
+        },
+        "status": 200,
+        "cache": null
+      },
+      {
+        "path": "policy-monitor?as_of_date=2026-10-28&policy_id=POL_2025_0907",
+        "finished_ms": 1047,
+        "duration_ms": 66.6,
+        "timing": {
+          "startTime": 1793140688792.564,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.151,
+          "responseStart": 65.324,
+          "responseEnd": 66.552
+        },
+        "status": 200,
+        "cache": "HIT"
+      },
+      {
+        "path": "mappings?as_of_date=2026-10-28&policy_id=POL_2025_0907&compact=true",
+        "finished_ms": 1082,
+        "duration_ms": 85.9,
+        "timing": {
+          "startTime": 1793140688794.9429,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.34,
+          "responseStart": 78.61,
+          "responseEnd": 85.934
+        },
+        "status": 200,
+        "cache": "HIT"
+      },
+      {
+        "path": "policy-delivery/view?as_of_date=2026-10-28&group=program%3APRG_ebcb517f90886388a9700386&scope=program%3APRG_ebcb517f90886388a9700386",
+        "finished_ms": 1626,
+        "duration_ms": 446.6,
+        "timing": {
+          "startTime": 1793140688935.0881,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.219,
+          "responseStart": 419.073,
+          "responseEnd": 446.585
+        },
+        "status": 200,
+        "cache": "MISS"
+      },
+      {
+        "path": "area-outlook?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+        "finished_ms": 1803,
+        "duration_ms": 23.5,
+        "timing": {
+          "startTime": 1793140689521.8909,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.142,
+          "responseStart": 20.008,
+          "responseEnd": 23.54
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      },
+      {
+        "path": "area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+        "finished_ms": 1803,
+        "duration_ms": 24.4,
+        "timing": {
+          "startTime": 1793140689520.705,
+          "domainLookupStart": -1,
+          "domainLookupEnd": -1,
+          "connectStart": -1,
+          "secureConnectionStart": -1,
+          "connectEnd": -1,
+          "requestStart": 0.228,
+          "responseStart": 21.821,
+          "responseEnd": 24.38
+        },
+        "status": 200,
+        "cache": "AREA_SNAPSHOT"
+      }
+    ],
+    "errors": [],
+    "error": null
+  }
+]

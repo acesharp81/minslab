@@ -67,11 +67,32 @@ def board_rows(body, source):
     if not rows:raise ValueError('보도자료 목록 미발견 · 구조/접근 확인 필요')
     return list(rows.values())
 
+def sh_board_rows(body):
+    """Read the publication date column, never an older date inside its title."""
+    soup=BeautifulSoup(body,'html.parser');rows={}
+    for tr in soup.select('tr'):
+        anchor=tr.select_one('a[onclick*="getDetailView"]')
+        if not anchor:continue
+        match=re.search(r"getDetailView\(\s*['\"](\d+)['\"]\s*\)",anchor.get('onclick',''))
+        dates=[clean(td.get_text(' ',strip=True)) for td in tr.select('td.num')]
+        dates=[d for d in dates if re.fullmatch(r'20\d{2}-\d{2}-\d{2}',d)]
+        title=clean(anchor.get_text(' ',strip=True))
+        if not match or len(dates)!=1 or not title:raise ValueError('SH 공고 식별자·게시일·제목 미확보')
+        datetime.fromisoformat(dates[0]);key=match[1]
+        row=dict(source_object_id=key,name=title,source_date=dates[0],
+                 evidence_url='https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq='+key)
+        if key in rows and rows[key]!=row:raise ValueError('동일 SH 공고 식별자의 목록 내용 상충')
+        rows[key]=row
+    if not rows:raise ValueError('SH 공고 목록 미발견 · 구조/접근 확인 필요')
+    return list(rows.values())
+
+
 def collect(source, fetcher):
     found={};counts=[]
     for url in source.get('feed_urls') or [source['url']]:
         body=fetcher.get(url,'xml' if source.get('watch_format')=='RSS' else 'html')
-        rows=rss_rows(body,source) if source.get('watch_format')=='RSS' else board_rows(body,source)
+        rows=(rss_rows(body,source) if source.get('watch_format')=='RSS' else
+              sh_board_rows(body) if source.get('watch_format')=='SH_BOARD' else board_rows(body,source))
         counts.append(dict(url=url,listed=len(rows)))
         for row in rows:
             if row['source_object_id'] in found and found[row['source_object_id']]!=row:

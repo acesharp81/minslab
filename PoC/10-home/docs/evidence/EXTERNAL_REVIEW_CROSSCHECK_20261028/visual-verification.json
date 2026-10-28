@@ -1,0 +1,20 @@
+{
+  "DOC_4b3de908d0e01bae0c7b984b-1.pdf": {
+    "page": 1,
+    "method": "rendered PDF visual review",
+    "building": "퀸즈W청량리역",
+    "address": "전농동127-359 외2필지",
+    "approval_date": "2025-12-03",
+    "permit": "2022-주택공급과-신축허가-4"
+  },
+  "DOC_2fc8e5ba041834cb45112031-1.pdf": {
+    "page": 1,
+    "method": "rendered PDF visual review",
+    "notice": "2026-1772",
+    "addresses": [
+      "공릉로58마길19",
+      "공릉로58바길28-2"
+    ],
+    "units_offered": 6
+  }
+}

@@ -231,3 +231,40 @@ def test_field_repair_keeps_unaffected_summaries_and_requires_exact_fields():
     assert plan['base']['points']['bad'] == '55점대'
     with pytest.raises(ValueError, match='FIELD_REPAIR_COVERAGE'):
         merge_field_repair(plan, {'good': '다른 요약'})
+
+
+def test_date_particles_are_equivalent_but_unstated_dates_still_fail():
+    from app.services.structured_narrative import check_text
+    item = {'title': '처리 경과', 'points': [{'id': 'p', 'quote': '24년도 8월에 예타가 통과했고 26년 올해 1월에 보고했습니다.'}]}
+    check_text(item, '24년 8월 예타 통과 후 26년 1월에 보고했다고 설명했다.', {'p'}, 8, 500)
+    with pytest.raises(ValueError, match='UNSUPPORTED_DATE'):
+        check_text(item, '24년 1월에 예타가 통과했다고 설명했다.', {'p'}, 8, 500)
+    with pytest.raises(ValueError, match='UNSUPPORTED_NUMBER'):
+        check_text(item, '2024년 8월에 예타가 통과했다고 설명했다.', {'p'}, 8, 500)
+
+
+def test_validation_field_repair_is_bounded_and_preserves_good_fields():
+    from app.services.structured_narrative import validation_field_plan, merge_field_repair
+    _, items, _ = fixture()
+    item = items[0]
+    bad = {item['id']: {'summary': '독립몰수제 운영을 위한 기관 협력이 필요하다고 지적했다.',
+                       'points': {'p0': 'cooperation 체계를 마련하도록 요청했다.'}}}
+    base = {'profile': PROFILE, 'schema_revision': 2, 'validation_revision': 2, 'issues': [item]}
+    history = []
+    for repair in (0, 1, 2):
+        request = {**base, **({'repair_round': repair} if repair else {})}
+        if repair == 2:
+            request = pending_batches([item], history)[0][0]
+        history += [{'index': 400000+repair, 'attempt': n, 'status': 'FAILED',
+                     'error': 'NARRATIVE_UNSUPPORTED_LANGUAGE', 'request': deepcopy(request),
+                     'response': deepcopy(bad)} for n in range(1, 10)]
+    plan = validation_field_plan(item, history)
+    assert plan['fields'] == ['p0']
+    request = pending_batches([item], history)[0][0]
+    assert request['repair_round'] == 4
+    response = merge_field_repair(plan, {'p0': '관계기관이 협력 방안을 마련하도록 요청했다.'})
+    assert validate([item], response)
+    assert response[item['id']]['summary'] == bad[item['id']]['summary']
+    history += [{'index': 400004, 'attempt': n, 'status': 'FAILED', 'error': 'NARRATIVE_UNSUPPORTED_LANGUAGE',
+                 'request': deepcopy(request), 'response': deepcopy(bad)} for n in range(1, 10)]
+    assert pending_batches([item], history) == ([], [item['id']])

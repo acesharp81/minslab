@@ -9,10 +9,10 @@ from .topic_structure import build_prompt, digest, response_schema, validate_res
 from .structure_retry import retry_allowance, review_retry_history
 
 PROFILE = 'discussion-context-review/3'
-DOCUMENT_PROFILE = 'discussion-request-context/1'
+DOCUMENT_PROFILE = 'discussion-request-context/2'
 VERIFY_PROFILE = 'discussion-uncertain-check/1'
 LABEL_PROFILE = 'discussion-placeholder-review/1'
-READ_PROFILES = {'discussion-context-review/1', 'discussion-context-review/2', PROFILE, DOCUMENT_PROFILE, VERIFY_PROFILE, LABEL_PROFILE}
+READ_PROFILES = {'discussion-context-review/1', 'discussion-context-review/2', PROFILE, 'discussion-request-context/1', DOCUMENT_PROFILE, VERIFY_PROFILE, LABEL_PROFILE}
 BATCH_START = 400000
 
 
@@ -89,10 +89,21 @@ def review_prompt(request: dict[str, Any]) -> str:
     atoms = [{**a, 'hints': []} for a in request['atoms']]
     targets = [{k: f[k] for k in ('atom_id', 'start', 'end', 'quote') if k in f}
                for f in request['targets']]
-    return (build_prompt(atoms, []) + '\n'
+    source_prompt = build_prompt(atoms, request.get('context_catalog', []))
+    source_prompt = source_prompt.replace(
+        'context_before/context_after는 맥락용이며 해당 발언의 근거로 사용하지 마라.',
+        'context_before/context_after는 저장 원문의 앞뒤 발언이다. 생략된 대상과 주제를 판별할 때 사용하되 '
+        'span_index와 직접 인용은 해당 source_spans에서만 선택하라. 앞뒤 발언자의 주장을 현재 화자의 발언으로 옮기지 마라.')
+    return (source_prompt + '\n'
             '이번 작업은 자동 재분류다. 이전 판단 보류는 정답이 아니다. 아래 대상 쟁점만 다시 판단하라. '
             '앞뒤 문답에서 생략된 대상이 명확하면 같은 쟁점으로 연결하되 원문에 없는 사실이나 인명은 만들지 마라. '
             '기존 쟁점과 다르면 독립된 구체 주제를 만들라. 자료 제출 요구는 해당 주제의 REQUEST로 분류하라. '
+            '위원장의 발언이라도 자료·서면 답변 제출을 지시하면 단순 진행과 구분하여 REQUEST로 남겨라. '
+            '예: 아이폰 모바일 신분증 문제를 답변한 직후 해당 사안을 서면 답변하라고 하면 그 문제의 후속 요구다. '
+            '직전의 구체적 인건비 자료 요구를 받아 신속 제출을 지시하면 같은 인건비 주제의 REQUEST다. '
+            '반면 자료 요구를 먼저 받겠다는 발언 순서 안내는 PROCEDURE다. 회의 말미 전체 기관에 한 '
+            '일괄 서면 답변 지시는 특정 정책 주제로 억지 연결하지 말고 공통 회의 후속 절차로 둬라. '
+            '대상 원문 안에 여러 요구가 있으면 각각의 원문 구간을 선택해 분리하라. '
             '인식 오류가 일부 있어도 정책 대상과 논점이 명확하면 중립적 표현으로 분류하라. '
             '진행·인사·단순 호응은 PROCEDURE, 실제 대상을 알 수 없는 끊긴 원문만 UNCERTAIN으로 둔다. '
             '사건의 정확한 법률명·목적·배경을 모르는 것과 논의 주제를 모르는 것은 다르다. '

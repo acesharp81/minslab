@@ -1,0 +1,1578 @@
+[
+  {
+    "number": 1,
+    "title": "서울시, 면목·사당 모아주택 사업성 개선하여 2,121세대 2027년 착공 추진",
+    "previous_status": "HOLD",
+    "external_category": "N",
+    "external_opinion": "서울시 사업 아카이브에서 면목 1,904세대·4개 구역을 확인. 사당 217세대와 합계 2,121세대는 언론 교차확인. 기존 면목행정복합타운·용마터널·상봉터미널과 동일성 증거 없음. 구역별 신규 등록을 우선 검토; 2027년은 착공 목표이지 실적 아님.",
+    "internal_opinion": "서울시 원문과 사업 아카이브에서 면목 4구역 및 사당 구역을 식별. 합계 2,121호는 구역 합계로만 읽으며 구역마다 반복 배분하지 않음. 2027년 착공은 예정. 기존 면목행정복합타운·용마터널·상봉터미널과 구역·사업방식이 달라 연결하지 않음. 별도 언급된 미아 사업도 합계에 혼합하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.seoul.go.kr/news/news_report.do#view/468710",
+      "https://news.seoul.go.kr/citybuild/archives/538651"
+    ],
+    "save": {
+      "document_id": "DOC_528c011f03ec6fac320df953",
+      "source_revision_no": 1,
+      "review_revision_no": 1,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "면목동 86-3 모아타운 면목역1구역",
+        "면목동 86-3 모아타운 면목역2구역",
+        "면목동 86-3 모아타운 면목역4구역",
+        "면목동 86-3 모아타운 면목역6구역",
+        "사당동 206-1 모아주택"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 1번 교차검증. 서울시 원문과 사업 아카이브에서 면목 4구역 및 사당 구역을 식별. 합계 2,121호는 구역 합계로만 읽으며 구역마다 반복 배분하지 않음. 2027년 착공은 예정. 기존 면목행정복합타운·용마터널·상봉터미널과 구역·사업방식이 달라 연결하지 않음. 별도 언급된 미아 사업도 합계에 혼합하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.seoul.go.kr/news/news_report.do#view/468710 | https://news.seoul.go.kr/citybuild/archives/538651. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 2,
+    "title": "인천도시공사 인천구월2 공공주택지구 보상 본격 착수",
+    "previous_status": "HOLD",
+    "external_category": "N",
+    "external_opinion": "iH 원문에 2026-10-12 손실보상 협의 시작 명시. 지구 전체 등록 후보이며 블록사업으로는 자동 분할 금지. 보상착수≠착공.",
+    "internal_opinion": "iH 공식 본문이 인천구월2 지구 보상 착수를 명시. 대장에 동일 지구가 없으며 검단·계양과 별개. 지구 단위 후보로 승인하고 블록별 물량·사업 경계는 등록 시 분리해야 함. 보상 착수를 주택 착공으로 계산하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2320"
+    ],
+    "save": {
+      "document_id": "DOC_46a03e4451788c1ae845bd74",
+      "source_revision_no": 1,
+      "review_revision_no": 1,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "인천구월2 공공주택지구"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 2번 교차검증. iH 공식 본문이 인천구월2 지구 보상 착수를 명시. 대장에 동일 지구가 없으며 검단·계양과 별개. 지구 단위 후보로 승인하고 블록별 물량·사업 경계는 등록 시 분리해야 함. 보상 착수를 주택 착공으로 계산하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2320. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 3,
+    "title": "지금 전세난도 버거운데…'재건축發 전세난'까지 덮치나",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "전세·재건축의 시장 전망 기사. 특정 구역·시행단계의 원천 증빙으로 이용 불가.",
+    "internal_opinion": "전세난·재건축 시장 전망 기사로 개별 사업의 확정 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003842663"
+    ],
+    "save": {
+      "document_id": "DOC_ba75573e18c931d356c8f388",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 3번 교차검증. 전세난·재건축 시장 전망 기사로 개별 사업의 확정 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003842663. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 4,
+    "title": "서울시 신통기획 5년 성과…214곳 지정, 31만 호 주택착공 길 열었다",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "214곳 지정·31만호는 포괄적 정책 성과 주장에 해당. 개별 구역 목록·실제 착공을 분리해 검증하고 총량 실적을 중복 반영하지 않을 것.",
+    "internal_opinion": "서울 신속통합기획214곳·31만호는 전체 계획 집계. 개별 사업별 단계·호수의 실적 근거가 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.seoul.go.kr/news/news_report.do#view/468917",
+      "https://www.yna.co.kr/view/AKR20261027067700004"
+    ],
+    "save": {
+      "document_id": "DOC_1a6ca43e629b43f161ea2d4f",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 4번 교차검증. 서울 신속통합기획214곳·31만호는 전체 계획 집계. 개별 사업별 단계·호수의 실적 근거가 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.seoul.go.kr/news/news_report.do#view/468917 | https://www.yna.co.kr/view/AKR20261027067700004. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 5,
+    "title": "사내대출 주택자금 8개월 만에 작년의 1.5배…정부, 손질하나",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "사내대출 제도 기사. 공급사업의 계획·인가·착공 근거가 아님.",
+    "internal_opinion": "사내대출 규제 일반 금융 기사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003842777"
+    ],
+    "save": {
+      "document_id": "DOC_1b927f540b8411e253c0d75c",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 5번 교차검증. 사내대출 규제 일반 금융 기사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003842777. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 6,
+    "title": "양천구, 서부트럭터미널 개발 인허가…내년 상반기 착공",
+    "previous_status": "HOLD",
+    "external_category": "N",
+    "external_opinion": "양천구 인허가 발표를 복수 언론이 확인. 전체 복합개발 중 주택 990가구로 범위 분리; 2027년 상반기 착공·2032년 준공은 목표. 구청 승인 고시/허가서 확보 후 신규등록.",
+    "internal_opinion": "기사 본문에서 위치·주택 990호·2027년 상반기 착공 예정 등을 확인. 기존 양천 사업과 동일성 없음. 언론 기반 등록 후보이며 인허가 원문 및 물류·상업시설과 주택분 범위 확인이 등록 선행조건. 기사 숫자나 승인일을 실적에 직접 반영하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003842873"
+    ],
+    "save": {
+      "document_id": "DOC_229e67522fa324e426611a2c",
+      "source_revision_no": 1,
+      "review_revision_no": 1,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "서부트럭터미널 복합개발 주택분 · 신정동 1315 일대"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 6번 교차검증. 기사 본문에서 위치·주택 990호·2027년 상반기 착공 예정 등을 확인. 기존 양천 사업과 동일성 없음. 언론 기반 등록 후보이며 인허가 원문 및 물류·상업시설과 주택분 범위 확인이 등록 선행조건. 기사 숫자나 승인일을 실적에 직접 반영하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.newsis.com/view/NISX20261027_0003842873. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 7,
+    "title": "인천 AI 커넥티비티 혁신도시 선포…\"미래 모빌리티 선도\"",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "미래 모빌리티·AI 도시 선포는 특정 주택사업의 단계 증빙이 아님.",
+    "internal_opinion": "인천 AI·모빌리티 산업지원 계획으로 개별 주택공급 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003843140"
+    ],
+    "save": {
+      "document_id": "DOC_28c3a650f354eb07553f823f",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 7번 교차검증. 인천 AI·모빌리티 산업지원 계획으로 개별 주택공급 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003843140. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 8,
+    "title": "산본 재건축 4곳 행정절차 착수…주민들, 공람때 사업성 점검 필수",
+    "previous_status": "REVIEW",
+    "external_category": "N",
+    "external_opinion": "군포시 주민제안 수용·공람 추진 4개 구역으로 특정됨. 25번과 동일 사건이므로 자료만 함께 묶고 구역별 계획물량은 인가 단계와 구별.",
+    "internal_opinion": "본문의 4개 구역과 주민공람 10월27일~11월13일을 확인. 지정 제안 수용은 지정 완료·사업시행인가와 다름. 외부 검토 25번과 동일 사건으로 동일 후보명을 사용. 군포시 공람 원문 확인 후 등록하며 두 기사를 별도 사업·물량으로 합산하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003841939",
+      "https://www.yna.co.kr/view/AKR20261026110100061"
+    ],
+    "save": {
+      "document_id": "DOC_7bd95211951a0c7a192755b7",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "산본 3-1구역",
+        "산본 7구역",
+        "산본 12구역",
+        "산본 13구역"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 8번 교차검증. 본문의 4개 구역과 주민공람 10월27일~11월13일을 확인. 지정 제안 수용은 지정 완료·사업시행인가와 다름. 외부 검토 25번과 동일 사건으로 동일 후보명을 사용. 군포시 공람 원문 확인 후 등록하며 두 기사를 별도 사업·물량으로 합산하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.newsis.com/view/NISX20261026_0003841939 | https://www.yna.co.kr/view/AKR20261026110100061. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 9,
+    "title": "[부고]안경하(수원시 공동주택과 임대사업관리팀장)씨 모친상",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "부고 기사로 주택사업 연결 대상이 아님.",
+    "internal_opinion": "부고 기사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003842514"
+    ],
+    "save": {
+      "document_id": "DOC_80a66bebac699c67c88932bd",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 9번 교차검증. 부고 기사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003842514. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 10,
+    "title": "압구정 '억'소리 나는 하락세…재건축 앞두고 급매 속출",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "압구정 매매가격 동향 기사. 정비사업 인허가·사업물량 증빙 아님.",
+    "internal_opinion": "압구정 시장가격 기사이며 정비사업 승인·착공 근거가 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003841832"
+    ],
+    "save": {
+      "document_id": "DOC_941dc788cc6f697b8a10e0dd",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 10번 교차검증. 압구정 시장가격 기사이며 정비사업 승인·착공 근거가 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003841832. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 11,
+    "title": "신상진 성남시장 \"국토부 교통영향평가 요구, 분당 재건축 발목 잡아\"",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "교통영향평가 시점에 관한 성남시 문제제기 확인. 지정 지연 ‘우려’이며 확정 지연 실적 아님; 개별 구역·인가문서 확인 시 사업별 위험 이슈로 연결.",
+    "internal_opinion": "분당 교통영향평가 지연 위험에 관한 전망으로 개별 확정 단계 실적이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003842736",
+      "https://snvision.seongnam.go.kr/23530"
+    ],
+    "save": {
+      "document_id": "DOC_9772d0770d5eb1e26f586e49",
+      "source_revision_no": 2,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 11번 교차검증. 분당 교통영향평가 지연 위험에 관한 전망으로 개별 확정 단계 실적이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003842736 | https://snvision.seongnam.go.kr/23530. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 12,
+    "title": "전셋집 못 구해 난리인데…정부 공적 주택 10만호 공급은 언제",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "10만호는 기사 주제의 총량 수치. 개별 사업 식별자 및 공식 목표표 확인 없이는 사업실적에 합산할 수 없음.",
+    "internal_opinion": "공적주택10만호 정책·시장 총론. 개별 사업에 전체량을 분배할 근거 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003840906"
+    ],
+    "save": {
+      "document_id": "DOC_a51138d7a98a43035fb6fff1",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 12번 교차검증. 공적주택10만호 정책·시장 총론. 개별 사업에 전체량을 분배할 근거 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003840906. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 13,
+    "title": "제50차 장기전세주택 입주자 모집공고(2026.04.27.) 당첨자 및 예비입주자 발표",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "당첨·예비입주자 발표는 모집 절차상의 상태 변화. 공고 ID에 연결하며 신규 착공·준공·입주 실적으로 처리하지 말 것.",
+    "internal_opinion": "SH 제50차 장기전세(모공고2026-04-27) 당첨자 발표는 다단지 선정 절차. 개인 당첨자 목록이 아닌 모공고의 단지·유형·차수별 공급표가 필요. 현재 문서만으로 전체 단지를 기존 사업에 일괄 연결하거나 공급·입주 실적으로 계산할 수 없어 보류.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312294"
+    ],
+    "save": {
+      "document_id": "DOC_c9bb50e13584cd02ea718861",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "HOLD",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 13번 교차검증. SH 제50차 장기전세(모공고2026-04-27) 당첨자 발표는 다단지 선정 절차. 개인 당첨자 목록이 아닌 모공고의 단지·유형·차수별 공급표가 필요. 현재 문서만으로 전체 단지를 기존 사업에 일괄 연결하거나 공급·입주 실적으로 계산할 수 없어 보류. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312294. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 14,
+    "title": "국토 1차관 \"모듈러주택, 아낌없이 정책 지원…건설업 난제 열쇠\"",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "정부 지원 방향에 대한 발언. 특정 단지의 착공·공급 일정과 직접 연결 불가.",
+    "internal_opinion": "모듈러 정책 발언·공급방식 총론으로 개별 블록 실적 미특정. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003842937"
+    ],
+    "save": {
+      "document_id": "DOC_cf6ff701eaca6023237595ec",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 14번 교차검증. 모듈러 정책 발언·공급방식 총론으로 개별 블록 실적 미특정. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003842937. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 15,
+    "title": "이 대통령 \"유럽 시위 반면교사 삼아 내수 개선 총력…주택착공 실적도 높여야\"(종합)",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "착공 실적 제고 지시는 정책 관리 맥락. 특정 사업의 실적증명으로 사용할 수 없음.",
+    "internal_opinion": "대통령 주택정책 발언으로 개별 사업 사건 미특정. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003842706"
+    ],
+    "save": {
+      "document_id": "DOC_d8cae99773dd5774b7c1ef01",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 15번 교차검증. 대통령 주택정책 발언으로 개별 사업 사건 미특정. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003842706. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 16,
+    "title": "주택공급에 한강버스까지…정부·서울시, 핵심 현안 두고 '팽팽'",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "기관 간 입장차 기사. 개별 프로젝트 단계/지연 판정 근거로 사용하지 말 것.",
+    "internal_opinion": "정부·서울시 공급정책 논쟁. 세운4·용산 관련 발언만으로 기존의 다른 용산 사업에 연결할 수 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003841971"
+    ],
+    "save": {
+      "document_id": "DOC_dc72ee5294934efa34847292",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 16번 교차검증. 정부·서울시 공급정책 논쟁. 세운4·용산 관련 발언만으로 기존의 다른 용산 사업에 연결할 수 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003841971. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 17,
+    "title": "농협 평택지부, 4-H경진대회서 '농심천심 운동' 전개",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "농협 지역 행사 기사로 주택공급 무관.",
+    "internal_opinion": "농협 행사 보도. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003843465"
+    ],
+    "save": {
+      "document_id": "DOC_e0c1e2e6de053f7a50ed3115",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 17번 교차검증. 농협 행사 보도. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003843465. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 18,
+    "title": "'취득 중과세 제외' 용인 기흥·수지 2주택 처분 3→2년 단축",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "주택 세제·처분기한 기사. 공급사업 행정단계와 무관.",
+    "internal_opinion": "주택 취득세 일반 세제 기사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261027_0003842180"
+    ],
+    "save": {
+      "document_id": "DOC_e1ebe1705ba6e273c6a99880",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 18번 교차검증. 주택 취득세 일반 세제 기사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261027_0003842180. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 19,
+    "title": "경기도, 포천·군포서 ‘찾아가는 주거복지 이동상담’",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "주거복지 상담행사는 공급물량·인허가 이벤트 아님.",
+    "internal_opinion": "주거상담·지원 행사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003840677"
+    ],
+    "save": {
+      "document_id": "DOC_0761645e277769ec397be2bc",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 19번 교차검증. 주거상담·지원 행사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003840677. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 20,
+    "title": "평택지속가능발전협, SDGs 서포터즈 탐구사례 발표회",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "SDGs 발표회는 특정 주택사업 근거가 아님.",
+    "internal_opinion": "지속가능발전 성과발표 행사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003841251"
+    ],
+    "save": {
+      "document_id": "DOC_13b41192c1fbc1e0d60e0351",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 20번 교차검증. 지속가능발전 성과발표 행사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003841251. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 21,
+    "title": "부천 괴안·소사본동 재건축 정비구역 지정…4732가구 공급",
+    "previous_status": "REVIEW",
+    "external_category": "N",
+    "external_opinion": "부천시 공식 보도에서 괴안3-1·3-2·3-4(한 묶음), 괴안3-3, 괴안3-5, 소사본3-2의 4개 구역·합계 4,732세대 확인. 구역별로 등록 검토; 지정=착공 아님.",
+    "internal_opinion": "부천시 공식 본문으로 4개 구역 지정과 계획 1,499·999·962·1,272호(합계 4,732호)를 교차 확인. 기존 LH 부천괴안 A1 공공주택과 다른 정비사업. 구역 지정은 사업시행인가·착공 실적이 아님. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003841072",
+      "https://news.bucheon.go.kr/home/kor/M337742440/board.do?act=detail&idx=cb00d1a0008a85e71a41b8741facbffedb2c362d456f09e405efb008f84416a8"
+    ],
+    "save": {
+      "document_id": "DOC_20ef95086de8e89ae3532be4",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "괴안3-1·괴안3-2·괴안3-4 통합 재건축구역",
+        "괴안3-3 재건축구역",
+        "괴안3-5 재건축구역",
+        "소사본3-2 재건축구역"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 21번 교차검증. 부천시 공식 본문으로 4개 구역 지정과 계획 1,499·999·962·1,272호(합계 4,732호)를 교차 확인. 기존 LH 부천괴안 A1 공공주택과 다른 정비사업. 구역 지정은 사업시행인가·착공 실적이 아님. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.newsis.com/view/NISX20261026_0003841072 | https://news.bucheon.go.kr/home/kor/M337742440/board.do?act=detail&idx=cb00d1a0008a85e71a41b8741facbffedb2c362d456f09e405efb008f84416a8. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 22,
+    "title": "관악구, 공동주택 50곳에 종이팩 분리배출 봉투 배부",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "공동주택 종이팩 분리배출사업으로 공급단계와 무관.",
+    "internal_opinion": "종이팩·종량제봉투 교환 캠페인. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003841240"
+    ],
+    "save": {
+      "document_id": "DOC_2dd94f10f59ab69ee52a2953",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 22번 교차검증. 종이팩·종량제봉투 교환 캠페인. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003841240. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 23,
+    "title": "강북구 신혼부부(수요자맞춤형)주택 1~4차 잔여세대 입주자 모집 공고",
+    "previous_status": "HOLD",
+    "external_category": "S",
+    "external_opinion": "강북구 공고 제2026-1545호로 기존 재고 4세대의 잔여입주자 모집 확인. 주소별 건물 ID 필요. 2027.3~5는 계획 입주기간이며 신규 공급 4호로 중복 계산 금지.",
+    "internal_opinion": "강북구 공고 제2026-1545호 PDF 1~3쪽에서 3개 주소, 잔여 4호(202·303·402·302호)를 확인. 외부 검토의 주소 확인 과제를 해소. 기존 미아동 783-15·231-1의 신축 인허가 사업과 동일하다는 근거가 없어 연결하지 않음. 재고 임대주택 재모집으로 관리할 후보이며 4호를 신규 건설 총량으로 가산하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311965",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311965&fileTp=A&fileSeq=1",
+      "https://eminwon.gangbuk.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=36511&not_ancmt_se_code=01%2C02%2C03%2C04%2C05&ofr_pageSize=10&subCheck=Y"
+    ],
+    "save": {
+      "document_id": "DOC_370ccccf1b49a098e294d3b1",
+      "source_revision_no": 1,
+      "review_revision_no": 1,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "강북구 해피하우스 · 인수봉로72길 15-18",
+        "강북구 해피하우스 · 삼양로123길 40-8",
+        "강북구 해피하우스 · 삼양로123길 40-12"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 23번 교차검증. 강북구 공고 제2026-1545호 PDF 1~3쪽에서 3개 주소, 잔여 4호(202·303·402·302호)를 확인. 외부 검토의 주소 확인 과제를 해소. 기존 미아동 783-15·231-1의 신축 인허가 사업과 동일하다는 근거가 없어 연결하지 않음. 재고 임대주택 재모집으로 관리할 후보이며 4호를 신규 건설 총량으로 가산하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311965 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311965&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 24,
+    "title": "수영장에 아이스링크까지…정부, 분양가 올리는 '호화 커뮤니티' 설치 제동",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "커뮤니티시설·분양가 심사제도 기사. 개별 승인 또는 공급물량 확정 자료 아님.",
+    "internal_opinion": "분양가·커뮤니티시설 규제 일반제도 기사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003840388"
+    ],
+    "save": {
+      "document_id": "DOC_3a9f8b9886984caa96f7a6b4",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 24번 교차검증. 분양가·커뮤니티시설 규제 일반제도 기사. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003840388. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 25,
+    "title": "산본신도시 재건축 4곳 특별정비구역 절차 돌입",
+    "previous_status": "REVIEW",
+    "external_category": "N",
+    "external_opinion": "8번과 같은 주민제안·공람 절차의 중복 기사. 독립 공급 이벤트로 집계 금지; 자료 2건을 4개 구역의 같은 이벤트에 연결할지 대조.",
+    "internal_opinion": "외부 검토 8번의 후속 보도와 동일 4구역·동일 지정 제안 수용 사건. 원문에서 구역을 식별했으나 군포시 공람 원문은 등록 선행조건. 동일 후보로 관리하며 중복 사업 생성·물량 가산 금지. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003840715",
+      "https://www.yna.co.kr/view/AKR20261026110100061"
+    ],
+    "save": {
+      "document_id": "DOC_40313ee5ee575ee5f833b9fd",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "산본 3-1구역",
+        "산본 7구역",
+        "산본 12구역",
+        "산본 13구역"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 25번 교차검증. 외부 검토 8번의 후속 보도와 동일 4구역·동일 지정 제안 수용 사건. 원문에서 구역을 식별했으나 군포시 공람 원문은 등록 선행조건. 동일 후보로 관리하며 중복 사업 생성·물량 가산 금지. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.newsis.com/view/NISX20261026_0003840715 | https://www.yna.co.kr/view/AKR20261026110100061. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 26,
+    "title": "한국토지주택공사(LH), 매입임대 사업 투명성 높인다... ‘상담내역 등록제’로 제3자 개입 원천 차단",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "제3자 개입 방지 및 상담내역 등록제도. 개별 주택 매입·입주 실적을 증명하지 않음. 28번 기사와 동일 이슈 묶음.",
+    "internal_opinion": "LH 공인중개사협회 협력·매입 상담 등록 제도. 공식 HWPX에 개별 매입 주택 식별목록 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12171"
+    ],
+    "save": {
+      "document_id": "DOC_508dd7c60b56d1e402c6a7af",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 26번 교차검증. LH 공인중개사협회 협력·매입 상담 등록 제도. 공식 HWPX에 개별 매입 주택 식별목록 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12171. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 27,
+    "title": "[토지지원 사회주택]유니버설디자인하우스_장안 입주자 모집 공고",
+    "previous_status": "HOLD",
+    "external_category": "S",
+    "external_opinion": "주택·운영주체 식별 가능; 405호 1호 모집이라는 외부 안내 확인(공식 SH 첨부 본문 직접 검증 필요). 건물 전체 42세대와 모집 1호를 구분해 사회주택 자산 등록 후 공고 연결.",
+    "internal_opinion": "외부 모델의 2차 자료 중심 판단을 보완. SH 공식 게시문 및 모집 PDF에서 장안벚꽃로11(장안동456-4), 도시형생활주택42세대, 이번405호1호, 2027년1월17일 입주 가능을 확인. 운영자는 유니버설하우징협동조합이고 SH 직접 공급으로 오인하지 않음. 기존 대장에 동일 자산 없음. 42호 전체와 이번 재모집1호를 구분. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311987",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311987&fileTp=A&fileSeq=1",
+      "https://opcl.kr/policy-details/nrA6daEBGedfapFa9z6m/"
+    ],
+    "save": {
+      "document_id": "DOC_60609567055fcae5d67d8555",
+      "source_revision_no": 1,
+      "review_revision_no": 1,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "유니버설디자인하우스 장안 · 장안동 456-4"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 27번 교차검증. 외부 모델의 2차 자료 중심 판단을 보완. SH 공식 게시문 및 모집 PDF에서 장안벚꽃로11(장안동456-4), 도시형생활주택42세대, 이번405호1호, 2027년1월17일 입주 가능을 확인. 운영자는 유니버설하우징협동조합이고 SH 직접 공급으로 오인하지 않음. 기존 대장에 동일 자산 없음. 42호 전체와 이번 재모집1호를 구분. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311987 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311987&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 28,
+    "title": "\"매입임대 브로커 차단\"…LH, 제3자 상담내역 등록제 도입",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "26번 LH 원문에 대한 언론 보도 성격. 동일한 제도 개선 이슈로만 연결하고 공급실적과 무관.",
+    "internal_opinion": "26번 LH 협력 제도를 보도한 후속 기사로 개별 주택 식별목록 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003841308",
+      "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12171"
+    ],
+    "save": {
+      "document_id": "DOC_6bdd6d643312023f930fdb15",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 28번 교차검증. 26번 LH 협력 제도를 보도한 후속 기사로 개별 주택 식별목록 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003841308 | https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12171. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 29,
+    "title": "[메이플자이]제7차 장기전세주택2 입주안내문",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "실명 단지+입주안내 식별. SH 공급분 동·호수와 제7차 공고ID 대조하여 안내 이벤트로 연결; 입주완료 증빙은 별도.",
+    "internal_opinion": "SH 입주안내 PDF에서 두 단지 주소를 확인. 기존 신반포22차·반포주공1단지와 별개이며 동일 자산 없음. 제7차 장기전세2 입주 안내는 임대 공급분 후속 절차로, 단지 전체 호수나 실제 입주 완료를 뜻하지 않음. 모공고 공급분 대조 후 자산 등록. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312183",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=SCGS01&seq=312183&fileTp=A&fileSeq=1"
+    ],
+    "save": {
+      "document_id": "DOC_752ffa8c4afa0bf02cd2020e",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "메이플자이 1단지 · 신반포로251",
+        "메이플자이 2단지 · 신반포로253"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 29번 교차검증. SH 입주안내 PDF에서 두 단지 주소를 확인. 기존 신반포22차·반포주공1단지와 별개이며 동일 자산 없음. 제7차 장기전세2 입주 안내는 임대 공급분 후속 절차로, 단지 전체 호수나 실제 입주 완료를 뜻하지 않음. 모공고 공급분 대조 후 자산 등록. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312183 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=SCGS01&seq=312183&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 30,
+    "title": "국토부 \"주택 구입비 내 금융자산 비중 증가…실수요 중심 시장 영향\"",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "주택 구입자금 구성의 시장 통계 해설. 공급사업 실적과 무관.",
+    "internal_opinion": "주택 구입자금 구성 통계와 금융시장 설명. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003841577"
+    ],
+    "save": {
+      "document_id": "DOC_89d4ef2c1b3ec80003972967",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 30번 교차검증. 주택 구입자금 구성 통계와 금융시장 설명. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003841577. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 31,
+    "title": "SH, 양육친화 주거환경 연구로 공공디자인대상 수상",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "공공디자인 수상 기사. 정비사업 단계 자료 아님.",
+    "internal_opinion": "SH 공공디자인상 수상·연구성과 보도. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003841096"
+    ],
+    "save": {
+      "document_id": "DOC_8c670a5941b3a977815d06f1",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 31번 교차검증. SH 공공디자인상 수상·연구성과 보도. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003841096. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 32,
+    "title": "인천도시공사, 소규모주택정비사업 전문가 양성교육 개최",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "소규모주택정비 전문가 교육. 개별 사업 추진 증빙 아님.",
+    "internal_opinion": "소규모주택정비 전문가 양성교육으로 특정 사업의 인허가·착공 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2326"
+    ],
+    "save": {
+      "document_id": "DOC_b22025ae24af4a7732ba5ed2",
+      "source_revision_no": 2,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 32번 교차검증. 소규모주택정비 전문가 양성교육으로 특정 사업의 인허가·착공 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2326. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 33,
+    "title": "과천시, 재건축 양도세·부동산 세제 특강 개최",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "부동산 세제 특강. 공급사업 미포함.",
+    "internal_opinion": "과천 세제 특강 안내. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003841679"
+    ],
+    "save": {
+      "document_id": "DOC_bdbdf4ac0eb116a029e806a2",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 33번 교차검증. 과천 세제 특강 안내. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003841679. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 34,
+    "title": "삼성물산, 7381억원 규모 '창원 용호1구역 재건축' 수주",
+    "previous_status": "REVIEW",
+    "external_category": "N",
+    "external_opinion": "시공사 공식 발표로 창원 성산구 용호동 62 일대 1,315세대, 2026-10-25 시공자 선정 총회 확인. 시공사 선정≠착공. 민간 정비사업 관리범위 검토 후 등록.",
+    "internal_opinion": "삼성물산 공식 발표로 창원 용호1 시공사 선정을 확인했으나 경남 창원 사업으로 현재 수도권 주택공급 개별사업 검토 범위 밖. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003840479",
+      "https://news.samsungcnt.com/ko/%EC%A0%84%EC%B2%B4%EA%B8%B0%EC%82%AC/%EA%B1%B4%EC%84%A4%EB%B6%80%EB%AC%B8/2026-10-%EC%82%BC%EC%84%B1%EB%AC%BC%EC%82%B0-%EC%B0%BD%EC%9B%90-%EC%9A%A9%ED%98%B81%EA%B5%AC%EC%97%AD-%EC%9E%AC%EA%B1%B4%EC%B6%95-%EC%8B%9C%EA%B3%B5%EC%82%AC-%EC%84%A0%EC%A0%95/"
+    ],
+    "save": {
+      "document_id": "DOC_cb68ffa6f5a3f6bcd2a5f628",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 34번 교차검증. 삼성물산 공식 발표로 창원 용호1 시공사 선정을 확인했으나 경남 창원 사업으로 현재 수도권 주택공급 개별사업 검토 범위 밖. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003840479 | https://news.samsungcnt.com/ko/%EC%A0%84%EC%B2%B4%EA%B8%B0%EC%82%AC/%EA%B1%B4%EC%84%A4%EB%B6%80%EB%AC%B8/2026-10-%EC%82%BC%EC%84%B1%EB%AC%BC%EC%82%B0-%EC%B0%BD%EC%9B%90-%EC%9A%A9%ED%98%B81%EA%B5%AC%EC%97%AD-%EC%9E%AC%EA%B1%B4%EC%B6%95-%EC%8B%9C%EA%B3%B5%EC%82%AC-%EC%84%A0%EC%A0%95/. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 35,
+    "title": "롯데건설, 서초동 '롯데캐슬 아트팰리스' 11월 분양…소형 146가구",
+    "previous_status": "REVIEW",
+    "external_category": "N",
+    "external_opinion": "시공·분양 브랜드 공식 사이트에서 서초동 1448-1, 전체 835세대 중 일반분양 146세대, 2026년 11월 분양예정 확인. 일반분양 146호를 전체 세대수로 오인하지 말 것.",
+    "internal_opinion": "기사 본문에서 서초동1448-1·총835호·일반분양146호를 식별. 기존 서초·반포 사업과 동일성 없음. 외부 제시 롯데캐슬 공식 URL은 TLS 인증서 불일치로 본문 검증을 완료하지 못했으므로 언론 기반 등록 후보로만 승인. 공식 모집공고 확인 전 총량·실적 미반영. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003840460",
+      "https://www.lottecastle.net/APT/AT00433/17085/summary/view.do"
+    ],
+    "save": {
+      "document_id": "DOC_cd55f6dfa043c0c65bfdd5e1",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "서초 롯데캐슬 아트팰리스 · 서초동1448-1"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 35번 교차검증. 기사 본문에서 서초동1448-1·총835호·일반분양146호를 식별. 기존 서초·반포 사업과 동일성 없음. 외부 제시 롯데캐슬 공식 URL은 TLS 인증서 불일치로 본문 검증을 완료하지 못했으므로 언론 기반 등록 후보로만 승인. 공식 모집공고 확인 전 총량·실적 미반영. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.newsis.com/view/NISX20261026_0003840460 | https://www.lottecastle.net/APT/AT00433/17085/summary/view.do. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 36,
+    "title": "대보건설, 대전 가오동1구역 재건축 수주…올해 누적 1조원 돌파",
+    "previous_status": "REVIEW",
+    "external_category": "N",
+    "external_opinion": "대전 동구 가오동 210일대 기존 460→계획 700가구, 시공자 선정 단계임을 보도 교차확인. 증가분 240호·총량 700호는 서로 다른 지표; 공식 조합·구청 확인 필요.",
+    "internal_opinion": "대전 가오1 사업 보도이나 현재 수도권 주택공급 개별사업 검토 범위 밖. 시공사 선정과 착공·공급 실적은 구분. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003840595",
+      "https://www.yna.co.kr/amp/view/AKR20261026036000003"
+    ],
+    "save": {
+      "document_id": "DOC_d15e093b92a5dd7d581f8b2d",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 36번 교차검증. 대전 가오1 사업 보도이나 현재 수도권 주택공급 개별사업 검토 범위 밖. 시공사 선정과 착공·공급 실적은 구분. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003840595 | https://www.yna.co.kr/amp/view/AKR20261026036000003. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 37,
+    "title": "동탄 핵심 입지에 49층…'아크메르 동탄' 26일 분양 시작",
+    "previous_status": "REVIEW",
+    "external_category": "N",
+    "external_opinion": "청약 기반 자료에 동탄(1) M1-1-2 812세대, M1-2-2 996세대의 서로 다른 2개 블록 공고가 있음. 2개 사업/블록 구분 등록 검토 및 청약홈 원문 대조.",
+    "internal_opinion": "기사에서 95/99 두 블록과 812/996호를 구분. 기존 화성동탄2 C14·C27과 다른 동탄1 사업. 공식 청약 모집공고·주택관리번호 확인은 등록 선행조건으로 남김. 언론의 합계1,808호를 사업별 반복 가산하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003840705",
+      "https://www.iapt.kr/apartments/%EA%B2%BD%EA%B8%B0/getAPTLttotPblancDetail-2026000508-2026000508"
+    ],
+    "save": {
+      "document_id": "DOC_d67e83e7ac43db647ce4ced1",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "아크메르 동탄95 · 반송동95 · M1-1-2",
+        "아크메르 동탄99 · 반송동99 · M1-2-2"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 37번 교차검증. 기사에서 95/99 두 블록과 812/996호를 구분. 기존 화성동탄2 C14·C27과 다른 동탄1 사업. 공식 청약 모집공고·주택관리번호 확인은 등록 선행조건으로 남김. 언론의 합계1,808호를 사업별 반복 가산하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.newsis.com/view/NISX20261026_0003840705 | https://www.iapt.kr/apartments/%EA%B2%BD%EA%B8%B0/getAPTLttotPblancDetail-2026000508-2026000508. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 38,
+    "title": "아파트 입주자 30%만 모집하고 '마감임박'…공정위, 시행사 4곳 제재",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "부당광고 제재 기사. 특정 사업의 공급달성이나 분양률 근거로 사용 금지; 공고 신뢰성 점검 참고.",
+    "internal_opinion": "분양광고 제재 기사로 신규 주택 공급·단계 실적 근거가 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261026_0003840647"
+    ],
+    "save": {
+      "document_id": "DOC_d8166ab73d1ec0d3d44b2707",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 38번 교차검증. 분양광고 제재 기사로 신규 주택 공급·단계 실적 근거가 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261026_0003840647. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 39,
+    "title": "[입주안내문] 힐스테이트 동작시그니처",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "단지명 명시 입주안내. SH 보유분의 입주절차 공고로 연결 가능성이 있으나 실제 입주 세대수·일자는 안내문만으로 확정하지 않음.",
+    "internal_opinion": "SH 공식 입주안내 및 첨부로 해당 단지의 입주 예정 절차를 확인. 기존 동작1(동작동102, 이수스위첸포레힐즈)과 같은 사업으로 연결할 수 없음. 동작구 명칭 유사성만으로 기존 정비사업에 연결하지 않음. 실제 입주 호수와 공급 유형별 범위는 별도 확인. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312227",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=312227&fileTp=A&fileSeq=1"
+    ],
+    "save": {
+      "document_id": "DOC_f8e418dd1c6c6d46a0e25af0",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "힐스테이트 동작 시그니처"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 39번 교차검증. SH 공식 입주안내 및 첨부로 해당 단지의 입주 예정 절차를 확인. 기존 동작1(동작동102, 이수스위첸포레힐즈)과 같은 사업으로 연결할 수 없음. 동작구 명칭 유사성만으로 기존 정비사업에 연결하지 않음. 실제 입주 호수와 공급 유형별 범위는 별도 확인. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312227 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=312227&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 40,
+    "title": "2026년 재개발임대주택 입주자 모집(2026.9.9.공고) 심사서류 제출 안내",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "41번과 같은 모(母)공고의 후속 절차. 모집공고ID·전형단계 연결; 개별 정비사업 자동 배분 금지.",
+    "internal_opinion": "2026-09-09 재개발임대주택 모집의 서류제출 후속 안내. 41번과 같은 모공고 계열로 확인. 개별 단지·SH관리 호수 목록을 모공고에서 확보하고 기존 사업별 범위를 대조해야 함. 서류 접수는 신규 건설·실제 입주가 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312066"
+    ],
+    "save": {
+      "document_id": "DOC_085f9f04d44a8a5950fb0da1",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "HOLD",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 40번 교차검증. 2026-09-09 재개발임대주택 모집의 서류제출 후속 안내. 41번과 같은 모공고 계열로 확인. 개별 단지·SH관리 호수 목록을 모공고에서 확보하고 기존 사업별 범위를 대조해야 함. 서류 접수는 신규 건설·실제 입주가 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312066. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 41,
+    "title": "2026년 재개발임대주택 입주자 모집(2026.9.9.공고) 서류심사 대상자 발표",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "40번과 같은 모(母)공고의 대상자 발표. 발표·서류제출 이벤트를 날짜별로 구분해 하나의 모집 건에 연결.",
+    "internal_opinion": "2026-09-09 재개발임대주택 모집 서류심사 대상 발표. 40번과 같은 모집 사건의 다른 절차. 다단지 모공고의 단지별 공급표가 없어 연결 대상 미확정. 후보 당첨 인원이나 서류심사 인원을 사업 호수로 반영하지 않음.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311988"
+    ],
+    "save": {
+      "document_id": "DOC_222ffa5be20f991296201e98",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "HOLD",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 41번 교차검증. 2026-09-09 재개발임대주택 모집 서류심사 대상 발표. 40번과 같은 모집 사건의 다른 절차. 다단지 모공고의 단지별 공급표가 없어 연결 대상 미확정. 후보 당첨 인원이나 서류심사 인원을 사업 호수로 반영하지 않음. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311988. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 42,
+    "title": "노원구 도전숙(수요자맞춤형) 잔여세대 입주자 모집 공고",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "서울주거포털에서 잔여세대 6호 모집 및 일정 확인. 개별 주소·공급건별 사업ID 확보 후 모집으로 연결; 신규 건설 실적 아님.",
+    "internal_opinion": "노원구 공고 제2026-1772호 스캔 PDF 1쪽 육안 확인: 하계동 다원하이빌 2개 주소, 모집6세대, 공고10월23일~11월9일. 기존 하계5단지 재건축·공릉 LH건설사업과 별개. 잔여 재고 모집 자산 후보로 등록 대기하며 6호를 신규 건설 실적으로 반영하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311908",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311908&fileTp=A&fileSeq=1",
+      "https://housing.seoul.go.kr/site/main/sh/publicLease/05/view?seq=2"
+    ],
+    "save": {
+      "document_id": "DOC_2fc8e5ba041834cb45112031",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "노원구 도전숙 다원하이빌 가동 · 공릉로58마길19",
+        "노원구 도전숙 다원하이빌 나동 · 공릉로58바길28-2"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 42번 교차검증. 노원구 공고 제2026-1772호 스캔 PDF 1쪽 육안 확인: 하계동 다원하이빌 2개 주소, 모집6세대, 공고10월23일~11월9일. 기존 하계5단지 재건축·공릉 LH건설사업과 별개. 잔여 재고 모집 자산 후보로 등록 대기하며 6호를 신규 건설 실적으로 반영하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311908 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311908&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 43,
+    "title": "2026년 2차 장기미임대 매입임대주택 입주자 모집공고(2026. 8. 28.) 서류심사 대상자 발표",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "2026-08-28 모공고의 서류심사 대상자 발표. 분산 자산의 모집 이벤트로 관리하며 주택사업 1건으로 합산하면 안 됨.",
+    "internal_opinion": "2026-08-28 장기미임대 매입임대2차의 서류심사 절차. 여러 주택자산에 걸친 모공고 주소별 목록·관리번호가 필요. 매입 재고의 재모집과 신규 건설을 구분해야 하므로 주소 식별 전 보류.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311936"
+    ],
+    "save": {
+      "document_id": "DOC_3eb99c2d9ff0898d7f44fc9c",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "HOLD",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 43번 교차검증. 2026-08-28 장기미임대 매입임대2차의 서류심사 절차. 여러 주택자산에 걸친 모공고 주소별 목록·관리번호가 필요. 매입 재고의 재모집과 신규 건설을 구분해야 하므로 주소 식별 전 보류. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311936. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 44,
+    "title": "[입주안내문] 동작보라매역 프리센트",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "단지명 명시 입주안내. 단지·SH 물량 대조 후 입주안내에 연결; 실제 입주 완료로 치환 금지.",
+    "internal_opinion": "SH 공식 입주 안내와 PDF에서 동일 단지 후속 입주 절차 확인. 기존 동작1 등 정비사업과 일치하지 않음. 청년주택의 전체 규모와 SH 관리분을 구분하여 등록할 후보이며 안내문을 실제 입주 완료로 반영하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311982",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311982&fileTp=A&fileSeq=1"
+    ],
+    "save": {
+      "document_id": "DOC_62b5e068d783c9a64e8a4bfa",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "동작 보라매역 프리센트"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 44번 교차검증. SH 공식 입주 안내와 PDF에서 동일 단지 후속 입주 절차 확인. 기존 동작1 등 정비사업과 일치하지 않음. 청년주택의 전체 규모와 SH 관리분을 구분하여 등록할 후보이며 안내문을 실제 입주 완료로 반영하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311982 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311982&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 45,
+    "title": "제6차 장기전세주택2(2025.11.28.공고) 예비 5차 입주대상자 발표",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "모공고의 예비 5차 대상자 발표. 청약·입주 프로세스 상태로만 기록; 신규 공급·준공 아님.",
+    "internal_opinion": "제6차 장기전세2(2025-11-28) 제5차 예비입주자 선정 안내. 차수 간 동일 공급 중복을 제거하려면 원공고 단지·유형별 목록이 필요. 예비자 선정은 공급량 추가 또는 입주 완료의 증거가 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312021"
+    ],
+    "save": {
+      "document_id": "DOC_dfe856fabf99f8792c43023c",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "HOLD",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 45번 교차검증. 제6차 장기전세2(2025-11-28) 제5차 예비입주자 선정 안내. 차수 간 동일 공급 중복을 제거하려면 원공고 단지·유형별 목록이 필요. 예비자 선정은 공급량 추가 또는 입주 완료의 증거가 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312021. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 46,
+    "title": "한국토지주택공사(LH), 주거안정플랜 성공적 이행을 위해 건설업계와 협력 강화",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "건설업계와 협력 강화는 계획·협업 현황. 특정 건설사업 착수 증거 아님.",
+    "internal_opinion": "외부 모델 P(일반 정책 참고) 분류를 수정. LH 공식 HWPX 본문이 부천대장A11·인천계양A22를 명시. 기존 대장에는 다른 블록만 있고 해당 블록 없음. 13개 블록4,744호·6개 공구 통합 발주 합계는 각 블록 물량이 아니므로 배분하지 않음. 12월 착공 목표는 실적이 아님. 개별 사업 식별 근거를 등록 대기에 보존. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12166"
+    ],
+    "save": {
+      "document_id": "DOC_4ffc89d2df92899aa341db4d",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "부천대장 A11",
+        "인천계양 A22"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 46번 교차검증. 외부 모델 P(일반 정책 참고) 분류를 수정. LH 공식 HWPX 본문이 부천대장A11·인천계양A22를 명시. 기존 대장에는 다른 블록만 있고 해당 블록 없음. 13개 블록4,744호·6개 공구 통합 발주 합계는 각 블록 물량이 아니므로 배분하지 않음. 12월 착공 목표는 실적이 아님. 개별 사업 식별 근거를 등록 대기에 보존. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12166. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 47,
+    "title": "성북동의 자연과 역사·문화를 품은 주거단지 조성… 성북동 3-38 일대 신속통합기획 확정",
+    "previous_status": "HOLD",
+    "external_category": "N",
+    "external_opinion": "서울시 공식 아카이브에 2026-10 신속통합기획 가이드라인 확정·약 1,070세대 명시. 별도 사업 신규 등록 검토; 정비구역 지정·사업시행인가·착공은 미입증.",
+    "internal_opinion": "서울시 원문·공식 아카이브에서 신속통합기획 확정, 1,070세대·최대22층 계획과 구역을 확인. 대장에 같은 구역 없음. 기획 확정은 정비구역 지정·사업시행인가·착공과 구분해 등록 후보로 승인. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.seoul.go.kr/news/news_report.do#view/468636",
+      "https://news.seoul.go.kr/citybuild/archives/543552"
+    ],
+    "save": {
+      "document_id": "DOC_7a1ec6af9f12b62cd9a679c8",
+      "source_revision_no": 1,
+      "review_revision_no": 1,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "성북동 3-38 일대 주택정비형 재개발"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 47번 교차검증. 서울시 원문·공식 아카이브에서 신속통합기획 확정, 1,070세대·최대22층 계획과 구역을 확인. 대장에 같은 구역 없음. 기획 확정은 정비구역 지정·사업시행인가·착공과 구분해 등록 후보로 승인. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.seoul.go.kr/news/news_report.do#view/468636 | https://news.seoul.go.kr/citybuild/archives/543552. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 48,
+    "title": "서울시, 수서택지 4개 단지 재건축‘현장 합동 신속통합자문’실시",
+    "previous_status": "HOLD",
+    "external_category": "N",
+    "external_opinion": "서울시 자문 대상은 4개 민간 단지. 현재 후보 `수서 노후 임대 재건축`(LH 수서동 707)은 다른 사업: **연결 금지**. 민간 4개 단지를 개별 등록 검토; 자문=인가 아님.",
+    "internal_opinion": "서울시 원문상 자문 대상은 수서 4개 민간 단지. 기존 수서동707 LH 노후 임대 재건축3,899호와 구역·자산이 다름. 기존 승인 판단을 해제하지 않고 별도 4개 등록 후보로 관리. 자문 통과를 사업계획승인으로 해석하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.seoul.go.kr/news/news_report.do#view/468633",
+      "https://www.newsis.com/view/NISX20261022_0003836541"
+    ],
+    "save": {
+      "document_id": "DOC_c45f9c890c1f952db73a95a6",
+      "source_revision_no": 1,
+      "review_revision_no": 1,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "수서 동익아파트 재건축",
+        "수서 신동아아파트 재건축",
+        "수서 삼익아파트 재건축",
+        "수서 한아름아파트 재건축"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 48번 교차검증. 서울시 원문상 자문 대상은 수서 4개 민간 단지. 기존 수서동707 LH 노후 임대 재건축3,899호와 구역·자산이 다름. 기존 승인 판단을 해제하지 않고 별도 4개 등록 후보로 관리. 자문 통과를 사업계획승인으로 해석하지 않음. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.seoul.go.kr/news/news_report.do#view/468633 | https://www.newsis.com/view/NISX20261022_0003836541. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 49,
+    "title": "2026년 만리동 예술인 협동조합주택(막쿱) 잔여세대 입주자 모집공고(2026. 6. 25.) 당첨자 및 예비자 발표",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "2026-06-25 모집공고의 당첨자·예비자 발표. 동일 자산/모공고의 후속 이벤트로만 연결.",
+    "internal_opinion": "SH 본문이 2026년6월25일 잔여세대 모공고와 계약11월4~5일, 입주11월16일~2027년1월15일을 특정. 대장에 동일 자산 없음. 당첨자 개인정보 목록은 수집하지 않고 식별된 임대자산 등록 후보만 승인. 잔여세대 수·주소·모공고 범위 확인 전 물량 미반영. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311870"
+    ],
+    "save": {
+      "document_id": "DOC_376dd572e71726ae28982ea4",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "만리동 예술인 협동조합주택 막쿱"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 49번 교차검증. SH 본문이 2026년6월25일 잔여세대 모공고와 계약11월4~5일, 입주11월16일~2027년1월15일을 특정. 대장에 동일 자산 없음. 당첨자 개인정보 목록은 수집하지 않고 식별된 임대자산 등록 후보만 승인. 잔여세대 수·주소·모공고 범위 확인 전 물량 미반영. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311870. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 50,
+    "title": "한국토지주택공사(LH), 모듈러주택 활성화로 주택공급 속도 높인다",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "공법 활성화 정책 수준. 대상 단지별 계약·착공 데이터 확인 전 사업 연결 불가.",
+    "internal_opinion": "외부 모델 P(일반 정책 참고) 분류를 수정. LH 공식 모듈러 PDF의 개별 블록 표에서 창릉A3 668호·왕숙2A10 555호·송우2A1 916호 확인. 대장에 동일 블록 없음. 창릉A4·왕숙2A1과 연결 금지. 2026년 발주 및 이후 공급계획이지 현재 착공 실적이 아님. 정책 인용과 개별 정책 귀속은 별도 확인. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12164"
+    ],
+    "save": {
+      "document_id": "DOC_a15ac1688f0ad3ac70c3f17f",
+      "source_revision_no": 2,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "고양창릉 A3",
+        "남양주왕숙2 A10",
+        "포천송우2 A1"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 50번 교차검증. 외부 모델 P(일반 정책 참고) 분류를 수정. LH 공식 모듈러 PDF의 개별 블록 표에서 창릉A3 668호·왕숙2A10 555호·송우2A1 916호 확인. 대장에 동일 블록 없음. 창릉A4·왕숙2A1과 연결 금지. 2026년 발주 및 이후 공급계획이지 현재 착공 실적이 아님. 정책 인용과 개별 정책 귀속은 별도 확인. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12164. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 51,
+    "title": "[퀸즈W 청량리역] 주택공개 및 사전점검 안내",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "주택공개·사전점검 안내는 입주 준비 이벤트. 실제 준공·입주 완료 근거로 사용 불가.",
+    "internal_opinion": "외부 의견의 사전점검 자료에 더해 SH 첨부 사용승인서 스캔을 육안 확인: 건축물명 퀸즈W청량리역, 전농동127-359 외2필지, 허가2022-주택공급과-신축허가-4, 사용승인2025-12-03. 신축 공동주택·근린생활시설 복합건물이며 대장에 대응 사업 없음. 승인 근거는 보존하되 이번 사전점검일을 준공일·입주완료일로 변환하지 않음. 호수·SH관리분은 추가 확인. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311793",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311793&fileTp=A&fileSeq=1",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311793&fileTp=A&fileSeq=2"
+    ],
+    "save": {
+      "document_id": "DOC_4b3de908d0e01bae0c7b984b",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "퀸즈W 청량리역 · 전농동127-359 외2필지"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 51번 교차검증. 외부 의견의 사전점검 자료에 더해 SH 첨부 사용승인서 스캔을 육안 확인: 건축물명 퀸즈W청량리역, 전농동127-359 외2필지, 허가2022-주택공급과-신축허가-4, 사용승인2025-12-03. 신축 공동주택·근린생활시설 복합건물이며 대장에 대응 사업 없음. 승인 근거는 보존하되 이번 사전점검일을 준공일·입주완료일로 변환하지 않음. 호수·SH관리분은 추가 확인. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311793 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311793&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 52,
+    "title": "한국토지주택공사(LH), 서울 도심 내 매입임대주택 신속 공급 추진... 우수입지에 우량주택 집중 공급",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "LH 공식 보도자료 존재는 확인. 발표 수준의 매입임대 신속공급 계획이므로 대상 개별 주택 주소·매입 확정 명세 없이 공급 실적으로 등록 금지.",
+    "internal_opinion": "외부 P분류를 보완: LH 공식 HWPX에 강서구 염창동 청년형 신축매입114호, 2026-05 착공·2027-12 준공예정 현장이 있음. 다만 지번·관리번호가 없어 염창역남측(양천구) 또는 강서염창 가로주택14호와 동일 사업으로 연결할 수 없음. 해당114호 현장의 지번·매입약정/계약 식별자를 확보하면 등록 검토 가능.",
+    "evidence_urls": [
+      "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12160",
+      "https://lh.or.kr/gallery.es?act=view&bid=0003&list_no=12160&mid=a10502000000"
+    ],
+    "save": {
+      "document_id": "DOC_47c1fe723b89426ace3ff7a5",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "HOLD",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 52번 교차검증. 외부 P분류를 보완: LH 공식 HWPX에 강서구 염창동 청년형 신축매입114호, 2026-05 착공·2027-12 준공예정 현장이 있음. 다만 지번·관리번호가 없어 염창역남측(양천구) 또는 강서염창 가로주택14호와 동일 사업으로 연결할 수 없음. 해당114호 현장의 지번·매입약정/계약 식별자를 확보하면 등록 검토 가능. 근거: https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12160 | https://lh.or.kr/gallery.es?act=view&bid=0003&list_no=12160&mid=a10502000000. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 53,
+    "title": "한국토지주택공사(LH), 현장 중심 주택공급 추진체계 강화...고품질 공공주택 신속 공급 매진",
+    "previous_status": "REVIEW",
+    "external_category": "P",
+    "external_opinion": "기관 운영 방식 기사. 개별 사업 일정·실적을 확정할 사건 없음.",
+    "internal_opinion": "LH 공식 현장관리 PDF가 서울 도심 신혼희망타운, 2027-09 입주예정을 언급하지만 현장명·블록이 없음. 일정만으로 서울대방 등 기존 사업에 추정 연결하지 않음. 현장명·주소·블록의 공식 확인이 보류 해소 조건.",
+    "evidence_urls": [
+      "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12158"
+    ],
+    "save": {
+      "document_id": "DOC_6d057dab2fea19e2702fa60a",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "HOLD",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 53번 교차검증. LH 공식 현장관리 PDF가 서울 도심 신혼희망타운, 2027-09 입주예정을 언급하지만 현장명·블록이 없음. 일정만으로 서울대방 등 기존 사업에 추정 연결하지 않음. 현장명·주소·블록의 공식 확인이 보류 해소 조건. 근거: https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12158. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 54,
+    "title": "마곡이음스테이(도전숙) 신규입주 고객 입주안내문 게시",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "입주안내의 신규 입주 고객 안내. 55번과 제목·날짜·동일 단지가 유사하여 **동일 원문/이벤트 여부 확인** 후 1건 관리.",
+    "internal_opinion": "SH 입주안내 PDF에서 주소·201호·2026년10월30일~12월17일 입주지정기간을 확인. 기존 마곡17단지 토지임대부381호와 유형·규모가 다른 자산. 외부55번 첨부와 SHA256이 동일하므로 같은 자산의 중복 게시로 관리. 입주지정기간은 실제 입주완료가 아님. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311528",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GSGS01&seq=311528&fileTp=A&fileSeq=1"
+    ],
+    "save": {
+      "document_id": "DOC_2e43ecfb6fe69f45bf6dc69f",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "마곡이음스테이 도전숙 · 마곡동로8길33"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 54번 교차검증. SH 입주안내 PDF에서 주소·201호·2026년10월30일~12월17일 입주지정기간을 확인. 기존 마곡17단지 토지임대부381호와 유형·규모가 다른 자산. 외부55번 첨부와 SHA256이 동일하므로 같은 자산의 중복 게시로 관리. 입주지정기간은 실제 입주완료가 아님. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311528 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GSGS01&seq=311528&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 55,
+    "title": "[입주안내] 마곡이음스테이(도전숙) 신규입주 고객 입주안내문 게시",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "54번과 같은 단지·일자의 안내 공고. 실제 원문 동일성 확인 전 중복으로 단정할 수 없으나 별도 공급실적으로 계상 금지.",
+    "internal_opinion": "외부54번과 같은 SH 입주안내 PDF의 SHA256 일치. 동일주소·201호 자산 후보로 묶으며 사업·호수 중복 생성 금지. 기존 마곡17단지381호 토지임대부와 별개. 예정 입주일은 실제 입주 실적이 아님. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311531",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311531&fileTp=A&fileSeq=1"
+    ],
+    "save": {
+      "document_id": "DOC_80cc5ac55e3dc29c0f4463f5",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "마곡이음스테이 도전숙 · 마곡동로8길33"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 55번 교차검증. 외부54번과 같은 SH 입주안내 PDF의 SHA256 일치. 동일주소·201호 자산 후보로 묶으며 사업·호수 중복 생성 금지. 기존 마곡17단지381호 토지임대부와 별개. 예정 입주일은 실제 입주 실적이 아님. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311531 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=GS0401&seq=311531&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 56,
+    "title": "인천도시공사, 검단신도시 북측 광역도로 10월 7일부터 부분 개통",
+    "previous_status": "REVIEW",
+    "external_category": "I",
+    "external_opinion": "iH 공식 2026-10-07 부분개통 확인. 도로 공정의 기반시설 이벤트이므로 검단 주택 착공·준공 실적이 아니라 기반시설 레이어로 관리.",
+    "internal_opinion": "iH 검단 북측 연결도로 부분 개통은 기반시설 사건. 개별 주택 블록의 준공·입주 실적으로 연결할 수 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2317"
+    ],
+    "save": {
+      "document_id": "DOC_4ce61401faff4df183327aed",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 56번 교차검증. iH 검단 북측 연결도로 부분 개통은 기반시설 사건. 개별 주택 블록의 준공·입주 실적으로 연결할 수 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2317. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 57,
+    "title": "[이문아이파크자이] 제7차 장기전세2, 재개발 임대주택 입주 안내문 게시",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "단지명이 확인되는 입주 안내. 두 모집유형별 SH 물량·모공고와 연결; 실제 입주 완료 증빙 별도.",
+    "internal_opinion": "SH 공식 입주안내 2개 PDF에서 단지별 주소를 확인. 기존 대장에 이문3구역 대응 사업 없음. 1·2단지와 공공임대·장기전세 등 관리분을 구분해야 함. 본문 부분준공 언급은 전체 준공·전체 입주 확정 근거가 아니므로 단지/차수별 후속 검증 대상으로 기록. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310903",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=DMGS01&seq=310903&fileTp=A&fileSeq=1",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=DMGS01&seq=310903&fileTp=A&fileSeq=2"
+    ],
+    "save": {
+      "document_id": "DOC_35b92d963a3f27fda9ef07a6",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "이문아이파크자이 1단지 · 이문로120",
+        "이문아이파크자이 2단지 · 이문로150"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 57번 교차검증. SH 공식 입주안내 2개 PDF에서 단지별 주소를 확인. 기존 대장에 이문3구역 대응 사업 없음. 1·2단지와 공공임대·장기전세 등 관리분을 구분해야 함. 본문 부분준공 언급은 전체 준공·전체 입주 확정 근거가 아니므로 단지/차수별 후속 검증 대상으로 기록. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310903 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=DMGS01&seq=310903&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 58,
+    "title": "청년안심주택 도무스서초 입주안내문",
+    "previous_status": "REVIEW",
+    "external_category": "S",
+    "external_opinion": "단지명 명시 입주 안내. 청년안심주택 공급 자산 및 공고 ID 대조 후 연결; 실제 입주 완료로 단정 금지.",
+    "internal_opinion": "SH 입주안내 PDF에 서초동1673-3 주소 확인. 기존 서초·반포 정비사업과 동일성 없음. 청년안심주택 자산으로 등록 대기하며 전체 건물과 공공임대 관리분, 입주 예정과 실제 완료를 구분. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님.",
+    "evidence_urls": [
+      "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310761",
+      "https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=SCGS01&seq=310761&fileTp=A&fileSeq=1"
+    ],
+    "save": {
+      "document_id": "DOC_2d1a68559b0ca58fdb516a4b",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "REGISTRATION_REQUIRED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "new_project_names": [
+        "도무스 서초 · 서초동1673-3"
+      ],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 58번 교차검증. SH 입주안내 PDF에 서초동1673-3 주소 확인. 기존 서초·반포 정비사업과 동일성 없음. 청년안심주택 자산으로 등록 대기하며 전체 건물과 공공임대 관리분, 입주 예정과 실제 완료를 구분. 등록 대기 승인 범위이며 신규 사업 생성·정책 귀속 확정·물량 반영은 아직 아님. 근거: https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310761 | https://www.i-sh.co.kr/main/com/file/innoFD.do?brdId=SCGS01&seq=310761&fileTp=A&fileSeq=1. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 59,
+    "title": "[세쓸통] 태양광·원전 늘어도 전기 보낼 길이 없다…전력망 준공 '지지부진'",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "전력망·원전 등 국가 인프라 일반 기사. 대상 주택사업의 전력공급 병목으로 연결할 구체 지구가 없음.",
+    "internal_opinion": "전력망 투자·지원 논의로 개별 주택 사업 식별 근거 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261023_0003838683"
+    ],
+    "save": {
+      "document_id": "DOC_8342ce93f1d6ae7c53d1fb76",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 59번 교차검증. 전력망 투자·지원 논의로 개별 주택 사업 식별 근거 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261023_0003838683. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 60,
+    "title": "3기 신도시 교통망 '직접 인허가'로 속도…5개 사업 집중관리",
+    "previous_status": "REVIEW",
+    "external_category": "I",
+    "external_opinion": "3기 신도시 도로 인허가 5개 사업(교산 3·계양 1·대장 1)의 관리 기사. 주택공급단계가 아니라 기반시설·지연위험 항목으로 별도 관리.",
+    "internal_opinion": "하남교산 동남로·인천계양 벌말로·부천대장 경명대로 등 광역교통망 계획. 동일 지구라도 도로 사건을 주택 블록 착공·준공에 적용할 수 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261025_0003839816",
+      "https://nwww.newsis.com/view/NISX20261025_0003839816"
+    ],
+    "save": {
+      "document_id": "DOC_896355b48ccf361d4f64c579",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 60번 교차검증. 하남교산 동남로·인천계양 벌말로·부천대장 경명대로 등 광역교통망 계획. 동일 지구라도 도로 사건을 주택 블록 착공·준공에 적용할 수 없음. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261025_0003839816 | https://nwww.newsis.com/view/NISX20261025_0003839816. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 61,
+    "title": "서대문구의회, 29일 서부선 경전철 조속 착공 토론회",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "서부선 착공 토론회는 주택사업의 단계 또는 관련 인허가 근거 아님.",
+    "internal_opinion": "서부선 경전철 사업 논의로 개별 주택공급 단계 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.newsis.com/view/NISX20261025_0003839886"
+    ],
+    "save": {
+      "document_id": "DOC_9671d4d7729d0b82c52baab2",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 61번 교차검증. 서부선 경전철 사업 논의로 개별 주택공급 단계 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.newsis.com/view/NISX20261025_0003839886. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 62,
+    "title": "인천광역주거복지센터 '고령친화 맞춤형 집수리', 인천시 혁신·적극행정 우수사례 전시회에 선보여",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "고령친화 집수리 우수사례 전시. 신규 공급사업으로 처리하지 않음.",
+    "internal_opinion": "고령친화 집수리 성과 전시회로 기존 재고 개선 활동. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2325"
+    ],
+    "save": {
+      "document_id": "DOC_ee0ac34035f66904d8348637",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 62번 교차검증. 고령친화 집수리 성과 전시회로 기존 재고 개선 활동. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2325. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 63,
+    "title": "인천광역시 광역주거복지센터, 2026년 주거복지 교육 성료",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "주거복지 교육 성료. 주택사업 이벤트와 무관.",
+    "internal_opinion": "주거복지 교육 수료 실적. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2323"
+    ],
+    "save": {
+      "document_id": "DOC_cbe7b733bbc4f55f25f79092",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 63번 교차검증. 주거복지 교육 수료 실적. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2323. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  },
+  {
+    "number": 64,
+    "title": "하나아파트 주민들, 검단신도시 주거환경 개선 힘쓴 인천도시공사에 감사패 전달",
+    "previous_status": "REVIEW",
+    "external_category": "X",
+    "external_opinion": "검단지역 감사패 전달 소식. 공급실적·인프라공정 근거 아님.",
+    "internal_opinion": "마전하나아파트 주변 도로·녹지 등 환경개선 감사패. 기존 주택 주변 환경개선이며 신규 건설·공급 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님.",
+    "evidence_urls": [
+      "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2315"
+    ],
+    "save": {
+      "document_id": "DOC_94cab4bf5e40c75ed98b8d62",
+      "source_revision_no": 1,
+      "review_revision_no": 0,
+      "status": "EXCLUDED",
+      "policy_id": null,
+      "project_ids": [],
+      "new_project_names": [],
+      "actor": "261028 업무담당자 확인(김민)",
+      "reason": "261028 업무담당자 확인(김민) · 사용자 위임에 따른 외부 검토 64번 교차검증. 마전하나아파트 주변 도로·녹지 등 환경개선 감사패. 기존 주택 주변 환경개선이며 신규 건설·공급 사건이 아님. 개별 사업 연결 검토에서 제외하며 원자료·판단 이력은 보존. 정책·시장·기반시설 참고자료로 재활용 가능하며 원자료 삭제 아님. 근거: https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2315. 기존 사업452건·기존 승인 및 물량 보존.",
+      "source_checked": true
+    }
+  }
+]

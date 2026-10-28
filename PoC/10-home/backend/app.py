@@ -1191,6 +1191,16 @@ def create_app(engine=None, auto_collect=None):
         from .publication_reviews import queue
         return {k:v for k,v in queue(service,include_options=False).items() if k in ('pending','total','counts')}
 
+    @app.get(PREFIX + '/api/publication-reviews/export.csv')
+    def publication_review_export(status: str = 'ALL', priority: int | None = None, search: str = Query('', max_length=500)):
+        from .publication_review_export import export_csv
+        try: content = export_csv(service, status=status, priority=priority, search=search)
+        except ValueError as error: raise HTTPException(422, str(error)) from None
+        return Response(content, media_type='text/csv; charset=utf-8', headers={
+            'Content-Disposition': f'attachment; filename="home-publication-reviews-{status}-{today().isoformat()}.csv"',
+            'Cache-Control': 'no-store',
+        })
+
     @app.get(PREFIX + '/api/publication-reviews/{document_id}/history')
     def publication_review_history(document_id: str):
         from .publication_reviews import history

@@ -1,0 +1,145 @@
+[
+  {
+    "url": "https://biz.chosun.com/real_estate/real_estate_general/2026/10/23/YRGB7LVJYZDWNOWCIT5JD2IRMY/",
+    "file": "SUP_23dddb795917",
+    "status": 200,
+    "chars": 2650,
+    "sha256": "e5fdf0426a27c51555b75feaae0deb345b0c4af6aa6d1330ab0b0038d630daf8"
+  },
+  {
+    "url": "https://eminwon.gangbuk.go.kr/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do?context=NTIS&homepage_pbs_yn=Y&jndinm=OfrNotAncmtEJB&method=selectOfrNotAncmt&methodnm=selectOfrNotAncmtRegst&not_ancmt_mgt_no=36511&not_ancmt_se_code=01%2C02%2C03%2C04%2C05&ofr_pageSize=10&subCheck=Y",
+    "file": "SUP_4f47258f5d5a",
+    "status": 200,
+    "chars": 743,
+    "sha256": "11f1cec44a0ab554b163214ebd1b13376da536483d629aac5adb43b31f6fa831"
+  },
+  {
+    "url": "https://housing.seoul.go.kr/site/main/sh/publicLease/05/view?seq=2",
+    "file": "SUP_5802a206d823",
+    "status": 200,
+    "chars": 2686,
+    "sha256": "c48b9d0b9dd463e6bc1c66a03c45dbbb8d1a3881e7314bdc54ab58768cae0a54"
+  },
+  {
+    "url": "https://housing.seoul.go.kr/site/main/sh/publicSale/view?seq=1",
+    "file": "SUP_40d077ad64ff",
+    "status": 200,
+    "chars": 2698,
+    "sha256": "f5d045eca1977d09c5c6a600aa4c2bb19bd4d85b74c54a130a41371c3dd8940a"
+  },
+  {
+    "url": "https://lh.or.kr/gallery.es?act=view&bid=0003&list_no=12160&mid=a10502000000",
+    "file": "SUP_5e6e9a893dcb",
+    "status": 200,
+    "chars": 4758,
+    "sha256": "c59df61f33430aaff6040efd304f0f1b079548f3a0c0dbafdaf93117442dc10b"
+  },
+  {
+    "url": "https://m.go.seoul.co.kr/news/publicnews/seoul_local/news_seoul/2026/10/27/20261027500193",
+    "file": "SUP_6d7fc720bca9",
+    "status": 200,
+    "chars": 3021,
+    "sha256": "20396b870dc9be7ec3af7187bf4d8077314cb6f185f6a1d8294e3f51043970bd"
+  },
+  {
+    "url": "https://news.bucheon.go.kr/home/kor/M337742440/board.do?act=detail&idx=cb00d1a0008a85e71a41b8741facbffedb2c362d456f09e405efb008f84416a8",
+    "file": "SUP_418a1be4c410",
+    "status": 200,
+    "chars": 3353,
+    "sha256": "4f45ae446b62643b4c7aa6d933a07cd1e2b791d9291fe213222b9e085ea3ea5c"
+  },
+  {
+    "url": "https://news.samsungcnt.com/ko/%EC%A0%84%EC%B2%B4%EA%B8%B0%EC%82%AC/%EA%B1%B4%EC%84%A4%EB%B6%80%EB%AC%B8/2026-10-%EC%82%BC%EC%84%B1%EB%AC%BC%EC%82%B0-%EC%B0%BD%EC%9B%90-%EC%9A%A9%ED%98%B81%EA%B5%AC%EC%97%AD-%EC%9E%AC%EA%B1%B4%EC%B6%95-%EC%8B%9C%EA%B3%B5%EC%82%AC-%EC%84%A0%EC%A0%95/",
+    "file": "SUP_7bba563dff8e",
+    "status": 200,
+    "chars": 2317,
+    "sha256": "f444d5cae601eea6b8317857b86166f4d1efb42e8fcb6ceaff4e59b735906964"
+  },
+  {
+    "url": "https://news.seoul.go.kr/citybuild/archives/538651",
+    "file": "SUP_c944950a83ad",
+    "status": 200,
+    "chars": 4953,
+    "sha256": "ea83feaf51825bd763ece345a72974d14aff48c83e50737343972ca8734a6a17"
+  },
+  {
+    "url": "https://news.seoul.go.kr/citybuild/archives/543546?listPage=1",
+    "file": "SUP_eb6676daf50f",
+    "status": 200,
+    "chars": 4415,
+    "sha256": "745b4a180a3efe59b6053ae26a9759d85c87ccff47c5ec13981df1d5aa8b037c"
+  },
+  {
+    "url": "https://news.seoul.go.kr/citybuild/archives/543552",
+    "file": "SUP_e5ed37834dd3",
+    "status": 200,
+    "chars": 4518,
+    "sha256": "83da2b9b0c8dbaf8f98017d92f3536dea4d57a0526cf77d0fb4629e994e60ed2"
+  },
+  {
+    "url": "https://news.seoul.go.kr/citybuild/moa-housing-town/policy/status",
+    "file": "SUP_0317091f8424",
+    "error": "timed out"
+  },
+  {
+    "url": "https://nwww.newsis.com/view/NISX20261025_0003839816",
+    "file": "SUP_9fb6e6e7c141",
+    "status": 200,
+    "chars": 5236,
+    "sha256": "06a98369f12f41c63e922c1effe245ff384b359698ccdc4619c743afeb779dea"
+  },
+  {
+    "url": "https://opcl.kr/policy-details/nrA6daEBGedfapFa9z6m/",
+    "file": "SUP_e88afa8ed46d",
+    "status": 200,
+    "chars": 868,
+    "sha256": "d146aa60de91f662d2cf43d0925b009dc43090baae42fc065d5f5a31a3bf2846"
+  },
+  {
+    "url": "https://snvision.seongnam.go.kr/23530",
+    "file": "SUP_53fedf8a26d7",
+    "status": 200,
+    "chars": 2731,
+    "sha256": "bda4c5ed48109a847fe9e959a274a028b1e0dbc4e92a2a2ad153868be018ab3c"
+  },
+  {
+    "url": "https://www.iapt.kr/apartments/%EA%B2%BD%EA%B8%B0/getAPTLttotPblancDetail-2026000508-2026000508",
+    "file": "SUP_fd83321e7950",
+    "status": 200,
+    "chars": 2588,
+    "sha256": "8db21e6fb38a15ea24d6840d7d8ac31aa70e074721df9c733fada5993407ef35"
+  },
+  {
+    "url": "https://www.lottecastle.net/APT/AT00433/17085/summary/view.do",
+    "file": "SUP_a3913f6608da",
+    "error": "[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'www.lottecastle.net'. (_ssl.c:1000)"
+  },
+  {
+    "url": "https://www.newsis.com/view/NISX20261022_0003836541",
+    "file": "SUP_bee156fd914e",
+    "status": 200,
+    "chars": 8187,
+    "sha256": "6016f530600dcee5fd7e4ee25f1677f4102106614bfdcfb9dac6971b2a77c379"
+  },
+  {
+    "url": "https://www.yna.co.kr/amp/view/AKR20261026036000003",
+    "file": "SUP_3987b969c6cb",
+    "status": 200,
+    "chars": 2838,
+    "sha256": "26fdc356caa356b42187997b6cecdd6573eef51e17c50bd1be66b60cd50f9fc5"
+  },
+  {
+    "url": "https://www.yna.co.kr/view/AKR20261026110100061",
+    "file": "SUP_34dba120810a",
+    "status": 200,
+    "chars": 5491,
+    "sha256": "ae1740171544a95126d39c85751f58f0a14273910e68d0c4fe11878fd5d9afd7"
+  },
+  {
+    "url": "https://www.yna.co.kr/view/AKR20261027067700004",
+    "file": "SUP_f6d56987965e",
+    "status": 200,
+    "chars": 5867,
+    "sha256": "2b8bdabfaf98b6d10164af8cc2b9d370537e526029f83aebd6824d6fe53129d7"
+  }
+]

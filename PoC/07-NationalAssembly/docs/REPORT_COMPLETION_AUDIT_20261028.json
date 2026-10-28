@@ -1,0 +1,2281 @@
+{
+  "audited_at": "2026-10-27T22:43:13.371613+00:00",
+  "summary": {
+    "report_count": 56,
+    "complete_narrative_reports": 56,
+    "issues": 7084,
+    "summarized_issues": 7084,
+    "source_points": 12730,
+    "summarized_source_points": 12730,
+    "pending_reviews": 0,
+    "uncertain_fragments": 25,
+    "unlinked_request_count": 1,
+    "active_ontology_pending": 0
+  },
+  "reports": [
+    {
+      "id": "0399600b-b268-4268-8cf3-f14078453b0b",
+      "title": "행정안전위원회 국정감사(부산경찰청)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 158,
+        "summarized_issue_count": 158,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 225,
+      "summarized_source_point_count": 225,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "07426947-2688-4272-9dd6-24e35605a0eb",
+      "title": "법제사법위원회 국정감사(법무부 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 83,
+        "summarized_issue_count": 83,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 60,
+        "completed_atom_count": 60,
+        "total_atom_count": 60,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 242,
+      "summarized_source_point_count": 242,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "대법원에서 그냥",
+          "reason": "원문이 '대법원에서 그냥'으로만 남아 있어 구체적인 논점과 대상을 파악할 수 없다.",
+          "atom_id": "a-a95fbc4e6b956f9f"
+        },
+        {
+          "quote": "그런데 1심에서",
+          "reason": "발언이 '그런데 1심에서'로만 끝나 구체적 논점 파악 불가",
+          "atom_id": "a-e814eb9024388e8b"
+        },
+        {
+          "quote": "뒤까지 상승하나요",
+          "reason": "원문 '뒤까지 상승하나요'만으로 논의 대상과 논점 파악 불가",
+          "atom_id": "a-33a0e224b997280d"
+        },
+        {
+          "quote": "그",
+          "reason": "발화 단편만으로 맥락 파악 불가, 쟁점 특정 불가능",
+          "atom_id": "a-c1b7dc50d3d74945"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {
+        "phase": "COMPLETED",
+        "stages": [
+          {
+            "key": "ANALYZING",
+            "status": "COMPLETED"
+          },
+          {
+            "key": "INTEGRATION",
+            "status": "COMPLETED"
+          },
+          {
+            "key": "REVIEWING",
+            "unit": "발언",
+            "total": 60,
+            "status": "COMPLETED",
+            "completed": 60
+          },
+          {
+            "key": "ONTOLOGY",
+            "unit": "쟁점",
+            "total": 83,
+            "status": "COMPLETED",
+            "completed": 83
+          },
+          {
+            "key": "NARRATIVE",
+            "unit": "쟁점",
+            "total": 83,
+            "status": "COMPLETED",
+            "completed": 83
+          },
+          {
+            "key": "FINALIZING",
+            "status": "COMPLETED"
+          }
+        ],
+        "status": "COMPLETED",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-27T00:23:23.694912+00:00",
+        "source_limited_topics": 0,
+        "source_limited_discussions": 4
+      }
+    },
+    {
+      "id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "title": "제439회 국회(정기회) 제08차 본회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 131,
+        "summarized_issue_count": 131,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "completed_atom_count": 2,
+        "total_atom_count": 2,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 257,
+      "summarized_source_point_count": 257,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "title": "제439회 국회(정기회) 제06차 본회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 151,
+        "summarized_issue_count": 151,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "completed_atom_count": 2,
+        "total_atom_count": 2,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 232,
+      "summarized_source_point_count": 232,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+      "title": "행정안전위원회 국정감사(경기남부경찰청 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 151,
+        "summarized_issue_count": 151,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 9,
+        "completed_atom_count": 9,
+        "total_atom_count": 9,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 293,
+      "summarized_source_point_count": 293,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+      "title": "제439회 국회(정기회) 제06차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 81,
+        "summarized_issue_count": 81,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 5,
+        "completed_atom_count": 5,
+        "total_atom_count": 5,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 170,
+      "summarized_source_point_count": 170,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+      "title": "제438회 국회(임시회) 제03차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 78,
+        "summarized_issue_count": 78,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 122,
+      "summarized_source_point_count": 122,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+      "title": "제439회 국회(정기회) 제07차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 7,
+        "summarized_issue_count": 7,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 20,
+      "summarized_source_point_count": 20,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+      "title": "법제사법위원회 국정감사(고위공직자범죄수사처)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 101,
+        "summarized_issue_count": 101,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 14,
+        "completed_atom_count": 14,
+        "total_atom_count": 14,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 285,
+      "summarized_source_point_count": 285,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "title": "제439회 국회(정기회) 제01차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 43,
+        "summarized_issue_count": 43,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 30,
+        "completed_atom_count": 30,
+        "total_atom_count": 30,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 118,
+      "summarized_source_point_count": 118,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+      "title": "제438회 국회(임시회) 제03차 예산결산특별위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 224,
+        "summarized_issue_count": 224,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "completed_atom_count": 2,
+        "total_atom_count": 2,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 401,
+      "summarized_source_point_count": 401,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "33fae667-d853-43be-9500-c7335df4771e",
+      "title": "제438회 국회(임시회) 제02차 예산결산특별위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 318,
+        "summarized_issue_count": 318,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 5,
+        "completed_atom_count": 5,
+        "total_atom_count": 5,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 454,
+      "summarized_source_point_count": 454,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+      "title": "행정안전위원회 국정감사(경찰청 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 121,
+        "summarized_issue_count": 121,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 34,
+        "completed_atom_count": 34,
+        "total_atom_count": 34,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 286,
+      "summarized_source_point_count": 286,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+      "title": "제44회 국무회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 68,
+        "summarized_issue_count": 68,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 79,
+      "summarized_source_point_count": 79,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+      "title": "제439회 국회(정기회) 제04차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 79,
+        "summarized_issue_count": 79,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 106,
+      "summarized_source_point_count": 106,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "title": "제439회 국회(정기회) 제02차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 150,
+        "summarized_issue_count": 150,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 3,
+        "completed_atom_count": 3,
+        "total_atom_count": 3,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 162,
+      "summarized_source_point_count": 162,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+      "title": "제38회 국무회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 51,
+        "summarized_issue_count": 51,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 79,
+      "summarized_source_point_count": 79,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "설마 안 가봐도 연체로 부과 올리면...",
+          "reason": "원문에 구체적 정책 대상이나 논점이 식별되지 않아 UNCERTAIN으로 분류함.",
+          "atom_id": "a-423013a62e1368b9"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "50f589a8-2b1a-40b3-9a5f-c53081db48c9",
+      "title": "행정안전위원회 국정감사(광주경찰청 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 269,
+        "summarized_issue_count": 269,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 13,
+        "completed_atom_count": 13,
+        "total_atom_count": 13,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 530,
+      "summarized_source_point_count": 530,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "이치지 이치지 이치지 이치지 이치지",
+          "reason": "원문 '이치지' 반복만으로는 정책적 쟁점이나 발언 의도를 판단할 수 없음",
+          "atom_id": "a-0a02f738bd5e09e0"
+        },
+        {
+          "quote": "이치지",
+          "reason": "원문 '이치지'만으로는 정책적 쟁점이나 발언 의도를 판단할 수 없음",
+          "atom_id": "a-23e9e43a3f58b531"
+        },
+        {
+          "quote": "사치다리치다 이치지",
+          "reason": "원문 '사치다리치다 이치지'만으로는 정책적 쟁점이나 발언 의도를 판단할 수 없음",
+          "atom_id": "a-b7b9c347ddd0ff38"
+        },
+        {
+          "quote": "이리",
+          "reason": "원문 '이리'만으로는 정책적 쟁점이나 발언 의도를 판단할 수 없음",
+          "atom_id": "a-cea24a2b9d1bdcc4"
+        },
+        {
+          "quote": "이치지 사치지지지 사치 사치 사치지 사치지",
+          "reason": "원문이 인식 오류로 추정되는 반복 음절로 구성되어 구체적 논점 파악 불가",
+          "atom_id": "a-d0504b07453baf20"
+        },
+        {
+          "quote": "사치지 사치",
+          "reason": "원문이 인식 오류로 추정되는 반복 음절로 구성되어 구체적 논점 파악 불가",
+          "atom_id": "a-d7339118280ffc5a"
+        },
+        {
+          "quote": "이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 이치지 ",
+          "reason": "제공된 원문이 반복 음절만 있어 실질적인 논점, 대상, 요구를 확인할 수 없으므로 UNCERTAIN으로 분류했다.",
+          "atom_id": "a-e1fef74eae1dfbc4"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+      "title": "제439회 국회(정기회) 제01차 행정안전위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 57,
+        "summarized_issue_count": 57,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 71,
+      "summarized_source_point_count": 71,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "5c149dc0-88cd-43f2-9aec-dfa323e17daa",
+      "title": "행정안전위원회 국정감사(제주경찰청)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 144,
+        "summarized_issue_count": 144,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 402,
+      "summarized_source_point_count": 402,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+      "title": "제438회 국회(임시회) 제01차 행정안전위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 145,
+        "summarized_issue_count": 145,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 3,
+        "completed_atom_count": 3,
+        "total_atom_count": 3,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 281,
+      "summarized_source_point_count": 281,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+      "title": "제439회 국회(정기회) 제03차 행정안전위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 59,
+        "summarized_issue_count": 59,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 7,
+        "completed_atom_count": 7,
+        "total_atom_count": 7,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 136,
+      "summarized_source_point_count": 136,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "그 방향에",
+          "reason": "원문 '그 방향에'만으로는 구체적 논점과 역할을 명확히 판단하기 어려움",
+          "atom_id": "a-097a2c81e5571c0b"
+        },
+        {
+          "quote": "수 있지 않겠나 하는",
+          "reason": "원문 '수 있지 않겠나 하는'만으로는 구체적 정책 대상과 논점을 특정할 수 없음",
+          "atom_id": "a-40da3e0741e78faa"
+        },
+        {
+          "quote": "할",
+          "reason": "원문 '할'만으로는 발언의 구체적 정책 대상과 논점을 파악할 수 없음",
+          "atom_id": "a-d989b18770a6b7f4"
+        },
+        {
+          "quote": "논의를",
+          "reason": "원문이 '논의를'만 포함해 구체적 쟁점을 판단할 수 없음.",
+          "atom_id": "a-a579eeddc5165708"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+      "title": "법제사법위원회 국정감사(군사법원)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 200,
+        "summarized_issue_count": 200,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 6,
+        "completed_atom_count": 6,
+        "total_atom_count": 6,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 331,
+      "summarized_source_point_count": 331,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+      "title": "법제사법위원회 국정감사(공소청)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 155,
+        "summarized_issue_count": 155,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 475,
+      "summarized_source_point_count": 475,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+      "title": "제439회 국회(정기회) 제08차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 70,
+        "summarized_issue_count": 70,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 9,
+        "completed_atom_count": 9,
+        "total_atom_count": 9,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 200,
+      "summarized_source_point_count": 200,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "라도 얘기해야 뭔가 풀릴 것 아닙니까",
+          "reason": "대법원장의 대응 방식에 대한 질문과 정확한 뜻을 명확히 하라는 요구가 있으나, 후반부는 불명확한 표현으로 인해 UNCERTAIN으로 처리함.",
+          "atom_id": "a-62253ea7463a31d4"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "7128f3f4-fb05-45a6-8e72-021992157455",
+      "title": "행정안전위원회 국정감사(중앙선거관리위원회 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 148,
+        "summarized_issue_count": 148,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 19,
+        "completed_atom_count": 19,
+        "total_atom_count": 19,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 1,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 293,
+      "summarized_source_point_count": 293,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [
+        {
+          "quote": "나머지는 잠시만 나머지는 질의 시간에 진행해 주시기 바랍니다 하나는 저기 나머지는 공무원 저게 봐야 다 선관위 요청입니까 하나만 선관위 답변한 것 아닙니까 그러니까 다음에는 그래도 제가 구두로 답변하면 계속 토론이 되기 때문에 나머지는 각 기관에서 요청한 서류 요청한 자료에 대해서 답변에 제출해 주시고",
+          "issue": "질의응답 및 자료 제출 절차 안내",
+          "reason": "위원장이 나머지 질의는 질의 시간에 진행하고, 각 기관 요청 서류와 자료는 답변 제출하도록 안내하는 회의 진행 발언이다.",
+          "atom_id": "a-0f22d766c874fac2"
+        }
+      ],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "title": "제439회 국회(정기회) 제05차 본회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 149,
+        "summarized_issue_count": 149,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 176,
+      "summarized_source_point_count": 176,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "title": "제439회 국회(정기회) 제10차 본회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 79,
+        "summarized_issue_count": 79,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 104,
+      "summarized_source_point_count": 104,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+      "title": "제439회 국회(정기회) 제05차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 59,
+        "summarized_issue_count": 59,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 8,
+        "completed_atom_count": 8,
+        "total_atom_count": 8,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 88,
+      "summarized_source_point_count": 88,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "청와대에서 오늘 하나 못 사 본 것 아닙니까 자",
+          "reason": "청와대 관련 발언이나 구체적 정책 사안이 불명확하여 논점 특정 불가",
+          "atom_id": "a-1d69bf0733474835"
+        },
+        {
+          "quote": "뭘 뻔합니까 거짓말 탐지기라도",
+          "reason": "거짓말 탐지기 언급이나 구체적 논쟁 대상이 불명확하여 논점 특정 불가",
+          "atom_id": "a-6782af751ba0a35b"
+        },
+        {
+          "quote": "뭐",
+          "reason": "인식 오류로 추정되는 단일 어휘 '뭐'만 발화되어 구체적인 논점 파악이 불가능함",
+          "atom_id": "a-af81b0c04cfb6318"
+        },
+        {
+          "quote": "거짓말을 하니까 위원장까지 거짓말 안 해",
+          "reason": "위원장과 거짓말 관련 발언이나 구체적 정책 대상이 불명확하여 논점 특정 불가",
+          "atom_id": "a-d1d919edef0fb3f6"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "8bd13bcf-3484-46de-857f-c511574be758",
+      "title": "제439회 국회(정기회) 제01차 예산결산특별위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 32,
+        "summarized_issue_count": 32,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "completed_atom_count": 2,
+        "total_atom_count": 2,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 67,
+      "summarized_source_point_count": 67,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "지치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치 사치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치시",
+          "reason": "원문이 반복된 무의미한 음절로 구성되어 있어 정책 대상, 사건, 논점 등을 파악할 수 없음.",
+          "atom_id": "a-71d19e023908cce3"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+      "title": "제439회 국회(정기회) 제03차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 156,
+        "summarized_issue_count": 156,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 12,
+        "completed_atom_count": 12,
+        "total_atom_count": 12,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 296,
+      "summarized_source_point_count": 296,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+      "title": "법제사법위원회 국정감사(대법원 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 149,
+        "summarized_issue_count": 149,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 24,
+        "completed_atom_count": 24,
+        "total_atom_count": 24,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 310,
+      "summarized_source_point_count": 310,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "아프가 독립에 앞서 놓고 여기다",
+          "reason": "원문이 '아프가 독립에 앞서 놓고 여기다'로만 되어 있어 정책적 쟁점이나 논점을 식별할 수 없음",
+          "atom_id": "a-93077d0541366302"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "title": "제439회 국회(정기회) 제07차 행정안전위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 190,
+        "summarized_issue_count": 190,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 4,
+        "completed_atom_count": 4,
+        "total_atom_count": 4,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 370,
+      "summarized_source_point_count": 370,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 349,
+        "summarized_issue_count": 349,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 5,
+        "completed_atom_count": 5,
+        "total_atom_count": 5,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 648,
+      "summarized_source_point_count": 648,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {
+        "phase": "COMPLETED",
+        "stages": [
+          {
+            "key": "ANALYZING",
+            "status": "COMPLETED"
+          },
+          {
+            "key": "INTEGRATION",
+            "unit": "묶음",
+            "total": 8,
+            "status": "COMPLETED",
+            "completed": 8
+          },
+          {
+            "key": "REVIEWING",
+            "unit": "발언",
+            "total": 5,
+            "status": "COMPLETED",
+            "completed": 5
+          },
+          {
+            "key": "ONTOLOGY",
+            "unit": "쟁점",
+            "total": 349,
+            "status": "COMPLETED",
+            "completed": 349
+          },
+          {
+            "key": "NARRATIVE",
+            "unit": "쟁점",
+            "total": 349,
+            "status": "COMPLETED",
+            "completed": 349
+          },
+          {
+            "key": "FINALIZING",
+            "status": "COMPLETED"
+          }
+        ],
+        "status": "COMPLETED",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-27T00:45:09.886266+00:00",
+        "source_limited_topics": 0,
+        "integration_batches_done": 8,
+        "integration_batches_total": 8,
+        "source_limited_discussions": 0
+      }
+    },
+    {
+      "id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 163,
+        "summarized_issue_count": 163,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 273,
+      "summarized_source_point_count": 273,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "title": "법제사법위원회 국정감사(서울광역공소청 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 259,
+        "summarized_issue_count": 259,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 343,
+      "summarized_source_point_count": 343,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+      "title": "제438회 국회(임시회) 제04차 예산결산특별위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 108,
+        "summarized_issue_count": 108,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 131,
+      "summarized_source_point_count": 131,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+      "title": "법제사법위원회 국정감사(법무부 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 188,
+        "summarized_issue_count": 188,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 408,
+      "summarized_source_point_count": 408,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "c316e30a-8922-4eef-92dc-6f5b774799b1",
+      "title": "제46회 국무회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 90,
+        "summarized_issue_count": 90,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 113,
+      "summarized_source_point_count": 113,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {
+        "phase": "COMPLETED",
+        "stages": [
+          {
+            "key": "ANALYZING",
+            "status": "COMPLETED"
+          },
+          {
+            "key": "INTEGRATION",
+            "unit": "묶음",
+            "total": 2,
+            "status": "COMPLETED",
+            "completed": 2
+          },
+          {
+            "key": "REVIEWING",
+            "unit": "발언",
+            "total": 0,
+            "status": "COMPLETED",
+            "completed": 0
+          },
+          {
+            "key": "ONTOLOGY",
+            "unit": "쟁점",
+            "total": 90,
+            "status": "COMPLETED",
+            "completed": 90
+          },
+          {
+            "key": "NARRATIVE",
+            "unit": "쟁점",
+            "total": 90,
+            "status": "COMPLETED",
+            "completed": 90
+          },
+          {
+            "key": "FINALIZING",
+            "status": "COMPLETED"
+          }
+        ],
+        "status": "COMPLETED",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-27T03:33:41.078971+00:00",
+        "source_limited_topics": 0,
+        "integration_batches_done": 2,
+        "integration_batches_total": 2,
+        "source_limited_discussions": 0
+      }
+    },
+    {
+      "id": "c391ad71-008d-4544-a2b6-81709e344703",
+      "title": "법제사법위원회 국정감사(대구고등법원 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 86,
+        "summarized_issue_count": 86,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 95,
+      "summarized_source_point_count": 95,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+      "title": "제438회 국회(임시회) 제05차 예산결산특별위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 295,
+        "summarized_issue_count": 295,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 5,
+        "completed_atom_count": 5,
+        "total_atom_count": 5,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 489,
+      "summarized_source_point_count": 489,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "c6585423-5faf-4fad-8e25-4ef97b92b931",
+      "title": "법제사법위원회 국정감사(서울고등법원 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 129,
+        "summarized_issue_count": 129,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 21,
+        "completed_atom_count": 21,
+        "total_atom_count": 21,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 313,
+      "summarized_source_point_count": 313,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "title": "제438회 국회(임시회) 제02차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 37,
+        "summarized_issue_count": 37,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 37,
+      "summarized_source_point_count": 37,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+      "title": "제42회 국무회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 50,
+        "summarized_issue_count": 50,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 95,
+      "summarized_source_point_count": 95,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab",
+      "title": "행정안전위원회 국정감사(충청북도)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 131,
+        "summarized_issue_count": 131,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "completed_atom_count": 2,
+        "total_atom_count": 2,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 217,
+      "summarized_source_point_count": 217,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+      "title": "법제사법위원회 국정감사(감사원)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 118,
+        "summarized_issue_count": 118,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 12,
+        "completed_atom_count": 12,
+        "total_atom_count": 12,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 239,
+      "summarized_source_point_count": 239,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+      "title": "제438회 국회(임시회) 제01차 법제사법위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 37,
+        "summarized_issue_count": 37,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 37,
+      "summarized_source_point_count": 37,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "e858014a-90c5-411c-a282-82e1ff8b094f",
+      "title": "법제사법위원회 국정감사(대전고등법원 등)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 112,
+        "summarized_issue_count": 112,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 2,
+        "completed_atom_count": 2,
+        "total_atom_count": 2,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 127,
+      "summarized_source_point_count": 127,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "ebf050d7-171f-466a-8e71-c85336417170",
+      "title": "행정안전위원회 국정감사(울산광역시)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 63,
+        "summarized_issue_count": 63,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 111,
+      "summarized_source_point_count": 111,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "ee8e077e-aace-45f0-811c-02d348423947",
+      "title": "제45회 국무회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 93,
+        "summarized_issue_count": 93,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 0,
+        "completed_atom_count": 0,
+        "total_atom_count": 0,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 137,
+      "summarized_source_point_count": 137,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+      "title": "행정안전위원회 국정감사(서울경찰청)",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 180,
+        "summarized_issue_count": 180,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 15,
+        "completed_atom_count": 15,
+        "total_atom_count": 15,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 424,
+      "summarized_source_point_count": 424,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "title": "제439회 국회(정기회) 제07차 본회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 147,
+        "summarized_issue_count": 147,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 194,
+      "summarized_source_point_count": 194,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+      "title": "제438회 국회(임시회) 제01차 예산결산특별위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 264,
+        "summarized_issue_count": 264,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 5,
+        "completed_atom_count": 5,
+        "total_atom_count": 5,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 387,
+      "summarized_source_point_count": 387,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "OFFICIAL_SELECTED",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+      "title": "제43회 국무회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 72,
+        "summarized_issue_count": 72,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 8,
+        "completed_atom_count": 8,
+        "total_atom_count": 8,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 116,
+      "summarized_source_point_count": 116,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "농어촌 어르신 먼저 도입해주세요. 돌봄 관련해가지고요. 농어촌 어르신들 먼저 혜택 받을 수 있게 해달라 이런 말씀이시고요. 그 다음에 현님은 피지컬 AI 도입 과정 오류는 AI 대전환 후 초기 투자 비용으로 생각해야 합니다. 이런 의견을 주셨습니다. 그리고 안표 대체하고 관련해서 의견들이 아주 많으십니다.",
+          "reason": "원문에서 농어촌 어르신 돌봄 혜택 확대 요구, 피지컬 AI 도입 오류에 대한 투자 비용 전환 제안, 안표 대체 관련 의견 다수 등 세 가지 주제가 혼재되어 있음. 각각 독립적인 정책 대상과 논점으로 분리. 안표 대체는 구체적 사건·制度 정보 부족으로 UNCERTAIN 처리.",
+          "atom_id": "a-b5ee8dd9ca78c4a7"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": null,
+      "finalization": {}
+    },
+    {
+      "id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "title": "제439회 국회(정기회) 제09차 본회의",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 34,
+        "summarized_issue_count": 34,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 1,
+        "completed_atom_count": 1,
+        "total_atom_count": 1,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 44,
+      "summarized_source_point_count": 44,
+      "missing_summary_point_ids": [],
+      "uncertain": [],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    },
+    {
+      "id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+      "title": "제439회 국회(정기회) 제02차 행정안전위원회",
+      "structure_status": "COMPLETED",
+      "narrative": {
+        "profile": "structured-narrative/1.2",
+        "issue_count": 23,
+        "summarized_issue_count": 23,
+        "status": "COMPLETE"
+      },
+      "review": {
+        "profile": "discussion-context-review/3",
+        "reviewed_atom_count": 6,
+        "completed_atom_count": 6,
+        "total_atom_count": 6,
+        "pending_atom_count": 0,
+        "invalid_label_atom_count": 0,
+        "pending_request_atom_count": 0,
+        "unresolved_request_atom_count": 0,
+        "failed_atom_count": 0,
+        "status": "COMPLETED"
+      },
+      "review_candidates": 0,
+      "rejected": 0,
+      "missing_evidence": [],
+      "source_point_count": 91,
+      "summarized_source_point_count": 91,
+      "missing_summary_point_ids": [],
+      "uncertain": [
+        {
+          "quote": "또 만사 투튼이라는 말도 있습니다",
+          "reason": "원문 '만사 투튼'의 의미가 불분명하여 구체적 쟁점 판단 불가",
+          "atom_id": "a-bcbe76717a0065a0"
+        }
+      ],
+      "unlinked_requests": [],
+      "active_ontology_pending": 0,
+      "ontology_source": "PROVISIONAL",
+      "official_status": "READY",
+      "finalization": {}
+    }
+  ],
+  "initial": {
+    "unfinished_reports": 21,
+    "missing_issue_summaries": 38,
+    "unlinked_document_requests": 9
+  },
+  "verification": {
+    "targeted_tests_passed": 67,
+    "runtime_checks_passed": 25,
+    "public_urls_http_status": {
+      "https://kjon.aigov.go.kr/": 200,
+      "https://www.minslab.kr/poc/national-assembly/": 200
+    },
+    "image": "poc07-national-assembly-api:report-completion-20261028-v5",
+    "report_generation_candidates": 0,
+    "source_and_failed_history_preserved": true
+  },
+  "changes": [
+    "날짜 값은 유지하고 조사 차이만 정규화",
+    "기존 정상 문장 보존 및 오류 필드만 제한적으로 보정",
+    "최종 보정에만 기존 verification 모델 풀 사용",
+    "자료 요구 발언 시간 안내를 과제로 추출하지 않음",
+    "문맥 사용 지시 충돌 해소 및 인접 근거의 기존 주제 후보 제공",
+    "원문 대조 교정은 CODEX_SOURCE_REVIEW/CODEX_CONTEXT_SOURCE_REVIEW 별도 배치 이력으로 보존",
+    "길이 초과 세부 요약은 필요한 경우 내용 삭제 없이 문단 분리",
+    "완료된 기존 작업 대기열과 최종 진행 태그 갱신"
+  ]
+}

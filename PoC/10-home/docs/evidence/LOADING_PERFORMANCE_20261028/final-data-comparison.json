@@ -1,0 +1,124 @@
+{
+  "policy": {
+    "equal_except_collection_timestamp": true,
+    "collection_timestamp_changes": 13,
+    "differences": [
+      [
+        "/cohorts/58/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/cohorts/59/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/cohorts/60/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/cohorts/61/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/cohorts/63/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/cohorts/64/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/portfolio_cohorts/147/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/portfolio_cohorts/148/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/portfolio_cohorts/149/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/portfolio_cohorts/150/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/portfolio_cohorts/151/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/portfolio_cohorts/153/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/portfolio_cohorts/154/report_metadata/source_revisions/0/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ]
+    ]
+  },
+  "monitor": {
+    "equal_except_collection_timestamp": true,
+    "collection_timestamp_changes": 0,
+    "differences": []
+  },
+  "mappings": {
+    "equal_except_collection_timestamp": true,
+    "collection_timestamp_changes": 7,
+    "differences": [
+      [
+        "/items/193/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/items/194/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/items/195/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/items/196/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/items/197/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/items/199/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ],
+      [
+        "/items/200/last_collection_at",
+        "2026-10-27T21:41:59.215520+00:00",
+        "2026-10-27T22:42:37.369693+00:00"
+      ]
+    ]
+  },
+  "project": {
+    "equal_except_collection_timestamp": true,
+    "collection_timestamp_changes": 0,
+    "differences": []
+  }
+}

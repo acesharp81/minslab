@@ -1,7 +1,7 @@
 """Evidence-year map projections. Knowledge dates and supply measures stay separate."""
 import re
 from collections import defaultdict
-from copy import deepcopy
+import pickle
 from datetime import date
 
 from .map_data import district_term, same_district
@@ -297,10 +297,12 @@ def build_dashboard(projects, reports, districts, policies, goals, notices, even
     calculated = {}
     def calculate(members):
         key=tuple(r['id'] for r in members)
-        if key in calculated:return deepcopy(calculated[key])
+        if key in calculated:return pickle.loads(calculated[key])
         amount = quantities(members,plans,reference,horizon,measure,*canonical,notice_links=notice_links)
         amount['stage_distribution'] = aggregate_stages([r for r in members if r['id'] in canonical[0]], stage_parts)
-        calculated[key]=deepcopy(amount)
+        # Only bytes produced in this build are decoded. Isolate nested results
+        # without walking the same large dictionaries in Python for every group.
+        calculated[key]=pickle.dumps(amount,protocol=5)
         return amount
     def display_amount(members):
         amount=calculate(members)

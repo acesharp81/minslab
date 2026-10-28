@@ -1,0 +1,5 @@
+{"source_id": "lh_press_watch", "status": "SUCCESS", "batch_id": null, "error": null, "stats": null}
+{"source_id": "ih_press_watch", "status": "SUCCESS", "batch_id": null, "error": null, "stats": null}
+{"source_id": "seoul_press_watch", "status": "SUCCESS", "batch_id": null, "error": null, "stats": null}
+{"source_id": "newsis_housing_watch", "status": "SUCCESS", "batch_id": null, "error": null, "stats": null}
+{"source_id": "ih_supply", "status": "FAILED", "batch_id": null, "error": "iH 기관 API 연결 실패(HTTP 504). 재시도 필요 · 데이터 존재 여부 미판정 · 0호 아님", "stats": null}

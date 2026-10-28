@@ -1,0 +1,8 @@
+{
+  "target_rows_verified": 64,
+  "tests": "37 passed",
+  "deployment": "completed",
+  "browser_console_errors": 0,
+  "csv_status_reason_actor_history_verified": true,
+  "protected_state_unchanged": true
+}

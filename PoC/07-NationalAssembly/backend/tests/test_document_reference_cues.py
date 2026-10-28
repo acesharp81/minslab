@@ -42,3 +42,29 @@ def test_reference_cue_does_not_leave_live_cluster_pending():
     assert result['live_topic_lineage']['procedural_cluster_count']==1
     assert result['tasks']==[]
     assert (original,snapshot,facets)==before
+
+
+@pytest.mark.parametrize('text',[
+    '그러면 의사진행발언 및 자료 요청 요구를 먼저 받도록 하겠습니다 용혜인 위원님 말씀해 주십시오',
+    '그러면 의사진행발언과 자료제출 요구를 우선 자료제출 의사진행발언과 자료제출 요구를 섞어서 같이 그렇게 하도록 하겠습니다',
+    '권영진 위원님 광명기준 순으로 하고 토론과 의사진행발언 자료제출 요구 마무리하겠습니다',
+])
+def test_announcing_document_request_floor_is_not_itself_a_task(text):
+    assert extract(text) is None
+
+
+def test_floor_announcement_does_not_hide_following_concrete_request():
+    assert extract('자료제출 요구를 먼저 받도록 하겠습니다. 예산 집행 내역을 제출해 주십시오.') is not None
+
+
+def test_submission_word_in_procedural_title_does_not_enable_elliptical_fallback():
+    text = '권영진 위원님 순으로 하고 토론과 의사진행발언 자료제출 요구 마무리하겠습니다'
+    atom = {'id': 'a', 'text': text, 'offset': 0, 'evidence_id': 'u'}
+    facet = {'issue': '의사진행발언 자료제출 요구 마무리', 'role': 'PROCEDURE', 'start': 0, 'quote': text}
+    assert document_request_span(atom, facet) is None
+
+
+def test_inviting_members_to_make_requests_is_floor_management():
+    text = '박형수 간사 자료제출 요구하시고 김남희 위원 의사진행발언하시고 곽규택 위원 자료제출 요구하십시오 시간은 2분씩 드리겠습니다'
+    assert extract(text) is None
+    assert extract(text + '. 별도로 계약 내역을 제출해 주십시오.') is not None

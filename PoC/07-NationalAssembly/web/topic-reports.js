@@ -140,13 +140,15 @@
     const summary = node("p", "topic-report-preview-summary", `관련 회의 ${payload.meeting_count}건 · 근거 주제 ${payload.count}건 · 추가 LLM 호출 0회`);
     previewContainer.append(summary);
     const items = payload.items || [];
-    if (items.length) previewContainer.append(node("p", "topic-report-preview-guide", `검색된 근거 ${items.length}건을 모두 표시합니다. 목록을 아래로 스크롤해 전체 자료를 확인하세요.`));
+    if (items.length) previewContainer.append(node("p", "topic-report-preview-guide", `검색된 근거 ${items.length}건을 모두 표시합니다. 항목을 누르면 해당 회의 보고서로 이동합니다.`));
     const list = node("div", "topic-report-preview-list");
     list.tabIndex = 0;
     list.setAttribute("role", "region");
     list.setAttribute("aria-label", `검색된 근거 자료 ${items.length}건`);
     for (const item of items) {
-      const card = node("article", "topic-report-preview-item");
+      const card = node("a", "topic-report-preview-item");
+      card.href = meetingReportHref(item);
+      card.addEventListener("click", (event) => openMeetingReport(item, event));
       const tags = node("div", "topic-report-preview-tags");
       tags.append(node("span", `is-${String(item.authority_status || "").toLowerCase()}`, isOfficialAuthority(item.authority_status) ? "공식 반영" : "비공식"));
       for (const ministry of (item.ministries || []).slice(0, 3)) tags.append(node("span", "", ministry));
@@ -350,10 +352,7 @@
     for (const id of ids || []) {
       const source = sources.get(String(id));
       if (!source) continue;
-      const link = node("a", "", `${String(source.meeting_at || "").slice(0, 10)} · ${source.meeting_title}`);
-      link.href = "#reports";
-      link.addEventListener("click", () => document.querySelector('[data-workspace-tab="reports"]')?.click());
-      row.append(link);
+      row.append(sourceLink(source));
     }
     return row;
   }
@@ -370,21 +369,66 @@
     return items;
   }
 
-  function openMeetingReport(source, event) {
+  function meetingReportHref(source) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("report", String(source.broadcast_id || ""));
+    url.hash = "reports";
+    return `${url.pathname}${url.search}${url.hash}`;
+  }
+
+  let meetingNavigationRequest = 0;
+  async function openMeetingReport(source, event) {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button > 0) return;
     event.preventDefault();
-    document.querySelector('[data-workspace-tab="reports"]')?.click();
-    window.requestAnimationFrame(() => {
+    const request = ++meetingNavigationRequest;
+    const trigger = event.currentTarget;
+    trigger.setAttribute("aria-busy", "true");
+    try {
       const broadcastId = String(source.broadcast_id || "");
+      if (!broadcastId) throw new Error("연결된 회의 보고서를 찾을 수 없습니다.");
       const row = Array.from(document.querySelectorAll("#reportBroadcastRows .broadcast-row"))
         .find((item) => String(item.dataset.broadcastId || "") === broadcastId);
+      let executive = null;
+      if (!row && broadcastId.startsWith("executive-")) {
+        const response = await api("api/executive/briefings?limit=20");
+        const payload = await response.json();
+        executive = (payload.items || []).find((item) =>
+          [item.id, item.news_id].some((id) => `executive-${id}` === broadcastId)
+          || (source.source_url && item.source_url === source.source_url));
+        if (!executive) throw new Error("연결된 공식 회의 보고서를 찾을 수 없습니다.");
+      }
+      if (request !== meetingNavigationRequest) return;
+      // 보고서 탭의 '최신 회의 자동 열기'를 거치지 않고 선택한 회의만 연다.
+      initialWorkspaceAutoSelectionPending = false;
+      latestMeetingReportState.pending = false;
+      activateWorkspaceTab("reports");
       if (row) row.click();
-      document.querySelector("#liveExpanded")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+      else if (executive) expandExecutiveBriefing(executive, null);
+      else expandMeetingBrief({
+        broadcast_id: broadcastId,
+        title: source.meeting_title,
+        committee_name: source.committee_name,
+        institution: source.institution,
+        meeting_brief: { brief_status: "READY" },
+      }, null);
+      const expanded = document.querySelector("#liveExpanded");
+      expanded?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const heading = document.querySelector("#liveExpandedTitle");
+      heading?.setAttribute("tabindex", "-1");
+      heading?.focus({ preventScroll: true });
+    } catch (error) {
+      if (request !== meetingNavigationRequest) return;
+      message.textContent = error.message;
+      message.setAttribute("role", "alert");
+      message.scrollIntoView({ block: "nearest" });
+    } finally {
+      trigger.removeAttribute("aria-busy");
+    }
   }
 
   function sourceLink(source) {
     const link = node("a", "", `${String(source.meeting_at || "").slice(0, 10)} · ${source.meeting_title}`);
-    link.href = "#reports";
+    link.href = meetingReportHref(source);
     link.addEventListener("click", (event) => openMeetingReport(source, event));
     return link;
   }

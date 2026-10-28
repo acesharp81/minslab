@@ -1,5 +1,13 @@
 """Explicit official source registry; no runtime dependency on other PoCs."""
 SOURCES = [
+    dict(id='sh_notice_watch',name='SH 주택 모집·정정·입주안내 공고 신규 탐색',org='서울주택도시개발공사',
+         url='https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2',
+         feed_urls=[
+             'https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1',
+             'https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2',
+             'https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4'],
+         watch_format='SH_BOARD',type='NOTICE',data_type='DOCUMENT',collection_mode='PUBLICATION_WATCH',key_env=None,
+         implemented=True,manual_only=False,refresh_days=1/24,discovery_only=True),
     dict(id='lh_press_watch',name='LH 주택 보도자료 신규 탐색',org='한국토지주택공사',
          url='https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&nPage=1',
          type='POLICY',data_type='PRESS',collection_mode='PUBLICATION_WATCH',key_env=None,

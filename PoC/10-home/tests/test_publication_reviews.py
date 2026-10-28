@@ -37,6 +37,20 @@ def test_discovery_is_visible_without_prior_mutation_and_candidate_not_preapprov
  with s.sessions() as db:assert before==db.scalar(select(func.count()).select_from(Revision))
 
 
+def test_sh_notices_are_visible_with_correction_and_followup_review_questions(env):
+ s,doc,pid=env
+ with s.sessions.begin() as db:
+  for key,title in [('sh1','[정정공고] 고덕강일지구 3단지 토지임대부 분양주택'),('sh2','제50차 장기전세주택 당첨자 발표')]:
+   upsert_revision(db,'document_evidence','sh_notice_watch',key,dict(name=title,source_date='2026-10-27',evidence_url='https://www.i-sh.co.kr/main/',facts=[],units=None),'seed')
+ q=reviews.queue(s)
+ assert q['pending']==3
+ from backend.publication_review_guidance import guidance
+ correction=guidance('[정정공고] 고덕강일지구 3단지 토지임대부 분양주택',[],2)
+ followup=guidance('제50차 장기전세주택 당첨자 발표',[],3)
+ assert '무엇이 바뀌었나요' in correction['decision']
+ assert '후속 안내' in followup['decision']
+
+
 def test_approval_pins_document_creates_empty_fact_bridge_and_keeps_mapping(env):
  s,doc,pid=env
  with s.sessions() as db:
@@ -60,6 +74,25 @@ def test_new_project_approval_remains_in_incomplete_queue_and_no_fake_project(en
  with s.sessions() as db:
   assert db.scalar(select(func.count()).select_from(Revision).where(Revision.kind=='project'))==1
   assert db.scalar(select(func.count()).select_from(Revision).where(Revision.kind=='evidence_bridge'))==0
+
+
+def test_document_can_be_linked_without_assigning_a_policy(env):
+ s,doc,pid=env
+ result=approve(s,doc,pid,policy_id='UNASSIGNED')
+ assert result['status']=='APPROVED' and result['policy_id']=='UNASSIGNED'
+ assert reviews.queue(s)['pending']==0
+ with s.sessions() as db:
+  mapping=db.scalar(select(Mapping))
+  assert mapping.policy_id=='POL_TEST' and mapping.status=='REVIEW'
+  bridge=db.scalar(select(Revision).where(Revision.kind=='evidence_bridge',Revision.superseded_at.is_(None)))
+  assert bridge.payload['status']=='CONFIRMED' and bridge.payload['facts']==[]
+ result=approve(s,doc,pid,status='REGISTRATION_REQUIRED',policy_id='UNASSIGNED',project_ids=[],new_project_names=['신규 사업'],review_revision_no=1)
+ assert result['status']=='REGISTRATION_REQUIRED' and result['policy_id']=='UNASSIGNED'
+ with s.sessions() as db:
+  assert db.scalar(select(func.count()).select_from(Revision).where(Revision.kind=='project'))==1
+  assert db.scalar(select(Mapping)).policy_id=='POL_TEST'
+  bridge=db.scalar(select(Revision).where(Revision.kind=='evidence_bridge',Revision.superseded_at.is_(None)))
+  assert bridge.payload['status']=='RELEASED' and bridge.payload['facts']==[]
 
 
 @pytest.mark.parametrize('changes',[
@@ -175,3 +208,75 @@ def test_review_guide_asks_source_specific_questions(title,question,event):
  assert event in g['event']
  assert len(g['checks'])==3 and g['reason_hint'] and g['next_step']
  assert '본문' in g['basis']
+
+
+def csv_rows(content):
+ import csv,io
+ assert content.startswith('\ufeff')
+ return list(csv.DictReader(io.StringIO(content.lstrip('\ufeff'))))
+
+
+@pytest.mark.parametrize('status', ['REVIEW','HOLD','REGISTRATION_REQUIRED','APPROVED','EXCLUDED'])
+def test_csv_each_status_has_evidence_and_preserves_decisions(env,status):
+ import json
+ from backend.publication_review_export import export_csv
+ s,doc,pid=env
+ if status!='REVIEW':
+  approve(s,doc,pid,status=status,new_project_names=['면목 실제 구역'] if status=='REGISTRATION_REQUIRED' else [])
+ with s.sessions() as db:
+  before=[(r.id,r.payload_hash) for r in db.scalars(select(Revision).order_by(Revision.id))]
+  audits=db.scalar(select(func.count()).select_from(Audit))
+ row,=csv_rows(export_csv(s,status=status))
+ assert row['현재상태코드']==status and row['자료ID']==doc
+ assert row['원문URL']=='https://www.seoul.go.kr/example' and row['원문해시']
+ assert row['본문보유여부'].startswith('미보유') and row['수집본문']==''
+ assert json.loads(row['이름유사후보_동일사업미확정_JSON'])[0]['mapping_basis']=='이전 검토 사유'
+ assert row['외부검증결과']==row['외부검증사유']==row['추가확인사항']==''
+ if status!='REVIEW':
+  assert row['검토사유']=='원문과 동일 구역을 확인했습니다.'
+  assert json.loads(row['검토이력_JSON'])[0]['status']==status
+  assert json.loads(row['선택사업_현재등록정보_JSON'])[0]['id']==pid
+ else: assert json.loads(row['검토이력_JSON'])==[]
+ assert len(csv_rows(export_csv(s,status='OPEN')))==int(status in ('REVIEW','HOLD','REGISTRATION_REQUIRED'))
+ assert csv_rows(export_csv(s,status='APPROVED' if status!='APPROVED' else 'HOLD'))==[]
+ assert len(csv_rows(export_csv(s,priority=1,search='면목')))==1
+ assert not csv_rows(export_csv(s,priority=4)) and not csv_rows(export_csv(s,search='없는 자료'))
+ with s.sessions() as db:
+  assert before==[(r.id,r.payload_hash) for r in db.scalars(select(Revision).order_by(Revision.id))]
+  assert audits==db.scalar(select(func.count()).select_from(Audit))
+
+
+def test_csv_separates_reopened_status_and_prior_decision_and_escapes_formulas(env):
+ import json
+ from backend.publication_review_export import export_csv
+ s,doc,pid=env
+ reason='=검토식, "인용"\n둘째 줄 근거'
+ approve(s,doc,pid,reason=reason)
+ with s.sessions.begin() as db:
+  old=db.scalar(select(Revision).where(Revision.entity_id==doc,Revision.superseded_at.is_(None)))
+  upsert_revision(db,'document_evidence','seoul_press_watch','case',dict(old.payload,text='본문, "근거"\n확인',name='면목 정정'),'update')
+ row,=csv_rows(export_csv(s,status='REVIEW'))
+ assert row['현재상태코드']=='REVIEW' and row['최근저장판단코드']=='APPROVED'
+ assert row['원문변경_재검토필요']=='예' and row['원문판본']=='2' and row['검토당시원문판본']=='1'
+ assert row['검토사유']=="'"+reason
+ assert row['수집본문']=='본문, "근거"\n확인'
+ assert json.loads(row['검토이력_JSON'])[0]['reason']==reason
+ assert not csv_rows(export_csv(s,status='APPROVED'))
+
+
+def test_csv_api_download_empty_headers_and_validation(env,monkeypatch):
+ from fastapi.testclient import TestClient
+ from backend.app import create_app
+ s,doc,pid=env;monkeypatch.setenv('POC10_DATA_DIR',str(s.data_dir))
+ with TestClient(create_app(s.engine,auto_collect=False)) as client:
+  base='/poc/home/api/publication-reviews/export.csv'
+  response=client.get(base,params={'status':'REVIEW'})
+  assert response.status_code==200 and response.content.startswith(b'\xef\xbb\xbf')
+  assert response.headers['content-type'].startswith('text/csv')
+  assert 'attachment;' in response.headers['content-disposition'] and '-REVIEW-' in response.headers['content-disposition']
+  assert response.headers['cache-control']=='no-store'
+  assert len(csv_rows(response.text))==1
+  response=client.get(base,params={'status':'EXCLUDED'})
+  assert response.status_code==200 and csv_rows(response.text)==[] and '현재상태코드' in response.text
+  for params in ({'status':'invalid'},{'priority':0},{'priority':5},{'search':'x'*501}):
+   assert client.get(base,params=params).status_code==422

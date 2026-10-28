@@ -108,7 +108,10 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                     later_allowed = retry_allowance(prior, now=datetime.now(timezone.utc) + timedelta(days=1))
                     return {'status': 'RETRY_DEFERRED' if later_allowed else 'REVIEW_REQUIRED',
                             'broadcast_id': label, 'summarized': len(done)}
-                pool = clients()
+                # Isolated final validation repairs are hard verification work.
+                # Keep the general pool for ordinary summaries; verification only
+                # adds OpenAI when OpenRouter is exhausted, under existing budgets.
+                pool = clients("verification") if request.get('repair_round') == 4 else clients()
                 if not pool:
                     return {'status': 'NO_PROVIDER', 'broadcast_id': label}
                 allowed = retry_allowance(prior, round_size=len(pool))

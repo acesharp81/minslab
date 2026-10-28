@@ -38,10 +38,11 @@ def test_missing_date_untrusted_link_and_blocked_page_fail():
     assert watch.housing_title('한국토지주택공사(LH), 시흥거모 공공분양주택 공급')
 
 
-def test_discovery_job_never_enters_link_or_snapshot():
+@pytest.mark.parametrize('source_id', ['newsis_housing_watch', 'sh_notice_watch'])
+def test_discovery_job_never_enters_link_or_snapshot(source_id):
     e=create_engine('sqlite://');Base.metadata.create_all(e);s=HomeService(e)
     try:
-        jid=enqueue(s,'newsis_housing_watch',force=True)
+        jid=enqueue(s,source_id,force=True)
         with patch.object(s,'collect_one',return_value={'status':'SUCCESS'}):
             result=run_next(s,'LATEST')
         assert result['status']=='SUCCESS' and result['next_stage'] is None
@@ -90,3 +91,25 @@ def test_new_badge_does_not_create_article_revision():
     rows=watch.board_rows(body,source)
     assert not any(r['name'].startswith('새글') for r in rows)
     assert rows==watch.board_rows(body.replace('새글'.encode(),b''),source)
+
+
+def test_sh_publication_date_is_not_original_notice_date_and_records_are_review_only():
+    class Fetcher:
+        def get(self,url,*args):
+            group='sale' if 'm_244/' in url else 'rental' if 'm_247/' in url else 'movein'
+            return (ROOT/f'sh-{group}.html').read_bytes()
+    with patch.object(watch,'today',return_value=date(2026,10,28)):
+        records,stats=watch.collect(SOURCES_BY_ID['sh_notice_watch'],Fetcher())
+    assert len(records)==19
+    assert len({key for _,key,_ in records})==19
+    item=next(p for _,key,p in records if key=='312294')
+    assert '2026.04.27' in item['name'] and item['source_date']=='2026-10-27'
+    assert item['evidence_url'].endswith('view.do?seq=312294')
+    assert all(p['authority']=='OFFICIAL' and p['facts']==[] and p['units'] is None and p['status']=='REVIEW' for _,_,p in records)
+    assert stats['actual_events_created']==0 and not stats['complete_population']
+
+
+def test_sh_invalid_listing_cannot_be_reported_as_successful_empty_collection():
+    for body in [b'<html>Access denied</html>',
+                 b'<tr><td><a onclick="getDetailView(\'123\')">2026-10-27 title</a></td></tr>']:
+        with pytest.raises(ValueError):watch.sh_board_rows(body)

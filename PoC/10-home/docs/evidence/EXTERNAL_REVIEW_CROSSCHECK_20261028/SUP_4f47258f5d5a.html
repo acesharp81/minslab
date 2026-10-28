@@ -1,0 +1,230 @@
+﻿
+
+
+
+
+
+
+
+
+
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="ko">
+<head>
+<title>고시공고</title>
+<link rel="stylesheet" href="/emwp/css/ofr/PlnOfrStyle.css" type="text/css" />
+<script type="text/javascript" src="/emwp/js/cmm/jsp/calendar.js"></script>
+<script type="text/javascript" src="/emwp/js/cmm/jsp/common.js"></script> 
+<script type="text/javascript">
+//-------------------------------------------------------------------
+// 설명   : 고시공고 목록 조회
+//-------------------------------------------------------------------	
+
+	var stat;
+	function goPage(){
+		var f = document.form1;
+		// 검색기능 조건값 st
+		var key = f.Key.value;
+		var temp = f.temp.value.length;
+		var temp_key ="";
+		if( key == 'B_Subject'){
+			f.not_ancmt_sj.value = f.temp.value; 
+		}else if( key == 'B_Content'){
+			f.not_ancmt_cn.value = f.temp.value;   
+		}else if( key == 'B_Dept'){
+			f.dept_nm.value = f.temp.value;
+		}else if( key == 'B_RegNo'){
+			for(i=0; i<temp; i++){
+				if((f.temp.value.charAt(i)=="1")||(f.temp.value.charAt(i)=="2")||(f.temp.value.charAt(i)=="3")||
+				   (f.temp.value.charAt(i)=="4")||(f.temp.value.charAt(i)=="5")||(f.temp.value.charAt(i)=="6")||
+				   (f.temp.value.charAt(i)=="7")||(f.temp.value.charAt(i)=="8")||(f.temp.value.charAt(i)=="9")||(f.temp.value.charAt(i)=="0")){
+					temp_key = temp_key+""+f.temp.value.charAt(i);
+					}
+			}
+			f.not_ancmt_reg_no.value = temp_key;
+		}
+ 		// 검색기능 조건값 ed
+		f.target = "_self";
+		f.action = "/emwp/gov/mogaha/ntis/web/ofr/action/OfrAction.do";	
+		f.method.value   = 'selectListOfrNotAncmt'; //Action
+		f.methodnm.value = 'selectListOfrNotAncmtHomepage';
+		f.submit();	
+	}
+//-------------------------------------------------------------------
+// 설명   : 고시공고 첨부파일 다운로드
+//-------------------------------------------------------------------
+	function goDownLoad(de_user_file_nm, de_sys_file_nm, de_file_path){
+		var enc_de_user_file_nm = de_user_file_nm;
+		var enc_de_sys_file_nm = de_sys_file_nm;
+		var enc_de_file_path = de_file_path;
+
+//alert("enc_de_sys_file_nm :==> " + enc_de_sys_file_nm);
+
+    document.nnn.user_file_nm.value = enc_de_user_file_nm;
+    document.nnn.sys_file_nm.value = enc_de_sys_file_nm;
+    document.nnn.file_path.value = enc_de_file_path;
+    
+    document.nnn.submit();
+//(2011.08.02)수정 전:	location.href="/emwp/jsp/ofr/FileDown.jsp?user_file_nm="+enc_de_user_file_nm+"&sys_file_nm="+enc_de_sys_file_nm+"&file_path="+enc_de_file_path;
+
+//(2011.08.02)수정부분1 시작
+		//if(document.getElementById("hidden_frame").readyState != "loading"){
+		//	hidden_frame.document.location.href="/emwp/jsp/ofr/FileDown.jsp?user_file_nm="+enc_de_user_file_nm+"&sys_file_nm="+enc_de_sys_file_nm+"&file_path="+enc_de_file_path;
+		//	hidden_frame.focus();
+		//} else {
+		//	alert("처리중입니다.");
+		//}
+//(2011.08.02)수정부분1 종료
+//(2011.08.02)수정부분2 가장 하단의 <iframe name="hidden_frame" ...></iframe> 부분을 반드시 추가해야합니다.	oncontextmenu = "return false"	
+	}
+</script>
+</head>
+<body leftmargin="0" topmargin="0" >
+<form name = "nnn" method = "post" action="/emwp/jsp/ofr/FileDownNew.jsp">
+<input type= "hidden" name = "user_file_nm"/>
+<input type= "hidden" name = "sys_file_nm"/>
+<input type= "hidden" name = "file_path"/>
+</form>	
+<form name="form1" method="post">
+<input type="hidden" name="jndinm" value="OfrNotAncmtEJB" />
+<input type="hidden" name="context" value="NTIS" />
+<input type="hidden" name="method"  value="selectOfrNotAncmt" />
+<input type="hidden" name="methodnm" value="selectOfrNotAncmtRegst" />
+<input type="hidden" name="not_ancmt_sj" value="" />
+<input type="hidden" name="pageIndex" value='' />
+<input type="hidden" name="ofr_pageSize" value="10" />
+<input type="hidden" name="homepage_pbs_yn" value="Y" />
+<input type="hidden" name="epcCheck" value="" />
+<!-- 
+	시군구 페이지에 맞게 커스터마이징 된 JSP페이지 여부(Y/N) 설정 반드시 해줘야 함. 
+	Sub파일 적용시   OfrNotAncmtR.jsp 의 subCheck는 N으로 설정해주시고
+				 OfrNotAncmtRSub.jsp 의 subCheck는 Y으로 설정해주시길 바랍니다.
+-->
+<input type="hidden" name="subCheck" value="Y" />
+<input type="hidden" name="not_ancmt_se_code" value="01,02,03,04,05" />
+<input type="hidden" name="cha_dep_code_nm" value="" />
+<input type="hidden" name="countYn" value="Y" />
+<input type="hidden" name="list_gubun" value="" />
+<input type="hidden" name="yyyy" value="" />
+<input type="hidden" name="yyyymmdd" value="" />
+<input type="hidden" name="recent_mm" value="" />
+<input type="hidden" name="last_mm" value="" />
+<input type="hidden" name="nodate_recent_mm" value="" />
+<input type="hidden" name="nodate_last_mm" value="" />
+<!--검색기능 조건값 -->
+<input type="hidden" name="temp" value="" />
+<input type="hidden" name="Key" value="" />
+<input type="hidden" name="not_ancmt_cn" value="" />
+<input type="hidden" name="dept_nm" value="" />
+<input type="hidden" name="not_ancmt_reg_no" value="" />
+<input type="hidden" name="cgg_code" value="" />
+
+<table width="639" border="0" cellpadding="0" cellspacing="0" class="tbl">
+  <tr>
+    <td><img src="/emwp/img/ofr/arrow.gif" alt=""></td><td width="97%" class="title">고시공고</td>
+  </tr>
+ </table>
+<br />
+
+<table width="639"  cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" height="390">
+<tr>
+    <td align="center" valign="top">
+	    <!--- ############## top  ###---->		
+		<table width="100%" border="0" cellspacing="1" cellpadding="0" summary="고시공고번호,등록일,구분,제목,내용 등인 포함된 고시공고 상세조회표입니다">		
+		<caption style="display:none;">고시공고 상세조회</caption>
+		<tr>			
+		    <td colspan="4" height="2"  bgcolor="#0F7E8B"></td>		
+		</tr>		
+		<tr>			
+		    <td colspan="4" height="1"  bgcolor="#d3d3d3"></td>		
+		</tr>		
+		<tr> 			
+		    <th height="22"  align="center"   bgcolor=BAE6E7>고시공고구분</th>			
+			<td bgcolor="#F5FAF5">공고(일반공고)</td>			
+			<th height="22"  align="center"   bgcolor=BAE6E7>게재제호</th>			
+			<td bgcolor="#F5FAF5"></td>	
+		</tr>		
+		<tr>			
+			<td colspan="4" bgcolor="#BFCDCD" height="1"></td>        
+		</tr>		
+		<tr>			
+		    <th height="22"  align="center"   bgcolor="#BAE6E7">고시공고번호</th>			
+			<td bgcolor="#F5FAF5">서울특별시 강북구 공고 제2026-1545호</td>			
+			<th height="22"  align="center"   bgcolor="#BAE6E7">등록일</th>			
+			<td bgcolor="#F5FAF5">2026-10-26</td>		
+		</tr>		
+		<tr>			
+		    <td colspan="4" bgcolor="#BFCDCD" height="1"></td>       
+		</tr>		
+		<tr>		
+		    <th height="22"  align="center" bgcolor="#BAE6E7">담당자/연락처</th>
+			<td width="330" bgcolor="#F5FAF5">김태현&nbsp;/&nbsp;02-901-6967</td>
+			<th height="22"  align="center" bgcolor=BAE6E7>담당부서</th>			
+			<td width="130" bgcolor="#F5FAF5">생활보장과</td>		
+		</tr>
+		<tr>			
+		    <td colspan="4" bgcolor="#BFCDCD" height="1"></td>       
+		</tr>
+		<tr>
+			<th width="90" height="22"  align="center" bgcolor="#BAE6E7">제목</th>
+			<td width="460" bgcolor="#F5FAF5" colspan="3">2026년 강북구 신혼부부 매입임대주택 1~4차 잔여세대 입주자 모집 공고</td>
+		</tr>	
+		<tr>			
+		    <td colspan="4" bgcolor="#BFCDCD" height="1"></td>       
+		</tr>		
+		<tr> 			
+		    <td height="5" colspan="4"><!---- blank ---></td>		
+		</tr>	
+		<tr> 			
+		    <td style="word-break:break-all;" colspan="4">아래의&nbsp;고시공고를&nbsp;[홈페이지]에&nbsp;게재&nbsp;하고자&nbsp;합니다.<br><br>□&nbsp;공고&nbsp;내용<br>무주택,&nbsp;저소득&nbsp;(예비)신혼부부의&nbsp;주거안정을&nbsp;도모하고&nbsp;전세부담을&nbsp;덜기&nbsp;위해&nbsp;지역수요&nbsp;맞춤형&nbsp;신혼부부&nbsp;매입임대주택&nbsp;입주자를&nbsp;아래와&nbsp;같이&nbsp;모집합니다.<br><br>&nbsp;○&nbsp;대&nbsp;&nbsp;&nbsp;&nbsp;상:&nbsp;서울시에&nbsp;거주하는&nbsp;(예비)신혼부부&nbsp;및&nbsp;6세&nbsp;이하&nbsp;자녀가&nbsp;있는&nbsp;한부모가족<br>&nbsp;○&nbsp;공급호수:&nbsp;총&nbsp;4세대<br>&nbsp;○&nbsp;공고기간:&nbsp;2026.&nbsp;10.&nbsp;26.(월)&nbsp;~&nbsp;11.&nbsp;12.(목)&nbsp;[18일간]<br>&nbsp;○&nbsp;신청기간:&nbsp;2026.&nbsp;11.&nbsp;2.(월)&nbsp;~&nbsp;11.&nbsp;12.(목)&nbsp;[11일간]<br>&nbsp;○&nbsp;당첨자&nbsp;발표:&nbsp;2027.&nbsp;1.&nbsp;22.(금)&nbsp;예정<br>&nbsp;○&nbsp;동호&nbsp;배정&nbsp;및&nbsp;공동체&nbsp;교육:&nbsp;2027.&nbsp;2.&nbsp;17.(수)&nbsp;예정<br>&nbsp;○&nbsp;계약&nbsp;및&nbsp;입주:&nbsp;2027.&nbsp;3.&nbsp;~&nbsp;5.<br>&nbsp;○&nbsp;신청자격&nbsp;및&nbsp;제출서류:&nbsp;모집&nbsp;공고문&nbsp;참조<br>&nbsp;○&nbsp;신청방법:&nbsp;생활보장과&nbsp;자활주거팀&nbsp;담당자&nbsp;이메일(tooyoou@gangbuk.go.kr)로&nbsp;서류&nbsp;송부<br>&nbsp;&nbsp;&nbsp;&nbsp;※&nbsp;기타&nbsp;자세한&nbsp;사항은&nbsp;붙임문서(공고문)을&nbsp;참조하시기&nbsp;바랍니다.<br><br>붙임&nbsp;&nbsp;지역수요&nbsp;맞춤형&nbsp;신혼부부&nbsp;매입&nbsp;임대주택&nbsp;입주자&nbsp;모집공고문&nbsp;1부.&nbsp;&nbsp;끝.</td>	
+		</tr>		
+	    
+		<tr> 			
+		    <td colspan="4">				
+			    <table width="100%" border="0" cellpadding="1" cellspacing="1">				
+		        <tr>					
+		            <td valign="top" width="15%"> 첨부파일 : </td>					
+			        <td>
+		
+								
+		             <a href="javascript:goDownLoad('강북구 신혼부2AzyXd5ex0QL1oIOP4U1XQOQhgKiMhyGXShBZgfwk2d9NuKCPZNgXdyo3FSi9WYMPSSwCWvuweXlDieK8Od+vQ==','강북구 신혼부2AzyXd5ex0QL1oIOP4U1XQOQhgKiMhyGXShBZgfwk2fToZ0sl1kJ8muz2WKr9XmPiSDaKYw9hgXRhK0fKwHbPXFKqC4YI9/g0IY24rihHPfdeZTVFVb/eyiXFnD4hdZT36XuxzYKVUeitTbMwTHBQw==','/ntisho7TxiXMbD7xILO0iAiSN9sgxQHZ5itjPdGrBMhN5JaNZAYgE9zOHEjQLMDrUGC0b4')">강북구 신혼부부 매입임대주택 1~4차 잔여세대 입주자 모집 공고.pdf</a><br />
+             
+							
+		           </td>				
+			    </tr>			
+			    </table>			
+			</td>		
+		</tr>	
+		<tr> 			
+		    <td height="10" colspan="4"><!---- blank ---></td>		
+		</tr>		
+		<tr>			
+		    <td colspan="4" height="1"  bgcolor="#0F7E8B"></td>		
+		</tr>		
+		<tr>			
+		    <td colspan="4" height="1"  bgcolor="#d3d3d3"></td>		
+		</tr>		
+		</table>
+		<table width="98%" border="0" cellspacing="0" cellpadding="0">        
+		<tr> 			
+			 <td height="10" colspan="6"><!---- blank ---></td>		
+		</tr>
+		<tr> 			
+		    <td width="300" align="center">&nbsp; </td>			
+			<td align="right">				
+			    <a href="javaScript:goPage()"><img src="/emwp/img/ofr/btn_list.gif" border="0" alt="목록이동"></a>			
+			</td>		
+		</tr>		
+		</table>	
+	</td>
+</tr><iframe name="hidden_frame" id="hidden_frame" title="내용없음" height="0" width="0" marginHeight="0" marginWidth="0" frameborder="0" src=""></iframe>
+
+	
+
+
+</table>
+</form>
+
+</body>
+</html>

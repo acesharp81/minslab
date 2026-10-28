@@ -1,0 +1,1363 @@
+{
+  "checked_at": "2026-10-28T07:23:25.477573+09:00",
+  "day": "2026-10-28",
+  "overdue": [],
+  "today_success": [
+    {
+      "id": "sh_notice_watch",
+      "name": "SH 주택 모집·정정·입주안내 공고 신규 탐색",
+      "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+      "latest_success": "2026-10-28T07:22:02.316526+09:00",
+      "age_hours": 0.02,
+      "interval_hours": 1.0
+    },
+    {
+      "id": "lh_press_watch",
+      "name": "LH 주택 보도자료 신규 탐색",
+      "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&nPage=1",
+      "latest_success": "2026-10-28T07:13:59.877702+09:00",
+      "age_hours": 0.16,
+      "interval_hours": 1.0
+    },
+    {
+      "id": "ih_press_watch",
+      "name": "iH 주택 보도자료 신규 탐색",
+      "url": "https://www.ih.co.kr/main/public/news_data.jsp",
+      "latest_success": "2026-10-28T07:14:00.088516+09:00",
+      "age_hours": 0.16,
+      "interval_hours": 1.0
+    },
+    {
+      "id": "seoul_press_watch",
+      "name": "서울시 주택 보도자료 RSS 신규 탐색",
+      "url": "https://seoulboard.seoul.go.kr/rss/RSSGenerator?bbsNo=158",
+      "latest_success": "2026-10-28T07:14:01.031351+09:00",
+      "age_hours": 0.16,
+      "interval_hours": 1.0
+    },
+    {
+      "id": "newsis_housing_watch",
+      "name": "뉴시스 주택 기사 RSS 신규 탐색",
+      "url": "https://www.newsis.com/RSS/economy.xml",
+      "latest_success": "2026-10-28T07:14:01.272796+09:00",
+      "age_hours": 0.16,
+      "interval_hours": 1.0
+    },
+    {
+      "id": "eum_housing_notices",
+      "name": "수도권 주택·정비·택지 고시 목록·변경 이력",
+      "url": "https://www.eum.go.kr/web/gs/gv/gvGosiList.jsp",
+      "latest_success": "2026-10-28T07:11:35.834438+09:00",
+      "age_hours": 0.2,
+      "interval_hours": 1.0
+    },
+    {
+      "id": "building_general_permit",
+      "name": "건축HUB 일반 건축인허가",
+      "url": "https://www.data.go.kr/data/15136267/openapi.do",
+      "latest_success": "2026-10-28T03:46:26.630396+09:00",
+      "age_hours": 3.62,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "ih_housing_inventory",
+      "name": "iH 공개 임대단지 명부·상세",
+      "url": "https://www.ih.co.kr/main/lease/leaseAptList.do",
+      "latest_success": "2026-10-28T01:24:39.334078+09:00",
+      "age_hours": 5.98,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "seoul_cleanup",
+      "name": "서울 정비사업 정보몽땅·추진경과",
+      "url": "https://cleanup.seoul.go.kr/cleanup/bsnssttus/lscrMainIndx.do",
+      "latest_success": "2026-10-28T07:15:20.295374+09:00",
+      "age_hours": 0.13,
+      "interval_hours": 1.0
+    },
+    {
+      "id": "ih_notice",
+      "name": "iH 공식 주택 사업·분양·임대 모집공고",
+      "url": "https://www.ih.co.kr/main/business/house.jsp",
+      "latest_success": "2026-10-28T06:41:59.215520+09:00",
+      "age_hours": 0.69,
+      "interval_hours": 1.0
+    },
+    {
+      "id": "building_register_recap",
+      "name": "건축HUB 주거용 총괄표제부 · 사용승인·합필 참조",
+      "url": "https://www.data.go.kr/data/15134735/openapi.do",
+      "latest_success": "2026-10-28T01:26:16.714952+09:00",
+      "age_hours": 5.95,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_incheon_construction",
+      "name": "LH 인천 실제 착공·공정 현황",
+      "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682",
+      "latest_success": "2026-10-28T02:03:50.119228+09:00",
+      "age_hours": 5.33,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "building_hub_details",
+      "name": "건축HUB 동별·대지위치 파일럿",
+      "url": "https://www.data.go.kr/data/15136560/openapi.do",
+      "latest_success": "2026-10-28T04:11:44.787648+09:00",
+      "age_hours": 3.19,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "gh_completion_evidence",
+      "name": "GH 사용검사·사용승인 원문 증빙",
+      "url": "https://apply.gh.or.kr/cs/sr/sr7900/selectNoticeList.do",
+      "latest_success": "2026-10-28T07:15:32.429950+09:00",
+      "age_hours": 0.13,
+      "interval_hours": 1.0
+    },
+    {
+      "id": "gh_notice",
+      "name": "GH 주택 공고·과거 목록",
+      "url": "https://apply.gh.or.kr/sb/sr/sr7150/selectPbancRentHouseList.do",
+      "latest_success": "2026-10-28T07:08:07.656912+09:00",
+      "age_hours": 0.25,
+      "interval_hours": 0.5
+    },
+    {
+      "id": "lh_construction",
+      "name": "LH 건설공사 현황",
+      "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682",
+      "latest_success": "2026-10-28T02:03:53.609164+09:00",
+      "age_hours": 5.33,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "building_register",
+      "name": "건축HUB 주거용 건축물대장",
+      "url": "https://www.data.go.kr/data/15134735/openapi.do",
+      "latest_success": "2026-10-28T02:07:18.483882+09:00",
+      "age_hours": 5.27,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_notice",
+      "name": "LH 분양·임대 공고",
+      "url": "https://www.data.go.kr/data/15058530/openapi.do",
+      "latest_success": "2026-10-28T07:18:58.805936+09:00",
+      "age_hours": 0.07,
+      "interval_hours": 0.25
+    },
+    {
+      "id": "lh_notice_detail",
+      "name": "LH 모집공고 상세 · 입주 예정월",
+      "url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do",
+      "latest_success": "2026-10-28T06:54:13.723603+09:00",
+      "age_hours": 0.49,
+      "interval_hours": 0.5
+    },
+    {
+      "id": "sh_inventory",
+      "name": "SH 최신 공개본 사업 연결",
+      "url": "https://www.data.go.kr/data/15124798/fileData.do",
+      "latest_success": "2026-10-28T07:16:58.938858+09:00",
+      "age_hours": 0.11,
+      "interval_hours": 1.0
+    }
+  ],
+  "not_today_but_not_due": [
+    {
+      "id": "lh_policy_followup",
+      "name": "LH 9·7 후속 민간참여 공모 · 블록별 착공계획",
+      "url": "https://www.lh.or.kr/board.es?act=view&bid=0034&list_no=727339&mid=a10601020000",
+      "latest_success": "2026-10-27T22:18:59.736294+09:00",
+      "age_hours": 9.07,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_happy_plan_file",
+      "name": "LH 행복주택 공급계획 공개파일",
+      "url": "https://www.data.go.kr/data/15043330/fileData.do",
+      "latest_success": "2026-10-27T21:17:51.080279+09:00",
+      "age_hours": 10.09,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "sh_national_plan_file",
+      "name": "SH 국민임대주택 공급계획",
+      "url": "https://www.data.go.kr/data/15045310/fileData.do",
+      "latest_success": "2026-10-27T21:17:52.534115+09:00",
+      "age_hours": 10.09,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "sh_jeonse_plan_file",
+      "name": "SH 장기전세주택 공급계획",
+      "url": "https://www.data.go.kr/data/15045311/fileData.do",
+      "latest_success": "2026-10-27T21:17:54.037382+09:00",
+      "age_hours": 10.09,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "sh_happy_plan_file",
+      "name": "SH 행복주택·리츠 공급계획",
+      "url": "https://www.data.go.kr/data/15066029/fileData.do",
+      "latest_success": "2026-10-27T21:17:55.518927+09:00",
+      "age_hours": 10.09,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "reb_movein_plan_file",
+      "name": "한국부동산원 입주예정물량",
+      "url": "https://www.data.go.kr/data/15111714/fileData.do",
+      "latest_success": "2026-10-27T21:17:57.741466+09:00",
+      "age_hours": 10.09,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "sh_contract_file",
+      "name": "SH 공사계약 공개파일",
+      "url": "https://www.data.go.kr/data/3045249/fileData.do",
+      "latest_success": "2026-10-27T21:17:59.828362+09:00",
+      "age_hours": 10.09,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_department_plans",
+      "name": "LH 부서별 연간 업무계획 · 원문·표",
+      "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=654637&mid=a10103050000&nPage=1",
+      "latest_success": "2026-10-27T18:47:11.484942+09:00",
+      "age_hours": 12.6,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "molit_monthly_release",
+      "name": "국토부 월별 주택통계 공식 PDF · 인허가 보완",
+      "url": "https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=1229",
+      "latest_success": "2026-10-27T16:23:39.268718+09:00",
+      "age_hours": 15.0,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "reb_apartment_price",
+      "name": "한국부동산원 수도권 아파트 매매가격지수",
+      "url": "https://www.reb.or.kr/r-one/portal/stat/easyStatPage/A_2024_00045.do",
+      "latest_success": "2026-10-27T08:08:46.664384+09:00",
+      "age_hours": 23.24,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "kosis_age",
+      "name": "KOSIS 수도권 시군구 연령별 주민등록인구",
+      "url": "https://kosis.kr/statHtml/statHtml.do?orgId=101&tblId=DT_1B04005N",
+      "latest_success": "2026-10-21T14:08:09.867716+09:00",
+      "age_hours": 161.25,
+      "interval_hours": 168.0
+    },
+    {
+      "id": "unsold_statistics",
+      "name": "수도권 미분양·준공 후 미분양 월별 재고",
+      "url": "https://stat.molit.go.kr/portal/api/info.do",
+      "latest_success": "2026-10-27T21:22:04.602654+09:00",
+      "age_hours": 10.02,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "project_locations",
+      "name": "사업 대표 주소·지역 근사 좌표",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "latest_success": "2026-10-27T08:05:55.745099+09:00",
+      "age_hours": 23.29,
+      "interval_hours": 168.0
+    },
+    {
+      "id": "building_hub_incheon",
+      "name": "9·7 인천 주택인허가 원천",
+      "url": "https://www.data.go.kr/data/15136560/openapi.do",
+      "latest_success": "2026-10-27T19:04:44.386290+09:00",
+      "age_hours": 12.31,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "policy_907_plan",
+      "name": "9·7 전체 연도·유형별 착공 목표 원문",
+      "url": "https://eiec.kdi.re.kr/policy/materialView.do?num=270716",
+      "latest_success": "2026-10-26T12:45:12.953053+09:00",
+      "age_hours": 42.64,
+      "interval_hours": 168.0
+    },
+    {
+      "id": "policy_907_incheon_geometry",
+      "name": "9·7 인천 시군구 경계",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "latest_success": "2026-10-26T08:51:01.674000+09:00",
+      "age_hours": 46.54,
+      "interval_hours": 168.0
+    },
+    {
+      "id": "incheon_statistics",
+      "name": "인천 주택 인허가·착공·준공·분양승인 통계",
+      "url": "https://stat.molit.go.kr/portal/api/info.do",
+      "latest_success": "2026-10-26T08:52:06.078956+09:00",
+      "age_hours": 46.52,
+      "interval_hours": 168.0
+    },
+    {
+      "id": "lh_incheon_sale",
+      "name": "LH 인천 분양 공급계획",
+      "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "latest_success": "2026-10-27T18:00:59.551645+09:00",
+      "age_hours": 13.37,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_incheon_rent",
+      "name": "LH 인천 임대 공급계획",
+      "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+      "latest_success": "2026-10-27T18:01:01.571960+09:00",
+      "age_hours": 13.37,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "molit_demolition",
+      "name": "국토부 연도별 주택멸실현황 · 서울·경기",
+      "url": "https://www.index.go.kr/unity/potal/main/EachDtlPageDetail.do?idx_cd=2839",
+      "latest_success": "2026-10-27T20:51:47.759406+09:00",
+      "age_hours": 10.53,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "molit_renewal_inventory",
+      "name": "국토부 전국 정비사업 통합 현황 · 수도권 후보",
+      "url": "https://www.data.go.kr/data/15160169/fileData.do",
+      "latest_success": "2026-10-27T18:52:42.400411+09:00",
+      "age_hours": 12.51,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_completion_plan",
+      "name": "LH 공공주택 블록별 준공예정",
+      "url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "latest_success": "2026-10-27T18:44:08.304696+09:00",
+      "age_hours": 12.65,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "kosis_housing",
+      "name": "KOSIS 서울·경기 일반가구·다가구 반영 주택 재고",
+      "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+      "latest_success": "2026-10-27T20:41:16.532200+09:00",
+      "age_hours": 10.7,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "kosis_living",
+      "name": "KOSIS 소득·인구이동·거주기간·주거형태",
+      "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+      "latest_success": "2026-10-27T19:30:38.234478+09:00",
+      "age_hours": 11.88,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "kosis_household_size",
+      "name": "KOSIS 서울·경기 가구원수별 일반가구",
+      "url": "https://kosis.kr/statisticsList/mass/mass_list.jsp?org_id=101&process=statHtml&tbl_id=DT_1JC1516&vw_cd=MT_ZTITLE",
+      "latest_success": "2026-10-27T20:43:52.254623+09:00",
+      "age_hours": 10.66,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "sgis_area",
+      "name": "SGIS 서울·경기·인천 인구·가구·사업체·산업 종사자",
+      "url": "https://sgis.mods.go.kr/developer/html/newOpenApi/api/dataApi/census.html",
+      "latest_success": "2026-10-27T18:55:54.348389+09:00",
+      "age_hours": 12.46,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "kosis_employment",
+      "name": "KOSIS 시군구별 반기 고용·취업자",
+      "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+      "latest_success": "2026-10-27T20:43:56.660252+09:00",
+      "age_hours": 10.66,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "kosis_household_forecast",
+      "name": "KOSIS 시도별 장래가구추계",
+      "url": "https://kosis.kr/openapi/devGuide/devGuide_0201List.do",
+      "latest_success": "2026-10-27T20:49:46.425343+09:00",
+      "age_hours": 10.56,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_block_location",
+      "name": "LH 공개 지도 블록 라벨 위치",
+      "url": "https://bizmap.lh.or.kr/lhmap.do",
+      "latest_success": "2026-10-27T23:59:32.920527+09:00",
+      "age_hours": 7.4,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_reit_progress",
+      "name": "LH 공공임대리츠 실제 공정률 · 2018 투자보고서",
+      "url": "https://www.lh.or.kr/boardDownload.es?bid=0028&list_no=651950&seq=1",
+      "latest_success": "2026-10-27T20:29:46.065489+09:00",
+      "age_hours": 10.89,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_progress",
+      "name": "LH 블록별 실제 공정률 · 공개 상세 이력",
+      "url": "https://apply.lh.or.kr/lhapply/land/cwsttList.do",
+      "latest_success": "2026-10-27T18:51:39.735715+09:00",
+      "age_hours": 12.53,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_supply_history",
+      "name": "LH 공공분양 공급현황 2020~2025",
+      "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=727605&mid=a10103040000&nPage=1",
+      "latest_success": "2026-10-27T21:15:05.921004+09:00",
+      "age_hours": 10.14,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_movein_history",
+      "name": "LH 연도별 입주계획 공개본",
+      "url": "https://www.lh.or.kr/board.es?act=view&bid=0007&list_no=654827&mid=a10103010000&nPage=1",
+      "latest_success": "2026-10-27T21:10:51.427578+09:00",
+      "age_hours": 10.21,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_stock",
+      "name": "LH 단지정보 · 과거 준공·입주지정 일정",
+      "url": "https://www.data.go.kr/data/15080989/fileData.do",
+      "latest_success": "2026-10-27T21:16:31.442965+09:00",
+      "age_hours": 10.12,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "legal_dongs",
+      "name": "서울·경기 전체 법정동 코드",
+      "url": "https://www.code.go.kr/stdcode/regCodeL.do",
+      "latest_success": "2026-10-27T21:15:03.033260+09:00",
+      "age_hours": 10.14,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "sh_files",
+      "name": "SH 주택관리현황 2024~2026 공개본",
+      "url": "https://data.seoul.go.kr/dataList/OA-12027/S/1/datasetView.do",
+      "latest_success": "2026-10-27T20:47:02.430430+09:00",
+      "age_hours": 10.61,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "gh_files",
+      "name": "GH 재건축 매입임대 현황",
+      "url": "https://www.data.go.kr/data/15112600/fileData.do",
+      "latest_success": "2026-10-27T20:47:05.557756+09:00",
+      "age_hours": 10.61,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "gh_supply_plan",
+      "name": "GH 주택 분양·임대 공급계획",
+      "url": "https://www.gh.or.kr/gh/housing-stability-in-gyeonggi-do001.do",
+      "latest_success": "2026-10-27T21:16:32.730910+09:00",
+      "age_hours": 10.11,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "complex_approval_reference",
+      "name": "한국부동산원 공동주택 단지·필지 사용승인 참조",
+      "url": "https://www.data.go.kr/data/15106861/fileData.do",
+      "latest_success": "2026-10-24T15:06:12.170774+09:00",
+      "age_hours": 88.29,
+      "interval_hours": 168.0
+    },
+    {
+      "id": "policy_907",
+      "name": "9·7 주택공급 확대방안",
+      "url": "https://d.nts.go.kr/cheonan/na/ntt/selectNttInfo.do?mi=4611&nttSn=1353601",
+      "latest_success": "2026-10-27T20:47:07.422152+09:00",
+      "age_hours": 10.61,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "policy_129",
+      "name": "1·29 도심 주택공급 확대 및 신속화",
+      "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156742030",
+      "latest_success": "2026-10-27T21:29:58.850525+09:00",
+      "age_hours": 9.89,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "policy_813",
+      "name": "8·13 주택 신속공급 방안",
+      "url": "https://www.korea.kr/briefing/policyBriefingView.do?newsId=156774369",
+      "latest_success": "2026-10-27T21:30:01.048956+09:00",
+      "age_hours": 9.89,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "urban_930",
+      "name": "서울 도심복합사업 9·30 후속조치",
+      "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148972807",
+      "latest_success": "2026-10-27T21:31:55.428670+09:00",
+      "age_hours": 9.86,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_sale",
+      "name": "LH 연간 분양주택 공급계획",
+      "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "latest_success": "2026-10-27T20:48:45.852849+09:00",
+      "age_hours": 10.58,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_rent",
+      "name": "LH 연간 임대주택 공급계획",
+      "url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=06",
+      "latest_success": "2026-10-27T20:49:48.068246+09:00",
+      "age_hours": 10.56,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "cheongyak",
+      "name": "청약홈 분양정보",
+      "url": "https://www.data.go.kr/data/15098547/openapi.do",
+      "latest_success": "2026-10-27T18:57:40.475146+09:00",
+      "age_hours": 12.43,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "building_hub",
+      "name": "건축HUB 주택인허가",
+      "url": "https://www.data.go.kr/data/15136560/openapi.do",
+      "latest_success": "2026-10-27T16:47:00.738544+09:00",
+      "age_hours": 14.61,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "molit_statistics",
+      "name": "서울·경기 주택건설 공식 통계",
+      "url": "https://stat.molit.go.kr/portal/api/info.do",
+      "latest_success": "2026-10-27T16:33:50.756282+09:00",
+      "age_hours": 14.83,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "sh_supply_plan",
+      "name": "SH 주택분양 공급계획·과거 공개본",
+      "url": "https://www.data.go.kr/data/15008820/fileData.do",
+      "latest_success": "2026-10-26T18:59:57.704035+09:00",
+      "age_hours": 36.39,
+      "interval_hours": 168.0
+    },
+    {
+      "id": "sh_redevelopment",
+      "name": "SH 공공재개발·재건축 사업현황",
+      "url": "https://www.data.go.kr/data/15124798/fileData.do",
+      "latest_success": "2026-10-26T18:59:58.989846+09:00",
+      "age_hours": 36.39,
+      "interval_hours": 168.0
+    },
+    {
+      "id": "policy_history",
+      "name": "정책 기원·후속조치 이력",
+      "url": "https://www.korea.kr/news/policyNewsView.do?newsId=148856563",
+      "latest_success": "2026-10-27T21:31:59.809500+09:00",
+      "age_hours": 9.86,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "lh_history",
+      "name": "LH 과거 건설공사 현황",
+      "url": "https://www.lh.or.kr/board.es?mid=a10607030000&bid=0007&act=view&list_no=654682",
+      "latest_success": "2026-10-27T20:51:56.970197+09:00",
+      "age_hours": 10.52,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "area_national_benchmarks",
+      "name": "전국 연령·가구원수·산업 종사자 비교 기준",
+      "url": "https://kosis.kr/openapi/index/index.do",
+      "latest_success": "2026-10-21T14:32:13.007536+09:00",
+      "age_hours": 160.85,
+      "interval_hours": 168.0
+    }
+  ],
+  "manual": [
+    {
+      "id": "national_statistics",
+      "name": "전국 주택 공급단계 통계 · 보관 원본 확대 추출",
+      "url": "https://stat.molit.go.kr/portal/api/info.do",
+      "latest_success": "2026-10-12T13:37:32.192376+09:00",
+      "age_hours": 377.76,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "ih_supply",
+      "name": "iH 임대 재고·계약·공가 API · 접근 미확인",
+      "url": "https://www.data.go.kr/data/15168460/openapi.do",
+      "latest_success": null,
+      "age_hours": null,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "incheon_legal_dongs",
+      "name": "9·7 인천 전체 법정동 코드",
+      "url": "https://www.code.go.kr/stdcode/regCodeL.do",
+      "latest_success": "2026-10-12T09:03:38.331915+09:00",
+      "age_hours": 382.33,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "seoul_plan_notice_pilot",
+      "name": "서울 공덕1 정비구역 변경 고시 원문",
+      "url": "https://event.seoul.go.kr/seoulsibo/detailview.do?cn_seq=MTc1Mjc%3D&tr_code=snews",
+      "latest_success": "2026-10-10T13:15:47.721985+09:00",
+      "age_hours": 426.13,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "gyeonggi_plan_notice_pilot",
+      "name": "경기 고양창릉 지구지정 변경 고시 원문",
+      "url": "https://www.molit.go.kr/USR/I0204/m_45/dtl.jsp?idx=18272",
+      "latest_success": "2026-10-10T13:15:53.327417+09:00",
+      "age_hours": 426.13,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "vworld",
+      "name": "행정구역 경계·주소 좌표",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "latest_success": "2026-10-03T16:30:24.390608+09:00",
+      "age_hours": 590.88,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "vworld_district",
+      "name": "VWorld 공공주택지구 공동주택용지",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "latest_success": "2026-10-02T23:58:19.584893+09:00",
+      "age_hours": 607.42,
+      "interval_hours": 24.0
+    },
+    {
+      "id": "vworld_municipality",
+      "name": "VWorld 서울·경기 시군구 경계",
+      "url": "https://www.vworld.kr/v4po_openapi_s001.do",
+      "latest_success": "2026-10-03T08:36:25.221720+09:00",
+      "age_hours": 598.78,
+      "interval_hours": 24.0
+    }
+  ],
+  "active_jobs": [],
+  "recent_failures": [
+    {
+      "source_id": "ih_supply",
+      "error": "iH 기관 API 연결 실패(HTTP 504). 재시도 필요 · 데이터 존재 여부 미판정 · 0호 아님",
+      "time": "2026-10-27T22:14:01.277989+00:00"
+    }
+  ],
+  "publications": [
+    {
+      "id": "DOC_94cab4bf5e40c75ed98b8d62",
+      "source": "ih_press_watch",
+      "revision": 1,
+      "name": "하나아파트 주민들, 검단신도시 주거환경 개선 힘쓴 인천도시공사에 감사패 전달",
+      "source_date": "2026-09-30",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2315"
+    },
+    {
+      "id": "DOC_095dc3097cc065c4cb4e9da4",
+      "source": "ih_press_watch",
+      "revision": 1,
+      "name": "제물포역 북측 공공주택 복합사업 이주율 90.8% 달성… 연내 착공 청신호",
+      "source_date": "2026-10-01",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2316"
+    },
+    {
+      "id": "DOC_4ce61401faff4df183327aed",
+      "source": "ih_press_watch",
+      "revision": 1,
+      "name": "인천도시공사, 검단신도시 북측 광역도로 10월 7일부터 부분 개통",
+      "source_date": "2026-10-06",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2317"
+    },
+    {
+      "id": "DOC_46a03e4451788c1ae845bd74",
+      "source": "ih_press_watch",
+      "revision": 1,
+      "name": "인천도시공사 인천구월2 공공주택지구 보상 본격 착수",
+      "source_date": "2026-10-12",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2320"
+    },
+    {
+      "id": "DOC_cbe7b733bbc4f55f25f79092",
+      "source": "ih_press_watch",
+      "revision": 1,
+      "name": "인천광역시 광역주거복지센터, 2026년 주거복지 교육 성료",
+      "source_date": "2026-10-16",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2323"
+    },
+    {
+      "id": "DOC_ee0ac34035f66904d8348637",
+      "source": "ih_press_watch",
+      "revision": 1,
+      "name": "인천광역주거복지센터 '고령친화 맞춤형 집수리', 인천시 혁신·적극행정 우수사례 전시회에 선보여",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2325"
+    },
+    {
+      "id": "DOC_b22025ae24af4a7732ba5ed2",
+      "source": "ih_press_watch",
+      "revision": 2,
+      "name": "인천도시공사, 소규모주택정비사업 전문가 양성교육 개최",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2326"
+    },
+    {
+      "id": "DOC_6d057dab2fea19e2702fa60a",
+      "source": "lh_press_watch",
+      "revision": 1,
+      "name": "한국토지주택공사(LH), 현장 중심 주택공급 추진체계 강화...고품질 공공주택 신속 공급 매진",
+      "source_date": "2026-10-15",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12158"
+    },
+    {
+      "id": "DOC_1689f50f06f6d3e57669e061",
+      "source": "lh_press_watch",
+      "revision": 1,
+      "name": "'신길4구역'·'녹번동근린공원'·'송중동 주민센터 인근' 도심복합사업 본궤도...후속절차 속행",
+      "source_date": "2026-10-16",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12159"
+    },
+    {
+      "id": "DOC_47c1fe723b89426ace3ff7a5",
+      "source": "lh_press_watch",
+      "revision": 1,
+      "name": "한국토지주택공사(LH), 서울 도심 내 매입임대주택 신속 공급 추진... 우수입지에 우량주택 집중 공급",
+      "source_date": "2026-10-16",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12160"
+    },
+    {
+      "id": "DOC_4ffc89d2df92899aa341db4d",
+      "source": "lh_press_watch",
+      "revision": 1,
+      "name": "한국토지주택공사(LH), 주거안정플랜 성공적 이행을 위해 건설업계와 협력 강화",
+      "source_date": "2026-10-22",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12166"
+    },
+    {
+      "id": "DOC_87cca7787d542e5eb6512549",
+      "source": "lh_press_watch",
+      "revision": 1,
+      "name": "한국토지주택공사(LH), 시흥거모지구 S-1블록 공공분양주택 300호 공급",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12169"
+    },
+    {
+      "id": "DOC_a15ac1688f0ad3ac70c3f17f",
+      "source": "lh_press_watch",
+      "revision": 2,
+      "name": "한국토지주택공사(LH), 모듈러주택 활성화로 주택공급 속도 높인다",
+      "source_date": "2026-10-21",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12164"
+    },
+    {
+      "id": "DOC_b74b6f7cac40687e1eff14d0",
+      "source": "lh_press_watch",
+      "revision": 1,
+      "name": "한국토지주택공사(LH), 쌍문역 서측·연신내 지구 보상 착수...도심복합사업 사업속도 탄력 받아",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12170"
+    },
+    {
+      "id": "DOC_508dd7c60b56d1e402c6a7af",
+      "source": "lh_press_watch",
+      "revision": 1,
+      "name": "한국토지주택공사(LH), 매입임대 사업 투명성 높인다... ‘상담내역 등록제’로 제3자 개입 원천 차단",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12171"
+    },
+    {
+      "id": "DOC_53a8a961b9bc94b16539a50c",
+      "source": "lh_press_watch",
+      "revision": 1,
+      "name": "한국토지주택공사(LH), 4분기 건설형 임대주택 16개 단지 4,663호 최초 입주자모집공고 시행",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12172"
+    },
+    {
+      "id": "DOC_8342ce93f1d6ae7c53d1fb76",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "[세쓸통] 태양광·원전 늘어도 전기 보낼 길이 없다…전력망 준공 '지지부진'",
+      "source_date": "2026-10-25",
+      "evidence_url": "https://www.newsis.com/view/NISX20261023_0003838683"
+    },
+    {
+      "id": "DOC_896355b48ccf361d4f64c579",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "3기 신도시 교통망 '직접 인허가'로 속도…5개 사업 집중관리",
+      "source_date": "2026-10-25",
+      "evidence_url": "https://www.newsis.com/view/NISX20261025_0003839816"
+    },
+    {
+      "id": "DOC_9671d4d7729d0b82c52baab2",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "서대문구의회, 29일 서부선 경전철 조속 착공 토론회",
+      "source_date": "2026-10-25",
+      "evidence_url": "https://www.newsis.com/view/NISX20261025_0003839886"
+    },
+    {
+      "id": "DOC_cd55f6dfa043c0c65bfdd5e1",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "롯데건설, 서초동 '롯데캐슬 아트팰리스' 11월 분양…소형 146가구",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840460"
+    },
+    {
+      "id": "DOC_cb68ffa6f5a3f6bcd2a5f628",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "삼성물산, 7381억원 규모 '창원 용호1구역 재건축' 수주",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840479"
+    },
+    {
+      "id": "DOC_4c94c18c18df773944440083",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "공공 도심복합사업 속도낸다…LH, '쌍문역 서측·연신내' 보상 착수",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840579"
+    },
+    {
+      "id": "DOC_d15e093b92a5dd7d581f8b2d",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "대보건설, 대전 가오동1구역 재건축 수주…올해 누적 1조원 돌파",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840595"
+    },
+    {
+      "id": "DOC_0761645e277769ec397be2bc",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "경기도, 포천·군포서 ‘찾아가는 주거복지 이동상담’",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840677"
+    },
+    {
+      "id": "DOC_d67e83e7ac43db647ce4ced1",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "동탄 핵심 입지에 49층…'아크메르 동탄' 26일 분양 시작",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840705"
+    },
+    {
+      "id": "DOC_40313ee5ee575ee5f833b9fd",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "산본신도시 재건축 4곳 특별정비구역 절차 돌입",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840715"
+    },
+    {
+      "id": "DOC_d8166ab73d1ec0d3d44b2707",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "아파트 입주자 30%만 모집하고 '마감임박'…공정위, 시행사 4곳 제재",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840647"
+    },
+    {
+      "id": "DOC_20ef95086de8e89ae3532be4",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "부천 괴안·소사본동 재건축 정비구역 지정…4732가구 공급",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003841072"
+    },
+    {
+      "id": "DOC_8c670a5941b3a977815d06f1",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "SH, 양육친화 주거환경 연구로 공공디자인대상 수상",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003841096"
+    },
+    {
+      "id": "DOC_3a9f8b9886984caa96f7a6b4",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "수영장에 아이스링크까지…정부, 분양가 올리는 '호화 커뮤니티' 설치 제동",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840388"
+    },
+    {
+      "id": "DOC_2dd94f10f59ab69ee52a2953",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "관악구, 공동주택 50곳에 종이팩 분리배출 봉투 배부",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003841240"
+    },
+    {
+      "id": "DOC_13b41192c1fbc1e0d60e0351",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "평택지속가능발전협, SDGs 서포터즈 탐구사례 발표회",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003841251"
+    },
+    {
+      "id": "DOC_6bdd6d643312023f930fdb15",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "\"매입임대 브로커 차단\"…LH, 제3자 상담내역 등록제 도입",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003841308"
+    },
+    {
+      "id": "DOC_89d4ef2c1b3ec80003972967",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "국토부 \"주택 구입비 내 금융자산 비중 증가…실수요 중심 시장 영향\"",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003841577"
+    },
+    {
+      "id": "DOC_bdbdf4ac0eb116a029e806a2",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "과천시, 재건축 양도세·부동산 세제 특강 개최",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003841679"
+    },
+    {
+      "id": "DOC_a51138d7a98a43035fb6fff1",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "전셋집 못 구해 난리인데…정부 공적 주택 10만호 공급은 언제",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003840906"
+    },
+    {
+      "id": "DOC_941dc788cc6f697b8a10e0dd",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "압구정 '억'소리 나는 하락세…재건축 앞두고 급매 속출",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003841832"
+    },
+    {
+      "id": "DOC_e1ebe1705ba6e273c6a99880",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "'취득 중과세 제외' 용인 기흥·수지 2주택 처분 3→2년 단축",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842180"
+    },
+    {
+      "id": "DOC_7bd95211951a0c7a192755b7",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "산본 재건축 4곳 행정절차 착수…주민들, 공람때 사업성 점검 필수",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261026_0003841939"
+    },
+    {
+      "id": "DOC_dbe7d505404c3879b6856158",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "LH, 4분기 건설임대 4663호 모집공고…과천·구리·의왕 등 16곳",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842353"
+    },
+    {
+      "id": "DOC_80a66bebac699c67c88932bd",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "[부고]안경하(수원시 공동주택과 임대사업관리팀장)씨 모친상",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842514"
+    },
+    {
+      "id": "DOC_dc72ee5294934efa34847292",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "주택공급에 한강버스까지…정부·서울시, 핵심 현안 두고 '팽팽'",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003841971"
+    },
+    {
+      "id": "DOC_d8cae99773dd5774b7c1ef01",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "이 대통령 \"유럽 시위 반면교사 삼아 내수 개선 총력…주택착공 실적도 높여야\"(종합)",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842706"
+    },
+    {
+      "id": "DOC_9772d0770d5eb1e26f586e49",
+      "source": "newsis_housing_watch",
+      "revision": 2,
+      "name": "신상진 성남시장 \"국토부 교통영향평가 요구, 분당 재건축 발목 잡아\"",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842736"
+    },
+    {
+      "id": "DOC_1b927f540b8411e253c0d75c",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "사내대출 주택자금 8개월 만에 작년의 1.5배…정부, 손질하나",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842777"
+    },
+    {
+      "id": "DOC_229e67522fa324e426611a2c",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "양천구, 서부트럭터미널 개발 인허가…내년 상반기 착공",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842873"
+    },
+    {
+      "id": "DOC_1df8ecbccf21564984696b90",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "도봉구 \"성대 야구장 부지 공공주택사업 본격화\"…2100호 공급",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842934"
+    },
+    {
+      "id": "DOC_cf6ff701eaca6023237595ec",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "국토 1차관 \"모듈러주택, 아낌없이 정책 지원…건설업 난제 열쇠\"",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842937"
+    },
+    {
+      "id": "DOC_28c3a650f354eb07553f823f",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "인천 AI 커넥티비티 혁신도시 선포…\"미래 모빌리티 선도\"",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003843140"
+    },
+    {
+      "id": "DOC_e0c1e2e6de053f7a50ed3115",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "농협 평택지부, 4-H경진대회서 '농심천심 운동' 전개",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003843465"
+    },
+    {
+      "id": "DOC_ba75573e18c931d356c8f388",
+      "source": "newsis_housing_watch",
+      "revision": 1,
+      "name": "지금 전세난도 버거운데…'재건축發 전세난'까지 덮치나",
+      "source_date": "2026-10-28",
+      "evidence_url": "https://www.newsis.com/view/NISX20261027_0003842663"
+    },
+    {
+      "id": "DOC_c45f9c890c1f952db73a95a6",
+      "source": "seoul_press_watch",
+      "revision": 1,
+      "name": "서울시, 수서택지 4개 단지 재건축‘현장 합동 신속통합자문’실시",
+      "source_date": "2026-10-22",
+      "evidence_url": "https://www.seoul.go.kr/news/news_report.do#view/468633"
+    },
+    {
+      "id": "DOC_7a1ec6af9f12b62cd9a679c8",
+      "source": "seoul_press_watch",
+      "revision": 1,
+      "name": "성북동의 자연과 역사·문화를 품은 주거단지 조성… 성북동 3-38 일대 신속통합기획 확정",
+      "source_date": "2026-10-22",
+      "evidence_url": "https://www.seoul.go.kr/news/news_report.do#view/468636"
+    },
+    {
+      "id": "DOC_528c011f03ec6fac320df953",
+      "source": "seoul_press_watch",
+      "revision": 1,
+      "name": "서울시, 면목·사당 모아주택 사업성 개선하여 2,121세대 2027년 착공 추진",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.seoul.go.kr/news/news_report.do#view/468710"
+    },
+    {
+      "id": "DOC_1a6ca43e629b43f161ea2d4f",
+      "source": "seoul_press_watch",
+      "revision": 1,
+      "name": "서울시 신통기획 5년 성과…214곳 지정, 31만 호 주택착공 길 열었다",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.seoul.go.kr/news/news_report.do#view/468917"
+    },
+    {
+      "id": "DOC_2d1a68559b0ca58fdb516a4b",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "청년안심주택 도무스서초 입주안내문",
+      "source_date": "2026-09-28",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310761"
+    },
+    {
+      "id": "DOC_35b92d963a3f27fda9ef07a6",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "[이문아이파크자이] 제7차 장기전세2, 재개발 임대주택 입주 안내문 게시",
+      "source_date": "2026-09-30",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310903"
+    },
+    {
+      "id": "DOC_2e43ecfb6fe69f45bf6dc69f",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "마곡이음스테이(도전숙) 신규입주 고객 입주안내문 게시",
+      "source_date": "2026-10-14",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311528"
+    },
+    {
+      "id": "DOC_80cc5ac55e3dc29c0f4463f5",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "[입주안내] 마곡이음스테이(도전숙) 신규입주 고객 입주안내문 게시",
+      "source_date": "2026-10-14",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311531"
+    },
+    {
+      "id": "DOC_47a2fbbd30bfc10fb7927340",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "고덕강일 3단지 토지임대부 분양주택 평균 건물분양가격 공개",
+      "source_date": "2026-10-16",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311651"
+    },
+    {
+      "id": "DOC_4b3de908d0e01bae0c7b984b",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "[퀸즈W 청량리역] 주택공개 및 사전점검 안내",
+      "source_date": "2026-10-19",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311793"
+    },
+    {
+      "id": "DOC_376dd572e71726ae28982ea4",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "2026년 만리동 예술인 협동조합주택(막쿱) 잔여세대 입주자 모집공고(2026. 6. 25.) 당첨자 및 예비자 발표",
+      "source_date": "2026-10-21",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311870"
+    },
+    {
+      "id": "DOC_2fc8e5ba041834cb45112031",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "노원구 도전숙(수요자맞춤형) 잔여세대 입주자 모집 공고",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311908"
+    },
+    {
+      "id": "DOC_3eb99c2d9ff0898d7f44fc9c",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "2026년 2차 장기미임대 매입임대주택 입주자 모집공고(2026. 8. 28.) 서류심사 대상자 발표",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311936"
+    },
+    {
+      "id": "DOC_370ccccf1b49a098e294d3b1",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "강북구 신혼부부(수요자맞춤형)주택 1~4차 잔여세대 입주자 모집 공고",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311965"
+    },
+    {
+      "id": "DOC_62b5e068d783c9a64e8a4bfa",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "[입주안내문] 동작보라매역 프리센트",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311982"
+    },
+    {
+      "id": "DOC_60609567055fcae5d67d8555",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "[토지지원 사회주택]유니버설디자인하우스_장안 입주자 모집 공고",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311987"
+    },
+    {
+      "id": "DOC_222ffa5be20f991296201e98",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "2026년 재개발임대주택 입주자 모집(2026.9.9.공고) 서류심사 대상자 발표",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311988"
+    },
+    {
+      "id": "DOC_f90071df233d57c60cc9295b",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "[정정] 고덕강일지구 3단지 토지임대부 분양주택 입주자모집공고",
+      "source_date": "2026-10-16",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312005"
+    },
+    {
+      "id": "DOC_dfe856fabf99f8792c43023c",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "제6차 장기전세주택2(2025.11.28.공고) 예비 5차 입주대상자 발표",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312021"
+    },
+    {
+      "id": "DOC_085f9f04d44a8a5950fb0da1",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "2026년 재개발임대주택 입주자 모집(2026.9.9.공고) 심사서류 제출 안내",
+      "source_date": "2026-10-23",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312066"
+    },
+    {
+      "id": "DOC_752ffa8c4afa0bf02cd2020e",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "[메이플자이]제7차 장기전세주택2 입주안내문",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312183"
+    },
+    {
+      "id": "DOC_f8e418dd1c6c6d46a0e25af0",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "[입주안내문] 힐스테이트 동작시그니처",
+      "source_date": "2026-10-26",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312227"
+    },
+    {
+      "id": "DOC_c9bb50e13584cd02ea718861",
+      "source": "sh_notice_watch",
+      "revision": 1,
+      "name": "제50차 장기전세주택 입주자 모집공고(2026.04.27.) 당첨자 및 예비입주자 발표",
+      "source_date": "2026-10-27",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312294"
+    }
+  ],
+  "recent_notices": [
+    {
+      "id": "PRO_30970726b72b0633c3d177fd",
+      "source": "ih_notice",
+      "kind": "project",
+      "name": "검단 공공임대 주택건설사업(AA7BL)",
+      "source_date": null,
+      "base_date": "2026-10-28",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=136&landDiv=1120",
+      "units": null
+    },
+    {
+      "id": "PRO_45aceae5763836cc763a2fa1",
+      "source": "ih_notice",
+      "kind": "project",
+      "name": "검암 주택건설사업(S3BL)",
+      "source_date": null,
+      "base_date": "2026-10-28",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=130&landDiv=1120",
+      "units": null
+    },
+    {
+      "id": "PRO_f6263baf545293a2283f4ad1",
+      "source": "ih_notice",
+      "kind": "project",
+      "name": "검단 주택건설사업(AA10-1BL)",
+      "source_date": null,
+      "base_date": "2026-10-28",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=16&landDiv=1120",
+      "units": null
+    },
+    {
+      "id": "PRO_f08b63fead363ac75686d4bb",
+      "source": "ih_notice",
+      "kind": "project",
+      "name": "도화 공공임대 주택건설사업(B3BL)",
+      "source_date": null,
+      "base_date": "2026-10-28",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=132&landDiv=1120",
+      "units": null
+    },
+    {
+      "id": "PRO_bcb5f7b7460670e177a71413",
+      "source": "ih_notice",
+      "kind": "project",
+      "name": "검암 주택건설사업(S2BL)",
+      "source_date": null,
+      "base_date": "2026-10-28",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=163&landDiv=1120",
+      "units": null
+    },
+    {
+      "id": "PRO_ff1be3ef81c8e493688a802d",
+      "source": "ih_notice",
+      "kind": "project",
+      "name": "검암 주택건설사업(B1BL)",
+      "source_date": null,
+      "base_date": "2026-10-28",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=131&landDiv=1120",
+      "units": null
+    },
+    {
+      "id": "PRO_340eec94ce4d031a950cc369",
+      "source": "ih_notice",
+      "kind": "project",
+      "name": "송도 주택건설사업(Rc5-1BL)",
+      "source_date": null,
+      "base_date": "2026-10-28",
+      "evidence_url": "https://www.ih.co.kr/main/land/landDetail.do?land_seq=164&landDiv=1120",
+      "units": null
+    },
+    {
+      "id": "LH__57e8b2bba94ea9e34ef85155",
+      "source": "lh_notice",
+      "kind": "lh_notice",
+      "name": "화성시 동탄지역 행복주택 입주자 모집 공고[입주자격완화/선계약후검증]('26.10.27.)",
+      "source_date": "2026-10-27",
+      "base_date": "2026-10-28",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=2015122300020958&ccrCnntSysDsCd=03&uppAisTpCd=06&aisTpCd=10&mi=1026",
+      "units": null
+    },
+    {
+      "id": "LH__c9d5b15ca56d1f967410f3c0",
+      "source": "lh_notice",
+      "kind": "lh_notice",
+      "name": "[정정공고]시흥거모 S-1블록 공공분양주택 입주자모집공고",
+      "source_date": "2026-10-27",
+      "base_date": "2026-10-28",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061195&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027",
+      "units": null
+    },
+    {
+      "id": "LH__084b02838f629973bcf78ed2",
+      "source": "lh_notice",
+      "kind": "lh_notice",
+      "name": "구리갈매역세권 A-1BL 신혼희망타운 행복주택 최초 입주자 모집공고('26.10.27)",
+      "source_date": "2026-10-27",
+      "base_date": "2026-10-28",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=2015122300020936&ccrCnntSysDsCd=03&uppAisTpCd=39&aisTpCd=42&mi=1026",
+      "units": null
+    }
+  ]
+}

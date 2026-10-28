@@ -348,7 +348,7 @@ async function start() {
   try {
     // Static integrity documents do not wait for database-backed catalogues.
     const adminRequest=request('/admin/status');
-    if(location.hash.slice(1)!=='data-integrity')await ensureCatalogue();
+    if(!['publication-reviews','project-collection','data-integrity','area','annual-supply','manual','requirements','supply-conditions','projects'].includes(location.hash.slice(1)))await ensureCatalogue();
     const admin=await adminRequest;state.admin=admin.authenticated;
     PublicationReviews.refreshBadge();
     if (state.admin) $('admin-link').textContent = '관리자로 로그인됨 ↗';

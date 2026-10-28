@@ -11,6 +11,7 @@ KIND='publication_review'
 OWNER='publication_review'
 STATES={'REVIEW':'검토 대기','HOLD':'보류','EXCLUDED':'제외','APPROVED':'자료 연결 승인','REGISTRATION_REQUIRED':'검토 승인 · 사업 등록 대기'}
 RULES=[
+ (r'고덕\s*강일(?:지구)?\s*3단지',2,['고덕강일'],'기존 분양공고의 정정·가격 변경 확인','기존 고덕강일 3단지 공고와 대조하고, 정정 항목과 공고 물량을 구분하세요. 같은 호수를 다시 더하지 않습니다.'),
  (r'면목.*사당|사당.*면목',1,['면목','사당'],'2027년 계획·중복 범위 확인','정책 포함 여부, 구역별 물량·착공 예정일과 기존 반영 여부를 확인하세요. 예정 물량은 실제 착공이 아닙니다.'),
  (r'신길4|녹번동근린공원|송중동',2,['신길4','녹번동근린공원','송중동'],'정책 귀속·기존 보류 사유 확인','기존 사업의 정책 연결 상태와 이전 판단 사유를 원문과 대조하세요. 자료 연결 승인과 정책 귀속 확정은 별도입니다.'),
  (r'제물포',2,['제물포'],'동일 구역·실제 착공 근거 확인','이주율과 연내 착공 전망을 실제 착공으로 확정하지 마세요. 기존 사업과 동일 구역인지 확인하세요.'),
@@ -83,7 +84,11 @@ def save(service, document_id, source_revision_no, review_revision_no, status, p
  if status=='APPROVED' and not project_ids:raise ValueError('자료를 연결할 기존 사업을 선택하세요. 대응 사업이 없으면 사업 등록 대기로 검토 승인하세요')
  if status=='APPROVED' and names:raise ValueError('신규 사업이 포함된 자료는 사업 등록 대기로 승인하세요')
  if status=='REGISTRATION_REQUIRED' and not names:raise ValueError('등록 검토할 사업명을 입력하세요. 복수 구역은 각각 구분하세요')
- if approved and policy_id not in {p['policy_id'] for p in service.mapping_policies() if p.get('monitor_kind')=='POLICY'}:raise ValueError('등록된 정책을 선택하세요')
+ # A verified document/project identity does not establish policy membership.
+ # Registration review also records candidates only; policy membership is
+ # decided later, without inventing a policy just to create a review task.
+ policy_unassigned=approved and policy_id=='UNASSIGNED'
+ if approved and not policy_unassigned and policy_id not in {p['policy_id'] for p in service.mapping_policies() if p.get('monitor_kind')=='POLICY'}:raise ValueError('등록된 정책을 선택하세요')
  with service.sessions.begin() as db:
   # Lock the source row too: concurrent first decisions must not both succeed.
   doc=db.scalar(select(Revision).where(Revision.entity_id==document_id,Revision.kind=='document_evidence',Revision.source_id.in_(source_ids()),Revision.superseded_at.is_(None)).with_for_update())

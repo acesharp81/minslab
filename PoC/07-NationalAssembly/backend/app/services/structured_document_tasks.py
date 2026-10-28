@@ -48,16 +48,27 @@ def document_request_span(atom: dict[str, Any], facet: dict[str, Any]) -> dict[s
     text = atom.get('text', '')
     positions = [i for i, char in enumerate(text) if not char.isspace()]
     compact = ''.join(text[i] for i in positions)
+    # Receiving document requests / announcing speakers is not a submission
+    # directive. Evaluate each match so a real request in the same turn survives.
+    def floor_notice(match: re.Match) -> bool:
+        nearby = compact[max(0, match.start() - 4):match.end() + 12]
+        if re.search(r'자료제출요구(?:하시고|하십시오)', nearby) and '분씩' in compact and '의사진행' in compact:
+            return True
+        return bool(re.search(r'(?:자료제출|자료요청|자료요구).*?(?:요구|요청)(?:를|을)?'
+                              r'(?:먼저|우선|섞어서|같이|그렇게|하도록|마무리|받도록|받겠습니다|하겠습니다)',
+                              compact[max(0, match.start() - 4):match.end() + 12]))
+
     matches = [m for m in _REQUEST.finditer(compact)
-               if not _reference_only(m.group())
+               if not floor_notice(m)
+               and not _reference_only(m.group())
                and not re.search(r'띄워|넘겨|화면.*보여|발언(?:기회)?|질의해|질의하|의사진행|의결|상정', m.group())]
     if not matches and (generic_document_issue(facet['issue']) or '제출' in facet['issue']):
         matches = [m for m in _ELLIPTICAL.finditer(compact)
-                   if not re.search(r'발언|질의|관련|하고있|하도록되어', m.group())]
+                   if not floor_notice(m) and not re.search(r'발언|질의|관련|하고있|하도록되어', m.group())]
     if not matches and facet['role'] == 'REQUEST':
         # Existing source-grounded REQUESTs also include reported/past demands.
         matches = [m for m in re.finditer(_OBJECT + r'.{0,45}?' + _ACTION, compact)
-                   if not _reference_only(m.group())
+                   if not floor_notice(m) and not _reference_only(m.group())
                    and not re.search(r'발언|질의해|질의하|관련된', m.group())]
     if not matches:
         return None

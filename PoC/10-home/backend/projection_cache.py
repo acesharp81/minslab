@@ -112,8 +112,21 @@ def delivery_screen_projection_version(service):
     # Screen quantities depend on committed ledger/geometry/statistic rows and
     # mapping versions. Collection status and unrelated regional/price imports
     # cannot change them; the full diagnostics endpoint keeps its wider version.
-    kinds=tuple(k for k in COLLECTION_REVISION_KINDS if k not in RAW_BUILDING_KINDS)+('statistic',)
-    return projection_version(service,kinds,batch_sources=(),audit_actions=())
+    kinds=tuple(k for k in COLLECTION_REVISION_KINDS if k not in RAW_BUILDING_KINDS and k!='document_evidence')
+    version=projection_version(service,kinds,batch_sources=(),audit_actions=())
+    # Discovery-only documents do not enter this ledger until a persisted
+    # bridge is created. Keep linked document changes synchronous, including
+    # historical links, while an unrelated hourly notice no longer rebuilds it.
+    links=select(Revision.payload['source_entity_id'].as_string()).where(Revision.kind=='evidence_bridge')
+    # A correction can reclassify a previously used statistic, so retain all
+    # statistic revisions in invalidation even though reads select one metric.
+    statistics=select(func.max(Revision.recorded_at)).where(Revision.kind=='statistic')
+    with service.sessions() as db:
+        # Materialize IDs once: a JSON-expression semi-join can repeatedly
+        # detoast large bridge payloads for every document in PostgreSQL.
+        linked_ids=tuple({value for value in db.scalars(links) if value})
+        documents=select(func.max(Revision.recorded_at)).where(Revision.kind=='document_evidence',Revision.entity_id.in_(linked_ids))
+        return version+tuple(db.execute(select(documents.scalar_subquery(),statistics.scalar_subquery())).one())
 
 
 class ProjectionCache:

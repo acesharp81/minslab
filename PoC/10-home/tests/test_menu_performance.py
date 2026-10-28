@@ -180,3 +180,28 @@ def test_project_enrichment_reused_across_filtered_views_without_mutation_leak()
             s.projects(today())
             assert rows.call_count>count
     finally:e.dispose()
+
+
+def test_policy_statistics_projection_preserves_history_dates_and_reclassification():
+    from datetime import timedelta
+    from backend.service import today
+    from backend.db import now
+    engine=create_engine('sqlite://',poolclass=StaticPool);Base.metadata.create_all(engine)
+    service=HomeService(engine);instant=now();day=today()
+    try:
+        with service.sessions.begin() as db:
+            old,_=upsert_revision(db,'statistic','test','monthly',dict(base_date=day.isoformat(),statistic_metric='착공',units=8),'a')
+            old.recorded_at=instant-timedelta(minutes=2)
+            new,_=upsert_revision(db,'statistic','test','monthly',dict(base_date=day.isoformat(),statistic_metric='착공',units=12),'b')
+            old.superseded_at=new.recorded_at=instant-timedelta(minutes=1)
+            upsert_revision(db,'statistic','test','other',dict(base_date=day.isoformat(),statistic_metric='준공',units=99),'b')
+            upsert_revision(db,'statistic','test','future',dict(base_date=(day+timedelta(days=1)).isoformat(),statistic_metric='착공',units=100),'b')
+        historical=HomeService(engine,known_at=instant-timedelta(seconds=90))
+        for reader,expected in [(service,12),(historical,8)]:
+            selected=reader.policy_start_statistics(day)
+            assert len(selected)==1 and selected[0]['units']==expected
+            assert [r['units'] for r in reader.rows('statistic',day) if r.get('statistic_metric')=='착공']==[expected]
+        with service.sessions.begin() as db:
+            upsert_revision(db,'statistic','test','monthly',dict(base_date=day.isoformat(),statistic_metric='준공',units=12),'c')
+        assert service.policy_start_statistics(day)==[]
+    finally:engine.dispose()

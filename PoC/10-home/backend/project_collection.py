@@ -198,7 +198,14 @@ def _collection_matrix(service,as_of=None,project_ids=None,include_link_history=
     from .evidence_bridge import by_project
     bridges=by_project(service,reference)
     policies={p['policy_id']:p for p in service.policy_rows(reference)}
-    stage_links={(r['project_id'],r['stage']):r for r in service.rows('stage_evidence',reference)}
+    # Individual project views need two persisted stage links, not every
+    # project's full candidate archive. Use the same IDs as stage_evidence writes.
+    stage_ids=(tuple(entity_id('stage_evidence','stage_match',p['id']+':'+stage)
+                     for p in projects for stage in ('BUSINESS','APPROVAL'))
+               if project_ids is not None else None)
+    stage_rows=(service.rows('stage_evidence',reference,entity_ids=stage_ids)
+                if stage_ids is not None else service.rows('stage_evidence',reference))
+    stage_links={(r['project_id'],r['stage']):r for r in stage_rows}
     links={(r['project_id'],r['stage']):r for r in service.rows('collection_link',reference)}
     assessments={(r['project_id'],r['stage']):r for r in service.rows('collection_assessment',reference)}
     research=defaultdict(list)

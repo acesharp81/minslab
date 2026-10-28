@@ -10,7 +10,7 @@ from .sources import SOURCES
 
 ACTIVE = ('QUEUED', 'RUNNING', 'RETRY')
 # Public notice changes are checked separately from expensive historic backfill.
-FAST = {'lh_press_watch':3600, 'ih_press_watch':3600, 'seoul_press_watch':3600, 'newsis_housing_watch':3600,
+FAST = {'sh_notice_watch':3600, 'lh_press_watch':3600, 'ih_press_watch':3600, 'seoul_press_watch':3600, 'newsis_housing_watch':3600,
         'lh_notice': 900, 'lh_notice_detail': 1800, 'gh_notice': 1800, 'ih_notice':3600,
         'sh_inventory': 3600, 'seoul_cleanup': 3600, 'gh_completion_evidence': 3600}
 

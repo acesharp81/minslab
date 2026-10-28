@@ -1,0 +1,20 @@
+{
+  "counts": {
+    "REVIEW": 57,
+    "HOLD": 7,
+    "REGISTRATION_REQUIRED": 0,
+    "APPROVED": 10,
+    "EXCLUDED": 0
+  },
+  "total": 74,
+  "download_seconds": {
+    "REVIEW": 0.187,
+    "HOLD": 0.129,
+    "REGISTRATION_REQUIRED": 0.119,
+    "APPROVED": 0.108,
+    "EXCLUDED": 0.112
+  },
+  "filtered_rows": 2,
+  "errors": [],
+  "generated_only_on_click": true
+}

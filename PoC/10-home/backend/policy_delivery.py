@@ -332,7 +332,8 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
                 stage=goal['stage'],units=min(c['units'],gap),due_date=goal['due_date'],status='DELAYED' if confirmed else 'VERIFY',
                 evidence_url=(pct or {}).get('evidence_url') if confirmed and pct else goal.get('evidence_url')))
             break # Each cohort contributes once to the combined problem subtotal.
-    statistics=service.rows('statistic',reference)
+    statistics=(service.policy_start_statistics(reference) if hasattr(service,'policy_start_statistics')
+                else service.rows('statistic',reference))
     yearly_comparisons=comparison_index(plan,cohorts,config,statistics,reference,program_cohorts=portfolio,
         scope_keys=None if comparison_scopes is None else set(comparison_scopes)|{'policy'})
     macro_points=yearly_comparisons['policy']['metrics']['CONSTRUCTION']['actual_points']
@@ -345,7 +346,10 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
             by_region[region]=sum(p['by_region'][region] for p in obs) if obs else None
         annual.append(dict(a,actual_start_by_region=by_region))
     source_ids={'policy_907_plan','policy_907_incheon_geometry','incheon_statistics','lh_incheon_sale','lh_incheon_rent','lh_incheon_construction','ih_supply'}
-    sources=[dict(id=s['id'],name=s['name'],status=s['status'],last_success=s.get('last_success'),record_count=s.get('record_count')) for s in service.sources() if s['id'] in source_ids]
+    # screen_view drops source diagnostics; don't scan batch manifests to build
+    # data which will be discarded. Full diagnostics/export retains this field.
+    sources=([dict(id=s['id'],name=s['name'],status=s['status'],last_success=s.get('last_success'),record_count=s.get('record_count')) for s in service.sources() if s['id'] in source_ids]
+             if comparison_scopes is None else [])
     comparisons=[]
     for goal in config.get('targets',[]) if comparison_scopes is None else []:
         scope=[c for c in cohorts if goal['scope_kind']=='policy' or

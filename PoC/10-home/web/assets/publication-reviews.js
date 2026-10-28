@@ -1,6 +1,6 @@
 'use strict';
 const PublicationReviews=(()=>{
- let data=null,selected=null,filter='OPEN',search='',priority='',busy=false,dirty=false,generation=0;
+ let data=null,selected=null,filter='OPEN',search='',priority='',busy=false,dirty=false,generation=0,exporting=false;
  const e=v=>esc(v),host=()=>$('publication-review-root');
  const stateLabel=s=>data?.status_labels[s]||s;
  async function refreshBadge(){try{const r=await request('/publication-reviews/summary');const badge=$('publication-review-badge');badge.textContent=r.pending;badge.hidden=!r.pending;badge.title='검토 대기·보류·사업 등록 대기';}catch{$('publication-review-badge').textContent='!';$('publication-review-badge').hidden=false;}}
@@ -13,21 +13,43 @@ const PublicationReviews=(()=>{
  function render(){
   host().innerHTML='<header class="pr-head"><div><p class="pr-eyebrow">자료 발견 → 담당자 검토 → 사업 연결</p><h2>신규 자료 검토</h2><p>새로 수집한 자료가 어느 주택사업의 근거인지 판단하는 화면입니다. 왼쪽에서 자료를 고르면 오른쪽에 확인할 질문과 처리 방법이 나옵니다.</p></div><button type="button" class="button secondary" data-pr-refresh>새로고침</button></header>'+
    '<div class="pr-counts">'+[['REVIEW','검토 대기'],['HOLD','보류'],['REGISTRATION_REQUIRED','사업 등록 대기'],['APPROVED','자료 연결 승인'],['EXCLUDED','제외']].map(([k,l])=>'<button type="button" data-pr-status="'+k+'" aria-pressed="'+(filter===k)+'"><span>'+l+'</span><strong>'+num(data.counts[k]||0)+'</strong></button>').join('')+'</div>'+
-   '<div class="pr-toolbar"><label>검토 상태<select id="pr-status"><option value="OPEN">미완료 전체</option><option value="ALL">전체</option>'+Object.entries(data.status_labels).map(([v,t])=>'<option value="'+v+'">'+e(t)+'</option>').join('')+'</select></label><label>우선순위<select id="pr-priority"><option value="">전체</option><option value="1">1 · 계획 누락 확인</option><option value="2">2 · 귀속·단계 확인</option><option value="3">3 · 범위·중복 확인</option><option value="4">참고·관련성 분류</option></select></label><label class="pr-search">자료 검색<input id="pr-search" type="search" placeholder="제목·출처·검토 내용"></label></div><p id="pr-result" role="status"></p>'+
+   '<div class="pr-toolbar"><label>검토 상태<select id="pr-status"><option value="OPEN">미완료 전체</option><option value="ALL">전체</option>'+Object.entries(data.status_labels).map(([v,t])=>'<option value="'+v+'">'+e(t)+'</option>').join('')+'</select></label><label>우선순위<select id="pr-priority"><option value="">전체</option><option value="1">1 · 계획 누락 확인</option><option value="2">2 · 귀속·단계 확인</option><option value="3">3 · 범위·중복 확인</option><option value="4">참고·관련성 분류</option></select></label><label class="pr-search">자료 검색<input id="pr-search" type="search" maxlength="500" placeholder="제목·출처·검토 내용"></label></div><p id="pr-result" role="status"></p>'+
+   '<div class="pr-export"><div><strong>외부 검증용 CSV</strong><p>상태별 목록·원문 URL·검토 사유·사업 정보·판단 이력을 받습니다. 저장된 결과 기준이며, 현재 목록에는 검색·우선순위 조건도 적용됩니다.</p></div><div class="pr-export-actions"><button type="button" class="button secondary" id="pr-export-current">현재 목록 CSV</button><button type="button" class="button secondary" id="pr-export-all">전체 상태 CSV</button></div></div><p id="pr-export-result" role="status" aria-live="polite"></p>'+
    '<div class="pr-workspace"><div id="pr-list" aria-label="검토 대상 목록"></div><article id="pr-detail" class="pr-detail" aria-label="원문과 검토 결과"></article></div>';
   $('pr-status').value=filter;$('pr-priority').value=priority;$('pr-search').value=search;
   $('pr-status').onchange=event=>{filter=event.target.value;renderList();};$('pr-priority').onchange=event=>{priority=event.target.value;renderList();};$('pr-search').oninput=event=>{search=event.target.value;renderList();};
   host().querySelector('[data-pr-refresh]').onclick=()=>{if(canLeave())load();};
   host().querySelectorAll('[data-pr-status]').forEach(b=>b.onclick=()=>{filter=b.dataset.prStatus;$('pr-status').value=filter;renderList();});
+  $('pr-export-current').onclick=()=>downloadCsv(false);$('pr-export-all').onclick=()=>downloadCsv(true);
   renderList();renderDetail();
  }
  function renderList(){
   const open=new Set(['REVIEW','HOLD','REGISTRATION_REQUIRED']);
   const rows=data.items.filter(r=>(filter==='ALL'||filter==='OPEN'&&open.has(r.status)||r.status===filter)&&(!priority||String(r.priority)===priority)&&(!search||[r.title,r.source_name,r.question,r.decision?.reason].join(' ').toLowerCase().includes(search.toLowerCase())));
+  const exportLabel=filter==='ALL'?'전체':filter==='OPEN'?'미완료':stateLabel(filter);
+  $('pr-export-current').textContent=exportLabel+' CSV · '+num(rows.length)+'건';
+  $('pr-export-current').disabled=exporting;$('pr-export-all').disabled=exporting;
   $('pr-result').textContent='조회 '+rows.length+'건 / 전체 '+data.total+'건 · 우선순위는 제목 기반 검토 제안이며 사업 동일성 확정이 아닙니다.';
   $('pr-list').innerHTML=rows.map(r=>'<button type="button" class="pr-item" data-pr-id="'+e(r.id)+'" aria-pressed="'+(selected===r.id)+'"><span class="pr-item-top"><span class="pr-priority p'+r.priority+'">'+(r.priority<4?'우선 '+r.priority:'참고')+'</span><span class="pr-state">'+e(r.status_label)+'</span></span><strong>'+e(r.title)+'</strong><small>'+e(r.source_date)+' · '+e(r.authority==='OFFICIAL'?'공식 자료':'언론 자료')+'</small><span>'+e(r.guidance?.decision||r.review_topic)+'</span>'+(r.source_changed?'<em>원문 새 판본 · 재검토 필요</em>':'')+'</button>').join('')||'<p class="pr-empty">조건에 맞는 자료가 없습니다.</p>';
   $('pr-list').querySelectorAll('[data-pr-id]').forEach(b=>b.onclick=()=>{if(!canLeave())return;selected=b.dataset.prId;dirty=false;renderList();renderDetail();});
   host().querySelectorAll('[data-pr-status]').forEach(b=>b.setAttribute('aria-pressed',String(filter===b.dataset.prStatus)));
+ }
+ async function downloadCsv(all){
+  if(exporting)return;
+  const params=new URLSearchParams({status:all?'ALL':filter});
+  if(!all&&priority)params.set('priority',priority);
+  if(!all&&search)params.set('search',search);
+  exporting=true;$('pr-export-current').disabled=true;$('pr-export-all').disabled=true;
+  $('pr-export-result').textContent='저장된 검토 결과와 근거를 모아 CSV를 생성하고 있습니다…';
+  try{
+   const response=await fetch(API+'/publication-reviews/export.csv?'+params,{credentials:'same-origin'});
+   if(!response.ok){const error=await response.json().catch(()=>({}));throw new Error(typeof error.detail==='string'?error.detail:'CSV 생성에 실패했습니다. 다시 시도해 주세요.');}
+   const blob=await response.blob(),url=URL.createObjectURL(blob),link=document.createElement('a');
+   link.href=url;link.download=response.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1]||'home-publication-reviews.csv';
+   document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+   $('pr-export-result').textContent='CSV 다운로드 완료 · 본문 미보유 자료는 원문 URL에서 확인하세요. 외부 검증결과·검증사유·추가확인사항 열에 검토 내용을 적을 수 있습니다.';
+  }catch(error){$('pr-export-result').textContent=error.message;}
+  finally{exporting=false;if($('pr-export-current'))renderList();}
  }
  function renderDetail(){
   const r=data.items.find(r=>r.id===selected),root=$('pr-detail');if(!r){root.innerHTML='<p>검토할 자료를 선택하세요.</p>';return;}
@@ -55,7 +77,7 @@ const PublicationReviews=(()=>{
     <div class="pr-action-guide"><div><strong>같은 사업을 찾았다면</strong><span>기존 사업에 자료 연결</span></div><div><strong>새 사업 등록이 필요하면</strong><span>사업 등록 검토로 전달</span></div><div><strong>아직 판단이 어려우면</strong><span>필요한 근거를 적고 보류</span></div><div><strong>사업과 관계없는 소식이면</strong><span>제외 사유를 남기고 제외</span></div></div>
     ${!state.admin?'<p class="pr-login">검토 안내와 기존 자료는 로그인 없이 볼 수 있습니다. 결과 저장은 상단 관리자 로그인 후 가능합니다.</p>':''}
     <form id="pr-form"><fieldset ${state.admin?'':'disabled'}><label>이 자료를 어떻게 처리할까요?<select name="status">${Object.entries(actionLabels).map(([v,t])=>`<option value="${v}" ${v===r.status?'selected':''}>${e(t)}</option>`).join('')}</select></label><p id="pr-effect" class="pr-effect"></p>
-     <div data-pr-fields="policy"><label>검토 대상 정책<select name="policy_id"><option value="">정책 선택</option>${data.policies.map(p=>`<option value="${e(p.id)}" ${p.id===d.policy_id?'selected':''}>${e(p.name)}</option>`).join('')}</select></label></div>
+     <div data-pr-fields="policy"><label>검토 대상 정책<select name="policy_id"><option value="">정책 선택</option><option value="UNASSIGNED" ${d.policy_id==='UNASSIGNED'?'selected':''}>정책 미지정 · 귀속 별도 확인</option>${data.policies.map(p=>`<option value="${e(p.id)}" ${p.id===d.policy_id?'selected':''}>${e(p.name)}</option>`).join('')}</select></label></div>
      <div data-pr-fields="existing"><label>자료를 연결할 기존 사업 검색<input type="search" id="pr-project-search" placeholder="등록 사업명·지역으로 검색"></label><small>주소·별칭은 사업 상세와 원문을 함께 확인하세요. 이름 유사 후보는 자동 선택하지 않습니다.</small>
       <div class="pr-project-options" role="group" aria-label="연결할 기존 사업 복수 선택">${projects.map(p=>`<label data-pr-project="${e(p.name+' '+(p.region||''))}"><input type="checkbox" name="project_ids" value="${e(p.id)}" ${chosen.has(p.id)?'checked':''}><span>${e(p.name)}${proposed.has(p.id)?' <small>이름 유사 후보 · 구역 대조 필요</small>':''}<small>${e(p.region||'')} · ${e(mappingLabels[p.mapping_status]||p.mapping_status||'미연결')}</small></span></label>`).join('')}</div></div>
      <div data-pr-fields="new"><label>등록 검토할 정확한 사업명<textarea name="new_project_names" rows="2" maxlength="3000" placeholder="원문에서 확인한 구역·단지별 사업명을 한 줄에 하나씩 적어 주세요.">${e((d.new_project_names||[]).join('\n'))}</textarea></label><small>후속 등록 대기에 남습니다. 이 버튼만으로 사업·호수·일정이 등록되지는 않습니다.</small></div>
@@ -72,7 +94,7 @@ const PublicationReviews=(()=>{
    root.querySelectorAll('[data-pr-fields]').forEach(el=>{const show=visible[el.dataset.prFields];el.hidden=!show;el.querySelectorAll('input,select,textarea').forEach(input=>{input.disabled=!show;});});
    form.elements.policy_id.required=approved;form.elements.source_checked.required=approved;form.elements.new_project_names.required=registration;
    form.querySelector('button[type=submit]').disabled=!state.admin||status==='REVIEW';
-   const messages={REGISTRATION_REQUIRED:'새 사업 등록 검토 대상으로 기록하고 후속 등록 대기에 남깁니다. 기존 사업에도 해당하는 자료라면 함께 선택할 수 있습니다.',HOLD:'무엇을 더 확인해야 하는지 적어 주세요. 보류 목록에서 계속 확인할 수 있습니다.',EXCLUDED:'개별 주택사업의 검토 근거로 사용하지 않는 이유를 적어 주세요.'};
+   const messages={REGISTRATION_REQUIRED:'식별된 사업·주택자산을 등록 검토 대기에 남깁니다. 정책 귀속이 확인되지 않았다면 ‘정책 미지정’을 선택하세요. 사업·호수·실적은 자동 생성되지 않습니다.',HOLD:'무엇을 더 확인해야 하는지 적어 주세요. 보류 목록에서 계속 확인할 수 있습니다.',EXCLUDED:'개별 주택사업의 검토 근거로 사용하지 않는 이유를 적어 주세요.'};
    messages.REVIEW='1번 원문 확인과 2번 기존 사업 대조를 마치면 위에서 처리 방법을 선택하세요.';
    messages.APPROVED='선택한 기존 사업에 이 자료를 연결합니다. 정책 귀속·목표·실적 수치 변경은 별도 검토가 필요합니다.';
    $('pr-effect').textContent=messages[status]+(d.status==='APPROVED'&&!['REVIEW','APPROVED'].includes(status)?' 저장하면 이 검토함에서 승인했던 자료 연결은 해제됩니다.':'');

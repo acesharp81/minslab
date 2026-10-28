@@ -9,7 +9,8 @@ from app.services.structured_narrative import apply
 
 
 @pytest.mark.parametrize('partial', [False, True])
-def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch, partial):
+@pytest.mark.parametrize('final_repair', [False, True])
+def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch, partial, final_repair):
     from app.ingestion import narrative_jobs
     monkeypatch.setattr(narrative_jobs, 'background_defer_reason', lambda: None)
     rows, calls = [], []
@@ -71,11 +72,22 @@ def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch,
     monkeypatch.setattr(worker, 'TopicStructureRepository', lambda c: Repository())
     monkeypatch.setattr(worker, 'MeetingBriefRepository', lambda c: SimpleNamespace(latest=lambda bid: {'brief_id': 'b'}))
     monkeypatch.setattr(worker, 'SummaryRepository', lambda c: MagicMock())
-    monkeypatch.setattr(worker, 'clients', lambda: [Client(), UnneededFallback()])
+    routes = []
+    def clients(*args):
+        routes.append(args)
+        return [Client(), UnneededFallback()]
+    monkeypatch.setattr(worker, 'clients', clients)
+    if final_repair:
+        original_pending = worker.pending_batches
+        def pending(*args):
+            batches, blocked = original_pending(*args)
+            return [{**r, 'repair_round': 4} for r in batches], blocked
+        monkeypatch.setattr(worker, 'pending_batches', pending)
     monkeypatch.setattr(worker, 'pace_nim', lambda c: None)
     result = worker.process_one('authorized-report', batch_limit=3)
     assert result['status'] == ('PENDING' if partial else 'COMPLETE')
     assert result['coverage']['summarized_issue_count'] == (15 if partial else 18)
     assert len(calls) == 3
     assert len(rows) == len({row[0] for row in rows}) == (6 if partial else 3)
+    assert set(routes) == ({('verification',)} if final_repair else {()})
     assert not lock['held']

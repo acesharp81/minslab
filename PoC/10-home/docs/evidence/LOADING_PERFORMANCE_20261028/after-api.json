@@ -1,0 +1,26 @@
+[
+  {
+    "key": "policy",
+    "seconds": 0.358,
+    "bytes": 5703387,
+    "cache": "HIT"
+  },
+  {
+    "key": "monitor",
+    "seconds": 0.051,
+    "bytes": 301810,
+    "cache": "HIT"
+  },
+  {
+    "key": "mappings",
+    "seconds": 0.067,
+    "bytes": 1124581,
+    "cache": "HIT"
+  },
+  {
+    "key": "project",
+    "seconds": 0.032,
+    "bytes": 273455,
+    "cache": "HIT"
+  }
+]

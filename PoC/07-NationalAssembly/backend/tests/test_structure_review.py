@@ -244,3 +244,13 @@ def test_new_classifier_rejects_placeholder_while_legacy_response_is_readable():
     assert len(validate_response(response,snapshot['atoms']))==2
     with pytest.raises(ValueError,match='INVALID_TOPIC_LABEL'):
         validate_response(response,snapshot['atoms'],strict_labels=True)
+
+
+def test_review_context_can_resolve_subject_but_never_replace_source_quote():
+    from app.services.structure_review import review_prompt
+    _, _, _, _, request, _ = request_response()
+    request['context_catalog'] = [{'parent': '조직 운영', 'issue': '인건비 현황'}]
+    prompt = review_prompt(request)
+    assert '맥락용이며 해당 발언의 근거로 사용하지 마라' not in prompt
+    assert '직접 인용은 해당 source_spans에서만 선택' in prompt
+    assert '인건비 현황' in prompt

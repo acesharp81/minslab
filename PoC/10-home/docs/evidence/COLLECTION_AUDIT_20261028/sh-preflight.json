@@ -1,0 +1,620 @@
+{
+  "records": [
+    [
+      "document_evidence",
+      "310761",
+      {
+        "source_object_id": "310761",
+        "name": "청년안심주택 도무스서초 입주안내문",
+        "source_date": "2026-09-28",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310761",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-09-28",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "310903",
+      {
+        "source_object_id": "310903",
+        "name": "[이문아이파크자이] 제7차 장기전세2, 재개발 임대주택 입주 안내문 게시",
+        "source_date": "2026-09-30",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310903",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-09-30",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311528",
+      {
+        "source_object_id": "311528",
+        "name": "마곡이음스테이(도전숙) 신규입주 고객 입주안내문 게시",
+        "source_date": "2026-10-14",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311528",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-14",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311531",
+      {
+        "source_object_id": "311531",
+        "name": "[입주안내] 마곡이음스테이(도전숙) 신규입주 고객 입주안내문 게시",
+        "source_date": "2026-10-14",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311531",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-14",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311651",
+      {
+        "source_object_id": "311651",
+        "name": "고덕강일 3단지 토지임대부 분양주택 평균 건물분양가격 공개",
+        "source_date": "2026-10-16",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311651",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-16",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311793",
+      {
+        "source_object_id": "311793",
+        "name": "[퀸즈W 청량리역] 주택공개 및 사전점검 안내",
+        "source_date": "2026-10-19",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311793",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-19",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311870",
+      {
+        "source_object_id": "311870",
+        "name": "2026년 만리동 예술인 협동조합주택(막쿱) 잔여세대 입주자 모집공고(2026. 6. 25.) 당첨자 및 예비자 발표",
+        "source_date": "2026-10-21",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311870",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-21",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311908",
+      {
+        "source_object_id": "311908",
+        "name": "노원구 도전숙(수요자맞춤형) 잔여세대 입주자 모집 공고",
+        "source_date": "2026-10-23",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311908",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-23",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311936",
+      {
+        "source_object_id": "311936",
+        "name": "2026년 2차 장기미임대 매입임대주택 입주자 모집공고(2026. 8. 28.) 서류심사 대상자 발표",
+        "source_date": "2026-10-23",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311936",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-23",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311965",
+      {
+        "source_object_id": "311965",
+        "name": "강북구 신혼부부(수요자맞춤형)주택 1~4차 잔여세대 입주자 모집 공고",
+        "source_date": "2026-10-26",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311965",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-26",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311982",
+      {
+        "source_object_id": "311982",
+        "name": "[입주안내문] 동작보라매역 프리센트",
+        "source_date": "2026-10-23",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311982",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-23",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311987",
+      {
+        "source_object_id": "311987",
+        "name": "[토지지원 사회주택]유니버설디자인하우스_장안 입주자 모집 공고",
+        "source_date": "2026-10-26",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311987",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-26",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "311988",
+      {
+        "source_object_id": "311988",
+        "name": "2026년 재개발임대주택 입주자 모집(2026.9.9.공고) 서류심사 대상자 발표",
+        "source_date": "2026-10-23",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311988",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-23",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "312005",
+      {
+        "source_object_id": "312005",
+        "name": "[정정] 고덕강일지구 3단지 토지임대부 분양주택 입주자모집공고",
+        "source_date": "2026-10-16",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312005",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-16",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "312021",
+      {
+        "source_object_id": "312021",
+        "name": "제6차 장기전세주택2(2025.11.28.공고) 예비 5차 입주대상자 발표",
+        "source_date": "2026-10-23",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312021",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-23",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "312066",
+      {
+        "source_object_id": "312066",
+        "name": "2026년 재개발임대주택 입주자 모집(2026.9.9.공고) 심사서류 제출 안내",
+        "source_date": "2026-10-23",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312066",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-23",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "312183",
+      {
+        "source_object_id": "312183",
+        "name": "[메이플자이]제7차 장기전세주택2 입주안내문",
+        "source_date": "2026-10-26",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312183",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-26",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "312227",
+      {
+        "source_object_id": "312227",
+        "name": "[입주안내문] 힐스테이트 동작시그니처",
+        "source_date": "2026-10-26",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312227",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-26",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ],
+    [
+      "document_evidence",
+      "312294",
+      {
+        "source_object_id": "312294",
+        "name": "제50차 장기전세주택 입주자 모집공고(2026.04.27.) 당첨자 및 예비입주자 발표",
+        "source_date": "2026-10-27",
+        "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312294",
+        "sample_kind": "document_evidence",
+        "base_date": "2026-10-27",
+        "date_precision": "DAY",
+        "document_role": "PUBLICATION_DISCOVERY",
+        "listing_urls": [
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+          "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4"
+        ],
+        "publisher": "서울주택도시개발공사",
+        "authority": "OFFICIAL",
+        "verification_status": "DISCOVERED_REVIEW_REQUIRED",
+        "content_scope": "게시 목록/RSS의 제목·게시시각·원문 링크. 기사 전문·첨부 분석 및 사실 검증 전.",
+        "facts": [],
+        "matched_project_ids": [],
+        "planned_units": null,
+        "units": null,
+        "policy_candidate_only": true,
+        "proposed_policy": "UNASSIGNED",
+        "status": "REVIEW",
+        "unit_basis": "주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음"
+      }
+    ]
+  ],
+  "stats": {
+    "incremental": true,
+    "complete_query": true,
+    "complete_population": false,
+    "discovery_only": true,
+    "provided": 30,
+    "fetched": 19,
+    "feed_counts": [
+      {
+        "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C296/www/brd/m_244/list.do?multi_itm_seq=1",
+        "listed": 10
+      },
+      {
+        "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C297/www/brd/m_247/list.do?multi_itm_seq=2",
+        "listed": 10
+      },
+      {
+        "url": "https://www.i-sh.co.kr/main/lay2/program/S1T305C1658/www/brd/m_248/list.do?multi_itm_seq=4",
+        "listed": 11
+      }
+    ],
+    "latest_published": "2026-10-27",
+    "actual_events_created": 0,
+    "period_start": "2026-09-28",
+    "period_end": "2026-10-28",
+    "scope_note": "등록 공식 게시판 최신 페이지 또는 언론사 RSS 현재 항목 중 최근30일 주택 키워드. 과거 전수·모든 언론사 탐색 아님. 원문 링크 검토 후보로 보존; 호수/실적 자동 추출 없음."
+  }
+}

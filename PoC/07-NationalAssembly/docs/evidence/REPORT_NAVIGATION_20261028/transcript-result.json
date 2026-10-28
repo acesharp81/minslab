@@ -1,0 +1,11 @@
+{
+  "rows": 1117,
+  "source_segments": 5488,
+  "full_text_exact_match": true,
+  "download_full_rows": true,
+  "download_bytes": 445731,
+  "report_state_preserved": true,
+  "escape_closes": true,
+  "retry_success": true,
+  "page_errors": []
+}

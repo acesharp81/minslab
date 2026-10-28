@@ -29,6 +29,27 @@ class CollectionTests(unittest.TestCase):
             collection_matrix(self.s)
             history.assert_called_once()
 
+    def test_single_project_keeps_evidence_without_loading_other_candidate_archives(self):
+        from backend.db import upsert_revision, entity_id
+        selected=dict(source_id='official_document',source_entity_id='doc',event_date='2026-01-01',
+                      method='OFFICIAL_DOCUMENT',basis='공식 승인',evidence_url='https://example.org/permit',units=100)
+        with self.s.sessions.begin() as db:
+            for pid in ('p1','other'):
+                upsert_revision(db,'stage_evidence','stage_match',pid+':APPROVAL',
+                    dict(project_id=pid,stage='APPROVAL',status='CONFIRMED',base_date='2026-01-01',
+                         selected=selected,actor='담당자',basis='확인',candidates=[{'text':'원문'*10000}]),'test')
+        full=collection_matrix(self.s,include_link_history=False)
+        original=self.s.rows
+        def scoped(kind,*args,**kwargs):
+            if kind=='stage_evidence':
+                self.assertEqual(set(kwargs['entity_ids']),
+                    {entity_id(kind,'stage_match','p1:'+stage) for stage in ('BUSINESS','APPROVAL')})
+            return original(kind,*args,**kwargs)
+        with patch.object(self.s,'rows',side_effect=scoped):
+            detail=collection_matrix(self.s,project_ids=('p1',),include_link_history=False)
+        self.assertEqual(detail,full)
+        self.assertTrue(detail['items'][0]['cells']['APPROVAL']['actual_available'])
+
     def test_equal_months_keep_distinct_official_documents_and_partial_scopes(self):
         bridges=[]
         for i,units in enumerate((715,590)):

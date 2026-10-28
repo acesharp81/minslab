@@ -14,7 +14,7 @@ from ..db.topic_structure_repository import TopicStructureRepository
 from ..db.summary_repository import SummaryRepository
 from ..db.openai_daily_budget import DailyTokenLimitReached
 from ..services.structure_review import (
-    PROFILE, VERIFY_PROFILE, BATCH_START, review_candidates, review_prompt, review_schema, validated_review, valid_review_subset,
+    PROFILE, DOCUMENT_PROFILE, VERIFY_PROFILE, BATCH_START, review_candidates, review_prompt, review_schema, validated_review, valid_review_subset,
 )
 from ..services.structure_retry import retry_allowance, retry_pool
 from ..services.topic_structure import materialize
@@ -71,6 +71,12 @@ def process_one(broadcast_id: Any, batch_limit: int = 1) -> dict[str, Any]:
                            'catalog': [{'parent': g['title'], 'issue': t['title']}
                                for g in brief['topic_groups'] for t in brief['topics']
                                if t['id'] in g['topic_ids']][:200]}
+                if profile == DOCUMENT_PROFILE:
+                    context_ids = {span['evidence_id'] for atom in request['atoms']
+                                   for span in atom.get('context_spans', [])}
+                    request['context_catalog'] = [{'parent': g['title'], 'issue': t['title']}
+                        for g in brief['topic_groups'] for t in brief['topics']
+                        if t['id'] in g['topic_ids'] and context_ids.intersection(t.get('evidence_ids', []))]
                 histories = [[h for h in prior if h['request'].get('profile') == profile
                               and i['atom']['id'] in [a['id'] for a in h['request'].get('atoms', [])]] for i in batch]
                 index = max([BATCH_START - 1] + [h['index'] for h in prior if h['index'] >= BATCH_START]) + 1

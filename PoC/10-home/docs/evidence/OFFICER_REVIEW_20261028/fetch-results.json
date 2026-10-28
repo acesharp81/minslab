@@ -1,0 +1,594 @@
+[
+  {
+    "id": "DOC_528c011f03ec6fac320df953",
+    "title": "서울시, 면목·사당 모아주택 사업성 개선하여 2,121세대 2027년 착공 추진",
+    "url": "https://www.seoul.go.kr/news/news_report.do#view/468710",
+    "status": 200,
+    "sha256": "4e966dfaf14614b6db3775302da91910efb95ad306a1cb4feb70bee13fb4b8d5",
+    "chars": 2028
+  },
+  {
+    "id": "DOC_1689f50f06f6d3e57669e061",
+    "title": "'신길4구역'·'녹번동근린공원'·'송중동 주민센터 인근' 도심복합사업 본궤도...후속절차 속행",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12159",
+    "status": 200,
+    "sha256": "a901ed5fb05166da39a74bc9615483a2210851c9625a0ce39f7e27806668c5ca",
+    "chars": 4725
+  },
+  {
+    "id": "DOC_47a2fbbd30bfc10fb7927340",
+    "title": "고덕강일 3단지 토지임대부 분양주택 평균 건물분양가격 공개",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311651",
+    "status": 200,
+    "sha256": "fb9c2b36bde6db6940fa4987d678f70561ca4d44837a59b3fca5dc5bf313f95a",
+    "chars": 10838
+  },
+  {
+    "id": "DOC_f90071df233d57c60cc9295b",
+    "title": "[정정] 고덕강일지구 3단지 토지임대부 분양주택 입주자모집공고",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312005",
+    "status": 200,
+    "sha256": "26fc8d0669a162107f47031e90e0df8465caa63cdcb329240946fae28c1cc955",
+    "chars": 11777
+  },
+  {
+    "id": "DOC_46a03e4451788c1ae845bd74",
+    "title": "인천도시공사 인천구월2 공공주택지구 보상 본격 착수",
+    "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2320",
+    "status": 200,
+    "sha256": "7394b351794b7e4c33b08beab89ad68f5e30b3d91cb8dc367239d755f7cb2b5e",
+    "chars": 5628
+  },
+  {
+    "id": "DOC_095dc3097cc065c4cb4e9da4",
+    "title": "제물포역 북측 공공주택 복합사업 이주율 90.8% 달성… 연내 착공 청신호",
+    "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2316",
+    "status": 200,
+    "sha256": "e5c34f4ce84eddcdc34188aa42115dc739bdac15bb4131c9d10b675dd4045a52",
+    "chars": 5788
+  },
+  {
+    "id": "DOC_ba75573e18c931d356c8f388",
+    "title": "지금 전세난도 버거운데…'재건축發 전세난'까지 덮치나",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842663",
+    "status": 200,
+    "sha256": "f33b2ebd8e3e9320852e24ff606a74671e0a4f259cd42a53c03042f54318c111",
+    "chars": 8530
+  },
+  {
+    "id": "DOC_1a6ca43e629b43f161ea2d4f",
+    "title": "서울시 신통기획 5년 성과…214곳 지정, 31만 호 주택착공 길 열었다",
+    "url": "https://www.seoul.go.kr/news/news_report.do#view/468917",
+    "status": 200,
+    "sha256": "4e966dfaf14614b6db3775302da91910efb95ad306a1cb4feb70bee13fb4b8d5",
+    "chars": 2028
+  },
+  {
+    "id": "DOC_1b927f540b8411e253c0d75c",
+    "title": "사내대출 주택자금 8개월 만에 작년의 1.5배…정부, 손질하나",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842777",
+    "status": 200,
+    "sha256": "5262df54434344f60a5c85417e95c0a0b5c7067130c1b8fbb202d149fe951efc",
+    "chars": 9435
+  },
+  {
+    "id": "DOC_1df8ecbccf21564984696b90",
+    "title": "도봉구 \"성대 야구장 부지 공공주택사업 본격화\"…2100호 공급",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842934",
+    "status": 200,
+    "sha256": "bddf6593346161cf9aca0f7ee7cb4ae6a751d8ef7b8d4c008ec6203efeb79327",
+    "chars": 7744
+  },
+  {
+    "id": "DOC_229e67522fa324e426611a2c",
+    "title": "양천구, 서부트럭터미널 개발 인허가…내년 상반기 착공",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842873",
+    "status": 200,
+    "sha256": "bde2b459fb91a9e5ae82f3f747883e432a666ccc1f5b534fb7c9619ab57addce",
+    "chars": 7798
+  },
+  {
+    "id": "DOC_28c3a650f354eb07553f823f",
+    "title": "인천 AI 커넥티비티 혁신도시 선포…\"미래 모빌리티 선도\"",
+    "url": "https://www.newsis.com/view/NISX20261027_0003843140",
+    "status": 200,
+    "sha256": "40e34f980d5365d59ca0158c668fa5001575cde65a5b8c343023ed0e5d8043b4",
+    "chars": 7132
+  },
+  {
+    "id": "DOC_53a8a961b9bc94b16539a50c",
+    "title": "한국토지주택공사(LH), 4분기 건설형 임대주택 16개 단지 4,663호 최초 입주자모집공고 시행",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12172",
+    "status": 200,
+    "sha256": "16f5bd6285b2655980b73a921be3b76a3ea7078250b55433938f39092d758ba3",
+    "chars": 4742
+  },
+  {
+    "id": "DOC_7bd95211951a0c7a192755b7",
+    "title": "산본 재건축 4곳 행정절차 착수…주민들, 공람때 사업성 점검 필수",
+    "url": "https://www.newsis.com/view/NISX20261026_0003841939",
+    "status": 200,
+    "sha256": "d46afbb0b7d0f35dd732dc09af439b8a0824a3c538b296222315277be146b3ea",
+    "chars": 7677
+  },
+  {
+    "id": "DOC_80a66bebac699c67c88932bd",
+    "title": "[부고]안경하(수원시 공동주택과 임대사업관리팀장)씨 모친상",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842514",
+    "status": 200,
+    "sha256": "43dc610ebd71c29a6449bd481e50e4887f337a9bb8cc41e55c5bd8a01e53af74",
+    "chars": 6641
+  },
+  {
+    "id": "DOC_941dc788cc6f697b8a10e0dd",
+    "title": "압구정 '억'소리 나는 하락세…재건축 앞두고 급매 속출",
+    "url": "https://www.newsis.com/view/NISX20261026_0003841832",
+    "status": 200,
+    "sha256": "674d9552c0a113ed3083802313c974b3a7abcd6f4cc9e4fa9be7aded9de1352c",
+    "chars": 8547
+  },
+  {
+    "id": "DOC_9772d0770d5eb1e26f586e49",
+    "title": "신상진 성남시장 \"국토부 교통영향평가 요구, 분당 재건축 발목 잡아\"",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842736",
+    "status": 200,
+    "sha256": "5431f5744860e89f57dc8f4ee878bda7d236d9ae210d12e9c9e3b29e170e6d04",
+    "chars": 8199
+  },
+  {
+    "id": "DOC_a51138d7a98a43035fb6fff1",
+    "title": "전셋집 못 구해 난리인데…정부 공적 주택 10만호 공급은 언제",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840906",
+    "status": 200,
+    "sha256": "2d218fbac954dcc2360c20b012077cd4392d13a1f1d240f2a026e0552824c46c",
+    "chars": 10384
+  },
+  {
+    "id": "DOC_c9bb50e13584cd02ea718861",
+    "title": "제50차 장기전세주택 입주자 모집공고(2026.04.27.) 당첨자 및 예비입주자 발표",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312294",
+    "status": 200,
+    "sha256": "c257e2a81143da3b7407d207f90f19e4c5e1663d9e31e534b1e8e1b25e00acbc",
+    "chars": 13964
+  },
+  {
+    "id": "DOC_cf6ff701eaca6023237595ec",
+    "title": "국토 1차관 \"모듈러주택, 아낌없이 정책 지원…건설업 난제 열쇠\"",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842937",
+    "status": 200,
+    "sha256": "500c86a74cb5cbb880cee595e82e7d0e9825f814142e352f53e6580b6efc61e1",
+    "chars": 7450
+  },
+  {
+    "id": "DOC_d8cae99773dd5774b7c1ef01",
+    "title": "이 대통령 \"유럽 시위 반면교사 삼아 내수 개선 총력…주택착공 실적도 높여야\"(종합)",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842706",
+    "status": 200,
+    "sha256": "4f65f877e53b706693456dd5a965dc615265245bd44ccdd38a733a881352ec1d",
+    "chars": 9224
+  },
+  {
+    "id": "DOC_dbe7d505404c3879b6856158",
+    "title": "LH, 4분기 건설임대 4663호 모집공고…과천·구리·의왕 등 16곳",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842353",
+    "status": 200,
+    "sha256": "992f645f4a70b02106604e3a097b84115013b572a54bc51698f54d1b74d35333",
+    "chars": 7551
+  },
+  {
+    "id": "DOC_dc72ee5294934efa34847292",
+    "title": "주택공급에 한강버스까지…정부·서울시, 핵심 현안 두고 '팽팽'",
+    "url": "https://www.newsis.com/view/NISX20261027_0003841971",
+    "status": 200,
+    "sha256": "48f8fe3e0a204751681f059513fccf787bd171e5001c890ef3b4c69c48dedeb3",
+    "chars": 8830
+  },
+  {
+    "id": "DOC_e0c1e2e6de053f7a50ed3115",
+    "title": "농협 평택지부, 4-H경진대회서 '농심천심 운동' 전개",
+    "url": "https://www.newsis.com/view/NISX20261027_0003843465",
+    "status": 200,
+    "sha256": "04928e996a8da417acc3db9eecb576b16dc34635363395045c40665d872836b9",
+    "chars": 7279
+  },
+  {
+    "id": "DOC_e1ebe1705ba6e273c6a99880",
+    "title": "'취득 중과세 제외' 용인 기흥·수지 2주택 처분 3→2년 단축",
+    "url": "https://www.newsis.com/view/NISX20261027_0003842180",
+    "status": 200,
+    "sha256": "794a5734250fb546380be00fde74eec7a0e92e7b9619afe2d5e069642ba0167f",
+    "chars": 7192
+  },
+  {
+    "id": "DOC_0761645e277769ec397be2bc",
+    "title": "경기도, 포천·군포서 ‘찾아가는 주거복지 이동상담’",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840677",
+    "status": 200,
+    "sha256": "1171fa93e15a9ac01c621f55f38467c696fb7ea28c8f7e865534611554ceaad2",
+    "chars": 7227
+  },
+  {
+    "id": "DOC_13b41192c1fbc1e0d60e0351",
+    "title": "평택지속가능발전협, SDGs 서포터즈 탐구사례 발표회",
+    "url": "https://www.newsis.com/view/NISX20261026_0003841251",
+    "status": 200,
+    "sha256": "b601cf8d1d54243e643c1304a80f4f75512e43176fa32c5830575cdef8f455b1",
+    "chars": 7053
+  },
+  {
+    "id": "DOC_20ef95086de8e89ae3532be4",
+    "title": "부천 괴안·소사본동 재건축 정비구역 지정…4732가구 공급",
+    "url": "https://www.newsis.com/view/NISX20261026_0003841072",
+    "status": 200,
+    "sha256": "6395341712ae370107c1202202496eed817d08e6f7f6129fb634a79c4f094f5e",
+    "chars": 7091
+  },
+  {
+    "id": "DOC_2dd94f10f59ab69ee52a2953",
+    "title": "관악구, 공동주택 50곳에 종이팩 분리배출 봉투 배부",
+    "url": "https://www.newsis.com/view/NISX20261026_0003841240",
+    "status": 200,
+    "sha256": "4a453313fb1b7d203134710adcb3b7bf10213a572aad7450d67674b10e518ec1",
+    "chars": 7226
+  },
+  {
+    "id": "DOC_370ccccf1b49a098e294d3b1",
+    "title": "강북구 신혼부부(수요자맞춤형)주택 1~4차 잔여세대 입주자 모집 공고",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311965",
+    "status": 200,
+    "sha256": "02aa39dfd6dde9729b7432d98ac7174f0b0a80089d25db609acefa5d4f4bbafb",
+    "chars": 11243
+  },
+  {
+    "id": "DOC_3a9f8b9886984caa96f7a6b4",
+    "title": "수영장에 아이스링크까지…정부, 분양가 올리는 '호화 커뮤니티' 설치 제동",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840388",
+    "status": 200,
+    "sha256": "49e5fc658605eedd3d9e6c9b4397866c6699d9399ac5f3c5b713dd70279e75e1",
+    "chars": 7907
+  },
+  {
+    "id": "DOC_40313ee5ee575ee5f833b9fd",
+    "title": "산본신도시 재건축 4곳 특별정비구역 절차 돌입",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840715",
+    "status": 200,
+    "sha256": "e5c17f927234c311237ca532a026cc4e1fd0ac0b951f00f6139993919f97732d",
+    "chars": 7212
+  },
+  {
+    "id": "DOC_4c94c18c18df773944440083",
+    "title": "공공 도심복합사업 속도낸다…LH, '쌍문역 서측·연신내' 보상 착수",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840579",
+    "status": 200,
+    "sha256": "c85079410005f04ef480b59404c5cbc2a46d0dff9c730d5c62d786cd9f52c245",
+    "chars": 7111
+  },
+  {
+    "id": "DOC_508dd7c60b56d1e402c6a7af",
+    "title": "한국토지주택공사(LH), 매입임대 사업 투명성 높인다... ‘상담내역 등록제’로 제3자 개입 원천 차단",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12171",
+    "status": 200,
+    "sha256": "bc25c2aca858c5e0903100178f5fed0feb1675fda74e3133690f3097831ae76e",
+    "chars": 4757
+  },
+  {
+    "id": "DOC_60609567055fcae5d67d8555",
+    "title": "[토지지원 사회주택]유니버설디자인하우스_장안 입주자 모집 공고",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311987",
+    "status": 200,
+    "sha256": "5900daa8023baec1c6923802455103016c84c036d531f60b144f445f25c02ebc",
+    "chars": 11572
+  },
+  {
+    "id": "DOC_6bdd6d643312023f930fdb15",
+    "title": "\"매입임대 브로커 차단\"…LH, 제3자 상담내역 등록제 도입",
+    "url": "https://www.newsis.com/view/NISX20261026_0003841308",
+    "status": 200,
+    "sha256": "60dabbd05dc14063e2c94feac644cc55272481a3b941b5f4ceaade5cf1836550",
+    "chars": 7347
+  },
+  {
+    "id": "DOC_752ffa8c4afa0bf02cd2020e",
+    "title": "[메이플자이]제7차 장기전세주택2 입주안내문",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312183",
+    "status": 200,
+    "sha256": "71bd6b31b403882cc4cd6835782461624524e3c04b1c045682bc04eb45e28054",
+    "chars": 10806
+  },
+  {
+    "id": "DOC_89d4ef2c1b3ec80003972967",
+    "title": "국토부 \"주택 구입비 내 금융자산 비중 증가…실수요 중심 시장 영향\"",
+    "url": "https://www.newsis.com/view/NISX20261026_0003841577",
+    "status": 200,
+    "sha256": "d2f3a51b9fc13ef1d548e7a2f78d6596757c07f8851f2564262808d429ce1f7f",
+    "chars": 7365
+  },
+  {
+    "id": "DOC_8c670a5941b3a977815d06f1",
+    "title": "SH, 양육친화 주거환경 연구로 공공디자인대상 수상",
+    "url": "https://www.newsis.com/view/NISX20261026_0003841096",
+    "status": 200,
+    "sha256": "efca4cebe2333abef797f73db90646df9281bc3e5ac57b3cd17ccbc778a21df2",
+    "chars": 7605
+  },
+  {
+    "id": "DOC_b22025ae24af4a7732ba5ed2",
+    "title": "인천도시공사, 소규모주택정비사업 전문가 양성교육 개최",
+    "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2326",
+    "status": 200,
+    "sha256": "5502a7d83457d70983801adac9e16e4db4993ac85fdf96fff5f4fcc3e0c92018",
+    "chars": 5747
+  },
+  {
+    "id": "DOC_b74b6f7cac40687e1eff14d0",
+    "title": "한국토지주택공사(LH), 쌍문역 서측·연신내 지구 보상 착수...도심복합사업 사업속도 탄력 받아",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12170",
+    "status": 200,
+    "sha256": "8b75ac275d4cd9c68c6b438112f7964bc058a1d1316179df838eda174349fcaf",
+    "chars": 4740
+  },
+  {
+    "id": "DOC_bdbdf4ac0eb116a029e806a2",
+    "title": "과천시, 재건축 양도세·부동산 세제 특강 개최",
+    "url": "https://www.newsis.com/view/NISX20261026_0003841679",
+    "status": 200,
+    "sha256": "c86653235c63269c6d5ca13791cd73598ffbbb7a36b34ed7b8821aed775edadb",
+    "chars": 7279
+  },
+  {
+    "id": "DOC_cb68ffa6f5a3f6bcd2a5f628",
+    "title": "삼성물산, 7381억원 규모 '창원 용호1구역 재건축' 수주",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840479",
+    "status": 200,
+    "sha256": "910cc8b73aa1f326c4c58acf195f30a8dbccbdf1f6caf6c6b651bab7d4b7a7d6",
+    "chars": 7565
+  },
+  {
+    "id": "DOC_cd55f6dfa043c0c65bfdd5e1",
+    "title": "롯데건설, 서초동 '롯데캐슬 아트팰리스' 11월 분양…소형 146가구",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840460",
+    "status": 200,
+    "sha256": "9d1d85cb05269e8dc567edf7fce2bab5aabe92789c682c94eb51c0d53a68dcd0",
+    "chars": 7471
+  },
+  {
+    "id": "DOC_d15e093b92a5dd7d581f8b2d",
+    "title": "대보건설, 대전 가오동1구역 재건축 수주…올해 누적 1조원 돌파",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840595",
+    "status": 200,
+    "sha256": "a62e1d55f45af4f2b76c9c926cc077a8947ca57f8f16037a12ebe17bdf899747",
+    "chars": 7270
+  },
+  {
+    "id": "DOC_d67e83e7ac43db647ce4ced1",
+    "title": "동탄 핵심 입지에 49층…'아크메르 동탄' 26일 분양 시작",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840705",
+    "status": 200,
+    "sha256": "b703cf095ce7be8836e88d4b6940dbdc659dffeaedf6e79ab9a681f0c292fb3e",
+    "chars": 7730
+  },
+  {
+    "id": "DOC_d8166ab73d1ec0d3d44b2707",
+    "title": "아파트 입주자 30%만 모집하고 '마감임박'…공정위, 시행사 4곳 제재",
+    "url": "https://www.newsis.com/view/NISX20261026_0003840647",
+    "status": 200,
+    "sha256": "1203ef693b8a843871160ec59e08b849afac8e4c699876e650cd31928f66e940",
+    "chars": 8655
+  },
+  {
+    "id": "DOC_f8e418dd1c6c6d46a0e25af0",
+    "title": "[입주안내문] 힐스테이트 동작시그니처",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312227",
+    "status": 200,
+    "sha256": "cbc372121c2e64f66ece8616bd028f5afc017f8ee2063032eb44a6429b73b608",
+    "chars": 10914
+  },
+  {
+    "id": "DOC_085f9f04d44a8a5950fb0da1",
+    "title": "2026년 재개발임대주택 입주자 모집(2026.9.9.공고) 심사서류 제출 안내",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312066",
+    "status": 200,
+    "sha256": "17f4d5b259438cf4a968cdbc82d4b31a49b24f846bc96253f4000f45a2315a58",
+    "chars": 12528
+  },
+  {
+    "id": "DOC_222ffa5be20f991296201e98",
+    "title": "2026년 재개발임대주택 입주자 모집(2026.9.9.공고) 서류심사 대상자 발표",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311988",
+    "status": 200,
+    "sha256": "1aeb6066f16f932043e05970816d77971d160d59624568126ada831a5d70c990",
+    "chars": 13172
+  },
+  {
+    "id": "DOC_2fc8e5ba041834cb45112031",
+    "title": "노원구 도전숙(수요자맞춤형) 잔여세대 입주자 모집 공고",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311908",
+    "status": 200,
+    "sha256": "5fac8bf49e2730f262f4851bdaf6bb703e427985fa15db76a1a9ab5e0d2032cc",
+    "chars": 11321
+  },
+  {
+    "id": "DOC_3eb99c2d9ff0898d7f44fc9c",
+    "title": "2026년 2차 장기미임대 매입임대주택 입주자 모집공고(2026. 8. 28.) 서류심사 대상자 발표",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311936",
+    "status": 200,
+    "sha256": "21c174a8c0911a895e325edb1642de8cec368d4c4f5ed2511646dcadc615ca7c",
+    "chars": 12946
+  },
+  {
+    "id": "DOC_62b5e068d783c9a64e8a4bfa",
+    "title": "[입주안내문] 동작보라매역 프리센트",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311982",
+    "status": 200,
+    "sha256": "80079c6306b65edae864fc8640d60f1fc520fbe535080b905a8b9d8a835d59d8",
+    "chars": 10846
+  },
+  {
+    "id": "DOC_87cca7787d542e5eb6512549",
+    "title": "한국토지주택공사(LH), 시흥거모지구 S-1블록 공공분양주택 300호 공급",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12169",
+    "status": 200,
+    "sha256": "2790e04ec53d651e370329a069fa41a4762e687346378f9259bd78ead5606cd9",
+    "chars": 4691
+  },
+  {
+    "id": "DOC_dfe856fabf99f8792c43023c",
+    "title": "제6차 장기전세주택2(2025.11.28.공고) 예비 5차 입주대상자 발표",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312021",
+    "status": 200,
+    "sha256": "cd0cc1f6fbea720a8f63bf4d52c5a9225f7923101f27a414b2bd96ff73958ed1",
+    "chars": 12240
+  },
+  {
+    "id": "DOC_4ffc89d2df92899aa341db4d",
+    "title": "한국토지주택공사(LH), 주거안정플랜 성공적 이행을 위해 건설업계와 협력 강화",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12166",
+    "status": 200,
+    "sha256": "3eff205d1e8e952c12d13e785cc1c24ebfd7c76bce8ff8e3eef59ada94caea48",
+    "chars": 4701
+  },
+  {
+    "id": "DOC_7a1ec6af9f12b62cd9a679c8",
+    "title": "성북동의 자연과 역사·문화를 품은 주거단지 조성… 성북동 3-38 일대 신속통합기획 확정",
+    "url": "https://www.seoul.go.kr/news/news_report.do#view/468636",
+    "status": 200,
+    "sha256": "4e966dfaf14614b6db3775302da91910efb95ad306a1cb4feb70bee13fb4b8d5",
+    "chars": 2028
+  },
+  {
+    "id": "DOC_c45f9c890c1f952db73a95a6",
+    "title": "서울시, 수서택지 4개 단지 재건축‘현장 합동 신속통합자문’실시",
+    "url": "https://www.seoul.go.kr/news/news_report.do#view/468633",
+    "status": 200,
+    "sha256": "4e966dfaf14614b6db3775302da91910efb95ad306a1cb4feb70bee13fb4b8d5",
+    "chars": 2028
+  },
+  {
+    "id": "DOC_376dd572e71726ae28982ea4",
+    "title": "2026년 만리동 예술인 협동조합주택(막쿱) 잔여세대 입주자 모집공고(2026. 6. 25.) 당첨자 및 예비자 발표",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311870",
+    "status": 200,
+    "sha256": "33582f8a243e7dcf3122281f6ffdccaaef8b3639a9c81a41025759a2881b3e9d",
+    "chars": 12586
+  },
+  {
+    "id": "DOC_a15ac1688f0ad3ac70c3f17f",
+    "title": "한국토지주택공사(LH), 모듈러주택 활성화로 주택공급 속도 높인다",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12164",
+    "status": 200,
+    "sha256": "395062671890267b29049c38df5b6603d57e72fa1595fe978bc8357736615bd2",
+    "chars": 4675
+  },
+  {
+    "id": "DOC_4b3de908d0e01bae0c7b984b",
+    "title": "[퀸즈W 청량리역] 주택공개 및 사전점검 안내",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311793",
+    "status": 200,
+    "sha256": "401f2d74b931fd556a548f378a34d60f3adc4e49a4f0a18a063a4890e9363a02",
+    "chars": 10903
+  },
+  {
+    "id": "DOC_47c1fe723b89426ace3ff7a5",
+    "title": "한국토지주택공사(LH), 서울 도심 내 매입임대주택 신속 공급 추진... 우수입지에 우량주택 집중 공급",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12160",
+    "status": 200,
+    "sha256": "27d2c6a9356bf190d5cefaf8263f1f0edb0c5ae483092024bf1a5e903827f033",
+    "chars": 4758
+  },
+  {
+    "id": "DOC_6d057dab2fea19e2702fa60a",
+    "title": "한국토지주택공사(LH), 현장 중심 주택공급 추진체계 강화...고품질 공공주택 신속 공급 매진",
+    "url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12158",
+    "status": 200,
+    "sha256": "83d5056838930a6cd96eec3e598dc0ba5a486187cb797f08cf23f0556f113895",
+    "chars": 4738
+  },
+  {
+    "id": "DOC_2e43ecfb6fe69f45bf6dc69f",
+    "title": "마곡이음스테이(도전숙) 신규입주 고객 입주안내문 게시",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311528",
+    "status": 200,
+    "sha256": "4c848cd083de19721580d06c89b9646aed3b4a7f8735b0e1005e98069a37a928",
+    "chars": 11027
+  },
+  {
+    "id": "DOC_80cc5ac55e3dc29c0f4463f5",
+    "title": "[입주안내] 마곡이음스테이(도전숙) 신규입주 고객 입주안내문 게시",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=311531",
+    "status": 200,
+    "sha256": "e23ce68ee4e8b61be35ee45ce5017fe6708508c92bb921182a86f101b5ed7773",
+    "chars": 11058
+  },
+  {
+    "id": "DOC_4ce61401faff4df183327aed",
+    "title": "인천도시공사, 검단신도시 북측 광역도로 10월 7일부터 부분 개통",
+    "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2317",
+    "status": 200,
+    "sha256": "8493a84cd685e4c7a7d1d62e176fcc2e46845214fada16b7709c1b23270b3308",
+    "chars": 5498
+  },
+  {
+    "id": "DOC_35b92d963a3f27fda9ef07a6",
+    "title": "[이문아이파크자이] 제7차 장기전세2, 재개발 임대주택 입주 안내문 게시",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310903",
+    "status": 200,
+    "sha256": "ba61bb4c940e1855a9c8e0bc931fec0def22d24c9c4642d8b08d7d63d5c67c52",
+    "chars": 11173
+  },
+  {
+    "id": "DOC_2d1a68559b0ca58fdb516a4b",
+    "title": "청년안심주택 도무스서초 입주안내문",
+    "url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=310761",
+    "status": 200,
+    "sha256": "0dccfeaa9cd83baad401e6e7f94233d2351741b0803412b0951404bca988942d",
+    "chars": 10938
+  },
+  {
+    "id": "DOC_8342ce93f1d6ae7c53d1fb76",
+    "title": "[세쓸통] 태양광·원전 늘어도 전기 보낼 길이 없다…전력망 준공 '지지부진'",
+    "url": "https://www.newsis.com/view/NISX20261023_0003838683",
+    "status": 200,
+    "sha256": "1a42ecdcb5730f3d6792759533a82f0aabea81598f02a5516a64a633f1ba65ec",
+    "chars": 9072
+  },
+  {
+    "id": "DOC_896355b48ccf361d4f64c579",
+    "title": "3기 신도시 교통망 '직접 인허가'로 속도…5개 사업 집중관리",
+    "url": "https://www.newsis.com/view/NISX20261025_0003839816",
+    "status": 200,
+    "sha256": "c209e956b852cbbd80403204ddfadd4cf9821525f2e4ffa4ff71640cfbfd39e4",
+    "chars": 7640
+  },
+  {
+    "id": "DOC_9671d4d7729d0b82c52baab2",
+    "title": "서대문구의회, 29일 서부선 경전철 조속 착공 토론회",
+    "url": "https://www.newsis.com/view/NISX20261025_0003839886",
+    "status": 200,
+    "sha256": "0ff94be0596ddb58396c6ba048f4450dadf0f4b193a6267d0cf248822db1760b",
+    "chars": 7519
+  },
+  {
+    "id": "DOC_ee0ac34035f66904d8348637",
+    "title": "인천광역주거복지센터 '고령친화 맞춤형 집수리', 인천시 혁신·적극행정 우수사례 전시회에 선보여",
+    "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2325",
+    "status": 200,
+    "sha256": "ff424827868ed8c24dfe54ffc03508fd168fde9b22ccd59f9d33db3fe4c3eb40",
+    "chars": 5670
+  },
+  {
+    "id": "DOC_cbe7b733bbc4f55f25f79092",
+    "title": "인천광역시 광역주거복지센터, 2026년 주거복지 교육 성료",
+    "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2323",
+    "status": 200,
+    "sha256": "b2deee2347fc9289b338652183513c26e0dfdded3ee8546e9d2a09bd1c0e37e7",
+    "chars": 5614
+  },
+  {
+    "id": "DOC_94cab4bf5e40c75ed98b8d62",
+    "title": "하나아파트 주민들, 검단신도시 주거환경 개선 힘쓴 인천도시공사에 감사패 전달",
+    "url": "https://www.ih.co.kr/main/bbs/bbsMsgDetail.do?bcd=idtc_press&msg_seq=2315",
+    "status": 200,
+    "sha256": "2a43eb2a811a8dca1be0e76eaf041eed024359e815183dc64cacedfb2cb0b21d",
+    "chars": 5545
+  }
+]

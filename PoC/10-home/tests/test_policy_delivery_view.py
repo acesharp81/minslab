@@ -26,6 +26,30 @@ class Source(FakeService):
             for p,city in zip(self.project_rows,('C1','C2'))],knowledge_date='2026-10-12')
 
 
+def test_screen_does_not_fetch_discarded_source_diagnostics():
+    service=Source()
+    with patch.object(service,'sources',side_effect=AssertionError('unused source scan')):
+        assert build_delivery(service,date(2026,10,12),comparison_scopes=())['status']=='READY'
+
+
+def test_unlinked_discovery_keeps_screen_cache_but_approved_links_and_source_edits_invalidate():
+    engine=create_engine('sqlite://',poolclass=StaticPool);Base.metadata.create_all(engine)
+    service=HomeService(engine)
+    try:
+        initial=delivery_screen_projection_version(service)
+        with service.sessions.begin() as db:
+            doc,_=upsert_revision(db,'document_evidence','sh_notice_watch','new',{'name':'신규 공고'},'collect')
+        assert delivery_screen_projection_version(service)==initial
+        with service.sessions.begin() as db:
+            upsert_revision(db,'evidence_bridge','officer','link',{'source_entity_id':doc.entity_id,'facts':[],'status':'CONFIRMED'},'approve')
+        linked=delivery_screen_projection_version(service)
+        assert linked!=initial
+        with service.sessions.begin() as db:
+            upsert_revision(db,'document_evidence','sh_notice_watch','new',{'name':'정정 공고'},'collect')
+        assert delivery_screen_projection_version(service)!=linked
+    finally:engine.dispose()
+
+
 @pytest.fixture
 def pair():
     day=date(2026,10,12)

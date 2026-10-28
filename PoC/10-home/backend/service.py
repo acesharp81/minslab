@@ -517,6 +517,21 @@ class HomeService:
                     for eid, sid, payload in db.execute(query)
                     if payload.get('base_date', '9999') <= day.isoformat()]
 
+    @reuse_projection
+    def policy_start_statistics(self, as_of=None):
+        """Only the monthly construction statistics consumed by policy charts."""
+        day=as_of or today()
+        cutoff=datetime.combine(day+timedelta(days=1),time.min,KST).astimezone(timezone.utc)
+        if self.known_at is not None:
+            if self.known_at.tzinfo is None:raise ValueError('인지 기준시각에는 시간대가 필요합니다')
+            cutoff=min(cutoff,self.known_at.astimezone(timezone.utc))
+        visibility=(Revision.superseded_at.is_(None) if self.known_at is None and day==today() else
+            or_(Revision.superseded_at.is_(None),Revision.superseded_at>=cutoff))
+        query=select(Revision.payload).where(Revision.kind=='statistic',Revision.recorded_at<cutoff,visibility,
+            Revision.payload['statistic_metric'].as_string()=='착공')
+        with self.sessions() as db:
+            return [p for p in db.scalars(query) if p.get('base_date','9999')<=day.isoformat()]
+
     @reuse_rows
     def rows(self, kind, as_of=None, entity_ids=None, known_at=None):
         excluded = {(r['subject_kind'],r['subject_id']) for r in self.rows('mapping_decision',as_of,known_at=known_at) if r.get('status')=='EXCLUDED' and r.get('policy_id')=='POL_2025_0907'} if kind=='project' else set()

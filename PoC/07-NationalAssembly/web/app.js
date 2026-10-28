@@ -2093,6 +2093,41 @@ function renderMeetingLiveResolution(item, record) {
   return panel;
 }
 
+function renderMeetingSupplementarySections(sections) {
+  const root = magazineElement("section", "meeting-supplementary", "");
+  root.setAttribute("aria-label", "보조 원문 정보");
+  const controls = magazineElement("div", "meeting-supplementary-controls", "");
+  const panels = [];
+  root.append(controls);
+  for (const [index, section] of sections.entries()) {
+    const summary = section.querySelector(":scope > summary");
+    const button = magazineElement("button", "", summary.textContent);
+    button.type = "button";
+    button.id = `meeting-supplementary-control-${index}`;
+    button.setAttribute("aria-expanded", "false");
+    const panel = magazineElement("div", `${section.className} meeting-supplementary-content`, "");
+    panel.id = `meeting-supplementary-panel-${index}`;
+    panel.hidden = true;
+    panel.setAttribute("role", "region");
+    panel.setAttribute("aria-labelledby", button.id);
+    button.setAttribute("aria-controls", panel.id);
+    summary.remove();
+    panel.append(...section.childNodes);
+    panels.push({ button, panel });
+    button.addEventListener("click", () => {
+      const expand = panel.hidden;
+      for (const entry of panels) {
+        const active = entry.panel === panel && expand;
+        entry.panel.hidden = !active;
+        entry.button.setAttribute("aria-expanded", String(active));
+      }
+    });
+    controls.append(button);
+    root.append(panel);
+  }
+  return root;
+}
+
 function renderMeetingBrief(item, record, options = {}) {
   const stage = document.querySelector("#liveExpandedStage");
   const provisionalBrief = record?.provisional_brief || record?.brief || {};
@@ -2474,10 +2509,7 @@ function renderMeetingBrief(item, record, options = {}) {
   const actions = magazineElement("div", "meeting-beta-actions", "");
   const fullTranscript = magazineElement("button", "", "전체 발언 기록 보기");
   fullTranscript.type = "button";
-  fullTranscript.addEventListener("click", () => {
-    const row = document.querySelector('.broadcast-row[data-broadcast-id="' + item.broadcast_id + '"]');
-    expandEndedBroadcast(item, row || fullTranscript);
-  });
+  fullTranscript.addEventListener("click", () => openMeetingTranscriptDocument(item));
   actions.append(
     magazineElement("small", "", "주제나 과제를 선택하면 해당 주요 논의 내용과 근거 발언으로 이동합니다."),
     fullTranscript,
@@ -2698,7 +2730,7 @@ function renderMeetingBrief(item, record, options = {}) {
   workspace.append(topics, evidence);
   sourceView.append(topicTaskOverview);
   if (briefView === "official") sourceView.append(renderOfficialUtteranceBrowser(item));
-  if (lineageUnmappedPanel) sourceView.append(lineageUnmappedPanel);
+  const supplementarySections = lineageUnmappedPanel ? [lineageUnmappedPanel] : [];
   if (structure && brief.structure_review_items?.length) {
     const categories = [
       ["AUTO_PENDING", "자동 재분류 대기", "시스템이 앞뒤 발언을 함께 분석하여 주제와 발언 역할을 다시 분류합니다."],
@@ -2719,9 +2751,10 @@ function renderMeetingBrief(item, record, options = {}) {
         if (entry.reason && ["SOURCE_LIMITED", "REQUEST_SOURCE_LIMITED", "AUTO_PENDING"].includes(state)) button.append(magazineElement("small", "", entry.reason));
         review.append(button);
       }
-      sourceView.append(review);
+      supplementarySections.push(review);
     }
   }
+  if (supplementarySections.length) sourceView.append(renderMeetingSupplementarySections(supplementarySections));
   sourceView.append(actions, workspace);
   root.append(hero, integrationBar);
   if (officialChangeReport) root.append(officialChangeReport);
