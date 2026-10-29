@@ -145,3 +145,32 @@ def test_short_unwatched_legacy_task_is_reviewed_before_new_long_turn():
             {'content_hash':'old','text':'예 그렇습니다.'}],client,review_hashes={'old'})
     assert seen==['old','new']
     assert result['saved']==2
+
+
+def test_shared_pool_defers_rejected_evidence_without_replaying_same_response():
+    from types import SimpleNamespace
+    for partial in (False, True):
+        repo = mock.Mock()
+        repo.existing_hashes.return_value = set()
+        repo.deferred_hashes.return_value = set()
+        repo.save_many.side_effect = lambda bid, rows, **kwargs: len(rows)
+        connection = mock.Mock()
+        connection.execute.return_value.fetchone.return_value = (True,)
+        client = mock.Mock(provider="openai", model="fixture", prompt_version="fixture")
+        if partial:
+            client.summarize.return_value = SimpleNamespace(items=[{
+                "content_hash": "first", "summary": "자료 제출을 요청했다.",
+                "live_insight": {"topic": "예산 점검"}}], usage_metadata={})
+        else:
+            client.summarize.side_effect = ValueError("invalid response")
+        with mock.patch("app.services.summary_cache.SummaryRepository", return_value=repo):
+            result = cache_missing_summaries(connection, "meeting", [
+                {"content_hash": "first", "text": "예산 자료를 제출해 주세요."},
+                {"content_hash": "second", "text": "예, 제출하겠습니다."},
+            ], client, include_short=True, shared_pool=True)
+        assert client.summarize.call_count == 1
+        assert result["saved"] == (1 if partial else 0)
+        assert result["failed"] == (1 if partial else 2)
+        assert {c.args[1] for c in repo.record_failure.call_args_list} == (
+            {"second"} if partial else {"first", "second"})
+        assert all(c.kwargs["provider"] == "openai" for c in repo.record_failure.call_args_list)

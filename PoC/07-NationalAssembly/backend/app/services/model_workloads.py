@@ -9,7 +9,7 @@ INTEGRATION_SCHEMAS = frozenset({'meeting_brief','meeting_reduction','discussion
 
 def openai_limit(settings: Any, schema_name: str) -> int:
     limit = int(settings.openai_daily_token_limit)
-    protected = min(limit, max(0, int(getattr(settings,'openai_integration_reserved_tokens',300000))))
+    protected = min(limit, max(0, int(getattr(settings,'openai_integration_reserved_tokens',100000))))
     return limit if schema_name in INTEGRATION_SCHEMAS else limit-protected
 
 

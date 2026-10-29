@@ -480,6 +480,15 @@ def _configured_model_workloads(settings: object) -> dict[tuple[str, str], set[s
             ).add(workload)
 
     provider, summary_model, _ = summary_identity(settings)
+    if getattr(settings, "model_workload_groups_enabled", False):
+        add('openai', settings.openai_mini_model, '실시간 부분요약·일반 구조화')
+        add('openrouter', summary_model, '실시간 부분요약 경쟁 풀')
+        add('openai', settings.openai_integration_model, '통합·주제별 보고서·고난도 검증')
+        add('openai', settings.openai_advanced_model, '통합 실패 보완 · 월 배정액 이내')
+        add('mistral', settings.executive_transcription_model, '음성 전사')
+        if settings.watch_llm_enabled:
+            add(settings.watch_llm_provider,settings.watch_llm_model or summary_model,'관심주제 브리핑')
+        return catalog
     if settings.ai_enrichment_enabled:
         add(provider, summary_model, "발언 요약")
         add(provider, summary_model, "공식 보고서 ↔ LIVE 초안 변화 분석")
@@ -739,10 +748,22 @@ def ai_usage() -> dict[str, object]:
         settings, monthly_model_usage, gateway, openai_usage,
     )
     openrouter_official_limit = int(gateway.get("official_limit") or 1000)
+    groups = []
+    if settings.model_workload_groups_enabled and status == 'AVAILABLE':
+        try:
+            from .services.grouped_models import usage_groups
+            with connect(settings.database_url) as connection:
+                groups = usage_groups(settings, connection,
+                    router_left=max(0,openrouter_limit-openrouter_used), router_limit=openrouter_limit,
+                    mistral_left=float(settings.mistral_monthly_credit_usd)-mistral_cost)
+        except Exception:
+            status = 'UNAVAILABLE'
     return {
         "provider": "combined",
+        "workload_groups": groups,
+        "usage_scope": "서비스 배정량 기준 · OpenAI 조직 전체 잔액 아님",
         "auxiliary_models": auxiliaries,
-        "provider_label": "NVIDIA NIM + OpenRouter 보고서, OpenAI 예비, Mistral STT",
+        "provider_label": "Mini + OpenRouter 부분요약 · GPT-5.4 + Terra 통합 · Mistral 음성",
         "model": f"{settings.llm_model or '-'} · {settings.executive_transcription_model}",
         "used": openrouter_used, "limit": openrouter_official_limit,
         "operational_limit": openrouter_limit,

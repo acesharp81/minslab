@@ -51,6 +51,7 @@ def process_available(
     client: SummaryClient,
     *,
     daily_limit: int = 950,
+    shared_pool: bool = False,
     monthly_credit_usd: float = 10.0,
     input_usd_per_million: float = 0.15,
     output_usd_per_million: float = 0.60,
@@ -139,7 +140,8 @@ def process_available(
                 broadcast_id, [u['content_hash'] for u in utterances])
             stats = cache_missing_summaries(
                 connection, broadcast_id, utterances, client,
-                include_short=watched, batch_items=8 if watched else 2,
+                include_short=watched, batch_items=2 if shared_pool else (8 if watched else 2),
+                shared_pool=shared_pool,
                 review_hashes=review_hashes,
                 daily_limit=daily_limit,
                 monthly_credit_usd=monthly_credit_usd,
@@ -153,6 +155,43 @@ def process_available(
         totals["monthly_tokens"] = stats["monthly_tokens"]
         totals["monthly_cost_usd"] = stats["monthly_cost_usd"]
     return totals
+
+
+def run_grouped_pool(settings, args):
+    """Two independent bounded lanes. Each lane yields after one batch per meeting."""
+    from concurrent.futures import ThreadPoolExecutor
+    from ..db.migrate import apply_migrations
+    from ..services.openai_summary import OpenAISummaryClient
+    from ..services.openrouter_summary import OpenRouterSummaryClient
+    apply_migrations(settings.database_url)
+    lanes = []
+    if settings.openai_api_key:
+        lanes.append(OpenAISummaryClient(settings))
+    if settings.openrouter_api_key:
+        lanes.append(OpenRouterSummaryClient(settings.openrouter_api_key,
+            model=settings.llm_model, base_url=settings.openrouter_base_url))
+    if not lanes:
+        raise RuntimeError('No realtime model configured')
+
+    def lane(client):
+        while True:
+            try:
+                result = process_available(settings.database_url, client,
+                    daily_limit=settings.openrouter_daily_limit, shared_pool=True)
+                if result['api_requests'] or result['failed']:
+                    print(json.dumps({'event':'summary.pool','provider':client.provider,**result}),flush=True)
+            except Exception as exc:
+                print(json.dumps({'event':'summary.pool_deferred','provider':client.provider,
+                                  'error':type(exc).__name__}),flush=True)
+                if not args.once:
+                    time.sleep(60)
+            if args.once:
+                return
+            time.sleep(args.interval)
+    with ThreadPoolExecutor(max_workers=len(lanes)) as executor:
+        futures = [executor.submit(lane, c) for c in lanes]
+        for future in futures:
+            future.result()
 
 
 def main() -> None:
@@ -171,6 +210,9 @@ def main() -> None:
     if not settings.ai_enrichment_enabled:
         raise RuntimeError("Summary generation is not enabled")
     client = build_summary_client(settings)
+    if settings.model_workload_groups_enabled:
+        run_grouped_pool(settings, args)
+        return
     daily_limit = summary_daily_limit(settings)
     monthly_credit_usd = summary_monthly_credit_usd(settings)
     input_price, output_price = summary_mistral_prices(settings)

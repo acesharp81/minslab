@@ -62,7 +62,7 @@ class SummaryWorkerTests(unittest.TestCase):
 
         from app.config import Settings
         from app.ingestion import summary_worker
-        settings = Settings(ai_enrichment_enabled=True, openrouter_api_key="fixture")
+        settings = Settings(_env_file=None, ai_enrichment_enabled=True, openrouter_api_key="fixture")
         with patch("sys.argv", ["summary_worker", "--once"]), \
              patch("app.config.get_settings", return_value=settings), \
              patch("app.db.migrate.apply_migrations"), \

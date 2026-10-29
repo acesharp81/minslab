@@ -347,7 +347,10 @@ def generate_one(
             "comparison_error": "PREVIOUS_GATEWAY_FAILURE",
         })
     elif settings.ai_enrichment_enabled and settings.llm_provider in {"mistral", "openrouter"}:
-        if settings.llm_provider == "mistral":
+        if getattr(settings, "model_workload_groups_enabled", False):
+            from ..services.grouped_topic_report import GroupedOfficialRevisionClient
+            client = GroupedOfficialRevisionClient(settings)
+        elif settings.llm_provider == "mistral":
             with connect(settings.database_url) as connection:
                 usage = SummaryRepository(connection).monthly_token_usage(
                     "mistral", settings.llm_model,

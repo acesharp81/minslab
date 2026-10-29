@@ -4818,7 +4818,7 @@ function renderAiModelUsage(payload) {
         : providerName === "mistral"
         ? `이번 달 $${Number(provider.cost_usd || 0).toFixed(2)} / $${Number(provider.credit_usd || 0).toFixed(2)}`
         : providerName === "openai"
-          ? `오늘 ${Number(provider.used || 0).toLocaleString("ko-KR")} / ${Number(provider.limit || 650000).toLocaleString("ko-KR")} token · 남음 ${Number(provider.remaining || 0).toLocaleString("ko-KR")} · ${formatUsageReset(provider.resets_at)}`
+          ? `오늘 ${Number(provider.used || 0).toLocaleString("ko-KR")} / ${Number(provider.limit ?? 250000).toLocaleString("ko-KR")} token · 남음 ${Number(provider.remaining || 0).toLocaleString("ko-KR")} · ${formatUsageReset(provider.resets_at)}`
           : "공급자 한도 미설정";
     groupHead.append(groupTitle, magazineElement("b", "", quota));
     const cards = magazineElement("div", "ai-model-provider-models", "");
@@ -4854,63 +4854,38 @@ function renderAiModelUsage(payload) {
 }
 
 function aiRemainingCards(payload) {
-  const providers = Object.fromEntries((payload.providers || []).map((item) => [item.provider, item]));
-  const auxiliaries = Object.fromEntries((payload.auxiliary_models || []).map((item) => [item.provider, item]));
-  const number = (value) => value === null || value === undefined || value === "" ? NaN : Number(value);
-  const unknown = (provider) => ({ provider, percent: null, label: "확인 불가", detail: "잔여량 미확인", title: "사용량 정보를 확인하지 못했습니다." });
-  const remaining = (provider, left, cap, detail, title, requestRatio = 1) => {
-    if (!Number.isFinite(left) || !Number.isFinite(cap) || cap <= 0 || !Number.isFinite(requestRatio)) return unknown(provider);
-    const percent = Math.max(0, Math.min(100, (left / cap) * 100, requestRatio * 100));
-    return { provider, percent, detail, title,
-      label: percent === 0 ? "소진" : percent < 1 ? "1% 미만" : `${Math.floor(percent)}% 남음` };
-  };
-  return ["openrouter", "gemini", "groq", "openai", "mistral"].map((provider) => {
-    if (payload.status === "UNAVAILABLE") return unknown(provider);
-    const item = providers[provider];
-    if (provider === "gemini" || provider === "groq") {
-      const aux = auxiliaries[provider];
-      if (!aux) return unknown(provider);
-      const cap = number(aux.daily_token_cap), left = Math.max(0, cap - number(aux.charged_tokens));
-      const requests = number(aux.daily_request_cap), requestLeft = Math.max(0, requests - number(aux.request_count));
-      const ratio = requests > 0 ? requestLeft / requests : NaN;
-      return remaining(provider, left, cap, "일일 기준",
-        `이 서비스의 일일 배정량 기준: 약 ${Math.floor(left).toLocaleString("ko-KR")}토큰 · ${requestLeft.toLocaleString("ko-KR")}회 남음. 공급자 계정 전체의 무료 잔여량과 다를 수 있습니다.`, ratio);
-    }
-    if (!item) return unknown(provider);
-    if (provider === "openrouter") {
-      const cap = number(item.operational_limit ?? item.limit);
-      const left = number(item.operational_remaining ?? (cap - number(item.used)));
-      return remaining(provider, left, cap, "일일 기준", `이 서비스가 사용하는 일일 운영 한도 기준: ${Math.max(0,left).toLocaleString("ko-KR")}회 남음`);
-    }
-    if (provider === "openai") {
-      const cap = number(item.limit);
-      const left = number(item.remaining ?? (cap - number(item.used) - number(item.reserved_tokens ?? 0)));
-      return remaining(provider, left, cap, "일일 기준", `이 서비스의 일일 배정량 기준: 약 ${Math.max(0,left).toLocaleString("ko-KR")}토큰 남음`);
-    }
-    const cap = number(item.credit_usd), left = cap - number(item.cost_usd);
-    return remaining(provider, left, cap, "이번 달 기준", `설정된 월간 이용 금액 기준: 약 $${Math.max(0,left).toFixed(2)} 남음`);
+  const entries = new Map((payload.workload_groups || []).flatMap(g => g.models || []).map(m => [m.id,m]));
+  return ["mini", "openrouter", "main", "terra", "mistral"].map(id => {
+    const m = entries.get(id);
+    const unknown = {id, percent:null, label:m?.status === "CREDIT_UNCONFIRMED" ? "크레딧 확인" : "확인 불가", title:"잔여량 미확인"};
+    if (payload.status === "UNAVAILABLE" || !m || m.remaining == null || m.limit == null) return unknown;
+    const left=Number(m.remaining), cap=Number(m.limit);
+    if (!Number.isFinite(left) || !Number.isFinite(cap) || cap <= 0) return unknown;
+    const n=Math.max(0,left), percent=Math.max(0,Math.min(100,n/cap*100));
+    const label = m.unit === "USD" ? `$${n.toFixed(id === "terra" ? 3 : 2)}` : m.unit === "requests" ? `${Math.floor(n).toLocaleString("ko-KR")}회` : n >= 10000 ? `${(Math.floor(n/1000)/10).toLocaleString("ko-KR")}만` : `${Math.floor(n).toLocaleString("ko-KR")}`;
+    const unit=m.unit === "USD" ? "달러" : m.unit === "requests" ? "회" : "토큰";
+    const period=m.period === "DAILY_UTC" ? "매일 09:00 초기화" : m.expires_at ? `만료 ${new Date(m.expires_at).toLocaleDateString("ko-KR")}` : "월간 배정";
+    return {id,name:m.label,percent,label: `${m.period === "DAILY_UTC" ? "(일)" : "(월)"} ${n === 0 ? "소진" : label}`,title:`${m.label}${m.model ? ` (${m.provider} · ${m.model})` : ""}: ${n.toLocaleString("ko-KR")} / ${cap.toLocaleString("ko-KR")} ${unit} 남음 · ${period}. ${m.scope === "SHARED_GATEWAY" ? "공유 게이트웨이 기준" : "이 서비스 배정량 기준이며 계정 전체 잔액과 다를 수 있습니다."}`};
   });
 }
 
 function renderAiUsage(payload) {
   for (const item of aiRemainingCards(payload)) {
-    const card = document.querySelector(`[data-usage-provider="${item.provider}"]`);
-    if (!card) continue;
-    card.querySelector(".ai-usage-value").textContent = item.label;
-    card.querySelector(".ai-usage-meta span").textContent = item.detail;
-    card.title = item.title;
-    const known = item.percent !== null;
-    card.classList.toggle("is-low", known && item.percent > 0 && item.percent < 10);
-    card.classList.toggle("is-exhausted", known && item.percent === 0);
-    const meter = card.querySelector(".ai-usage-meter");
-    meter.classList.toggle("is-unknown", !known);
-    meter.setAttribute("role", known ? "progressbar" : "img");
-    meter.setAttribute("aria-label", `${card.querySelector("strong").textContent} · ${item.label} · ${item.detail}`);
+    const row=document.querySelector(`[data-usage-model="${item.id}"]`);
+    if (!row) continue;
+    row.querySelector("b").textContent=item.label;
+    if (item.name) row.querySelector("span").textContent=item.name;
+    row.title=item.title;
+    row.setAttribute("aria-label",item.title);
+    row.classList.toggle("is-low",item.percent !== null && item.percent < 10);
+    const meter=row.querySelector(".ai-usage-meter"), known=item.percent !== null;
+    meter.classList.toggle("is-unknown",!known);
+    meter.setAttribute("role",known ? "progressbar" : "img");
+    meter.setAttribute("aria-label",item.title);
     for (const [key,value] of [["aria-valuemin",0],["aria-valuemax",100],["aria-valuenow",Math.floor(item.percent || 0)]]) {
-      if (known) meter.setAttribute(key,String(value));
-      else meter.removeAttribute(key);
+      if (known) meter.setAttribute(key,String(value)); else meter.removeAttribute(key);
     }
-    meter.querySelector("i").style.width = known ? `${item.percent}%` : "0%";
+    meter.querySelector("i").style.width=known ? `${item.percent}%` : "0%";
   }
   document.querySelector("#aiUsage").classList.toggle("is-unavailable", payload.status === "UNAVAILABLE");
 }

@@ -1,0 +1,1020 @@
+{
+  "checked_at": "2026-10-29T14:01:16.516361+09:00",
+  "request_count": 17,
+  "request_cap": 18,
+  "reserved_list_price_cap_usd": 1.0,
+  "reserved_list_price_usd": 0.7050160000000001,
+  "production_changed": false,
+  "models": [
+    {
+      "provider": "upstage",
+      "model": "solar-pro4",
+      "reasoning_effort": "none",
+      "rates_per_million": [
+        0.3,
+        1.2
+      ],
+      "checks": [
+        {
+          "check": "structured_review",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.0028539,
+          "http_status": 200,
+          "headers": {},
+          "status": "completed",
+          "returned_model": "solar-pro4-260806",
+          "service_tier": null,
+          "usage": {
+            "input_tokens": 340,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 47,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 387
+          },
+          "elapsed_seconds": 1.3,
+          "parsed_result": {
+            "unique_documents": 2,
+            "remaining_units": 12,
+            "waitlist_people": 10,
+            "new_units_to_add": 0,
+            "approved": false
+          },
+          "passed": true
+        },
+        {
+          "check": "tool_call",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.0026904,
+          "http_status": 200,
+          "headers": {},
+          "status": "completed",
+          "returned_model": "solar-pro4-260806",
+          "service_tier": null,
+          "usage": {
+            "input_tokens": 297,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 15,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 312
+          },
+          "elapsed_seconds": 0.64,
+          "passed": true
+        },
+        {
+          "check": "tool_roundtrip",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.0029049,
+          "http_status": 200,
+          "headers": {},
+          "status": "completed",
+          "returned_model": "solar-pro4-260806",
+          "service_tier": null,
+          "usage": {
+            "input_tokens": 269,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 21,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 290
+          },
+          "elapsed_seconds": 0.79,
+          "parsed_result": {
+            "action": "HOLD_EXISTING_DECISION",
+            "approved": false
+          },
+          "passed": true
+        },
+        {
+          "check": "isolated_parser_patch",
+          "max_output_tokens": 2048,
+          "reserved_list_price_usd": 0.0034404,
+          "http_status": 200,
+          "headers": {},
+          "status": "completed",
+          "returned_model": "solar-pro4-260806",
+          "service_tier": null,
+          "usage": {
+            "input_tokens": 292,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 615,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 907
+          },
+          "elapsed_seconds": 6.91,
+          "artifact": "parser_solar_pro4.py",
+          "fixed_case_results": [
+            {
+              "case": 0,
+              "passed": true
+            },
+            {
+              "case": 1,
+              "passed": true
+            },
+            {
+              "case": 2,
+              "passed": true
+            },
+            {
+              "case": 3,
+              "passed": false
+            },
+            {
+              "case": 4,
+              "passed": true
+            },
+            {
+              "case": 5,
+              "passed": true
+            },
+            {
+              "case": 6,
+              "passed": true
+            },
+            {
+              "case": 7,
+              "passed": true
+            },
+            {
+              "case": 8,
+              "passed": true
+            },
+            {
+              "case": 9,
+              "passed": true
+            },
+            {
+              "case": 10,
+              "passed": true
+            },
+            {
+              "case": 11,
+              "passed": true
+            },
+            {
+              "case": 12,
+              "passed": true
+            },
+            {
+              "case": 13,
+              "passed": true
+            },
+            {
+              "case": 14,
+              "passed": true
+            },
+            {
+              "case": 15,
+              "passed": true
+            }
+          ],
+          "passed": false
+        },
+        {
+          "check": "isolated_parser_retry",
+          "max_output_tokens": 2048,
+          "reserved_list_price_usd": 0.0038034,
+          "http_status": 200,
+          "headers": {},
+          "status": "completed",
+          "returned_model": "solar-pro4-260806",
+          "service_tier": null,
+          "usage": {
+            "input_tokens": 819,
+            "input_tokens_details": {
+              "cached_tokens": 0
+            },
+            "output_tokens": 378,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 1197
+          },
+          "elapsed_seconds": 5.71,
+          "artifact": "parser_solar_pro4_retry.py",
+          "fixed_case_results": [
+            {
+              "case": 0,
+              "passed": true
+            },
+            {
+              "case": 1,
+              "passed": true
+            },
+            {
+              "case": 2,
+              "passed": true
+            },
+            {
+              "case": 3,
+              "passed": true
+            },
+            {
+              "case": 4,
+              "passed": true
+            },
+            {
+              "case": 5,
+              "passed": true
+            },
+            {
+              "case": 6,
+              "passed": true
+            },
+            {
+              "case": 7,
+              "passed": true
+            },
+            {
+              "case": 8,
+              "passed": true
+            },
+            {
+              "case": 9,
+              "passed": true
+            },
+            {
+              "case": 10,
+              "passed": true
+            },
+            {
+              "case": 11,
+              "passed": true
+            },
+            {
+              "case": 12,
+              "passed": true
+            },
+            {
+              "case": 13,
+              "passed": true
+            },
+            {
+              "case": 14,
+              "passed": true
+            },
+            {
+              "case": 15,
+              "passed": true
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "status": "passed_after_one_retry",
+      "tokens": {
+        "input_tokens": 2017,
+        "output_tokens": 1076
+      },
+      "list_estimate_usd": 0.0018963,
+      "retry_note": "One failed case disclosed for correction; same original 16 cases rerun without edits. Initial 15/16 result retained."
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "reasoning_effort": "none",
+      "rates_per_million": [
+        2.5,
+        15
+      ],
+      "checks": [
+        {
+          "check": "structured_review",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.0315225,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "4000000",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "0s"
+          },
+          "status": "completed",
+          "returned_model": "gpt-5.4-2026-03-05",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 275,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 35,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 310
+          },
+          "elapsed_seconds": 2.48,
+          "parsed_result": {
+            "unique_documents": 2,
+            "remaining_units": 12,
+            "waitlist_people": 10,
+            "new_units_to_add": 0,
+            "approved": false
+          },
+          "passed": true
+        },
+        {
+          "check": "tool_call",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.03016,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "4000000",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "0s"
+          },
+          "status": "completed",
+          "returned_model": "gpt-5.4-2026-03-05",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 181,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 22,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 203
+          },
+          "elapsed_seconds": 1.69,
+          "passed": true
+        },
+        {
+          "check": "tool_roundtrip",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.0319425,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "4000000",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "0s"
+          },
+          "status": "completed",
+          "returned_model": "gpt-5.4-2026-03-05",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 208,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 21,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 229
+          },
+          "elapsed_seconds": 1.35,
+          "parsed_result": {
+            "action": "HOLD_EXISTING_DECISION",
+            "approved": false
+          },
+          "passed": true
+        },
+        {
+          "check": "isolated_parser_patch",
+          "max_output_tokens": 2048,
+          "reserved_list_price_usd": 0.03897,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "3999898",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "1ms"
+          },
+          "status": "completed",
+          "returned_model": "gpt-5.4-2026-03-05",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 204,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 265,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 469
+          },
+          "elapsed_seconds": 4.67,
+          "artifact": "parser_gpt_5_4.py",
+          "fixed_case_results": [
+            {
+              "case": 0,
+              "passed": true
+            },
+            {
+              "case": 1,
+              "passed": true
+            },
+            {
+              "case": 2,
+              "passed": true
+            },
+            {
+              "case": 3,
+              "passed": true
+            },
+            {
+              "case": 4,
+              "passed": true
+            },
+            {
+              "case": 5,
+              "passed": true
+            },
+            {
+              "case": 6,
+              "passed": true
+            },
+            {
+              "case": 7,
+              "passed": true
+            },
+            {
+              "case": 8,
+              "passed": true
+            },
+            {
+              "case": 9,
+              "passed": true
+            },
+            {
+              "case": 10,
+              "passed": true
+            },
+            {
+              "case": 11,
+              "passed": true
+            },
+            {
+              "case": 12,
+              "passed": true
+            },
+            {
+              "case": 13,
+              "passed": true
+            },
+            {
+              "case": 14,
+              "passed": true
+            },
+            {
+              "case": 15,
+              "passed": true
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "status": "passed",
+      "tokens": {
+        "input_tokens": 868,
+        "output_tokens": 343
+      },
+      "list_estimate_usd": 0.007315
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "low",
+      "rates_per_million": [
+        2,
+        10
+      ],
+      "checks": [
+        {
+          "check": "structured_review",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.022152,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "4000000",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "0s"
+          },
+          "status": "completed",
+          "returned_model": "gpt-6.1-sol",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 275,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 35,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 310
+          },
+          "elapsed_seconds": 2.27,
+          "parsed_result": {
+            "unique_documents": 2,
+            "remaining_units": 12,
+            "waitlist_people": 10,
+            "new_units_to_add": 0,
+            "approved": false
+          },
+          "passed": true
+        },
+        {
+          "check": "tool_call",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.021062,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "4000000",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "0s"
+          },
+          "status": "completed",
+          "returned_model": "gpt-6.1-sol",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 181,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 22,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 203
+          },
+          "elapsed_seconds": 1.56,
+          "passed": true
+        },
+        {
+          "check": "tool_roundtrip",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.022488,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "4000000",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "0s"
+          },
+          "status": "completed",
+          "returned_model": "gpt-6.1-sol",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 208,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 21,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 229
+          },
+          "elapsed_seconds": 1.77,
+          "parsed_result": {
+            "action": "HOLD_EXISTING_DECISION",
+            "approved": false
+          },
+          "passed": true
+        },
+        {
+          "check": "isolated_parser_patch",
+          "max_output_tokens": 2048,
+          "reserved_list_price_usd": 0.027086,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "3999725",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "4ms"
+          },
+          "status": "completed",
+          "returned_model": "gpt-6.1-sol",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 204,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 418,
+            "output_tokens_details": {
+              "reasoning_tokens": 178
+            },
+            "total_tokens": 622
+          },
+          "elapsed_seconds": 6.72,
+          "artifact": "parser_gpt_6_1_sol.py",
+          "fixed_case_results": [
+            {
+              "case": 0,
+              "passed": true
+            },
+            {
+              "case": 1,
+              "passed": true
+            },
+            {
+              "case": 2,
+              "passed": true
+            },
+            {
+              "case": 3,
+              "passed": true
+            },
+            {
+              "case": 4,
+              "passed": true
+            },
+            {
+              "case": 5,
+              "passed": true
+            },
+            {
+              "case": 6,
+              "passed": true
+            },
+            {
+              "case": 7,
+              "passed": true
+            },
+            {
+              "case": 8,
+              "passed": true
+            },
+            {
+              "case": 9,
+              "passed": true
+            },
+            {
+              "case": 10,
+              "passed": true
+            },
+            {
+              "case": 11,
+              "passed": true
+            },
+            {
+              "case": 12,
+              "passed": true
+            },
+            {
+              "case": 13,
+              "passed": true
+            },
+            {
+              "case": 14,
+              "passed": true
+            },
+            {
+              "case": 15,
+              "passed": true
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "status": "passed",
+      "tokens": {
+        "input_tokens": 868,
+        "output_tokens": 496
+      },
+      "list_estimate_usd": 0.006696
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-astra",
+      "reasoning_effort": "low",
+      "rates_per_million": [
+        10,
+        50
+      ],
+      "checks": [
+        {
+          "check": "structured_review",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.11076,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "4000000",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "0s"
+          },
+          "status": "completed",
+          "returned_model": "gpt-6-astra",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 275,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 35,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 310
+          },
+          "elapsed_seconds": 1.66,
+          "parsed_result": {
+            "unique_documents": 2,
+            "remaining_units": 12,
+            "waitlist_people": 10,
+            "new_units_to_add": 0,
+            "approved": false
+          },
+          "passed": true
+        },
+        {
+          "check": "tool_call",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.10531,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "4000000",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "0s"
+          },
+          "status": "completed",
+          "returned_model": "gpt-6-astra",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 181,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 22,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 203
+          },
+          "elapsed_seconds": 1.38,
+          "passed": true
+        },
+        {
+          "check": "tool_roundtrip",
+          "max_output_tokens": 1536,
+          "reserved_list_price_usd": 0.11244,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "4000000",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "0s"
+          },
+          "status": "completed",
+          "returned_model": "gpt-6-astra",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 208,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 21,
+            "output_tokens_details": {
+              "reasoning_tokens": 0
+            },
+            "total_tokens": 229
+          },
+          "elapsed_seconds": 1.54,
+          "parsed_result": {
+            "action": "HOLD_EXISTING_DECISION",
+            "approved": false
+          },
+          "passed": true
+        },
+        {
+          "check": "isolated_parser_patch",
+          "max_output_tokens": 2048,
+          "reserved_list_price_usd": 0.13543,
+          "http_status": 200,
+          "headers": {
+            "x-ratelimit-limit-requests": "10000",
+            "x-ratelimit-limit-tokens": "4000000",
+            "x-ratelimit-remaining-requests": "9999",
+            "x-ratelimit-remaining-tokens": "3999855",
+            "x-ratelimit-reset-requests": "6ms",
+            "x-ratelimit-reset-tokens": "2ms"
+          },
+          "status": "completed",
+          "returned_model": "gpt-6-astra",
+          "service_tier": "default",
+          "usage": {
+            "input_tokens": 204,
+            "input_tokens_details": {
+              "cache_write_tokens": 0,
+              "cached_tokens": 0
+            },
+            "output_tokens": 288,
+            "output_tokens_details": {
+              "reasoning_tokens": 65
+            },
+            "total_tokens": 492
+          },
+          "elapsed_seconds": 4.33,
+          "artifact": "parser_gpt_6_astra.py",
+          "fixed_case_results": [
+            {
+              "case": 0,
+              "passed": true
+            },
+            {
+              "case": 1,
+              "passed": true
+            },
+            {
+              "case": 2,
+              "passed": true
+            },
+            {
+              "case": 3,
+              "passed": true
+            },
+            {
+              "case": 4,
+              "passed": true
+            },
+            {
+              "case": 5,
+              "passed": true
+            },
+            {
+              "case": 6,
+              "passed": true
+            },
+            {
+              "case": 7,
+              "passed": true
+            },
+            {
+              "case": 8,
+              "passed": true
+            },
+            {
+              "case": 9,
+              "passed": true
+            },
+            {
+              "case": 10,
+              "passed": true
+            },
+            {
+              "case": 11,
+              "passed": true
+            },
+            {
+              "case": 12,
+              "passed": true
+            },
+            {
+              "case": 13,
+              "passed": true
+            },
+            {
+              "case": 14,
+              "passed": true
+            },
+            {
+              "case": 15,
+              "passed": true
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "status": "passed",
+      "tokens": {
+        "input_tokens": 868,
+        "output_tokens": 366
+      },
+      "list_estimate_usd": 0.02698
+    }
+  ],
+  "account_evidence": "User screenshots: Launch; Minslab selected for data sharing; enrolled; Pro linked; last shown credit balance $9.29, first grant $8 and next cycle $100. Not a live billing query.",
+  "scope": "Synthetic capability checks; no live search or production DB. Generated parser runs in a temporary network-disabled container.",
+  "fixed_cases_sha256": "6bd4fa27daf5ea960eb8bc1614133d467171c3d64faa7e6f050ea57d863eb662",
+  "sandbox_image_id": "sha256:3e5dc1f95552537c903d1b0cc5680f0468c10f38c169f1c9a6268534e6bf362f",
+  "list_estimate_usd": 0.0428873,
+  "baseline": {
+    "artifact": "parser_baseline.py",
+    "fixed_case_results": [
+      {
+        "case": 0,
+        "passed": true
+      },
+      {
+        "case": 1,
+        "passed": false
+      },
+      {
+        "case": 2,
+        "passed": false
+      },
+      {
+        "case": 3,
+        "passed": false
+      },
+      {
+        "case": 4,
+        "passed": true
+      },
+      {
+        "case": 5,
+        "passed": true
+      },
+      {
+        "case": 6,
+        "passed": true
+      },
+      {
+        "case": 7,
+        "passed": true
+      },
+      {
+        "case": 8,
+        "passed": true
+      },
+      {
+        "case": 9,
+        "passed": true
+      },
+      {
+        "case": 10,
+        "passed": true
+      },
+      {
+        "case": 11,
+        "passed": true
+      },
+      {
+        "case": 12,
+        "passed": true
+      },
+      {
+        "case": 13,
+        "passed": true
+      },
+      {
+        "case": 14,
+        "passed": false
+      },
+      {
+        "case": 15,
+        "passed": true
+      }
+    ],
+    "passed": false
+  }
+}

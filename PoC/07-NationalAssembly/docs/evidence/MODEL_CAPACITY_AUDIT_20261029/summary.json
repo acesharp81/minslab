@@ -1,0 +1,1973 @@
+{
+  "extracted_at": "2026-10-29 04:36:21.162496+00:00",
+  "method": "Unique provider/request_id; same call saved per utterance/cache counted once; known token lower bound; no-ID attempts and gateway unmatched calls separate; entire recorded report history incl later repairs.",
+  "reports": [
+    {
+      "broadcast": {
+        "id": "50f589a8-2b1a-40b3-9a5f-c53081db48c9",
+        "title": "행정안전위원회 국정감사(광주경찰청 등)",
+        "committee_name": "행정안전위원회",
+        "detected_at": "2026-10-22 01:06:10.571836+00:00",
+        "ended_at": "2026-10-22 07:19:49.345447+00:00"
+      },
+      "duration_hours": 6.2274371141666665,
+      "total": {
+        "calls": 273,
+        "input_tokens": 1443371,
+        "output_tokens": 433470,
+        "total_tokens": 1876841,
+        "token_observed_calls": 273,
+        "validation_failed_calls": 49,
+        "validation_failed_tokens": 195987
+      },
+      "by_stage": {
+        "chunk_analysis": {
+          "calls": 31,
+          "input_tokens": 219817,
+          "output_tokens": 112544,
+          "total_tokens": 332361,
+          "token_observed_calls": 31,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "consolidation": {
+          "calls": 2,
+          "input_tokens": 53569,
+          "output_tokens": 23205,
+          "total_tokens": 76774,
+          "token_observed_calls": 2,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "live_summary": {
+          "calls": 124,
+          "input_tokens": 568390,
+          "output_tokens": 137346,
+          "total_tokens": 705736,
+          "token_observed_calls": 124,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "meeting_synthesis": {
+          "calls": 2,
+          "input_tokens": 44770,
+          "output_tokens": 27649,
+          "total_tokens": 72419,
+          "token_observed_calls": 2,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "narrative": {
+          "calls": 86,
+          "input_tokens": 260218,
+          "output_tokens": 70952,
+          "total_tokens": 331170,
+          "token_observed_calls": 86,
+          "validation_failed_calls": 49,
+          "validation_failed_tokens": 195987
+        },
+        "review": {
+          "calls": 7,
+          "input_tokens": 12557,
+          "output_tokens": 2045,
+          "total_tokens": 14602,
+          "token_observed_calls": 7,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "structure": {
+          "calls": 21,
+          "input_tokens": 284050,
+          "output_tokens": 59729,
+          "total_tokens": 343779,
+          "token_observed_calls": 21,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        }
+      },
+      "by_provider": {
+        "gemini": {
+          "calls": 1,
+          "input_tokens": 1323,
+          "output_tokens": 269,
+          "total_tokens": 1592,
+          "token_observed_calls": 1,
+          "validation_failed_calls": 1,
+          "validation_failed_tokens": 1592
+        },
+        "groq": {
+          "calls": 1,
+          "input_tokens": 1063,
+          "output_tokens": 194,
+          "total_tokens": 1257,
+          "token_observed_calls": 1,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "nvidia": {
+          "calls": 139,
+          "input_tokens": 769095,
+          "output_tokens": 251973,
+          "total_tokens": 1021068,
+          "token_observed_calls": 139,
+          "validation_failed_calls": 46,
+          "validation_failed_tokens": 188242
+        },
+        "openai": {
+          "calls": 2,
+          "input_tokens": 31487,
+          "output_tokens": 14401,
+          "total_tokens": 45888,
+          "token_observed_calls": 2,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "openrouter": {
+          "calls": 130,
+          "input_tokens": 640403,
+          "output_tokens": 166633,
+          "total_tokens": 807036,
+          "token_observed_calls": 130,
+          "validation_failed_calls": 2,
+          "validation_failed_tokens": 6153
+        }
+      },
+      "by_date_kst": {
+        "2026-10-22": {
+          "calls": 150,
+          "input_tokens": 1021308,
+          "output_tokens": 322781,
+          "total_tokens": 1344089,
+          "token_observed_calls": 150,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "2026-10-23": {
+          "calls": 36,
+          "input_tokens": 160102,
+          "output_tokens": 39598,
+          "total_tokens": 199700,
+          "token_observed_calls": 36,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "2026-10-26": {
+          "calls": 16,
+          "input_tokens": 77146,
+          "output_tokens": 23553,
+          "total_tokens": 100699,
+          "token_observed_calls": 16,
+          "validation_failed_calls": 11,
+          "validation_failed_tokens": 64426
+        },
+        "2026-10-27": {
+          "calls": 63,
+          "input_tokens": 166786,
+          "output_tokens": 44288,
+          "total_tokens": 211074,
+          "token_observed_calls": 63,
+          "validation_failed_calls": 34,
+          "validation_failed_tokens": 117790
+        },
+        "2026-10-28": {
+          "calls": 8,
+          "input_tokens": 18029,
+          "output_tokens": 3250,
+          "total_tokens": 21279,
+          "token_observed_calls": 8,
+          "validation_failed_calls": 4,
+          "validation_failed_tokens": 13771
+        }
+      },
+      "on_broadcast_date": {
+        "calls": 150,
+        "input_tokens": 1021308,
+        "output_tokens": 322781,
+        "total_tokens": 1344089,
+        "token_observed_calls": 150,
+        "validation_failed_calls": 0,
+        "validation_failed_tokens": 0
+      },
+      "unknown_attempt_rows": 68,
+      "segments": {
+        "broadcast_id": "50f589a8-2b1a-40b3-9a5f-c53081db48c9",
+        "segments": 2261,
+        "final_segments": 2249,
+        "text_chars": 87586,
+        "first_caption": "2026-10-22 01:06:16.056113+00:00",
+        "last_caption": "2026-10-22 07:18:41.644230+00:00"
+      },
+      "final_projection": {
+        "broadcast_id": "50f589a8-2b1a-40b3-9a5f-c53081db48c9",
+        "brief_id": "fe4db110-dbf8-4dee-98ed-68c8c72e329f",
+        "utterances": 776,
+        "narrative_coverage": {
+          "profile": "structured-narrative/1.2",
+          "issue_count": 269,
+          "summarized_issue_count": 269,
+          "status": "COMPLETE"
+        },
+        "structure_counts": {
+          "source_atom_count": 554,
+          "source_evidence_count": 554,
+          "classified_atom_count": 554,
+          "issue_count": 269,
+          "parent_count": 28,
+          "document_request_count": 5,
+          "document_request_linked_count": 5
+        }
+      },
+      "proposed_assignment_observed_token_proxy": {
+        "mini_basic": {
+          "calls": 269,
+          "input_tokens": 1345032,
+          "output_tokens": 382616,
+          "total_tokens": 1727648
+        },
+        "gpt_shared_integration": {
+          "calls": 4,
+          "input_tokens": 98339,
+          "output_tokens": 50854,
+          "total_tokens": 149193
+        }
+      },
+      "all_integration_valued_at_sol_standard_usd": 0.705218
+    },
+    {
+      "broadcast": {
+        "id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+        "title": "행정안전위원회 국정감사(행정안전부 등)",
+        "committee_name": "행정안전위원회",
+        "detected_at": "2026-10-26 01:07:20.890545+00:00",
+        "ended_at": "2026-10-26 13:29:51.225486+00:00"
+      },
+      "duration_hours": 12.375093039166668,
+      "total": {
+        "calls": 1243,
+        "input_tokens": 5291588,
+        "output_tokens": 1089620,
+        "total_tokens": 6381208,
+        "token_observed_calls": 1243,
+        "validation_failed_calls": 773,
+        "validation_failed_tokens": 3711923
+      },
+      "by_stage": {
+        "chunk_analysis": {
+          "calls": 42,
+          "input_tokens": 326339,
+          "output_tokens": 160457,
+          "total_tokens": 486796,
+          "token_observed_calls": 42,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "consolidation": {
+          "calls": 10,
+          "input_tokens": 245647,
+          "output_tokens": 19110,
+          "total_tokens": 264757,
+          "token_observed_calls": 10,
+          "validation_failed_calls": 2,
+          "validation_failed_tokens": 57201
+        },
+        "live_classification": {
+          "calls": 21,
+          "input_tokens": 187830,
+          "output_tokens": 21815,
+          "total_tokens": 209645,
+          "token_observed_calls": 21,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "live_summary": {
+          "calls": 1022,
+          "input_tokens": 3614717,
+          "output_tokens": 642215,
+          "total_tokens": 4256932,
+          "token_observed_calls": 1022,
+          "validation_failed_calls": 720,
+          "validation_failed_tokens": 3427793
+        },
+        "meeting_synthesis": {
+          "calls": 3,
+          "input_tokens": 80300,
+          "output_tokens": 36944,
+          "total_tokens": 117244,
+          "token_observed_calls": 3,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "narrative": {
+          "calls": 102,
+          "input_tokens": 346409,
+          "output_tokens": 98506,
+          "total_tokens": 444915,
+          "token_observed_calls": 102,
+          "validation_failed_calls": 47,
+          "validation_failed_tokens": 216329
+        },
+        "review": {
+          "calls": 9,
+          "input_tokens": 18024,
+          "output_tokens": 3451,
+          "total_tokens": 21475,
+          "token_observed_calls": 9,
+          "validation_failed_calls": 4,
+          "validation_failed_tokens": 10600
+        },
+        "structure": {
+          "calls": 34,
+          "input_tokens": 472322,
+          "output_tokens": 107122,
+          "total_tokens": 579444,
+          "token_observed_calls": 34,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        }
+      },
+      "by_provider": {
+        "gemini": {
+          "calls": 3,
+          "input_tokens": 57284,
+          "output_tokens": 12255,
+          "total_tokens": 69539,
+          "token_observed_calls": 3,
+          "validation_failed_calls": 1,
+          "validation_failed_tokens": 2631
+        },
+        "groq": {
+          "calls": 3,
+          "input_tokens": 3437,
+          "output_tokens": 738,
+          "total_tokens": 4175,
+          "token_observed_calls": 3,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "nvidia": {
+          "calls": 235,
+          "input_tokens": 1617339,
+          "output_tokens": 438933,
+          "total_tokens": 2056272,
+          "token_observed_calls": 235,
+          "validation_failed_calls": 46,
+          "validation_failed_tokens": 263847
+        },
+        "openai": {
+          "calls": 4,
+          "input_tokens": 33442,
+          "output_tokens": 2930,
+          "total_tokens": 36372,
+          "token_observed_calls": 4,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "openrouter": {
+          "calls": 998,
+          "input_tokens": 3580086,
+          "output_tokens": 634764,
+          "total_tokens": 4214850,
+          "token_observed_calls": 998,
+          "validation_failed_calls": 726,
+          "validation_failed_tokens": 3445445
+        }
+      },
+      "by_date_kst": {
+        "2026-10-26": {
+          "calls": 675,
+          "input_tokens": 2651387,
+          "output_tokens": 626337,
+          "total_tokens": 3277724,
+          "token_observed_calls": 675,
+          "validation_failed_calls": 374,
+          "validation_failed_tokens": 1681423
+        },
+        "2026-10-27": {
+          "calls": 469,
+          "input_tokens": 2148493,
+          "output_tokens": 382141,
+          "total_tokens": 2530634,
+          "token_observed_calls": 469,
+          "validation_failed_calls": 304,
+          "validation_failed_tokens": 1473226
+        },
+        "2026-10-28": {
+          "calls": 85,
+          "input_tokens": 426250,
+          "output_tokens": 70741,
+          "total_tokens": 496991,
+          "token_observed_calls": 85,
+          "validation_failed_calls": 81,
+          "validation_failed_tokens": 481415
+        },
+        "2026-10-29": {
+          "calls": 14,
+          "input_tokens": 65458,
+          "output_tokens": 10401,
+          "total_tokens": 75859,
+          "token_observed_calls": 14,
+          "validation_failed_calls": 14,
+          "validation_failed_tokens": 75859
+        }
+      },
+      "on_broadcast_date": {
+        "calls": 675,
+        "input_tokens": 2651387,
+        "output_tokens": 626337,
+        "total_tokens": 3277724,
+        "token_observed_calls": 675,
+        "validation_failed_calls": 374,
+        "validation_failed_tokens": 1681423
+      },
+      "unknown_attempt_rows": 69,
+      "segments": {
+        "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+        "segments": 4055,
+        "final_segments": 4043,
+        "text_chars": 156572,
+        "first_caption": "2026-10-26 01:07:25.531605+00:00",
+        "last_caption": "2026-10-26 13:29:51.337543+00:00"
+      },
+      "final_projection": {
+        "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+        "brief_id": "e6a0652e-034c-4eeb-add3-b53fd4f80be5",
+        "utterances": 1029,
+        "narrative_coverage": {
+          "profile": "structured-narrative/1.2",
+          "issue_count": 349,
+          "summarized_issue_count": 349,
+          "status": "COMPLETE"
+        },
+        "structure_counts": {
+          "source_atom_count": 628,
+          "source_evidence_count": 628,
+          "classified_atom_count": 628,
+          "issue_count": 349,
+          "parent_count": 53,
+          "document_request_count": 7,
+          "document_request_linked_count": 7
+        }
+      },
+      "proposed_assignment_observed_token_proxy": {
+        "mini_basic": {
+          "calls": 1230,
+          "input_tokens": 4965641,
+          "output_tokens": 1033566,
+          "total_tokens": 5999207
+        },
+        "gpt_shared_integration": {
+          "calls": 13,
+          "input_tokens": 325947,
+          "output_tokens": 56054,
+          "total_tokens": 382001
+        }
+      },
+      "all_integration_valued_at_sol_standard_usd": 1.212434
+    },
+    {
+      "broadcast": {
+        "id": "5c149dc0-88cd-43f2-9aec-dfa323e17daa",
+        "title": "행정안전위원회 국정감사(제주경찰청)",
+        "committee_name": "행정안전위원회",
+        "detected_at": "2026-10-22 01:07:11.521777+00:00",
+        "ended_at": "2026-10-22 07:31:59.173975+00:00"
+      },
+      "duration_hours": 6.413236721666666,
+      "total": {
+        "calls": 221,
+        "input_tokens": 1261342,
+        "output_tokens": 379322,
+        "total_tokens": 1640664,
+        "token_observed_calls": 221,
+        "validation_failed_calls": 63,
+        "validation_failed_tokens": 280698
+      },
+      "by_stage": {
+        "chunk_analysis": {
+          "calls": 23,
+          "input_tokens": 187328,
+          "output_tokens": 102975,
+          "total_tokens": 290303,
+          "token_observed_calls": 23,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "consolidation": {
+          "calls": 2,
+          "input_tokens": 41229,
+          "output_tokens": 14879,
+          "total_tokens": 56108,
+          "token_observed_calls": 2,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "live_summary": {
+          "calls": 84,
+          "input_tokens": 480445,
+          "output_tokens": 102296,
+          "total_tokens": 582741,
+          "token_observed_calls": 84,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "meeting_synthesis": {
+          "calls": 2,
+          "input_tokens": 47173,
+          "output_tokens": 29519,
+          "total_tokens": 76692,
+          "token_observed_calls": 2,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "narrative": {
+          "calls": 91,
+          "input_tokens": 313112,
+          "output_tokens": 81453,
+          "total_tokens": 394565,
+          "token_observed_calls": 91,
+          "validation_failed_calls": 63,
+          "validation_failed_tokens": 280698
+        },
+        "review": {
+          "calls": 3,
+          "input_tokens": 8016,
+          "output_tokens": 1803,
+          "total_tokens": 9819,
+          "token_observed_calls": 3,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "structure": {
+          "calls": 16,
+          "input_tokens": 184039,
+          "output_tokens": 46397,
+          "total_tokens": 230436,
+          "token_observed_calls": 16,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        }
+      },
+      "by_provider": {
+        "gemini": {
+          "calls": 4,
+          "input_tokens": 6562,
+          "output_tokens": 1513,
+          "total_tokens": 8075,
+          "token_observed_calls": 4,
+          "validation_failed_calls": 2,
+          "validation_failed_tokens": 2457
+        },
+        "groq": {
+          "calls": 3,
+          "input_tokens": 3292,
+          "output_tokens": 1001,
+          "total_tokens": 4293,
+          "token_observed_calls": 3,
+          "validation_failed_calls": 3,
+          "validation_failed_tokens": 4293
+        },
+        "nvidia": {
+          "calls": 125,
+          "input_tokens": 702576,
+          "output_tokens": 252662,
+          "total_tokens": 955238,
+          "token_observed_calls": 125,
+          "validation_failed_calls": 58,
+          "validation_failed_tokens": 273948
+        },
+        "openai": {
+          "calls": 4,
+          "input_tokens": 54246,
+          "output_tokens": 18493,
+          "total_tokens": 72739,
+          "token_observed_calls": 4,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "openrouter": {
+          "calls": 85,
+          "input_tokens": 494666,
+          "output_tokens": 105653,
+          "total_tokens": 600319,
+          "token_observed_calls": 85,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        }
+      },
+      "by_date_kst": {
+        "2026-10-22": {
+          "calls": 109,
+          "input_tokens": 816575,
+          "output_tokens": 267306,
+          "total_tokens": 1083881,
+          "token_observed_calls": 109,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "2026-10-23": {
+          "calls": 21,
+          "input_tokens": 131655,
+          "output_tokens": 30563,
+          "total_tokens": 162218,
+          "token_observed_calls": 21,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "2026-10-27": {
+          "calls": 77,
+          "input_tokens": 282023,
+          "output_tokens": 75191,
+          "total_tokens": 357214,
+          "token_observed_calls": 77,
+          "validation_failed_calls": 51,
+          "validation_failed_tokens": 247937
+        },
+        "2026-10-28": {
+          "calls": 14,
+          "input_tokens": 31089,
+          "output_tokens": 6262,
+          "total_tokens": 37351,
+          "token_observed_calls": 14,
+          "validation_failed_calls": 12,
+          "validation_failed_tokens": 32761
+        }
+      },
+      "on_broadcast_date": {
+        "calls": 109,
+        "input_tokens": 816575,
+        "output_tokens": 267306,
+        "total_tokens": 1083881,
+        "token_observed_calls": 109,
+        "validation_failed_calls": 0,
+        "validation_failed_tokens": 0
+      },
+      "unknown_attempt_rows": 88,
+      "segments": {
+        "broadcast_id": "5c149dc0-88cd-43f2-9aec-dfa323e17daa",
+        "segments": 1906,
+        "final_segments": 1897,
+        "text_chars": 81688,
+        "first_caption": "2026-10-22 01:07:12.505787+00:00",
+        "last_caption": "2026-10-22 07:31:36.737752+00:00"
+      },
+      "final_projection": {
+        "broadcast_id": "5c149dc0-88cd-43f2-9aec-dfa323e17daa",
+        "brief_id": "a57b5383-80e2-4a7c-acb8-655ad664e468",
+        "utterances": 545,
+        "narrative_coverage": {
+          "profile": "structured-narrative/1.2",
+          "issue_count": 144,
+          "summarized_issue_count": 144,
+          "status": "COMPLETE"
+        },
+        "structure_counts": {
+          "source_atom_count": 377,
+          "source_evidence_count": 376,
+          "classified_atom_count": 377,
+          "issue_count": 144,
+          "parent_count": 27,
+          "document_request_count": 3,
+          "document_request_linked_count": 3
+        }
+      },
+      "proposed_assignment_observed_token_proxy": {
+        "mini_basic": {
+          "calls": 217,
+          "input_tokens": 1172940,
+          "output_tokens": 334924,
+          "total_tokens": 1507864
+        },
+        "gpt_shared_integration": {
+          "calls": 4,
+          "input_tokens": 88402,
+          "output_tokens": 44398,
+          "total_tokens": 132800
+        }
+      },
+      "all_integration_valued_at_sol_standard_usd": 0.620784
+    },
+    {
+      "broadcast": {
+        "id": "07426947-2688-4272-9dd6-24e35605a0eb",
+        "title": "법제사법위원회 국정감사(법무부 등)",
+        "committee_name": "법제사법위원회",
+        "detected_at": "2026-10-26 01:07:20.789282+00:00",
+        "ended_at": "2026-10-26 13:57:12.714526+00:00"
+      },
+      "duration_hours": 12.831090345555555,
+      "total": {
+        "calls": 1209,
+        "input_tokens": 4909847,
+        "output_tokens": 1077789,
+        "total_tokens": 5987636,
+        "token_observed_calls": 1209,
+        "validation_failed_calls": 843,
+        "validation_failed_tokens": 4058873
+      },
+      "by_stage": {
+        "chunk_analysis": {
+          "calls": 44,
+          "input_tokens": 314141,
+          "output_tokens": 156339,
+          "total_tokens": 470480,
+          "token_observed_calls": 44,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "consolidation": {
+          "calls": 4,
+          "input_tokens": 27013,
+          "output_tokens": 8145,
+          "total_tokens": 35158,
+          "token_observed_calls": 4,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "live_classification": {
+          "calls": 4,
+          "input_tokens": 18511,
+          "output_tokens": 2522,
+          "total_tokens": 21033,
+          "token_observed_calls": 4,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "live_summary": {
+          "calls": 1047,
+          "input_tokens": 3925097,
+          "output_tokens": 701704,
+          "total_tokens": 4626801,
+          "token_observed_calls": 1047,
+          "validation_failed_calls": 827,
+          "validation_failed_tokens": 3949733
+        },
+        "meeting_synthesis": {
+          "calls": 4,
+          "input_tokens": 88441,
+          "output_tokens": 53228,
+          "total_tokens": 141669,
+          "token_observed_calls": 4,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "narrative": {
+          "calls": 36,
+          "input_tokens": 175388,
+          "output_tokens": 42610,
+          "total_tokens": 217998,
+          "token_observed_calls": 36,
+          "validation_failed_calls": 15,
+          "validation_failed_tokens": 105477
+        },
+        "reduction": {
+          "calls": 7,
+          "input_tokens": 29131,
+          "output_tokens": 29804,
+          "total_tokens": 58935,
+          "token_observed_calls": 7,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "review": {
+          "calls": 39,
+          "input_tokens": 95145,
+          "output_tokens": 19044,
+          "total_tokens": 114189,
+          "token_observed_calls": 39,
+          "validation_failed_calls": 1,
+          "validation_failed_tokens": 3663
+        },
+        "structure": {
+          "calls": 24,
+          "input_tokens": 236980,
+          "output_tokens": 64393,
+          "total_tokens": 301373,
+          "token_observed_calls": 24,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        }
+      },
+      "by_provider": {
+        "gemini": {
+          "calls": 2,
+          "input_tokens": 25783,
+          "output_tokens": 4415,
+          "total_tokens": 30198,
+          "token_observed_calls": 2,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "nvidia": {
+          "calls": 155,
+          "input_tokens": 888856,
+          "output_tokens": 338020,
+          "total_tokens": 1226876,
+          "token_observed_calls": 155,
+          "validation_failed_calls": 14,
+          "validation_failed_tokens": 105795
+        },
+        "openrouter": {
+          "calls": 1052,
+          "input_tokens": 3995208,
+          "output_tokens": 735354,
+          "total_tokens": 4730562,
+          "token_observed_calls": 1052,
+          "validation_failed_calls": 829,
+          "validation_failed_tokens": 3953078
+        }
+      },
+      "by_date_kst": {
+        "2026-10-26": {
+          "calls": 243,
+          "input_tokens": 1027062,
+          "output_tokens": 325038,
+          "total_tokens": 1352100,
+          "token_observed_calls": 243,
+          "validation_failed_calls": 117,
+          "validation_failed_tokens": 449964
+        },
+        "2026-10-27": {
+          "calls": 509,
+          "input_tokens": 1941353,
+          "output_tokens": 380900,
+          "total_tokens": 2322253,
+          "token_observed_calls": 509,
+          "validation_failed_calls": 320,
+          "validation_failed_tokens": 1463857
+        },
+        "2026-10-28": {
+          "calls": 419,
+          "input_tokens": 1770969,
+          "output_tokens": 337847,
+          "total_tokens": 2108816,
+          "token_observed_calls": 419,
+          "validation_failed_calls": 368,
+          "validation_failed_tokens": 1940585
+        },
+        "2026-10-29": {
+          "calls": 38,
+          "input_tokens": 170463,
+          "output_tokens": 34004,
+          "total_tokens": 204467,
+          "token_observed_calls": 38,
+          "validation_failed_calls": 38,
+          "validation_failed_tokens": 204467
+        }
+      },
+      "on_broadcast_date": {
+        "calls": 243,
+        "input_tokens": 1027062,
+        "output_tokens": 325038,
+        "total_tokens": 1352100,
+        "token_observed_calls": 243,
+        "validation_failed_calls": 117,
+        "validation_failed_tokens": 449964
+      },
+      "unknown_attempt_rows": 49,
+      "segments": {
+        "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+        "segments": 4997,
+        "final_segments": 4986,
+        "text_chars": 145218,
+        "first_caption": "2026-10-26 01:29:40.973707+00:00",
+        "last_caption": "2026-10-26 13:56:54.820885+00:00"
+      },
+      "final_projection": {
+        "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+        "brief_id": "f614d9bd-cc67-4348-8c58-86ce4e8db3b7",
+        "utterances": 1117,
+        "narrative_coverage": {
+          "profile": "structured-narrative/1.2",
+          "issue_count": 83,
+          "summarized_issue_count": 83,
+          "status": "COMPLETE"
+        },
+        "structure_counts": {
+          "source_atom_count": 253,
+          "source_evidence_count": 252,
+          "classified_atom_count": 253,
+          "issue_count": 83,
+          "parent_count": 58,
+          "document_request_count": 4,
+          "document_request_linked_count": 4
+        }
+      },
+      "proposed_assignment_observed_token_proxy": {
+        "mini_basic": {
+          "calls": 1194,
+          "input_tokens": 4765262,
+          "output_tokens": 986612,
+          "total_tokens": 5751874
+        },
+        "gpt_shared_integration": {
+          "calls": 15,
+          "input_tokens": 144585,
+          "output_tokens": 91177,
+          "total_tokens": 235762
+        }
+      },
+      "all_integration_valued_at_sol_standard_usd": 1.20094
+    },
+    {
+      "broadcast": {
+        "id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+        "title": "법제사법위원회 국정감사(공소청)",
+        "committee_name": "법제사법위원회",
+        "detected_at": "2026-10-22 01:10:17.001242+00:00",
+        "ended_at": "2026-10-22 09:41:11.322864+00:00"
+      },
+      "duration_hours": 8.515089339444444,
+      "total": {
+        "calls": 370,
+        "input_tokens": 1765576,
+        "output_tokens": 531524,
+        "total_tokens": 2297100,
+        "token_observed_calls": 370,
+        "validation_failed_calls": 21,
+        "validation_failed_tokens": 224109
+      },
+      "by_stage": {
+        "chunk_analysis": {
+          "calls": 34,
+          "input_tokens": 255556,
+          "output_tokens": 125079,
+          "total_tokens": 380635,
+          "token_observed_calls": 34,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "consolidation": {
+          "calls": 2,
+          "input_tokens": 37290,
+          "output_tokens": 12905,
+          "total_tokens": 50195,
+          "token_observed_calls": 2,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "live_summary": {
+          "calls": 262,
+          "input_tokens": 817759,
+          "output_tokens": 192311,
+          "total_tokens": 1010070,
+          "token_observed_calls": 262,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "meeting_synthesis": {
+          "calls": 3,
+          "input_tokens": 82732,
+          "output_tokens": 40961,
+          "total_tokens": 123693,
+          "token_observed_calls": 3,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "narrative": {
+          "calls": 50,
+          "input_tokens": 368300,
+          "output_tokens": 112376,
+          "total_tokens": 480676,
+          "token_observed_calls": 50,
+          "validation_failed_calls": 21,
+          "validation_failed_tokens": 224109
+        },
+        "review": {
+          "calls": 1,
+          "input_tokens": 1408,
+          "output_tokens": 154,
+          "total_tokens": 1562,
+          "token_observed_calls": 1,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "structure": {
+          "calls": 18,
+          "input_tokens": 202531,
+          "output_tokens": 47738,
+          "total_tokens": 250269,
+          "token_observed_calls": 18,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        }
+      },
+      "by_provider": {
+        "nvidia": {
+          "calls": 83,
+          "input_tokens": 654941,
+          "output_tokens": 243627,
+          "total_tokens": 898568,
+          "token_observed_calls": 83,
+          "validation_failed_calls": 9,
+          "validation_failed_tokens": 89605
+        },
+        "openai": {
+          "calls": 15,
+          "input_tokens": 211593,
+          "output_tokens": 62412,
+          "total_tokens": 274005,
+          "token_observed_calls": 15,
+          "validation_failed_calls": 3,
+          "validation_failed_tokens": 30616
+        },
+        "openrouter": {
+          "calls": 272,
+          "input_tokens": 899042,
+          "output_tokens": 225485,
+          "total_tokens": 1124527,
+          "token_observed_calls": 272,
+          "validation_failed_calls": 9,
+          "validation_failed_tokens": 103888
+        }
+      },
+      "by_date_kst": {
+        "2026-10-22": {
+          "calls": 241,
+          "input_tokens": 966369,
+          "output_tokens": 331074,
+          "total_tokens": 1297443,
+          "token_observed_calls": 241,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "2026-10-23": {
+          "calls": 79,
+          "input_tokens": 430907,
+          "output_tokens": 88074,
+          "total_tokens": 518981,
+          "token_observed_calls": 79,
+          "validation_failed_calls": 0,
+          "validation_failed_tokens": 0
+        },
+        "2026-10-26": {
+          "calls": 50,
+          "input_tokens": 368300,
+          "output_tokens": 112376,
+          "total_tokens": 480676,
+          "token_observed_calls": 50,
+          "validation_failed_calls": 21,
+          "validation_failed_tokens": 224109
+        }
+      },
+      "on_broadcast_date": {
+        "calls": 241,
+        "input_tokens": 966369,
+        "output_tokens": 331074,
+        "total_tokens": 1297443,
+        "token_observed_calls": 241,
+        "validation_failed_calls": 0,
+        "validation_failed_tokens": 0
+      },
+      "unknown_attempt_rows": 10,
+      "segments": {
+        "broadcast_id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+        "segments": 4157,
+        "final_segments": 4136,
+        "text_chars": 121095,
+        "first_caption": "2026-10-22 01:10:21.245715+00:00",
+        "last_caption": "2026-10-22 09:41:11.633312+00:00"
+      },
+      "final_projection": {
+        "broadcast_id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+        "brief_id": "96116c2e-e451-43b4-b787-b8ec519b832b",
+        "utterances": 889,
+        "narrative_coverage": {
+          "profile": "structured-narrative/1.2",
+          "issue_count": 155,
+          "summarized_issue_count": 155,
+          "status": "COMPLETE"
+        },
+        "structure_counts": {
+          "source_atom_count": 458,
+          "source_evidence_count": 456,
+          "classified_atom_count": 458,
+          "issue_count": 155,
+          "parent_count": 30,
+          "document_request_count": 6,
+          "document_request_linked_count": 6
+        }
+      },
+      "proposed_assignment_observed_token_proxy": {
+        "mini_basic": {
+          "calls": 365,
+          "input_tokens": 1645554,
+          "output_tokens": 477658,
+          "total_tokens": 2123212
+        },
+        "gpt_shared_integration": {
+          "calls": 5,
+          "input_tokens": 120022,
+          "output_tokens": 53866,
+          "total_tokens": 173888
+        }
+      },
+      "all_integration_valued_at_sol_standard_usd": 0.778704
+    }
+  ],
+  "gateway_daily": [
+    {
+      "utc_date": "2026-10-21",
+      "calls": 652,
+      "states": {
+        "FAILED": 641,
+        "COMPLETED": 11
+      },
+      "http_status": {
+        "400": 640,
+        "200": 12
+      },
+      "workloads": {
+        "watch_summary": 42,
+        "utterance_summary": 598,
+        "meeting_brief": 10,
+        "meeting_brief_lineage": 2
+      },
+      "total_tokens": 368293,
+      "token_observed_calls": 12
+    },
+    {
+      "utc_date": "2026-10-22",
+      "calls": 950,
+      "states": {
+        "FAILED": 610,
+        "COMPLETED": 340
+      },
+      "http_status": {
+        "400": 594,
+        "200": 354,
+        "None": 2
+      },
+      "workloads": {
+        "watch_summary": 6,
+        "utterance_summary": 937,
+        "official_revision": 1,
+        "meeting_brief": 6
+      },
+      "total_tokens": 1742960,
+      "token_observed_calls": 354
+    },
+    {
+      "utc_date": "2026-10-23",
+      "calls": 173,
+      "states": {
+        "FAILED": 38,
+        "COMPLETED": 135
+      },
+      "http_status": {
+        "200": 142,
+        "400": 31
+      },
+      "workloads": {
+        "utterance_summary": 171,
+        "official_revision": 2
+      },
+      "total_tokens": 977596,
+      "token_observed_calls": 142
+    },
+    {
+      "utc_date": "2026-10-25",
+      "calls": 47,
+      "states": {
+        "COMPLETED": 40,
+        "FAILED": 7
+      },
+      "http_status": {
+        "200": 44,
+        "404": 3
+      },
+      "workloads": {
+        "meeting_brief": 47
+      },
+      "total_tokens": 414707,
+      "token_observed_calls": 44
+    },
+    {
+      "utc_date": "2026-10-26",
+      "calls": 950,
+      "states": {
+        "COMPLETED": 803,
+        "FAILED": 147
+      },
+      "http_status": {
+        "200": 840,
+        "404": 6,
+        "400": 102,
+        "502": 2
+      },
+      "workloads": {
+        "meeting_brief": 89,
+        "utterance_summary": 841,
+        "watch_summary": 18,
+        "meeting_brief_lineage": 2
+      },
+      "total_tokens": 3903458,
+      "token_observed_calls": 840
+    },
+    {
+      "utc_date": "2026-10-27",
+      "calls": 950,
+      "states": {
+        "FAILED": 151,
+        "COMPLETED": 799
+      },
+      "http_status": {
+        "400": 130,
+        "200": 820
+      },
+      "workloads": {
+        "watch_summary": 23,
+        "utterance_summary": 899,
+        "meeting_brief": 28
+      },
+      "total_tokens": 3631119,
+      "token_observed_calls": 820
+    },
+    {
+      "utc_date": "2026-10-28",
+      "calls": 950,
+      "states": {
+        "COMPLETED": 675,
+        "FAILED": 275
+      },
+      "http_status": {
+        "200": 694,
+        "400": 256
+      },
+      "workloads": {
+        "utterance_summary": 946,
+        "official_revision": 4
+      },
+      "total_tokens": 3738679,
+      "token_observed_calls": 694
+    },
+    {
+      "utc_date": "2026-10-29",
+      "calls": 56,
+      "states": {
+        "COMPLETED": 52,
+        "FAILED": 4
+      },
+      "http_status": {
+        "200": 52,
+        "400": 4
+      },
+      "workloads": {
+        "utterance_summary": 56
+      },
+      "total_tokens": 280326,
+      "token_observed_calls": 52
+    }
+  ],
+  "openai_daily": [
+    {
+      "usage_date": "2026-10-22",
+      "request_count": 18,
+      "input_tokens": 319286,
+      "output_tokens": 104574,
+      "total_tokens": 423860,
+      "unknown_tokens": 0,
+      "reserved_tokens": 0,
+      "updated_at": "2026-10-22 10:22:00.688945+00:00"
+    },
+    {
+      "usage_date": "2026-10-25",
+      "request_count": 44,
+      "input_tokens": 305727,
+      "output_tokens": 70298,
+      "total_tokens": 376025,
+      "unknown_tokens": 0,
+      "reserved_tokens": 0,
+      "updated_at": "2026-10-26 00:00:08.277809+00:00"
+    },
+    {
+      "usage_date": "2026-10-26",
+      "request_count": 67,
+      "input_tokens": 520743,
+      "output_tokens": 115315,
+      "total_tokens": 636058,
+      "unknown_tokens": 0,
+      "reserved_tokens": 0,
+      "updated_at": "2026-10-26 15:21:47.638503+00:00"
+    },
+    {
+      "usage_date": "2026-10-27",
+      "request_count": 3,
+      "input_tokens": 25519,
+      "output_tokens": 1984,
+      "total_tokens": 27503,
+      "unknown_tokens": 0,
+      "reserved_tokens": 0,
+      "updated_at": "2026-10-27 22:33:24.367093+00:00"
+    }
+  ],
+  "no_call_rows": {
+    "live_summary": 100,
+    "meeting_chunk": 5,
+    "meeting_report": 13,
+    "structured": 65,
+    "live_classification": 1
+  },
+  "structure_stats": [
+    {
+      "id": "dd3247c9-99cc-45f9-9e33-32b3f90ddaaf",
+      "broadcast_id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-22 03:40:33.933673+00:00",
+      "updated_at": "2026-10-22 03:44:50.719358+00:00",
+      "atoms": 86,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "b2682684-62f5-4e87-b9f1-ba967dfd7ad3",
+      "broadcast_id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-22 10:17:28.989516+00:00",
+      "updated_at": "2026-10-22 10:41:22.764903+00:00",
+      "atoms": 458,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "c53712e9-2a6c-486c-b1bd-6f5efae6d9e6",
+      "broadcast_id": "5c149dc0-88cd-43f2-9aec-dfa323e17daa",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-22 04:50:22.965147+00:00",
+      "updated_at": "2026-10-22 04:57:30.523241+00:00",
+      "atoms": 114,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "1e22378b-5022-4c93-b82e-18fee977a91c",
+      "broadcast_id": "50f589a8-2b1a-40b3-9a5f-c53081db48c9",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-22 04:26:51.402121+00:00",
+      "updated_at": "2026-10-22 05:01:25.956953+00:00",
+      "atoms": 85,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "7e6e8d5c-e507-4a0e-983b-89776e8d4f8f",
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-26 03:18:52.893756+00:00",
+      "updated_at": "2026-10-26 03:53:15.508593+00:00",
+      "atoms": 252,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "1ccbc9e7-2fc9-4fe2-94a6-46f508b918a0",
+      "broadcast_id": "5c149dc0-88cd-43f2-9aec-dfa323e17daa",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-22 07:51:21.964602+00:00",
+      "updated_at": "2026-10-22 08:06:22.435087+00:00",
+      "atoms": 377,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "3e033dff-1a2b-4edf-a42c-1237ac246e8a",
+      "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-26 02:31:46.303492+00:00",
+      "updated_at": "2026-10-26 02:35:59.500268+00:00",
+      "atoms": 95,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "cbf08c3a-a640-4388-8468-9ebd81662177",
+      "broadcast_id": "50f589a8-2b1a-40b3-9a5f-c53081db48c9",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-22 07:34:46.888552+00:00",
+      "updated_at": "2026-10-22 08:33:55.583180+00:00",
+      "atoms": 554,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "63c27458-d7a4-4f96-8ad2-be19d319f8dd",
+      "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-26 03:25:04.918449+00:00",
+      "updated_at": "2026-10-26 03:36:55.823716+00:00",
+      "atoms": 146,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "537ff7ed-fdac-4f37-a708-7239218253a7",
+      "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-26 07:59:45.963693+00:00",
+      "updated_at": "2026-10-26 08:10:14.142285+00:00",
+      "atoms": 244,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "7f881e7b-1175-49fb-8329-8da0e251061f",
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "version": "discussion-structure/1.1",
+      "status": "PROCESSING",
+      "created_at": "2026-10-26 13:30:46.398472+00:00",
+      "updated_at": "2026-10-26 14:16:34.489367+00:00",
+      "atoms": 338,
+      "result_keys": [],
+      "narrative": null,
+      "finalization": null
+    },
+    {
+      "id": "1690c5db-74a1-403d-b0b7-2cabeb33d8d3",
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-26 15:00:48.456310+00:00",
+      "updated_at": "2026-10-26 15:26:35.517905+00:00",
+      "atoms": 628,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "finalization",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": {
+        "phase": "STRUCTURING",
+        "status": "PROCESSING",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-26T15:15:58.270797+00:00"
+      }
+    },
+    {
+      "id": "73bb414c-ce69-4d96-94ec-e8346ce8d273",
+      "broadcast_id": "07426947-2688-4272-9dd6-24e35605a0eb",
+      "version": "discussion-structure/1.1",
+      "status": "READY",
+      "created_at": "2026-10-26 21:23:30.626007+00:00",
+      "updated_at": "2026-10-26 21:32:01.487568+00:00",
+      "atoms": 253,
+      "result_keys": [
+        "tasks",
+        "topics",
+        "summary",
+        "headline",
+        "finalization",
+        "topic_groups",
+        "report_summary",
+        "topic_grouping",
+        "topic_structure",
+        "utterance_count",
+        "meeting_sessions",
+        "live_topic_lineage",
+        "classification_method",
+        "follow_up_task_groups",
+        "live_topic_assignment",
+        "meeting_session_count",
+        "structure_review_items",
+        "meeting_session_version"
+      ],
+      "narrative": null,
+      "finalization": {
+        "phase": "STRUCTURING",
+        "status": "PROCESSING",
+        "version": "meeting-finalization/1",
+        "updated_at": "2026-10-26T21:28:58.681518+00:00"
+      }
+    }
+  ],
+  "scenario_assumptions": [
+    "Reference projection only: replace old providers by workload role while retaining observed input/output token totals. No new-model replay has been run.",
+    "Basic: live summaries/classification, chunks, initial structure, ontology/review, detailed narratives. High: reduction, consolidation and whole-meeting synthesis.",
+    "Includes intermediate report versions and later repairs through extraction time; assigning all of this to one day is a capacity scenario, not the historical daily spend.",
+    "No token savings credited to OpenRouter and no failure-token savings deducted. Actual tokenizers, reasoning lengths and retries can differ.",
+    "Unrecorded timeout/HTTP failures and overwritten metadata mean measured totals are lower bounds, not a worst-case cap.",
+    "30% is an illustrative sensitivity margin, not a measured error bound.",
+    "Other projects share allowances and are not included in these meeting scenarios.",
+    "Account-listed daily allowance: 10M mini group and 1M group containing GPT-5.4. GPT-6.1 Sol daily-free eligibility is unconfirmed; budget its escalation calls against monthly promotional credits. Eligibility alone does not confirm data-sharing enrollment."
+  ],
+  "scenarios": {
+    "2026-10-22_three_meetings_lifetime_squeezed_into_one_day": {
+      "mini_basic": {
+        "calls": 851,
+        "input_tokens": 4163526,
+        "output_tokens": 1195198,
+        "total_tokens": 5358724
+      },
+      "gpt_shared_integration": {
+        "calls": 13,
+        "input_tokens": 306763,
+        "output_tokens": 149118,
+        "total_tokens": 455881
+      },
+      "plus_30_percent_sensitivity": {
+        "mini_basic": 6966341.2,
+        "gpt_shared_integration": 592645.3
+      }
+    },
+    "2026-10-22_average_meeting_x4": {
+      "mini_basic": {
+        "calls": 1134.67,
+        "input_tokens": 5551368.0,
+        "output_tokens": 1593597.33,
+        "total_tokens": 7144965.33
+      },
+      "gpt_shared_integration": {
+        "calls": 17.33,
+        "input_tokens": 409017.33,
+        "output_tokens": 198824.0,
+        "total_tokens": 607841.33
+      },
+      "plus_30_percent_sensitivity": {
+        "mini_basic": 9288454.93,
+        "gpt_shared_integration": 790193.73
+      }
+    },
+    "2026-10-26_long_interior_only": {
+      "mini_basic": {
+        "calls": 1230,
+        "input_tokens": 4965641,
+        "output_tokens": 1033566,
+        "total_tokens": 5999207
+      },
+      "gpt_shared_integration": {
+        "calls": 13,
+        "input_tokens": 325947,
+        "output_tokens": 56054,
+        "total_tokens": 382001
+      },
+      "plus_30_percent_sensitivity": {
+        "mini_basic": 7798969.1,
+        "gpt_shared_integration": 496601.3
+      }
+    },
+    "2026-10-26_actual_two_meetings_lifetime_squeezed_into_one_day": {
+      "mini_basic": {
+        "calls": 2424,
+        "input_tokens": 9730903,
+        "output_tokens": 2020178,
+        "total_tokens": 11751081
+      },
+      "gpt_shared_integration": {
+        "calls": 28,
+        "input_tokens": 470532,
+        "output_tokens": 147231,
+        "total_tokens": 617763
+      },
+      "plus_30_percent_sensitivity": {
+        "mini_basic": 15276405.3,
+        "gpt_shared_integration": 803091.9
+      }
+    },
+    "one_long_plus_three_2026-10-22_meetings": {
+      "mini_basic": {
+        "calls": 2081,
+        "input_tokens": 9129167,
+        "output_tokens": 2228764,
+        "total_tokens": 11357931
+      },
+      "gpt_shared_integration": {
+        "calls": 26,
+        "input_tokens": 632710,
+        "output_tokens": 205172,
+        "total_tokens": 837882
+      },
+      "plus_30_percent_sensitivity": {
+        "mini_basic": 14765310.3,
+        "gpt_shared_integration": 1089246.6
+      }
+    },
+    "four_long_interior_equivalents": {
+      "mini_basic": {
+        "calls": 4920,
+        "input_tokens": 19862564,
+        "output_tokens": 4134264,
+        "total_tokens": 23996828
+      },
+      "gpt_shared_integration": {
+        "calls": 52,
+        "input_tokens": 1303788,
+        "output_tokens": 224216,
+        "total_tokens": 1528004
+      },
+      "plus_30_percent_sensitivity": {
+        "mini_basic": 31195876.4,
+        "gpt_shared_integration": 1986405.2
+      }
+    }
+  },
+  "unknown_attempt_records_by_type": [
+    {
+      "source": "structured",
+      "stage": "ontology",
+      "status": "FAILED",
+      "error": "VERIFICATION_PENDING",
+      "rows": 44
+    },
+    {
+      "source": "structured",
+      "stage": "ontology",
+      "status": "READY",
+      "error": null,
+      "rows": 44
+    },
+    {
+      "source": "structured",
+      "stage": "structure",
+      "status": "FAILED",
+      "error": "ReadTimeout",
+      "rows": 3
+    },
+    {
+      "source": "structured",
+      "stage": "narrative",
+      "status": "FAILED",
+      "error": "ReadTimeout",
+      "rows": 1
+    },
+    {
+      "source": "structured",
+      "stage": "narrative",
+      "status": "FAILED",
+      "error": "AUXILIARY_INPUT_TOO_LARGE",
+      "rows": 83
+    },
+    {
+      "source": "structured",
+      "stage": "narrative",
+      "status": "FAILED",
+      "error": "AUXILIARY_DAILY_LIMIT",
+      "rows": 82
+    },
+    {
+      "source": "structured",
+      "stage": "narrative",
+      "status": "FAILED",
+      "error": "AUXILIARY_RATE_WAIT",
+      "rows": 7
+    },
+    {
+      "source": "structured",
+      "stage": "narrative",
+      "status": "FAILED",
+      "error": "HTTPError:HTTP_503",
+      "rows": 2
+    },
+    {
+      "source": "structured",
+      "stage": "consolidation",
+      "status": "FAILED",
+      "error": "DAILY_TOKEN_LIMIT",
+      "rows": 10
+    },
+    {
+      "source": "structured",
+      "stage": "consolidation",
+      "status": "FAILED",
+      "error": "ReadTimeout",
+      "rows": 1
+    },
+    {
+      "source": "structured",
+      "stage": "consolidation",
+      "status": "FAILED",
+      "error": "AuxiliaryUnavailable",
+      "rows": 6
+    },
+    {
+      "source": "structured",
+      "stage": "review",
+      "status": "FAILED",
+      "error": "AuxiliaryUnavailable",
+      "rows": 1
+    }
+  ],
+  "limitations": [
+    "Only provider/request_id-attributable responses counted in meeting call totals. These are not all upstream attempts.",
+    "Gateway HTTP failures without a provider response ID cannot be reliably assigned to an individual meeting.",
+    "Token counts are provider-returned totals, not externally verified invoices.",
+    "Validation-failed tokens include partially accepted responses; they cannot all be treated as removable waste.",
+    "Legacy failure-table attempts are per item/aggregate and may overlap retries; do not add them to unique API-call counts.",
+    "Final raw structure JSON counts differ from the current read projection; final_projection is the user-facing derived count.",
+    "No actual four-broadcast/new-model load test or 1,000-distinct-issue test was executed.",
+    "Official transcript comparisons, STT, personal alerts, other projects and unrelated reports are outside the meeting-attributable budget unless explicitly included.",
+    "NIM/Gemini/Groq preflight rate/budget/input-size skips are not equivalent to paid/consumed API requests.",
+    "Organization daily quota uses UTC 00:00 / KST 09:00. Meeting on_broadcast_date uses the Korean calendar day."
+  ],
+  "gateway_error_evidence": {
+    "2026-10-22": {
+      "all_reserved_requests": 950,
+      "http_400": 594,
+      "reasoning_mandatory_disabled": 574,
+      "gateway_failed_states": 610,
+      "http_200": 354
+    },
+    "2026-10-26": {
+      "all_reserved_requests": 950,
+      "http_400": 102,
+      "reasoning_mandatory_disabled": 18,
+      "gateway_failed_states": 147,
+      "http_200": 840
+    }
+  },
+  "sources": {
+    "free_tokens": "https://help.openai.com/en/articles/10306912-sharing-feedback-evaluation-and-fine-tuning-data-and-api-inputs-and-outputs-with-openai",
+    "sol_standard_price": "https://developers.openai.com/api/docs/changelog#september-2026",
+    "sol_model": "https://developers.openai.com/api/docs/models/gpt-6.1-sol",
+    "local_sources": [
+      "live_broadcasts",
+      "transcript_segments",
+      "transcript_utterance_summaries",
+      "transcript_summary_rejections",
+      "meeting_briefs",
+      "meeting_brief_chunk_cache",
+      "meeting_topic_structures",
+      "meeting_topic_structure_batches",
+      "live_discussion_classifications",
+      "llm_provider_token_usage_events",
+      "openai_daily_token_usage",
+      "auxiliary_model_calls",
+      "gateway_requests"
+    ]
+  },
+  "sol_price_estimate_assumptions": {
+    "input_usd_per_million": 2,
+    "output_usd_per_million": 10,
+    "maximum_observed_integration_input_tokens_per_request": 40412,
+    "notes": "Illustrative repricing of old token counts, not actual GPT-6.1 usage. Standard tier, no cache discount/write/tool/regional charges. All integration priced as paid even though eligible free tokens could offset it."
+  },
+  "validation": {
+    "unique_calls": 3316,
+    "duplicate_provider_request_ids": 0,
+    "cross_meeting_shared_request_ids": 0,
+    "input_plus_output_matches_total": true,
+    "meeting_sum_matches_unique_calls": true,
+    "new_external_model_calls": 0,
+    "production_mutations": 0
+  },
+  "account_eligibility_correction": {
+    "date_kst": "2026-10-29",
+    "evidence": "User pasted account-specific daily complimentary-token offer. GPT-5.4 is listed in 1M group; GPT-5.4-mini in 10M group; GPT-6.1 Sol is not listed. The public Help Center list differs.",
+    "gpt61_sol_daily_free_status": "UNCONFIRMED_FOR_THIS_ORGANIZATION",
+    "planning_policy": "Treat GPT-6.1 Sol as billable and reserve against verified remaining monthly promotional credit, until account billing or OpenAI support confirms daily-free eligibility.",
+    "scenario_interpretation": "Existing gpt_shared_integration fields describe integration workload token proxies, not confirmed GPT-6.1 daily-free coverage. Use them for GPT-5.4 capacity planning; estimate GPT-6.1 escalations separately against monthly credit.",
+    "runtime_changes": false
+  }
+}

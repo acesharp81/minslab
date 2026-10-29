@@ -274,17 +274,23 @@ class OpenRouterOfficialChangeReportClient:
                     "require_parameters": True,
                 },
             }
-        response = requests.post(
-            f"{self.base_url}/chat/completions",
-            headers=openrouter_headers(
-                self.api_key, request_body,
-                workload="official_change_report", priority=40,
-            ),
-            json=request_body,
-            timeout=self.timeout_seconds,
-        )
-        response.raise_for_status()
-        payload = response.json()
+        if getattr(self, 'grouped_transport', None):
+            data, meta = self.grouped_transport._post(prompt, _schema(), 'gukjeongbomi_official_change_report')
+            payload = {'id':meta.get('request_id'), 'model':meta.get('model'), 'usage':meta.get('usage'),
+                       'choices':[{'finish_reason':meta.get('finish_reason'),
+                                   'message':{'content':json.dumps(data,ensure_ascii=False)}}]}
+        else:
+            response = requests.post(
+                f"{self.base_url}/chat/completions",
+                headers=openrouter_headers(
+                    self.api_key, request_body,
+                    workload="official_change_report", priority=40,
+                ),
+                json=request_body,
+                timeout=self.timeout_seconds,
+            )
+            response.raise_for_status()
+            payload = response.json()
         choice = (payload.get("choices") or [{}])[0]
         if str(choice.get("finish_reason") or "").casefold() == "length":
             raise OfficialChangeReportResponseError("OUTPUT_TRUNCATED")

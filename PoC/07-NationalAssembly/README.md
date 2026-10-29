@@ -4,7 +4,7 @@
 
 | 항목 | 기준 |
 |---|---|
-| 문서 기준일 | 2026-10-28, 한국시간(KST) |
+| 문서 기준일 | 2026-10-29, 한국시간(KST) |
 | 문서 용도 | 일반 사용자·유지관리사업자·동료 개발자용 매뉴얼을 제작하는 공통 원천 |
 | 대표 주소 | <https://kjon.aigov.go.kr/> |
 | 기존 주소 | <https://www.minslab.kr/poc/national-assembly/> — 동일 서비스 |
@@ -519,41 +519,40 @@ Kakao outbox → notification-worker → 선택 동의한 사용자
 
 ### 10.1 작업별 우선순위
 
-아래는 코드의 **자동 배정 정책**입니다. 해당 키·기능 플래그·가용량이 있는 공급자만 후보가 됩니다. 한 작업의 경로를 모든 기능에 적용했다고 해석하지 않습니다.
+`MODEL_WORKLOAD_GROUPS_ENABLED=true`가 새 운영 정책입니다. false는 이전 정책의 복구용입니다.
 
-| 작업 | 경로 |
+| 그룹 | 작업과 경로 |
 |---|---|
-| 일반 구조화·논의 분류·세부 요약 | NIM → 가용 OpenRouter → Gemini → Groq |
-| 어려운 재검증·마지막 제한 보정 | 같은 풀 이후 OpenAI. OpenRouter 소진이 확인되고 OpenAI 예산이 있을 때만 |
-| 쟁점 통합 | OpenRouter 소진 시 OpenAI를 먼저 검토. 사용할 수 없으면 NIM → 가용 OpenRouter → Gemini → Groq |
-| 전체 회의 브리프·중간 요약 | 기존 NIM 우선 자동 경로. 한도·장애·입력 조건에 따라 가용 대체 경로 |
-| 실시간 발언 요약 | 별도 `LLM_PROVIDER`·`LLM_MODEL` 설정과 검증 정책 |
-| 주제별 보고서·관심주제·공식 변화 설명 | 각 전용 worker의 설정·한도. 회의 구조화 풀 변경으로 자동 전환되지 않음 |
-| 음성 전사 | Mistral/Voxtral 경로. 텍스트 분류 풀과 별도 |
+| 실시간 부분요약 | **GPT-5.4 mini + Dots3 Note(OpenRouter)** 두 실행 경로가 서로 다른 발언 묶음을 병렬 처리. 일반 구조화·세부 요약은 Mini 우선, OpenRouter 대체 |
+| 통합+공식자료 대조 | **GPT-5.4 → GPT-6.1 Terra**. 회의 합성·쟁점 통합·고난도 검증·주제별 보고서·공식화 비교. 호출 실패 또는 회의 합성의 의미 검증 실패 시 다음 경로 사용 |
+| 음성 | Mistral Voxtral. 기존 수집·전사 경로 유지 |
 
-“경쟁 풀”은 가용 공급자 사이의 우선순위·대체 사용을 뜻합니다. 같은 입력을 항상 모든 모델에 동시에 보내는 방식으로 안내하지 않습니다. Groq의 입력·출력 예산이 맞지 않는 큰 작업은 건너뛰므로 잔여량이 높아도 미사용일 수 있습니다. 문맥을 임의로 버려 작은 모델에 맞추지 않습니다.
+NIM·Gemini·Groq는 기본 후보에서 제외합니다. Sol은 자동 호출하지 않습니다. 관심주제 알림의 작은 브리핑은 기존 OpenRouter 경로입니다.
+실시간 경쟁은 같은 발언을 양쪽 모델에 동시에 전송하는 방식이 아닙니다. PostgreSQL 세션 잠금으로 원문 해시·프롬프트 버전별 작업을 점유하고, 회의마다 두 발언씩 처리한 뒤 다음 회의로 이동합니다. 저장된 유효 결과를 다시 확인하여 재사용합니다. 근거·한국어·과제 검증과 보고서 형식은 유지합니다.
 
 ### 10.2 내부 배정량과 초기화
 
-**아래 수치는 서비스의 설정·차단 기준이며 공급자가 현재 보장하는 무료 제공량이나 요금표가 아닙니다.** 설치 시 공급자 계정의 실제 요금제·제한과 대조합니다.
+**서비스 운영 장부이며 OpenAI 조직 전체의 실제 크레딧 잔액 API가 아닙니다.** 다른 프로젝트 사용분은 공유 장부나 `OPENAI_OTHER_PROJECTS_MINI_TOKENS` / `OPENAI_OTHER_PROJECTS_MAIN_TOKENS`로 차감해야 합니다.
 
-| 플랫폼 | 내부 기준·대표 설정 | 초기화·주요 제약 |
+| 모델 | 운영 배정 | 초기화 |
 |---|---|---|
-| OpenRouter | 게이트웨이 운영선 950회, 계정 상한 설정 1,000회 | UTC 00:00 = KST 09:00. 공유 키의 다른 사용처 포함 가능 |
-| OpenAI | `OPENAI_DAILY_TOKEN_LIMIT=650000` | UTC 00:00 = KST 09:00. 입력·출력·예약/불확실 사용량 대조 |
-| OpenAI 통합 보호 | `OPENAI_INTEGRATION_RESERVED_TOKENS=300000` | 통합 계열은 총 650,000, 그 외 허용 작업은 총 사용량 350,000 기준으로 제한 |
-| Gemini | 300,000토큰·200회, 최소 15초 간격 | `America/Los_Angeles` 자정. 공급자 한도가 먼저 도달할 수 있음 |
-| Groq | 100,000토큰·400회, 최소 65초 간격 | UTC 일 기준. 큰 입력·출력 요구는 제외 가능 |
-| NVIDIA NIM | 보고서 요청 최소 6초 간격 등 pacing | RPM·일시 제한·타임아웃 적용. 일일 한도가 없다는 가정으로 무제한 재시도하지 않음 |
-| Mistral | `MISTRAL_MONTHLY_CREDIT_USD` 기본 10.0 | 월 예산. 토큰·오디오 시간과 설정 단가 기반 추정 |
+| GPT-5.4 mini | 입력+출력 하루 10,000,000토큰 | UTC 00:00 / 한국시간 09:00 |
+| Dots3 Note | OpenRouter 공유 게이트웨이 운영 950회, 계정 상한 1,000회 | UTC 00:00 / 한국시간 09:00 |
+| GPT-5.4 | 입력+출력 하루 1,000,000토큰, Mini와 별도 | UTC 00:00 / 한국시간 09:00 |
+| GPT-6.1 Terra | 이번 주기 잔여 $8에서 시작, 이후 월 $100의 사용자 지정 배정 | 한국시간 매월 말일 00:00. 실제 공급자 갱신 시각과 별도인 수동 정책 |
+| Mistral | 기존 월 $10 설정, STT 시간·단가 기반 | 기존 월간 장부 |
 
-OpenAI의 300,000토큰 보호량은 추가 예산이 아닙니다. 이미 사용한 양을 되돌리거나 모델별로 650,000토큰씩 새로 배정하지 않습니다. 날짜가 바뀌면 새 날짜의 장부로 계산하고 전날 이력은 남깁니다.
+Terra를 일일 무료 토큰 모델에 포함하지 않습니다. 계정에 표시된 무료 목록에 없으므로 유료 비용 장부에서 관리합니다. 첫 주기의 ID·종료 시각·배정액은 `OPENAI_CREDIT_GRANT_ID`, `OPENAI_CREDIT_EXPIRES_AT`, `OPENAI_CREDIT_BUDGET_USD`입니다. `OPENAI_CREDIT_MONTH_END_RENEWAL=true`와 `OPENAI_CREDIT_MONTHLY_BUDGET_USD=100`이 다음 말일의 새 장부를 엽니다. 31일→30일·윤년·연도 변경을 지원하며 1일에 다시 초기화하지 않습니다. 이는 사용자가 요청한 추정 예산이고 실제 무료 크레딧 충전을 보장하지 않습니다.
 
-현재 코드의 대표 기본 모델명은 NIM `nvidia/nemotron-3-ultra-550b-a55b`, 회의 OpenRouter `dots-studio/dots-3-note-preview:free`, OpenAI `gpt-5.4-mini`, Gemini `gemini-3.1-flash-lite`, Groq `openai/gpt-oss-120b`입니다. 기본값과 실제 운영 환경변수는 다를 수 있으며, 모델명에 `free`가 있거나 과거에 무료였다는 이유만으로 현재 계정 비용을 보장하지 않습니다.
+요청 전에 원자적으로 입력·최대 출력을 예약하고 실제 usage로 정산합니다. 응답 불명의 실패는 보수적으로 차감하고, HTTP 400/401/403/404/429로 거절된 요청은 토큰을 차감하지 않습니다. 날짜·주기를 넘긴 정산도 처음 예약한 장부로 돌아갑니다. Terra 비용은 Standard 기준 입력 $1/백만·출력 $5/백만, 입력 272K 초과 시 $2/$7.5로 계산하며 캐시 할인은 보수적으로 제외하며 캐시 쓰기는 보존 기간 미확인 시 12시간 요금의 추가분을 예약 범위에서 보수적으로 반영합니다. [공식 가격](https://developers.openai.com/api/docs/pricing)
+
+조직 지출 상한에 의한 429는 다른 OpenAI 모델로 우회하지 않고 공유 차단 상태로 다음 배정 주기까지 대기합니다. 일반 속도 제한 429는 모델별 90초 대기입니다. OpenAI 조직 상한 $100 설정은 별도 보호 장치이며, 공급자 안내상 적용 지연으로 소폭 초과할 수 있습니다. 무료 크레딧과 현금 충전액을 프로그램이 직접 구분·조회하는 기능은 없습니다.
 
 ### 10.3 사용량 화면과 장부
 
-상단은 기존 전체 폭 안에 **OpenRouter·Gemini·Groq·OpenAI·Mistral 5개**의 대략적인 잔여 비율을 표시합니다. NIM 카드는 제외돼 있지만 사용 경로는 유지됩니다. 확인 실패는 잔여량 0 또는 무제한으로 바꾸지 않고 확인 불가로 취급합니다.
+우측 상단은 **실시간 부분요약 | 통합+공식자료 대조 | 음성**의 세 그룹입니다. 데스크톱 폭은 이전 560px의 70%인 392px이며, 작은 화면에서는 가독성을 위해 전체 폭으로 배치합니다. `GPT-5.4 mini`, `Dots3 Note`, `GPT-5.4`, `6.1 Terra`, `Mistral` 각각의 남은 토큰·횟수·달러를 표시합니다. 모델명을 가리키거나 키보드 포커스로 상세 수치·주기·집계 범위를 확인합니다. 확인 실패를 100% 잔여로 표시하지 않습니다.
+
+`GET /api/ai/usage`의 `workload_groups`가 새 표시의 기준이며 기존 `providers` 필드는 호환용으로 유지합니다. `openai_group_daily_usage`, `openai_credit_grant_usage`, `model_provider_cooldowns`가 운영 장부입니다. 이전 `openai_daily_token_usage`는 삭제하지 않고 전환 시 Mini 이력으로 보수적으로 이관합니다.
 
 운영자 상세 확인:
 
@@ -616,7 +615,7 @@ curl -fsS http://127.0.0.1:18071/internal/status
 | 주제 보고서 | `TOPIC_REPORTS_ENABLED`, `TOPIC_REPORT_MODEL`, `TOPIC_REPORT_DAILY_LIMIT`, `TOPIC_REPORT_USER_DAILY_LIMIT`, `TOPIC_REPORT_MAX_PERIOD_DAYS` | 기본 전체 100회/일·사용자 10회/일·최대 366일 설정 |
 | 공식 변화 설명 | `OFFICIAL_CHANGE_REPORTS_ENABLED`, `OFFICIAL_CHANGE_REPORT_MODEL`, `OFFICIAL_CHANGE_REPORT_DAILY_LIMIT` | 실제 허용목록과 worker 설정 대조 |
 
-**설정 예시·배포 경로의 차이:** `.env.example`에는 Gemini·Groq 보조 설정과 OpenAI 통합 보호량의 예시가 아직 없으므로 위 변수명과 `config.py`·배포 허용목록을 확인해 구성합니다. 현재 기본 Compose에는 운영 스크립트가 제공하는 Gemini·Groq 설정과 OpenAI 통합 보호량 등 일부 명시적 주입 항목이 없습니다. 이를 사용하는 신규 설치는 API와 회의 워커에 필요한 비밀/비밀 아닌 변수를 구분해 override/허용목록을 보완하고 실제 적용을 검수해야 합니다. README를 읽었다는 이유만으로 두 배포 방식의 기능이 동일하다고 간주하지 않습니다.
+**설정 예시·배포 경로의 차이:** `.env.example`에는 Gemini·Groq 보조 설정의 예시가 아직 없으므로 위 변수명과 `config.py`·배포 허용목록을 확인해 구성합니다. 현재 기본 Compose에는 운영 스크립트가 제공하는 Gemini·Groq 설정 등 일부 명시적 주입 항목이 없습니다. 이를 사용하는 신규 설치는 API와 회의 워커에 필요한 비밀/비밀 아닌 변수를 구분해 override/허용목록을 보완하고 실제 적용을 검수해야 합니다. README를 읽었다는 이유만으로 두 배포 방식의 기능이 동일하다고 간주하지 않습니다.
 
 ### 11.3 신규 설치 순서
 
@@ -1090,6 +1089,7 @@ RPM, 입력 크기, 출력 예산, 작업별 우선순위, 원문 검증 실패�
 
 | 기준일 | 변경·검증 | 근거 |
 |---|---|---|
+| 2026-10-29 | OpenAI 일일 250,000토큰·통합 보호 100,000토큰으로 조정 | [배정 회귀시험](backend/tests/test_model_workloads.py), [변경 이력](CHANGELOG.md) |
 | 2026-10-28 | 전체 발언 팝업·MD, 모바일·재시도, 원문 1,117건과 5,488개 자막의 포함 범위 확인 | [실제 브라우저 검증](docs/evidence/REPORT_NAVIGATION_20261028/transcript-result.json), [단위시험](web/tests/meeting-transcript-document.test.cjs) |
 | 2026-10-28 | 보조 정보 한 줄·선택 항목만 펼침, 검색 88건 및 과거 회의 이동·조건 유지 | [브라우저 검증](docs/evidence/REPORT_NAVIGATION_20261028/result.json) |
 | 2026-10-28 | 미완료 보고서 보완·분류/요약 포괄 점검 | [56개 보고서 감사](docs/REPORT_COMPLETION_AUDIT_20261028.json) |

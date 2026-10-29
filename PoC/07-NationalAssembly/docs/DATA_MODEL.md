@@ -346,3 +346,13 @@ DB migration 없이 `report.sections[].discussions[]`를 선택적으로 추가�
 
 
 추가적인 `repair_round=3`의 `field_repair`에는 기반 응답(`base`), 기반 요청 번호(`source_attempt`), 교정 필드 목록과 해당 원문을 저장한다. 모델이 반환한 필드 교정 원응답은 `usage_metadata.field_repair_raw_response`에 보존하며, 최종 `response`는 기반 응답과 교정 문장을 합친 뒤 전체 근거 검증을 통과한 값이다.
+
+## 작업 그룹 예산 (migration 0060)
+- `openai_group_daily_usage`: `(budget_group, usage_date)` 복합키, Mini/main 독립 UTC 장부. 입력/출력/불확실/예약 토큰·요청 수. 이전 단일 장부는 유지하고 당시 Mini 사용량을 복사한다.
+- `openai_credit_grant_usage`: 사용자 지정 배정 주기별 사용·예약·불확실 USD. 날짜 경계에서도 예약 주기 ID로 정산한다. 실제 OpenAI 계정 잔액이 아니다.
+- `model_provider_cooldowns`: OpenAI 조직 비용 한도 또는 모델별 속도 제한의 공유 차단 만료시각.
+- `/api/ai/usage.workload_groups`: 그룹 id/label/models; 모델 id/label/remaining/limit/unit/scope/period, Terra expires_at. UNKNOWN은 null로 표시한다.
+
+
+### PoC11 공용 OpenRouter 사용량 (2026-10-29)
+스키마 변경 없음. 기존 gateway_requests에 project=poc11-image-inspection, workload=image-observation, model=nvidia/nemotron-3.5-super-vl:free로 예약한다. PoC7 요청과 동일 usage_date/일별 합계를 사용한다. external_usage_events는 별도 토큰/비용 메타데이터이며 무료 요청 수에 다시 가산하지 않는다.

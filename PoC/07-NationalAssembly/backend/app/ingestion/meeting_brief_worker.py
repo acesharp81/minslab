@@ -134,7 +134,9 @@ def openrouter_brief_has_capacity(settings: Any) -> bool | None:
 
 
 def automatic_brief_provider(settings: Any) -> str:
-    """Prefer direct NIM, then shared OpenRouter, then budgeted OpenAI."""
+    """Select the enabled workload policy."""
+    if getattr(settings, "model_workload_groups_enabled", False):
+        return "openai"
     if (
         settings.meeting_brief_nvidia_enabled
         and settings.nvidia_api_key
@@ -153,6 +155,8 @@ class ProviderPolicyDeferred(RuntimeError):
 
 
 def require_openai_fallback(settings: Any) -> None:
+    if getattr(settings, "model_workload_groups_enabled", False):
+        return
     # Check again at reservation time: UTC rollover can replenish the free pool
     # after a client was constructed. An unknown status never authorizes spend.
     if openrouter_brief_has_capacity(settings) is not False:
@@ -186,7 +190,8 @@ def meeting_brief_identity(
     elif provider in {"groq", "gemini"}:
         model = getattr(settings, provider + "_aux_model")
     elif provider == "openai":
-        model = str(settings.meeting_brief_openai_model or "gpt-5.4-mini")
+        model = str(settings.openai_integration_model if getattr(settings, "model_workload_groups_enabled", False)
+                    else settings.meeting_brief_openai_model or "gpt-5.4-mini")
     return provider, model, PROMPT_VERSION
 
 
@@ -508,7 +513,10 @@ def generate_one(
                 usage_date, reserved_tokens, metadata,
             )
 
-    if summary_provider == "nvidia":
+    if getattr(settings, "model_workload_groups_enabled", False):
+        from ..services.grouped_models import WorkloadBriefClient
+        client = WorkloadBriefClient(settings)
+    elif summary_provider == "nvidia":
         client = NvidiaMeetingBriefClient(
             settings.nvidia_api_key, model=summary_model,
             base_url=settings.nvidia_base_url,
@@ -751,7 +759,10 @@ def map_existing_brief_one(
         provider, model, _ = meeting_brief_identity(settings, provider_override=provider_override)
     if not settings.ai_enrichment_enabled or provider not in {"nvidia", "openrouter", "openai", "groq", "gemini"}:
         raise RuntimeError("Meeting brief semantic mapping is not enabled")
-    if provider == "nvidia":
+    if getattr(settings, "model_workload_groups_enabled", False):
+        from ..services.grouped_models import WorkloadBriefClient
+        client = WorkloadBriefClient(settings)
+    elif provider == "nvidia":
         client = NvidiaMeetingBriefClient(
             settings.nvidia_api_key, model=model,
             base_url=settings.nvidia_base_url,
@@ -873,7 +884,11 @@ def recent_openai_mapping_candidate() -> UUID | None:
 def openai_mapping_budget_available(settings: Any) -> bool:
     # Let pending report generation use the daily allowance first.
     with connect(settings.database_url) as connection:
-        usage = OpenAIDailyBudget(connection).today()
+        if getattr(settings, "model_workload_groups_enabled", False):
+            from ..db.openai_group_budget import OpenAIGroupBudget
+            usage = OpenAIGroupBudget(connection, "main").today()
+        else:
+            usage = OpenAIDailyBudget(connection).today()
     reserved = (
         usage["total_tokens"] + usage["unknown_tokens"]
         + usage["reserved_tokens"]
@@ -991,6 +1006,8 @@ def openrouter_quota_exhausted(
 def next_brief_provider(
     settings: Any, failed_provider: str, exc: Exception,
 ) -> str | None:
+    if getattr(settings, "model_workload_groups_enabled", False):
+        return None
     from ..services.auxiliary_models import enabled_auxiliaries
     extras = enabled_auxiliaries(settings)
     if failed_provider == "nvidia":
@@ -1077,7 +1094,7 @@ def process_available(limit: int = 1) -> list[dict[str, Any]]:
     ):
         try:
             candidate = recent_openai_mapping_candidate()
-            if candidate and openrouter_brief_has_capacity(get_settings()) is False:
+            if candidate and (getattr(get_settings(), "model_workload_groups_enabled", False) or openrouter_brief_has_capacity(get_settings()) is False):
                 from ..services.auxiliary_models import enabled_auxiliaries
                 fallback_pool = enabled_auxiliaries(get_settings())
                 if openai_mapping_budget_available(get_settings()):

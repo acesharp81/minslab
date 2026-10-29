@@ -1675,6 +1675,8 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
                     )
                 break
             except ValueError as exc:
+                if hasattr(self, "on_quality_failure"):
+                    self.on_quality_failure("meeting_brief")
                 if quality_attempt >= 2:
                     raise
                 if "omitted live topic clusters" in str(exc):
@@ -1849,7 +1851,7 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
                 {"role": "user", "content": prompt},
             ],
             "stream": False,
-            "reasoning_effort": "none",
+            "reasoning_effort": getattr(self, "reasoning_effort", "none"),
             "max_completion_tokens": max_output_tokens,
             "response_format": {
                 "type": "json_schema",
@@ -1913,6 +1915,8 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
                 timeout=(300.0 if schema_name in {"meeting_brief", "discussion_structure_consolidation"} else self.timeout_seconds),
             )
             if response.status_code >= 400:
+                if response.status_code in {400,401,403,404,429}:
+                    usage_metadata = {'request_rejected': True, 'http_status': response.status_code}
                 raise requests.HTTPError(
                     f"OpenAI {response.status_code}: upstream error", response=response,
                 )

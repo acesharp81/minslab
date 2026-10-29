@@ -87,6 +87,7 @@ def _summarize_with_reserved_attempts(connection: Any, repository: SummaryReposi
 def cache_missing_summaries(connection: Any, broadcast_id: Any,
         utterances: list[dict[str, Any]], client: SummaryClient, *,
         include_short: bool = False,
+        shared_pool: bool = False,
         batch_items: int = 2,
         review_hashes: set[str] | None = None,
         daily_limit: int = HARD_DAILY_REQUEST_LIMIT,
@@ -117,6 +118,25 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
                     if item["content_hash"] not in existing | deferred}.values())
     if review_hashes:
         missing.sort(key=lambda u: u['content_hash'] not in review_hashes)
+    if shared_pool:
+        # Session locks survive the cache commits and release on connection close.
+        # The key excludes provider: both lanes compete for different evidence.
+        # Recheck accepted results after acquiring the lock to close the TOCTOU gap.
+        claimed = []
+        for item in missing:
+            key = f"summary:{broadcast_id}:{client.prompt_version}:{item['content_hash']}"
+            if not connection.execute("SELECT pg_try_advisory_lock(hashtextextended(%s,0))", (key,)).fetchone()[0]:
+                continue
+            if repository.existing_hashes(broadcast_id, [item['content_hash']],
+                    provider=client.provider, model=client.model, prompt_version=client.prompt_version,
+                    source_text_by_hash={item['content_hash']: ' '.join(c['text'] for c in item['conversation_context'])}):
+                connection.execute("SELECT pg_advisory_unlock(hashtextextended(%s,0))", (key,))
+                continue
+            claimed.append(item)
+            if len(claimed) >= batch_items:
+                break
+        missing = claimed
+
     saved = 0
     failed = 0
     attempted = False
@@ -138,8 +158,14 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
     )
     api_requests = 0
     batches = deque(iter_summary_batches(missing, max_items=batch_items))
+    batch_attempts = {}
     while batches:
         batch = batches.popleft()
+        batch = [u for u in batch if batch_attempts.get(u["content_hash"], 0) < 3]
+        if not batch:
+            break
+        for u in batch:
+            batch_attempts[u["content_hash"]] = batch_attempts.get(u["content_hash"], 0) + 1
         if attempted:
             time.sleep(MIN_REQUEST_INTERVAL_SECONDS)
         attempted = True
@@ -182,6 +208,16 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
                 continue
             raise
         except (ValueError, KeyError) as exc:
+            if shared_pool:
+                # Let the other lane repair invalid evidence instead of replaying
+                # the same cached response in every polling cycle.
+                for item in batch:
+                    repository.record_failure(broadcast_id, item['content_hash'],
+                        provider=client.provider,model=client.model,prompt_version=client.prompt_version,
+                        error='POOL_VALIDATION_REJECTED',retry_hours=1)
+                connection.commit()
+                failed += len(batch)
+                continue
             if len(batch) > 1:
                 middle = len(batch) // 2
                 batches.extendleft(reversed([batch[:middle], batch[middle:]]))
@@ -212,7 +248,15 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
         omitted = [item for item in batch if item["content_hash"] not in returned]
         # A truncated response may contain some complete items. Preserve those
         # and retry only omitted evidence in smaller, quota-reserved batches.
-        batches.extendleft(reversed(list(iter_summary_batches(omitted, max_items=2))))
+        if shared_pool:
+            for item in omitted:
+                repository.record_failure(broadcast_id, item['content_hash'],
+                    provider=client.provider,model=client.model,prompt_version=client.prompt_version,
+                    error='POOL_PARTIAL_REJECTION',retry_hours=1)
+            failed += len(omitted)
+            connection.commit()
+        else:
+            batches.extendleft(reversed(list(iter_summary_batches(omitted, max_items=2))))
     daily_usage_after = (
         repository.daily_usage(client.provider)
         if client.provider == "openrouter" else 0

@@ -51,8 +51,21 @@ class Settings(BaseSettings):
     mistral_api_key: str = ""
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
-    openai_daily_token_limit: int = 650_000
-    openai_integration_reserved_tokens: int = 300_000
+    model_workload_groups_enabled: bool = False
+    openai_mini_model: str = "gpt-5.4-mini"
+    openai_integration_model: str = "gpt-5.4"
+    openai_advanced_model: str = "gpt-6.1-terra"
+    openai_mini_daily_token_limit: int = 10_000_000
+    openai_daily_token_limit: int = 1_000_000
+    # Confirmed credit grant; never fabricate a reset or assume the cash balance is free.
+    openai_credit_grant_id: str = ""
+    openai_credit_expires_at: str = ""
+    openai_credit_budget_usd: float = 0.0
+    openai_credit_month_end_renewal: bool = False
+    openai_credit_monthly_budget_usd: float = 100.0
+    openai_other_projects_mini_tokens: int = 0
+    openai_other_projects_main_tokens: int = 0
+    openai_integration_reserved_tokens: int = 100_000
     nvidia_api_key: str = ""
     nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
     mistral_base_url: str = "https://api.mistral.ai/v1"

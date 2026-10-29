@@ -132,6 +132,8 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                                 SummaryRepository(c).record_monthly_token_usage('nvidia', client.model, usage)
                         validate(batch, response)
                     except DailyTokenLimitReached:
+                        if getattr(settings, "model_workload_groups_enabled", False) and retry + 1 < allowed:
+                            continue
                         return {'status': 'BUDGET_DEFERRED', 'broadcast_id': label,
                                 'provider': client.provider, 'reason': 'UTC_DAILY_TOKEN_LIMIT'}
                     except Exception as exc:

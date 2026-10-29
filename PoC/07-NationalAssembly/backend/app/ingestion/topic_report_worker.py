@@ -43,7 +43,9 @@ def run_official_change_once(database_url: str) -> dict[str, object]:
     settings = get_settings()
     if not settings.official_change_reports_enabled:
         return {"status": "DISABLED", "generated": 0}
-    model = (
+    grouped = getattr(settings, "model_workload_groups_enabled", False)
+    provider = "openai" if grouped else "openrouter"
+    model = (settings.openai_integration_model if grouped else
         settings.official_change_report_model.strip()
         or settings.topic_report_model.strip()
         or settings.watch_llm_model.strip()
@@ -53,7 +55,7 @@ def run_official_change_once(database_url: str) -> dict[str, object]:
     with connect(database_url) as connection:
         repository = OfficialChangeReportRepository(connection)
         repository.sync_pending(
-            provider="openrouter", model=model,
+            provider=provider, model=model,
             prompt_version=OFFICIAL_CHANGE_REPORT_PROMPT_VERSION,
         )
         item = repository.claim(worker_id)
@@ -71,7 +73,7 @@ def run_official_change_once(database_url: str) -> dict[str, object]:
                 },
             )
             return {"status": "READY", "generated": 1, "api_requests": 0}
-        if not settings.openrouter_api_key:
+        if not (settings.openai_api_key if grouped else settings.openrouter_api_key):
             repository.fail(item["report_id"], "OPENROUTER_CONFIG_REQUIRED")
             return {"status": "CONFIG_REQUIRED", "generated": 0}
         if repository.reserve_daily(
@@ -80,18 +82,21 @@ def run_official_change_once(database_url: str) -> dict[str, object]:
             repository.fail(item["report_id"], "OFFICIAL_CHANGE_DAILY_LIMIT", limited=True)
             return {"status": "DAILY_LIMIT_REACHED", "generated": 0}
         usage = SummaryRepository(connection)
-        if usage.reserve_daily_request(
+        if not grouped and usage.reserve_daily_request(
             "openrouter", max(1, min(settings.openrouter_daily_limit, 950))
         ) is None:
             repository.fail(item["report_id"], "OPENROUTER_DAILY_LIMIT", limited=True)
             return {"status": "GLOBAL_LIMIT_REACHED", "generated": 0}
         try:
-            result = OpenRouterOfficialChangeReportClient(
-                settings.openrouter_api_key, model=model,
-                base_url=settings.openrouter_base_url,
-            ).generate(snapshot)
+            client = OpenRouterOfficialChangeReportClient(
+                settings.openai_api_key if grouped else settings.openrouter_api_key, model=model,
+                base_url=settings.openai_base_url if grouped else settings.openrouter_base_url)
+            if grouped:
+                from ..services.grouped_models import WorkloadBriefClient
+                client.grouped_transport = WorkloadBriefClient(settings)
+            result = client.generate(snapshot)
             usage.record_monthly_token_usage(
-                "openrouter", model, result.usage_metadata,
+                provider, model, result.usage_metadata,
             )
             repository.complete(
                 item["report_id"], report=result.report,
@@ -137,7 +142,7 @@ def record_topic_report_usage(usage: SummaryRepository, model: str, metadata: di
         for payload in snapshots:
             if payload.get("id") and payload.get("usage"):
                 usage.record_monthly_token_usage(
-                    "openrouter", str(payload.get("model") or model),
+                    str(payload.get("provider") or "openrouter"), str(payload.get("model") or model),
                     {"request_id": payload["id"], "usage": payload["usage"]},
                 )
     elif metadata.get("request_id") and metadata.get("usage"):
@@ -148,11 +153,12 @@ def run_once(database_url: str) -> dict[str, object]:
     settings = get_settings()
     if not settings.topic_reports_enabled:
         return {"status": "DISABLED", "generated": 0}
-    model = (
+    grouped = getattr(settings, "model_workload_groups_enabled", False)
+    model = (settings.openai_integration_model if grouped else
         settings.topic_report_model.strip()
         or DEFAULT_TOPIC_REPORT_MODEL
     )
-    if not settings.openrouter_api_key:
+    if not (settings.openai_api_key if grouped else settings.openrouter_api_key):
         return {"status": "CONFIG_REQUIRED", "generated": 0}
     worker_id = f"{socket.gethostname()}:{uuid.uuid4()}"
     with connect(database_url) as connection:
@@ -173,7 +179,7 @@ def run_once(database_url: str) -> dict[str, object]:
             repository.fail(item["report_id"], "TOPIC_REPORT_DAILY_LIMIT", limited=True)
             return {"status": "DAILY_LIMIT_REACHED", "generated": 0}
         usage = SummaryRepository(connection)
-        if usage.reserve_daily_request(
+        if not grouped and usage.reserve_daily_request(
             "openrouter", max(1, min(settings.openrouter_daily_limit, 950))
         ) is None:
             repository.fail(item["report_id"], "OPENROUTER_DAILY_LIMIT", limited=True)
@@ -182,7 +188,7 @@ def run_once(database_url: str) -> dict[str, object]:
         connection.commit()
 
         def reserve_additional_request() -> None:
-            if usage.reserve_daily_request(
+            if not grouped and usage.reserve_daily_request(
                 "openrouter", max(1, min(settings.openrouter_daily_limit, 950)),
             ) is None:
                 raise TopicReportResponseError("OPENROUTER_DAILY_LIMIT")
@@ -194,11 +200,16 @@ def run_once(database_url: str) -> dict[str, object]:
             connection.commit()
 
         try:
-            result = OpenRouterTopicReportClient(
-                settings.openrouter_api_key, model=model,
-                base_url=settings.openrouter_base_url,
-                before_additional_request=reserve_additional_request,
-            ).generate(
+            if grouped:
+                from ..services.grouped_topic_report import GroupedTopicReportClient
+                client = GroupedTopicReportClient(settings, before_additional_request=reserve_additional_request)
+                connection.execute("UPDATE topic_reports SET provider='openai',model=%s WHERE id=%s AND lease_owner=%s",
+                                   (model,item['report_id'],worker_id))
+                connection.commit()
+            else:
+                client = OpenRouterTopicReportClient(settings.openrouter_api_key, model=model,
+                    base_url=settings.openrouter_base_url, before_additional_request=reserve_additional_request)
+            result = client.generate(
                 ministry=item["ministry"], topic=item["topic"],
                 period_start=item["period_start"].isoformat(),
                 period_end=item["period_end"].isoformat(),

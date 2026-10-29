@@ -1956,3 +1956,33 @@ body.meeting-report-print-mode .meeting-source-quotes { display: none; }
   .meeting-transcript-status { padding:0 14px 8px; }
   .meeting-transcript-list { padding:0 14px; }
 }
+
+/* Workload groups: 70% of the previous 560px desktop widget. */
+.topbar > .ai-usage-grouped { flex: 0 0 392px; width: 392px; display: grid; grid-template-columns: 1.25fr 1.2fr .85fr; gap: 0; position: relative; padding-bottom: 14px; }
+.ai-usage-group { min-width: 0; padding: 7px 8px 4px; background: #f1f6ff; }
+.ai-usage-group + .ai-usage-group { border-left: 1px solid #d6e3f5; }
+.ai-group-integration { background: #eff9f5; }
+.ai-group-audio { background: #f6f2ff; }
+.ai-usage-group h3 { margin: 0 0 6px; font-size: 11px; line-height: 1.2; color: #29496a; white-space: nowrap; }
+.ai-usage-model { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 3px 4px; margin-top: 5px; font-size: 10px; color: #46617b; }
+.ai-usage-model b { font-size: 11px; font-variant-numeric: tabular-nums; color: #174b82; white-space: nowrap; }
+.ai-usage-model .ai-usage-meter { grid-column: 1 / -1; height: 3px; }
+.ai-group-integration .ai-usage-meter i { background: #24a17c; }
+.ai-group-audio .ai-usage-meter i { background: #8b67cf; }
+.ai-usage-model.is-low b { color: #ad6c13; }
+.ai-usage-model:focus-visible { outline: 2px solid #7798bf; outline-offset: 2px; }
+.ai-usage-scope { position: absolute; right: 8px; bottom: 2px; font-size: 8px; color: #65778b; }
+@media (max-width: 1250px) and (min-width: 901px) { .topbar > .ai-usage-grouped { flex-basis: 343px; width: 343px; } }
+@media (max-width: 900px) { .topbar > .ai-usage-grouped { flex: 1 1 330px; width: auto; } }
+@media (max-width: 600px) { .topbar > .ai-usage-grouped { flex-basis: 100%; width: 100%; margin-left: 0; } }
+
+@media (max-width: 1250px) { .ai-usage-grouped .ai-usage-model { font-size: 9px; } .ai-usage-grouped .ai-usage-model b { font-size: 10px; } }
+
+.topbar > .ai-usage-grouped { padding-bottom: 0; }
+.ai-usage-grouped .ai-usage-model { grid-template-columns: minmax(0,1fr); gap: 2px; }
+.ai-usage-grouped .ai-usage-model > span { font-size: 9px; line-height: 1.15; }
+.ai-usage-grouped .ai-usage-model b { font-size: 11px; line-height: 1.2; }
+.ai-usage-grouped .ai-usage-model .ai-usage-meter { margin-top: 1px; }
+
+.ai-usage-grouped .ai-usage-model { grid-template-columns: minmax(0,1fr) auto; column-gap: 4px; align-items: baseline; }
+@media (max-width: 1250px) { .ai-usage-grouped .ai-usage-model b { font-size: 10px; } }

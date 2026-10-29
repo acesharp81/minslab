@@ -30,6 +30,9 @@ from ..services.topic_structure import (
 def clients(workload: str = "general") -> list[Any]:
     from .meeting_brief_worker import openrouter_brief_has_capacity, require_openai_fallback
     s = get_settings()
+    if getattr(s, "model_workload_groups_enabled", False):
+        from ..services.grouped_models import pool
+        return pool(s, workload)
     result = []
     router_capacity = openrouter_brief_has_capacity(s)
     if s.meeting_brief_nvidia_enabled and s.nvidia_api_key:

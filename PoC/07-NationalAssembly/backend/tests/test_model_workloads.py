@@ -8,11 +8,12 @@ from app.ingestion import topic_structure_worker as structure,meeting_brief_work
 from test_structure_provider_policy import settings
 
 
-def test_only_integration_can_use_the_protected_300k():
-    s=SimpleNamespace(openai_daily_token_limit=650000,openai_integration_reserved_tokens=300000)
-    assert all(openai_limit(s,name)==650000 for name in INTEGRATION_SCHEMAS)
-    assert openai_limit(s,'discussion_context_review')==350000
-    assert openai_limit(s,'meeting_chunk_analysis')==350000
+@pytest.mark.parametrize("daily,protected,ordinary", [(250000,100000,150000),(650000,300000,350000)])
+def test_only_integration_can_use_the_protected_capacity(daily,protected,ordinary):
+    s=SimpleNamespace(openai_daily_token_limit=daily,openai_integration_reserved_tokens=protected)
+    assert all(openai_limit(s,name)==daily for name in INTEGRATION_SCHEMAS)
+    assert openai_limit(s,'discussion_context_review')==ordinary
+    assert openai_limit(s,'meeting_chunk_analysis')==ordinary
 
 
 def test_general_pool_never_spends_openai_capacity(monkeypatch):

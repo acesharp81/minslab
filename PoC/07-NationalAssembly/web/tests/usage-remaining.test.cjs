@@ -3,19 +3,25 @@ const {test}=require('node:test');
 const code=fs.readFileSync(require('node:path').join(__dirname,'../app.js'),'utf8');
 const source=code.slice(code.indexOf('function aiRemainingCards('),code.indexOf('function renderAiUsage('));
 function cards(payload){const c=vm.createContext({payload});vm.runInContext(source,c);return JSON.parse(vm.runInContext('JSON.stringify(aiRemainingCards(payload))',c));}
-const payload=()=>({status:'AVAILABLE',providers:[{provider:'nvidia',limit:null},{provider:'openrouter',limit:1000,operational_limit:950,used:950,operational_remaining:0},{provider:'openai',limit:650000,used:580000,remaining:60000,reserved_tokens:10000},{provider:'mistral',credit_usd:10,cost_usd:1.65}],auxiliary_models:[{provider:'gemini',daily_token_cap:300000,charged_tokens:3000,daily_request_cap:200,request_count:2},{provider:'groq',daily_token_cap:100000,charged_tokens:5000,daily_request_cap:400,request_count:20}]});
-test('five cards use operational allowance and reservations, not headline quotas',()=>{
- const c=cards(payload());assert.equal(c.length,5);assert.equal(c[0].percent,0);assert.equal(c[0].label,'소진');assert.ok(c[3].percent<10);assert.equal(c[4].label,'83% 남음');
+const payload=()=>({status:'AVAILABLE',workload_groups:[{models:[
+{id:'mini',label:'Mini',limit:10000000,remaining:9800000,unit:'tokens',period:'DAILY_UTC'},
+{id:'openrouter',label:'OpenRouter',limit:950,remaining:0,unit:'requests',period:'DAILY_UTC'},
+{id:'main',label:'GPT-5.4',limit:1000000,remaining:700000,unit:'tokens',period:'DAILY_UTC'},
+{id:'terra',label:'Terra',limit:100,remaining:7.5,unit:'USD'},
+{id:'mistral',label:'Mistral',limit:10,remaining:8.35,unit:'USD'}]}]});
+test('all five models have independent amounts within three groups',()=>{
+ const c=cards(payload());assert.equal(c.length,5);assert.equal(c[0].label,'(일) 980만');assert.equal(c[1].label,'(일) 소진');assert.equal(c[2].label,'(일) 70만');assert.equal(c[3].label,'(월) $7.500');assert.equal(c[4].label,'(월) $8.35');
 });
-test('NIM is excluded from display even when present in the API',()=>{
- assert.ok(cards(payload()).every(c=>c.provider!=='nvidia'));
-});
-test('auxiliary request exhaustion takes precedence over unused tokens',()=>{
- const p=payload();p.auxiliary_models[0].request_count=200;assert.equal(cards(p)[1].label,'소진');
-});
-test('failed or missing usage never defaults to a full balance',()=>{
+test('missing or unavailable usage is never presented as a full balance',()=>{
  assert.ok(cards({status:'UNAVAILABLE'}).every(c=>c.percent===null));assert.ok(cards({}).every(c=>c.percent===null));
 });
-test('fractional and overspent balances are bounded accurately',()=>{
- const p=payload();p.providers[2].remaining=1;p.providers[3].cost_usd=12;const c=cards(p);assert.equal(c[3].label,'1% 미만');assert.equal(c[4].label,'소진');
+test('unconfirmed credit is distinguished from exhausted credit',()=>{
+ const p=payload();p.workload_groups[0].models[3]={id:'terra',status:'CREDIT_UNCONFIRMED'};
+ assert.equal(cards(p)[3].label,'크레딧 확인');
 });
+test('negative remaining is clamped and service scope is disclosed',()=>{
+ const p=payload();p.workload_groups[0].models[0].remaining=-100;
+ assert.equal(cards(p)[0].percent,0);assert.match(cards(p)[2].title,/계정 전체 잔액과 다를/);
+});
+
+test('Terra is a fraction of the monthly $100, not of its $8 opening balance',()=>{ assert.equal(cards(payload())[3].percent,7.5); });

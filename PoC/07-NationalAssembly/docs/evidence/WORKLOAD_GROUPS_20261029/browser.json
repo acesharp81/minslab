@@ -1,0 +1,134 @@
+[
+  {
+    "site": "kjon",
+    "viewport": 1440,
+    "width": 392,
+    "groups": [
+      "실시간 부분요약",
+      "통합+공식자료 대조",
+      "음성"
+    ],
+    "models": [
+      {
+        "label": "GPT-5.4 mini",
+        "value": "(일) 993.6만",
+        "overflow": false
+      },
+      {
+        "label": "Dots3 Note",
+        "value": "(일) 884회",
+        "overflow": false
+      },
+      {
+        "label": "GPT-5.4",
+        "value": "(일) 99만",
+        "overflow": false
+      },
+      {
+        "label": "6.1 Terra",
+        "value": "(월) $7.998",
+        "overflow": false
+      },
+      {
+        "label": "Mistral",
+        "value": "(월) $7.60",
+        "overflow": false
+      }
+    ],
+    "pageOverflow": false
+  },
+  {
+    "site": "kjon",
+    "viewport": 1280,
+    "width": 392,
+    "overflow": false,
+    "models": [
+      {
+        "label": "GPT-5.4 mini",
+        "overflow": false
+      },
+      {
+        "label": "Dots3 Note",
+        "overflow": false
+      },
+      {
+        "label": "GPT-5.4",
+        "overflow": false
+      },
+      {
+        "label": "6.1 Terra",
+        "overflow": false
+      },
+      {
+        "label": "Mistral",
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "site": "kjon",
+    "viewport": 390,
+    "width": 358,
+    "overflow": false,
+    "models": [
+      {
+        "label": "GPT-5.4 mini",
+        "overflow": false
+      },
+      {
+        "label": "Dots3 Note",
+        "overflow": false
+      },
+      {
+        "label": "GPT-5.4",
+        "overflow": false
+      },
+      {
+        "label": "6.1 Terra",
+        "overflow": false
+      },
+      {
+        "label": "Mistral",
+        "overflow": false
+      }
+    ]
+  },
+  {
+    "site": "minslab",
+    "viewport": 1440,
+    "width": 392,
+    "groups": [
+      "실시간 부분요약",
+      "통합+공식자료 대조",
+      "음성"
+    ],
+    "models": [
+      {
+        "label": "GPT-5.4 mini",
+        "value": "(일) 993.6만",
+        "overflow": false
+      },
+      {
+        "label": "Dots3 Note",
+        "value": "(일) 884회",
+        "overflow": false
+      },
+      {
+        "label": "GPT-5.4",
+        "value": "(일) 99만",
+        "overflow": false
+      },
+      {
+        "label": "6.1 Terra",
+        "value": "(월) $7.998",
+        "overflow": false
+      },
+      {
+        "label": "Mistral",
+        "value": "(월) $7.60",
+        "overflow": false
+      }
+    ],
+    "pageOverflow": false
+  }
+]
