@@ -47,6 +47,27 @@ class OpenRouterGatewayTests(unittest.TestCase):
             "X-Idempotency-Key": key,
         }
 
+    @patch("app.openrouter_gateway.requests.post")
+    def test_inspection_vision_shares_quota_and_rejects_missing_auth(self, post):
+        post.return_value = self.response(200, {"id": "vision", "choices": []})
+        headers = {**self.headers("poc11-first"), "X-Minslab-Project": "poc11-image-inspection",
+                   "X-Minslab-Workload": "image-observation", "X-Minslab-Priority": "30",
+                   "X-Minslab-Data-Class": "user_consented_image"}
+        body = {"model": "nvidia/nemotron-3.5-super-vl:free", "messages": [],
+                "models": ["paid/model"], "provider": {"allow_fallbacks": True}}
+        self.assertEqual(403, self.client.post("/api/v1/chat/completions", json=body, headers=headers).status_code)
+        headers["X-Minslab-Meter-Token"] = "meter-test-token"
+        self.assertEqual(200, self.client.post("/api/v1/chat/completions", json=body, headers=headers).status_code)
+        payload = post.call_args.kwargs["json"]
+        self.assertEqual([body["model"]], payload["models"])
+        self.assertFalse(payload["provider"]["allow_fallbacks"])
+        self.assertEqual({"prompt": 0, "completion": 0}, payload["provider"]["max_price"])
+        # PoC7 and PoC11 reserve against the very same daily counter.
+        self.client.post("/api/v1/chat/completions", json={"model": gateway.FREE_MODELS[0], "messages": []}, headers=self.headers("poc7-next"))
+        self.assertEqual(2, self.client.get("/internal/status").json()["reserved"])
+        self.assertEqual(400, self.client.post("/api/v1/chat/completions", json={**body, "model": "paid/model"}, headers=headers).status_code)
+        self.assertEqual(2, post.call_count)
+
     def test_external_usage_is_metadata_only_and_separate_from_free_quota(self) -> None:
         event = {
             "event_id": "test-event-0001", "project": "poc09",

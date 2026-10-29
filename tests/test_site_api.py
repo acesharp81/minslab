@@ -54,6 +54,7 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
             "/airador": "/poc/ai-common-platform-radar/",
             "/mmj": "/poc/mwomeokji/",
             "/home": "/poc/home/",
+            "/imgscan": "/poc/image-inspection/",
         }
         for shortcut, target in shortcuts.items():
             for path in (shortcut, f"{shortcut}/"):

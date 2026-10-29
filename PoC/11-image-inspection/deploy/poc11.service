@@ -1,0 +1,16 @@
+[Unit]
+Description=PoC11 AI Image Inspection
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/11-image-inspection
+ExecStart=/home/ubuntu/apps/myservice/PoC/11-image-inspection/.venv/bin/python scripts/serve.py
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target

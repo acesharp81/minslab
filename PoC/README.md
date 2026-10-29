@@ -147,3 +147,7 @@ curl -fsS http://127.0.0.1:8000/health
 - PoC 07은 공식 자료와 자동 분류를 분리하고, raw 원본·버전·source span을 보존하며, 검증되지 않은 API 필드나 관계를 공식 사실로 표시하지 않습니다.
 - AI 출력은 공식 재난 판단, 행정 결재 또는 확정 보고서를 대체하지 않습니다.
 - 프로젝트 구현을 변경할 때 `project.json`, 하위 `README.md`, 루트 `.env.example`의 설정 이름을 함께 확인합니다.
+
+## 11 · 췤미! — 체크 이미지
+
+`11-image-inspection/`은 이미지 홍보물을 원문 25개 항목과 156개 세부 행동으로 검수하는 독립 서비스입니다. 홈페이지 PoC 11에서 선택하거나 `/imgscan`으로 접속합니다. 그림 읽기(GPT-5.4/Sol/Astra/Nemotron)와 분석(GPT-5.4/mini/Solar/Sol/Astra) 모델을 구분하며, PoC7 중앙 사용량·동일 OpenAI 크레딧 원장을 공유합니다. 실행·환경변수·공유 방법은 [전용 README](11-image-inspection/README.md)를 참고하세요. 실제 키와 업로드는 공유하지 않습니다.

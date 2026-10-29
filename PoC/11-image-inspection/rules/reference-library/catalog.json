@@ -1,0 +1,460 @@
+{
+  "verified_on": "2026-10-29",
+  "records": [
+    {
+      "key": "taegeukgi",
+      "reference": {
+        "name": "대한민국 태극기 — 정면 도안·4괘 배치",
+        "kind": "official-symbols",
+        "issuer": "행정안전부 / 구리시",
+        "official_url": "https://www.mois.go.kr/frt/sub/a06/b08/nationalIcon_2_2/screen.do",
+        "content": "적용: 정면으로 펼친 대한민국 태극기. 가로:세로=3:2. 왼쪽 위 건(세 양효), 오른쪽 위 감(음·양·음), 왼쪽 아래 리(양·음·양), 오른쪽 아래 곤(세 음효). 양효는 이어진 획, 음효는 가운데가 끊긴 획. 태극 위쪽 빨강/아래쪽 파랑, 흰 바탕, 검정 괘.\n관찰과 공식 배치가 다르면 차이를 기록하되 퀴즈 오답·교육·풍자 의도와 제작 오류를 분리한다. 원근·뒤집힌 뒷면·접힘·가림은 정면 기준으로 단정하지 않는다. 색상/치수의 정밀 판정은 원본 및 공식 제작 도안을 확인한다. 등록 이미지는 행안부 공식 작도 도안이며 임의 재그림이 아니다.\n\n검증 기록 (2026-10-29)\n1차: 공식 제작 설명 확인 — 구성·작도 기준 확인\n출처: https://www.mois.go.kr/frt/sub/a06/b08/nationalIcon_2_2/screen.do\nSHA-256: 44a37cf52179622185d1909343ff4e11817677d31d0df9484feef788e54c23f9\n2차: 다른 지자체 제작 설명 교차 대조 — 3:2, 건·감·리·곤 위치 일치\n출처: https://www.guri.go.kr/www/contents.do?key=461\nSHA-256: e9b977d0b273677486e13d98c42f301c133c3edf174df552a3efaae47949768b",
+        "parent_ids": [
+          "H-04"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://www.mois.go.kr/frt/sub/a06/b08/nationalIcon_2_2/screen.do",
+          "file": "flag.html",
+          "sha256": "44a37cf52179622185d1909343ff4e11817677d31d0df9484feef788e54c23f9",
+          "checked_on": "2026-10-29",
+          "method": "공식 제작 설명 확인",
+          "result": "구성·작도 기준 확인"
+        },
+        {
+          "url": "https://www.guri.go.kr/www/contents.do?key=461",
+          "file": "flag2.html",
+          "sha256": "e9b977d0b273677486e13d98c42f301c133c3edf174df552a3efaae47949768b",
+          "checked_on": "2026-10-29",
+          "method": "다른 지자체 제작 설명 교차 대조",
+          "result": "3:2, 건·감·리·곤 위치 일치"
+        }
+      ],
+      "image": "flag.gif",
+      "image_sha256": "4a5c7ecfca9674898da15d5d89506c46215ea4db553ccd3e465e180bb5798c05"
+    },
+    {
+      "key": "police-ranks",
+      "reference": {
+        "name": "경찰 계급장 — 순경부터 치안총감까지 11계급",
+        "kind": "official-emblems",
+        "issuer": "경찰청 / 강원특별자치도경찰청",
+        "official_url": "https://www.police.go.kr/www/agency/intro/intro03.jsp",
+        "content": "경찰 계급장 도안 비교: 순경·경장·경사는 무궁화 봉오리 2·3·4개. 경위·경감·경정·총경은 무궁화 1·2·3·4개. 경무관·치안감·치안정감·치안총감은 태극무궁화 1·2·3·4개. 태극무궁화는 중앙 태극장과 주변 무궁화 5개를 포함한 큰 단위이며 작은 꽃 수와 계급 단위 수를 혼동하지 않는다.\n대상 계급을 명시한 문구/기획서와 보이는 도안을 함께 비교한다. 계급이 특정되지 않았다는 이유만으로 오류를 만들지 않는다. 가림·축소로 수를 세기 어려우면 추가 확인. 이 자료는 도안 기준이며 시대별 복제, 해양경찰·소방·군 계급 및 현재 보직 범위까지 확장 적용하지 않는다. 첨부는 공식 페이지의 원본 도안과 명칭을 담은 화면 기록이다.\n\n검증 기록 (2026-10-29)\n1차: 지역경찰청 11계급 표·도안 확인 — 봉오리/무궁화/태극무궁화의 종류와 개수 확인\n출처: https://gwpolice.go.kr/gw/sub06/sub06_03_03.jsp\nSHA-256: 4a0e1ffcc871d6dc6d2f33d65cc7dd667282daa62c2eb3b31562a99af78c053e\n2차: 경찰청 본청 자료 교차 대조 — 순경~경사 2~4개 일치\n출처: https://www.police.go.kr/www/agency/intro/intro03.jsp\nSHA-256: a9e573fb665d86ec66aab71769c7579fe32898891d77ce5530974f2a282d815c\n3차: 본청 중간 계급 확인 — 경위~총경 무궁화 1~4개 일치\n출처: https://www.police.go.kr/www/agency/intro/intro0301.jsp\nSHA-256: ec655f00fd576e7e93629893b155fe53213ee80a2657daa3abb2980f7f135e3d\n4차: 본청 상위 계급 확인 — 경무관~치안총감 태극무궁화 1~4개 일치\n출처: https://www.police.go.kr/www/agency/intro/intro0302.jsp\nSHA-256: b6008fb4b20224d7bf4d6a6f484d4fb9c0813d04b4d1e0246c736e8f4a7f6575",
+        "parent_ids": [
+          "H-07"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://gwpolice.go.kr/gw/sub06/sub06_03_03.jsp",
+          "file": "police.html",
+          "sha256": "4a0e1ffcc871d6dc6d2f33d65cc7dd667282daa62c2eb3b31562a99af78c053e",
+          "checked_on": "2026-10-29",
+          "method": "지역경찰청 11계급 표·도안 확인",
+          "result": "봉오리/무궁화/태극무궁화의 종류와 개수 확인"
+        },
+        {
+          "url": "https://www.police.go.kr/www/agency/intro/intro03.jsp",
+          "file": "police-national.html",
+          "sha256": "a9e573fb665d86ec66aab71769c7579fe32898891d77ce5530974f2a282d815c",
+          "checked_on": "2026-10-29",
+          "method": "경찰청 본청 자료 교차 대조",
+          "result": "순경~경사 2~4개 일치"
+        },
+        {
+          "url": "https://www.police.go.kr/www/agency/intro/intro0301.jsp",
+          "file": "police-national2.html",
+          "sha256": "ec655f00fd576e7e93629893b155fe53213ee80a2657daa3abb2980f7f135e3d",
+          "checked_on": "2026-10-29",
+          "method": "본청 중간 계급 확인",
+          "result": "경위~총경 무궁화 1~4개 일치"
+        },
+        {
+          "url": "https://www.police.go.kr/www/agency/intro/intro0302.jsp",
+          "file": "police-national3.html",
+          "sha256": "b6008fb4b20224d7bf4d6a6f484d4fb9c0813d04b4d1e0246c736e8f4a7f6575",
+          "checked_on": "2026-10-29",
+          "method": "본청 상위 계급 확인",
+          "result": "경무관~치안총감 태극무궁화 1~4개 일치"
+        }
+      ],
+      "image": "police-ranks.png",
+      "image_sha256": "b5c871cc3ba7eda5185d38ebbfeefe7fe9be27d79b56c89ca7032b967cab80f0"
+    },
+    {
+      "key": "government-symbol",
+      "reference": {
+        "name": "대한민국 정부상징 — 기본형·색상",
+        "kind": "official-emblems",
+        "issuer": "중소벤처기업부 공식 배포 정부상징체계 가이드",
+        "official_url": "https://mss.go.kr/site/smba/contents/view.do?menuCd=20801030000002024122947&siteCd=smba",
+        "content": "정부 공통 태극 상징을 대상으로 2017 개정판 디자인 가이드의 기본형과 색상을 비교한다. 국기의 태극 원형과 정부상징 문양을 혼동하지 않는다. 디지털 RGB: 청색(0,55,100), 적색(228,3,46), 회색(87,87,87), 백색(255,255,255). 공식 가이드에는 단색·음화 등 응용이 있으므로 컬러 기본형과 다르다는 이유만으로 오류 확정하지 않는다.\n원본 비례 왜곡·불필요한 재조합·기관명 결합은 해당 적용 규정을 확인한다. 이 기준은 모든 공공기관의 고유 CI를 대체하지 않으며 기관별 최신 MI 우선. 웹 색상표의 백색 Pantone 오기 가능성은 PDF 원본으로 대조하여 채택하지 않았다. 첨부는 가이드 13쪽 기본형 원문 렌더링이다.\n\n검증 기록 (2026-10-29)\n1차: 정부부처 공식 MI 페이지 확인 — 정부공통 색상 RGB 및 배포 링크 확인\n출처: https://mss.go.kr/site/smba/contents/view.do?menuCd=20801030000002024122947&siteCd=smba\nSHA-256: 924a7c3f68caf412daf75624ba8f1283eed4dcc70f9de8a82f3b018b9cc61467\n2차: 배포 PDF 10~20쪽·12쪽 색상표 대조 — 기본형과 RGB 일치; 단색/응용 규정 존재\n출처: https://mss.go.kr/common/files/Download.do?cfIdx=CF01000012&cfGroup=COMMON&cfRename=b0002b2e-42bb-4bad-bf7e-756f5227d874.pdf\nSHA-256: e537c3472b4ff1f27131b275a39ef64e1b6a835821fe175ce103a4e0418fbdfa",
+        "parent_ids": [
+          "H-07"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://mss.go.kr/site/smba/contents/view.do?menuCd=20801030000002024122947&siteCd=smba",
+          "file": "gov.html",
+          "sha256": "924a7c3f68caf412daf75624ba8f1283eed4dcc70f9de8a82f3b018b9cc61467",
+          "checked_on": "2026-10-29",
+          "method": "정부부처 공식 MI 페이지 확인",
+          "result": "정부공통 색상 RGB 및 배포 링크 확인"
+        },
+        {
+          "url": "https://mss.go.kr/common/files/Download.do?cfIdx=CF01000012&cfGroup=COMMON&cfRename=b0002b2e-42bb-4bad-bf7e-756f5227d874.pdf",
+          "file": "gov.pdf",
+          "sha256": "e537c3472b4ff1f27131b275a39ef64e1b6a835821fe175ce103a4e0418fbdfa",
+          "checked_on": "2026-10-29",
+          "method": "배포 PDF 10~20쪽·12쪽 색상표 대조",
+          "result": "기본형과 RGB 일치; 단색/응용 규정 존재"
+        }
+      ],
+      "image": "gov-standard.png",
+      "image_sha256": "84ed2478ec73f283458de3ff2eca02c41a77ae4968ae09d95884538297156a79"
+    },
+    {
+      "key": "mois-mi",
+      "reference": {
+        "name": "행정안전부 기관 마크 — 국문 가로형",
+        "kind": "official-emblems",
+        "issuer": "행정안전부",
+        "official_url": "https://www.mois.go.kr/frt/sub/a07/miBanner/screen.do",
+        "content": "행정안전부 공식 국문 가로형은 정부상징과 행정안전부 명칭의 조합이다. 첨부는 기관문양 페이지가 배포한 MI ZIP 중 행정안전부_국_좌우.jpg 원본이다. 명칭의 누락·오자, 상징의 변형, 결합 비례를 공식 파일과 비교한다.\n세로형·국영문 혼합형·영문형도 공식 배포되므로 이 가로형과 다른 배치를 바로 오류로 보지 않는다. 다른 기관의 마크나 구 행정안전부 명칭에 일괄 적용하지 않는다. 화면 축소/압축으로 인한 미세 픽셀 색차는 곧바로 규정 위반 근거가 아니다.\n\n검증 기록 (2026-10-29)\n1차: 기관문양 소개 및 공식 로고 확인 — 기관명·기본 태극 상징 확인\n출처: https://www.mois.go.kr/frt/sub/a07/miBanner/screen.do\nSHA-256: 6d352fa55d2122bc61bd3dad8feba6d0321cc13b6fb6fef3f9230f7b412587dd\n2차: 공식 배포 ZIP 내 원본 JPG와 페이지 도안 대조 — 국문 가로형 이름·문양·색 배치 일치\n출처: https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000055327&fileSn=0\nSHA-256: fd1507012d2722a01d369483810e45082de97371b57f8a812113e78ebd42028a",
+        "parent_ids": [
+          "H-07"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://www.mois.go.kr/frt/sub/a07/miBanner/screen.do",
+          "file": "mois-mi.html",
+          "sha256": "6d352fa55d2122bc61bd3dad8feba6d0321cc13b6fb6fef3f9230f7b412587dd",
+          "checked_on": "2026-10-29",
+          "method": "기관문양 소개 및 공식 로고 확인",
+          "result": "기관명·기본 태극 상징 확인"
+        },
+        {
+          "url": "https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_000000000055327&fileSn=0",
+          "file": "mois-mi.zip",
+          "sha256": "fd1507012d2722a01d369483810e45082de97371b57f8a812113e78ebd42028a",
+          "checked_on": "2026-10-29",
+          "method": "공식 배포 ZIP 내 원본 JPG와 페이지 도안 대조",
+          "result": "국문 가로형 이름·문양·색 배치 일치"
+        }
+      ],
+      "image": "mois-logo-original.jpg",
+      "image_sha256": "22de2f7714088d7a9aa80400e1e4c3256b34e553de5f0571871c08a4c61a434d"
+    },
+    {
+      "key": "dahaengi",
+      "reference": {
+        "name": "다행이 — 행정안전부 디지털 소통 캐릭터",
+        "kind": "culture",
+        "issuer": "행정안전부",
+        "official_url": "https://www.mois.go.kr/frt/bbs/type010/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000008&nttId=118181",
+        "content": "비교 대상: 다행이 한 캐릭터. 모티브는 다람쥐. 공식 기본 도안에서 노란 몸, 머리 위 갈색 줄무늬, 둥근 귀와 큰 꼬리, 작은 검정 눈·코, 도토리 모양의 갈색 크로스백이 관찰된다. 부리부리(부엉이)와 이름이 뒤바뀌지 않았는지 확인한다. 첨부 이미지는 2025년 공식 소개 PDF에 실린 다행이 원본 내장 JPEG를 추출한 것이다.\n공식 2026년 홍보물에는 3D·다양한 자세도 쓰인다. 2D/3D·표정·자세·소품 차이만으로 변형 오류를 확정하지 않는다. 캐릭터로 식별되거나 명시된 객체에만 적용하고 일반 동물 그림에 강제 적용하지 않는다. 색상은 시각 식별 설명이며 수치 색도/비례 규격은 제공되지 않아 발명하지 않는다. 외형 비교와 사용권 확인을 분리한다. 자료 등록/공식 공개가 해당 캠페인의 이용허락을 증명하지 않으며 이용 범위는 별도 확인한다.\n\n검증 기록 (2026-10-29)\n1차: 2025-06-10 공식 소개 PDF 1쪽 이름·원본 도안 확인 — 다행이=다람쥐, 부리부리=부엉이 및 저작권 등록 공지\n출처: https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_001364323REk0Im&fileSn=1\nSHA-256: bf7f8d384b213d003ea57f2829bc32b93be125e337246542f357f1955adacd56\n2차: 2026-08-13 공식 배포 PDF 2·4쪽 사용 사례와 재대조 — 두 캐릭터의 명칭·외형 특징 일치, 공식 3D 응용 확인\n출처: https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_00148000rydvGMK&fileSn=1\nSHA-256: 3b9162946c3399b8eecfadec05498c9c5245b8063a626f8a583b95fa54d52ae5",
+        "parent_ids": [
+          "H-07",
+          "D-02",
+          "D-03"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_001364323REk0Im&fileSn=1",
+          "file": "mascots.pdf",
+          "sha256": "bf7f8d384b213d003ea57f2829bc32b93be125e337246542f357f1955adacd56",
+          "checked_on": "2026-10-29",
+          "method": "2025-06-10 공식 소개 PDF 1쪽 이름·원본 도안 확인",
+          "result": "다행이=다람쥐, 부리부리=부엉이 및 저작권 등록 공지"
+        },
+        {
+          "url": "https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_00148000rydvGMK&fileSn=1",
+          "file": "mascots2.pdf",
+          "sha256": "3b9162946c3399b8eecfadec05498c9c5245b8063a626f8a583b95fa54d52ae5",
+          "checked_on": "2026-10-29",
+          "method": "2026-08-13 공식 배포 PDF 2·4쪽 사용 사례와 재대조",
+          "result": "두 캐릭터의 명칭·외형 특징 일치, 공식 3D 응용 확인"
+        }
+      ],
+      "image": "mascot-002.jpg",
+      "image_sha256": "fe911728462493066c10756aefd0077654ecd3b412bef9d08cbf01ddb23644ab"
+    },
+    {
+      "key": "buriburi",
+      "reference": {
+        "name": "부리부리 — 행정안전부 디지털 소통 캐릭터",
+        "kind": "culture",
+        "issuer": "행정안전부",
+        "official_url": "https://www.mois.go.kr/frt/bbs/type010/commonSelectBoardArticle.do?bbsId=BBSMSTR_000000000008&nttId=118181",
+        "content": "비교 대상: 부리부리 한 캐릭터. 모티브는 부엉이. 공식 기본 도안에서 갈색 몸, 좌우로 올라간 머리 윤곽, 큰 흰 눈 주변과 검정 눈, 중앙의 부리, 흰 배와 날개·발이 관찰된다. 다행이(다람쥐)와 이름이 뒤바뀌지 않았는지 확인한다. 첨부 이미지는 2025년 공식 소개 PDF에 실린 부리부리 원본 내장 JPEG를 추출한 것이다.\n공식 2026년 홍보물에는 3D·다양한 자세도 쓰인다. 2D/3D·표정·자세·소품 차이만으로 변형 오류를 확정하지 않는다. 캐릭터로 식별되거나 명시된 객체에만 적용하고 일반 동물 그림에 강제 적용하지 않는다. 색상은 시각 식별 설명이며 수치 색도/비례 규격은 제공되지 않아 발명하지 않는다. 외형 비교와 사용권 확인을 분리한다. 자료 등록/공식 공개가 해당 캠페인의 이용허락을 증명하지 않으며 이용 범위는 별도 확인한다.\n\n검증 기록 (2026-10-29)\n1차: 2025-06-10 공식 소개 PDF 1쪽 이름·원본 도안 확인 — 다행이=다람쥐, 부리부리=부엉이 및 저작권 등록 공지\n출처: https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_001364323REk0Im&fileSn=1\nSHA-256: bf7f8d384b213d003ea57f2829bc32b93be125e337246542f357f1955adacd56\n2차: 2026-08-13 공식 배포 PDF 2·4쪽 사용 사례와 재대조 — 두 캐릭터의 명칭·외형 특징 일치, 공식 3D 응용 확인\n출처: https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_00148000rydvGMK&fileSn=1\nSHA-256: 3b9162946c3399b8eecfadec05498c9c5245b8063a626f8a583b95fa54d52ae5",
+        "parent_ids": [
+          "H-07",
+          "D-02",
+          "D-03"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_001364323REk0Im&fileSn=1",
+          "file": "mascots.pdf",
+          "sha256": "bf7f8d384b213d003ea57f2829bc32b93be125e337246542f357f1955adacd56",
+          "checked_on": "2026-10-29",
+          "method": "2025-06-10 공식 소개 PDF 1쪽 이름·원본 도안 확인",
+          "result": "다행이=다람쥐, 부리부리=부엉이 및 저작권 등록 공지"
+        },
+        {
+          "url": "https://www.mois.go.kr/cmm/fms/FileDown.do?atchFileId=FILE_00148000rydvGMK&fileSn=1",
+          "file": "mascots2.pdf",
+          "sha256": "3b9162946c3399b8eecfadec05498c9c5245b8063a626f8a583b95fa54d52ae5",
+          "checked_on": "2026-10-29",
+          "method": "2026-08-13 공식 배포 PDF 2·4쪽 사용 사례와 재대조",
+          "result": "두 캐릭터의 명칭·외형 특징 일치, 공식 3D 응용 확인"
+        }
+      ],
+      "image": "mascot-003.jpg",
+      "image_sha256": "cc9dbd2b509d154cc2126549cf13b99246e3ee088eed6a44868e6ab61741bb0a"
+    },
+    {
+      "key": "public-language",
+      "reference": {
+        "name": "공공언어 — 정확성·소통성 점검",
+        "kind": "language",
+        "issuer": "국립국어원 / 경기도교육청",
+        "official_url": "https://m.korean.go.kr/common/download.do?c_file_name=034360d4-77f0-496b-a870-72f42632cac0.pdf&file_path=etcData&o_file_name=guide.pdf",
+        "content": "보도·홍보 문구는 표기/표현의 정확성과 독자가 이해하기 쉬운 소통성을 별도로 점검한다. 맞춤법·띄어쓰기·문장 관계와 지나치게 어렵거나 모호한 표현을 보이는 원문에 근거해 확인한다. 출처 문서는 공공언어 교육 기준이며 개별 단어의 정답 사전이나 현재 법령·정책 사실을 모두 제공하지 않는다. 날짜·수치·인용은 해당 원자료와 추가 대조해야 한다.\n췤미 적용 원칙: 문구 전사 성공과 이미지 글자 획 품질은 서로 다른 증거다. 원본에서 실제 확인되지 않은 글자를 문맥으로 복원해 오타로 단정하지 않는다. 공문서 서식 관례를 디자인 포스터의 강제 형식으로 확대하지 않는다.\n\n검증 기록 (2026-10-29)\n1차: 국립국어원 보도 자료 쓰기 길잡이 진단 기준 확인 — 정확성과 소통성의 구분 확인\n출처: https://m.korean.go.kr/common/download.do?c_file_name=034360d4-77f0-496b-a870-72f42632cac0.pdf&file_path=etcData&o_file_name=guide.pdf\nSHA-256: 34ee454e48244479783908f62da4fdd159ede3cd34a204b9610b7c10f40a6580\n2차: 교육청 공공언어 교육자료 교차 확인 — 표기/표현 정확성과 공공성·정보성·용이성 구분 일치\n출처: https://www.goe.go.kr/resource/old/BBSMSTR_000000030111/BBS_202412170929288100.pdf\nSHA-256: a7cbcc0d0eed6a50f04c480c1647480b6b5f3b7befea8854cb50d98cf3cdb4ed",
+        "parent_ids": [
+          "H-06",
+          "D-02"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://m.korean.go.kr/common/download.do?c_file_name=034360d4-77f0-496b-a870-72f42632cac0.pdf&file_path=etcData&o_file_name=guide.pdf",
+          "file": "language.pdf",
+          "sha256": "34ee454e48244479783908f62da4fdd159ede3cd34a204b9610b7c10f40a6580",
+          "checked_on": "2026-10-29",
+          "method": "국립국어원 보도 자료 쓰기 길잡이 진단 기준 확인",
+          "result": "정확성과 소통성의 구분 확인"
+        },
+        {
+          "url": "https://www.goe.go.kr/resource/old/BBSMSTR_000000030111/BBS_202412170929288100.pdf",
+          "file": "language2.pdf",
+          "sha256": "a7cbcc0d0eed6a50f04c480c1647480b6b5f3b7befea8854cb50d98cf3cdb4ed",
+          "checked_on": "2026-10-29",
+          "method": "교육청 공공언어 교육자료 교차 확인",
+          "result": "표기/표현 정확성과 공공성·정보성·용이성 구분 일치"
+        }
+      ]
+    },
+    {
+      "key": "kogl",
+      "reference": {
+        "name": "공공누리 — 유형별 이용조건 확인",
+        "kind": "license",
+        "issuer": "한국문화정보원 공공누리",
+        "official_url": "https://www.kogl.or.kr/info/license.do",
+        "content": "개별 저작물에 실제 부착된 유형과 허락 범위를 확인한다. 0유형 자유이용, 1유형 출처표시, 2유형 출처표시+상업적 이용금지, 3유형 출처표시+변경금지, 4유형 출처표시+상업적 이용금지+변경금지. AI유형은 인공지능 학습용 데이터 이용 조건이며 일반 홍보물 이용허락으로 확대하지 않는다.\n사이트 전체의 공공누리 표지가 모든 사진·폰트·캐릭터의 제3자 권리까지 해결하지 않는다. 이 안내만으로 특정 이미지의 사용권 PASS를 내리지 않는다. 각 자산의 표시, 출처, 사용 목적 및 별도 허락 자료를 대조한다. 불명확한 경우 권리 확인으로 남긴다. 이번 기준은 2026-10-29 확인 시점이며 이후 변경 시 갱신한다.\n\n검증 기록 (2026-10-29)\n1차: 공식 유형 안내 확인 — 0~4 및 AI 유형의 구분 확인\n출처: https://www.kogl.or.kr/info/license.do\nSHA-256: e39a8ad2be7ce3fb6ce23402fbf2bc866ff4ed41b612a22f164ebf1d8b9eb66f\n2차: 1유형 일반증서 대조 — 출처표시 및 이용 범위 확인\n출처: https://www.kogl.or.kr/info/licenseType1.do\nSHA-256: 6b40c3874cf8866f61d8d1bab95e5d4bbedae4dd11347288883a1e83cfd425a6\n3차: 4유형 일반증서 대조 — 상업적 이용·변경 제한 확인\n출처: https://www.kogl.or.kr/info/licenseType4.do\nSHA-256: bf998be633d4a7cc9dd72e1d48f8ba7023086759ab7340608cd36d1506ea6b4b\n4차: 0유형 일반증서 대조 — 자유이용 조건 확인\n출처: https://www.kogl.or.kr/info/licenseType0.do\nSHA-256: b6bfa4df424cbbd7176b32c38b56a08b1481c9e381ca45114c9167b661f8bcb6\n5차: AI유형 일반증서 대조 — 학습용 데이터 목적 제한과 일반 이용 구분 확인\n출처: https://www.kogl.or.kr/info/licenseTypeAi.do\nSHA-256: 8597836a6445d0bab99889c5dece40585780db61ddbb3498b20d7aad095a1599",
+        "parent_ids": [
+          "D-03"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://www.kogl.or.kr/info/license.do",
+          "file": "kogl.html",
+          "sha256": "e39a8ad2be7ce3fb6ce23402fbf2bc866ff4ed41b612a22f164ebf1d8b9eb66f",
+          "checked_on": "2026-10-29",
+          "method": "공식 유형 안내 확인",
+          "result": "0~4 및 AI 유형의 구분 확인"
+        },
+        {
+          "url": "https://www.kogl.or.kr/info/licenseType1.do",
+          "file": "kogl2.html",
+          "sha256": "6b40c3874cf8866f61d8d1bab95e5d4bbedae4dd11347288883a1e83cfd425a6",
+          "checked_on": "2026-10-29",
+          "method": "1유형 일반증서 대조",
+          "result": "출처표시 및 이용 범위 확인"
+        },
+        {
+          "url": "https://www.kogl.or.kr/info/licenseType4.do",
+          "file": "kogl4.html",
+          "sha256": "bf998be633d4a7cc9dd72e1d48f8ba7023086759ab7340608cd36d1506ea6b4b",
+          "checked_on": "2026-10-29",
+          "method": "4유형 일반증서 대조",
+          "result": "상업적 이용·변경 제한 확인"
+        },
+        {
+          "url": "https://www.kogl.or.kr/info/licenseType0.do",
+          "file": "kogl0.html",
+          "sha256": "b6bfa4df424cbbd7176b32c38b56a08b1481c9e381ca45114c9167b661f8bcb6",
+          "checked_on": "2026-10-29",
+          "method": "0유형 일반증서 대조",
+          "result": "자유이용 조건 확인"
+        },
+        {
+          "url": "https://www.kogl.or.kr/info/licenseTypeAi.do",
+          "file": "koglAI.html",
+          "sha256": "8597836a6445d0bab99889c5dece40585780db61ddbb3498b20d7aad095a1599",
+          "checked_on": "2026-10-29",
+          "method": "AI유형 일반증서 대조",
+          "result": "학습용 데이터 목적 제한과 일반 이용 구분 확인"
+        }
+      ]
+    },
+    {
+      "key": "map-labels",
+      "reference": {
+        "name": "지도 표기 — 동해·독도 명칭 확인 안내",
+        "kind": "policy",
+        "issuer": "해양수산부 / 외교부",
+        "official_url": "https://www.mof.go.kr/doc/ko/selectDoc.do?bbsSeq=27&docSeq=46488&menuSeq=929",
+        "content": "국내 공공 홍보물에서 동해(East Sea)·독도(Dokdo) 명칭과 표시가 누락/오표기되지 않았는지 원본 지도를 확인한다. 해양수산부 공식 안내는 국내 지도도 확인 후 사용하고 해외 지도 서비스의 지역 설정을 대한민국(KR)으로 점검하도록 안내한다. 외교부의 동해 명칭 설명과 함께 적용한다.\n이 자료는 명칭 점검 안내이며 정밀 해안선·국경·외곽 도서 위치를 비교할 수 있는 측량 원도가 아니다. 축척·잘린 범위·역사 지도·인용 목적을 고려하고 명칭이 보이지 않는다고 바로 누락 확정하지 않는다. 외교적 표현의 최종 판단과 현재 지리 형상 검증은 해당 최신 공식 지도 및 담당자 확인이 필요하다.\n\n검증 기록 (2026-10-29)\n1차: 해양수산부 공식 지도 이용 안내 확인 — 동해·독도 확인 및 KR 지역 설정 안내\n출처: https://www.mof.go.kr/doc/ko/selectDoc.do?bbsSeq=27&docSeq=46488&menuSeq=929\nSHA-256: 28ca9c245af44e85d905bb0af219a4471e70ea192b8a62e034dd874dc2554067\n2차: 외교부 동해 명칭 설명 교차 대조 — East Sea 명칭과 표기 맥락 확인\n출처: https://www.mofa.go.kr/www/wpge/m_3838/contents.do\nSHA-256: 5640b8ceb91734db0c5d8807570b75c021acb000aebc8b88541190012aacdf57",
+        "parent_ids": [
+          "H-03",
+          "H-09"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://www.mof.go.kr/doc/ko/selectDoc.do?bbsSeq=27&docSeq=46488&menuSeq=929",
+          "file": "map.html",
+          "sha256": "28ca9c245af44e85d905bb0af219a4471e70ea192b8a62e034dd874dc2554067",
+          "checked_on": "2026-10-29",
+          "method": "해양수산부 공식 지도 이용 안내 확인",
+          "result": "동해·독도 확인 및 KR 지역 설정 안내"
+        },
+        {
+          "url": "https://www.mofa.go.kr/www/wpge/m_3838/contents.do",
+          "file": "map-mofa.html",
+          "sha256": "5640b8ceb91734db0c5d8807570b75c021acb000aebc8b88541190012aacdf57",
+          "checked_on": "2026-10-29",
+          "method": "외교부 동해 명칭 설명 교차 대조",
+          "result": "East Sea 명칭과 표기 맥락 확인"
+        }
+      ],
+      "image": "map-guide.jpg",
+      "image_sha256": "b60b97a65964327c0f860b185f83d50d4dd4cedb98fca8a3c10fd4c8debf655f"
+    },
+    {
+      "key": "police-emblem",
+      "reference": {
+        "name": "경찰 기관문양 — 참수리·저울·태극 무궁화",
+        "kind": "official-emblems",
+        "issuer": "경찰청 / 강원특별자치도경찰청",
+        "official_url": "https://www.police.go.kr/www/agency/intro/intro02.jsp",
+        "content": "경찰 기관문양은 참수리 형상, 저울 형상, 중심 태극장이 있는 무궁화를 포함한다. 무궁화 꽃잎은 5장이다. 단순히 날개가 있는 새라는 이유로 일치로 판정하지 말고 머리·날개·저울·중앙 무궁화와 태극의 구성/배치를 첨부 공식 기본형과 비교한다.\n이 자료는 계급장이나 가슴표장의 기준이 아니다. 금색 자수·단색 응용·원근·가림은 고려하며 기본 컬러와 색이 다르다는 이유만으로 오류 확정하지 않는다. 해상도 때문에 요소를 볼 수 없으면 해당 요소만 미확정, 실제 형태 차이가 확인되면 차이를 구체적으로 기록한다. 모든 경찰 복제의 허용 응용형을 포함한 자료가 아니므로 최종 복제 적합성은 별도 확인한다.\n\n검증 기록 (2026-10-29)\n1차: 경찰청 공식 설명 및 기본형 이미지 확인 — 참수리·저울·중앙 태극 무궁화 구성 확인\n출처: https://www.police.go.kr/www/agency/intro/intro02.jsp\nSHA-256: 25bc334449c06be07de3df9d4d01f1b82dff523a2f3841942cd9f5de4347bd17\n2차: 지역경찰청 설명·별도 심벌 이미지와 교차 대조 — 새 머리·날개·저울·무궁화 위치와 꽃잎 5장 일치\n출처: https://gwpolice.go.kr/gw/sub06/sub06_03_01.jsp\nSHA-256: 8febd4c6914d0c7082bdb33f4d5119e275e71e7485bbab8664355dfe863425a6",
+        "parent_ids": [
+          "H-07"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://www.police.go.kr/www/agency/intro/intro02.jsp",
+          "file": "police.html",
+          "sha256": "25bc334449c06be07de3df9d4d01f1b82dff523a2f3841942cd9f5de4347bd17",
+          "checked_on": "2026-10-29",
+          "method": "경찰청 공식 설명 및 기본형 이미지 확인",
+          "result": "참수리·저울·중앙 태극 무궁화 구성 확인"
+        },
+        {
+          "url": "https://gwpolice.go.kr/gw/sub06/sub06_03_01.jsp",
+          "file": "police-ci-gw.html",
+          "sha256": "8febd4c6914d0c7082bdb33f4d5119e275e71e7485bbab8664355dfe863425a6",
+          "checked_on": "2026-10-29",
+          "method": "지역경찰청 설명·별도 심벌 이미지와 교차 대조",
+          "result": "새 머리·날개·저울·무궁화 위치와 꽃잎 5장 일치"
+        }
+      ],
+      "image": "police-emblem.png",
+      "image_sha256": "cb9a692cabfffbf6c9151b9673b3e93d76f30530576bf5275c35fcf79adfaa34"
+    },
+    {
+      "key": "korea-geography",
+      "reference": {
+        "name": "대한민국 지도 — 한반도·제주도·울릉도·독도 위치",
+        "kind": "official-map",
+        "issuer": "국토지리정보원 / 해양수산부 / 제주관광공사",
+        "official_url": "https://nationalatlas.ngii.go.kr/pages/page_3162.php",
+        "content": "국토지리정보원 국가지도집 청소년판 2022 영역과 상징의 한반도 위성 전경이다. 명칭·위치의 2차 검증은 같은 기관 대한민국 전도의 중부/남부 원도 및 제주관광공사 지도, 해양수산부 마라도 설명을 사용했다.\n제주도는 한반도 남서쪽의 큰 섬이며 마라도는 제주도 본섬과 별개의 작은 섬으로 모슬포 남쪽 약 11km 해상에 있다. 따라서 제주도 본섬을 가리키는 라벨과 마라도를 가리키는 라벨을 구분한다. 울릉도와 독도는 한반도 동쪽 해역의 별개 섬이며 독도는 울릉도 동남쪽이다. 동해는 한반도 동쪽, 서해(황해)는 서쪽이다.\n지명 글자의 존재뿐 아니라 실제 지시 대상과 상대 위치를 대조한다. 도식화·삽입도·축척·회전·잘린 범위를 고려하며 개별 도서가 보이지 않는다는 이유만으로 누락 확정하지 않는다. 첨부 위성 전경은 정밀 해안선 측량, 최신 행정경계 또는 법적 경계 판정을 위한 원도가 아니다. 지역명 철자가 불명확하면 판독과 지리 관계를 나누어 기록한다.\n\n검증 기록 (2026-10-29)\n1차: 공식 영역 설명과 위성 전경 확인 — 한반도·제주도·동쪽 도서의 상대 배치 확인\n출처: https://nationalatlas.ngii.go.kr/pages/page_3162.php\nSHA-256: ee2e40bd7862c3cf8230030a3bf0e696dc63c115f290d66363707bed188c64c7\n2차: 공식 중부 지도 원본 대조 — 울릉도/독도 삽입도와 동남쪽 관계 확인\n출처: https://nationalatlas.ngii.go.kr/imagedata/kor_hi_2022/kor_hi_2022_206-1.jpg\nSHA-256: a77d8bf2026fd69aef4bf76bc7732b6508c17bb65e0c10b8dcf5ecf17757866c\n3차: 공식 남부 지도 원본 대조 — 제주도 본섬과 남쪽 마라도 표기가 별개임을 확인\n출처: https://nationalatlas.ngii.go.kr/imagedata/kor_hi_2022/kor_hi_2022_208-1.jpg\nSHA-256: 3eeb03bef114550f2569629b889b6ec1755e40a6e8f4c5d57ab30a22b9518fdf\n4차: 해양수산부 마라도 위치 설명 교차 확인 — 모슬포 남쪽 약 11km의 별개 섬 확인\n출처: https://busan.mof.go.kr/ko/page.do?menuIdx=4622\nSHA-256: 33eea2da0476d1f246447ceaeca01c040e9424619fb19646de59efae53c45499",
+        "parent_ids": [
+          "H-03",
+          "H-09"
+        ],
+        "version": "verified-2026-10-29-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://nationalatlas.ngii.go.kr/pages/page_3162.php",
+          "file": "atlas-territory.html",
+          "sha256": "ee2e40bd7862c3cf8230030a3bf0e696dc63c115f290d66363707bed188c64c7",
+          "checked_on": "2026-10-29",
+          "method": "공식 영역 설명과 위성 전경 확인",
+          "result": "한반도·제주도·동쪽 도서의 상대 배치 확인"
+        },
+        {
+          "url": "https://nationalatlas.ngii.go.kr/imagedata/kor_hi_2022/kor_hi_2022_206-1.jpg",
+          "file": "kor_hi_2022_206-1.jpg",
+          "sha256": "a77d8bf2026fd69aef4bf76bc7732b6508c17bb65e0c10b8dcf5ecf17757866c",
+          "checked_on": "2026-10-29",
+          "method": "공식 중부 지도 원본 대조",
+          "result": "울릉도/독도 삽입도와 동남쪽 관계 확인"
+        },
+        {
+          "url": "https://nationalatlas.ngii.go.kr/imagedata/kor_hi_2022/kor_hi_2022_208-1.jpg",
+          "file": "kor_hi_2022_208-1.jpg",
+          "sha256": "3eeb03bef114550f2569629b889b6ec1755e40a6e8f4c5d57ab30a22b9518fdf",
+          "checked_on": "2026-10-29",
+          "method": "공식 남부 지도 원본 대조",
+          "result": "제주도 본섬과 남쪽 마라도 표기가 별개임을 확인"
+        },
+        {
+          "url": "https://busan.mof.go.kr/ko/page.do?menuIdx=4622",
+          "file": "marado.html",
+          "sha256": "33eea2da0476d1f246447ceaeca01c040e9424619fb19646de59efae53c45499",
+          "checked_on": "2026-10-29",
+          "method": "해양수산부 마라도 위치 설명 교차 확인",
+          "result": "모슬포 남쪽 약 11km의 별개 섬 확인"
+        }
+      ],
+      "image": "korea-geography.jpg",
+      "image_sha256": "99a16d95d04a3063b2459b42be6a0cf60b3603534750320667c5dea05942db55"
+    }
+  ]
+}

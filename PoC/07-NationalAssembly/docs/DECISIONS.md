@@ -1,5 +1,10 @@
 # Architecture Decisions
 
+## 2026-10-30 — PoC11 시각 검사 게이트웨이
+
+PoC11은 meter token 검증을 통과한 `user_consented_image` 요청에 한해 `image-observation`, `image-verification`, `text-ocr`, `text-ocr-recheck` 작업을 허용한다. 모델은 `nvidia/nemotron-3.5-super-vl:free`로 제한해 이미지가 텍스트 전용 fallback으로 전달되지 않게 한다. 기존 공용 요청 원장과 한도는 유지한다. 독립 OCR 경로는 PoC11에서 기본 비활성화하며, 별도 사용 신청 없이 기존 PoC7 수집 작업의 동작을 바꾸지 않는다.
+
+
 ## 2026-10-27 — 내부 분류값을 정상 쟁점으로 집계하지 않음
 
 `UNCERTAIN`은 발언 역할 코드이며 주제 제목이 아니다. 신규 원문 분류는 `strict_labels=True`로 실질 역할의 내부값 제목을 거부한다. 과거 응답은 기본 읽기 검증으로 보존하고, `discussion-placeholder-review/1` 프로필로 해당 근거만 재분류한다. `automatic_review.invalid_label_atom_count`와 pending 수에 포함하므로 요약만 완료됐다는 이유로 품질 검증을 통과하지 않는다. 원문이 실제로 끊긴 경우는 UNCERTAIN 역할로 보존하며 추정 연결하지 않는다.

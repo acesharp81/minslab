@@ -20,6 +20,7 @@ from urllib import request as url_request
 
 from poc09_proxy import proxy_poc09
 from poc10_proxy import proxy_home
+from poc11_proxy import proxy_inspection
 from admin_auth import ADMIN_AUTH, SESSION_COOKIE
 from admin_page import ADMIN_HTML
 from analytics_store import analytics_status, get_analytics_summary, get_system_metric_history, increment_local_llm_calls, list_analytics_visits, purge_old_analytics_events, record_system_metrics, record_visit
@@ -158,7 +159,10 @@ MMJ_UPSTREAM = env_first("POC09_UPSTREAM", default="http://127.0.0.1:18090").rst
 HOME_BASE_PATH = "/poc/home"
 HOME_UPSTREAM = env_first("POC10_UPSTREAM", default="http://127.0.0.1:18100").rstrip("/")
 HOME_PAGE = Path(__file__).parent / "PoC" / "10-home" / "web" / "index.html"
+IMAGE_INSPECTION_BASE_PATH = "/poc/image-inspection"
+IMAGE_INSPECTION_UPSTREAM = env_first("POC11_UPSTREAM", default="http://127.0.0.1:18110").rstrip("/")
 POC_SHORTCUT_REDIRECTS = {
+    "/imgscan": f"{IMAGE_INSPECTION_BASE_PATH}/",
     "/press": f"{MASTER_PRESS_BASE_PATH}/",
     "/kjon": f"{NATIONAL_ASSEMBLY_BASE_PATH}/",
     "/airador": f"{AI_COMMON_RADAR_BASE_PATH}/",
@@ -2403,6 +2407,14 @@ async def app(scope, receive, send):
         ]
         await send({"type": "http.response.start", "status": 307, "headers": headers})
         await send({"type": "http.response.body", "body": b""})
+        return
+
+    if path == IMAGE_INSPECTION_BASE_PATH or path.startswith(f"{IMAGE_INSPECTION_BASE_PATH}/"):
+        if path == IMAGE_INSPECTION_BASE_PATH:
+            await send({"type": "http.response.start", "status": 307, "headers": [(b"location", b"/poc/image-inspection/"), (b"content-length", b"0")]})
+            await send({"type": "http.response.body", "body": b""})
+            return
+        await proxy_inspection(scope, receive, send, IMAGE_INSPECTION_UPSTREAM, is_admin=bool(admin_session(scope)))
         return
 
     if path == HOME_BASE_PATH or path.startswith(f"{HOME_BASE_PATH}/"):

@@ -1,0 +1,15 @@
+services:
+  image-inspection:
+    build: .
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 18110
+      DATA_DIR: /app/data
+    ports:
+      - "127.0.0.1:18110:18110"
+    volumes:
+      - inspection-data:/app/data
+    restart: unless-stopped
+volumes:
+  inspection-data:

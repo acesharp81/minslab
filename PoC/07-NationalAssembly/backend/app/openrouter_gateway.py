@@ -483,10 +483,17 @@ def chat_completions(
     x_minslab_priority: int = Header(default=40),
     x_minslab_data_class: str = Header(default=""),
     x_idempotency_key: str = Header(default=""),
+    x_minslab_meter_token: str = Header(default=""),
 ) -> Response:
     if not API_KEY:
         return _gateway_error(503, "gateway_api_key_missing")
-    if x_minslab_data_class not in {"public_official", "public_web_news"}:
+    inspection = x_minslab_project == "poc11-image-inspection"
+    if inspection and (not METER_TOKEN or not hmac.compare_digest(x_minslab_meter_token, METER_TOKEN)):
+        return _gateway_error(403, "meter_token_required")
+    if inspection and x_minslab_workload not in {"image-observation", "image-verification", "text-ocr", "text-ocr-recheck"}:
+        return _gateway_error(400, "unapproved_inspection_workload")
+    allowed_classes = {"user_consented_image"} if inspection else {"public_official", "public_web_news"}
+    if x_minslab_data_class not in allowed_classes:
         return _gateway_error(403, "public_data_class_required")
     try:
         payload = json.loads(request.scope.get("_body", b"") or b"{}")
@@ -498,11 +505,15 @@ def chat_completions(
     # Starlette does not populate scope body for sync endpoints. Read through
     # the private cache only after the middleware below has stored it.
     model = str(payload.get("model") or "")[:180]
+    if inspection and model != "nvidia/nemotron-3.5-super-vl:free":
+        return _gateway_error(400, "unapproved_inspection_vision_model")
     if not FREE_MODELS:
         return _gateway_error(503, "gateway_free_model_allowlist_empty")
     ordered_models = ([model] if model in FREE_MODELS else []) + [
         item for item in FREE_MODELS if item != model
     ]
+    if inspection:
+        ordered_models = [model]
     if x_minslab_workload == "meeting_brief_lineage" and model in FREE_MODELS:
         ordered_models = [model]
     requested_models = payload.get("models")
@@ -513,7 +524,7 @@ def chat_completions(
         ordered_models = list(dict.fromkeys(requested_models))
     payload.pop("model", None)
     payload["models"] = ordered_models
-    # Only the two public data classes above can reach this point. Enforce the
+    # Public PoC7 data or authenticated, explicitly consented PoC11 images only. Enforce the
     # explicitly approved free-provider policy at the single network boundary
     # and discard any conflicting policy supplied by a worker.
     payload["provider"] = {
@@ -521,6 +532,8 @@ def chat_completions(
         "allow_fallbacks": True,
         "require_parameters": True,
     }
+    if inspection:
+        payload["provider"].update(allow_fallbacks=False, max_price={"prompt": 0, "completion": 0})
     priority = max(1, min(int(x_minslab_priority), 100))
     cached = _cached(
         x_idempotency_key, require_structured_json=require_structured_json,

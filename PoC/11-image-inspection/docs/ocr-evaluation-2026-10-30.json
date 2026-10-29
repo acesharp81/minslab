@@ -1,0 +1,404 @@
+{
+  "scope": "D-02-l 문자 오탈자·가독성 평가. 25개 전체 규칙 성능평가 아님. 기존 판독 inventory 공유. 선택 이미지: ['QA_03', 'QA_07']",
+  "matching": "예측 영역 중심이 정답 ROI 안에 있는 경우만 매칭. 한 ROI의 최악 상태 사용. REVIEW는 검출 성공 아님.",
+  "limitations": "OCR 누락률은 정답 문자 ROI에 비어 있지 않은 전사가 있는지이며 문자별 CER/WER 아님. 미라벨 영역 FAIL은 오탐 확정 없이 별도 수록. 합성 테스트이며 자연형 스트레스 이미지는 별도.",
+  "results": [
+    {
+      "mode": "baseline",
+      "labelled_cases": 5,
+      "faults": 4,
+      "normal": 1,
+      "detection_rate": 0.0,
+      "false_positive_rate": 0.0,
+      "ocr_omission_rate": 0.2,
+      "review_rate": 0.4,
+      "counts": {
+        "PASS": 3,
+        "REVIEW": 2
+      },
+      "cases": [
+        {
+          "image": "QA_03_ocr_readability.png",
+          "target": "기관명 오탈자",
+          "expected": "FAIL",
+          "predicted": "PASS",
+          "ocr_omitted": false,
+          "matches": [
+            {
+              "status": "PASS",
+              "reason": "첫 안내 문구는 획이 또렷해 읽기 가능한 정상 문자로 보입니다.",
+              "rects": [
+                [
+                  0.16666666666666666,
+                  0.3333333333333333,
+                  0.25,
+                  0.4166666666666667
+                ],
+                [
+                  0.25,
+                  0.3333333333333333,
+                  0.3333333333333333,
+                  0.4166666666666667
+                ],
+                [
+                  0.3333333333333333,
+                  0.3333333333333333,
+                  0.4166666666666667,
+                  0.4166666666666667
+                ]
+              ],
+              "error_type": "NONE"
+            }
+          ]
+        },
+        {
+          "image": "QA_03_ocr_readability.png",
+          "target": "본문 흐림(실물 가독성 저하)",
+          "expected": "FAIL",
+          "predicted": "REVIEW",
+          "ocr_omitted": true,
+          "matches": [
+            {
+              "status": "REVIEW",
+              "reason": "세 번째 안내 블록은 심한 블러로 글자 판독이 불가해 정확 전사 여부를 확정할 수 없습니다.",
+              "rects": [
+                [
+                  0.16666666666666666,
+                  0.6666666666666666,
+                  0.25,
+                  0.75
+                ],
+                [
+                  0.25,
+                  0.6666666666666666,
+                  0.3333333333333333,
+                  0.75
+                ],
+                [
+                  0.3333333333333333,
+                  0.6666666666666666,
+                  0.4166666666666667,
+                  0.75
+                ],
+                [
+                  0.4166666666666667,
+                  0.6666666666666666,
+                  0.5,
+                  0.75
+                ]
+              ],
+              "error_type": "OCR_UNREADABLE"
+            }
+          ]
+        },
+        {
+          "image": "QA_03_ocr_readability.png",
+          "target": "정상 신청방법 안내",
+          "expected": "PASS",
+          "predicted": "PASS",
+          "ocr_omitted": false,
+          "matches": [
+            {
+              "status": "PASS",
+              "reason": "네 번째 안내 문구는 선명하고 획 손상이나 가림이 없습니다.",
+              "rects": [
+                [
+                  0.14578125,
+                  0.7915,
+                  0.21867187500000002,
+                  0.843625
+                ],
+                [
+                  0.21867187500000002,
+                  0.7915,
+                  0.2915625,
+                  0.843625
+                ],
+                [
+                  0.2915625,
+                  0.7915,
+                  0.364453125,
+                  0.843625
+                ],
+                [
+                  0.364453125,
+                  0.7915,
+                  0.43734375000000003,
+                  0.843625
+                ]
+              ],
+              "error_type": "NONE"
+            }
+          ]
+        },
+        {
+          "image": "QA_07_culture_food.png",
+          "target": "비빔밤 오탈자",
+          "expected": "FAIL",
+          "predicted": "PASS",
+          "ocr_omitted": false,
+          "matches": [
+            {
+              "status": "PASS",
+              "reason": "우측 음식명 라벨이 선명하며 OCR 이상이 보이지 않는다.",
+              "rects": [
+                [
+                  0.6666666666666666,
+                  0.6666666666666666,
+                  0.75,
+                  0.75
+                ],
+                [
+                  0.6666666666666666,
+                  0.75,
+                  0.75,
+                  0.8333333333333334
+                ],
+                [
+                  0.75,
+                  0.75,
+                  0.8333333333333334,
+                  0.8333333333333334
+                ]
+              ],
+              "error_type": "NONE"
+            }
+          ]
+        },
+        {
+          "image": "QA_07_culture_food.png",
+          "target": "흐린 설명 문구",
+          "expected": "FAIL",
+          "predicted": "REVIEW",
+          "ocr_omitted": false,
+          "matches": [
+            {
+              "status": "PASS",
+              "reason": "우측 음식명 라벨이 선명하며 OCR 이상이 보이지 않는다.",
+              "rects": [
+                [
+                  0.6666666666666666,
+                  0.6666666666666666,
+                  0.75,
+                  0.75
+                ],
+                [
+                  0.6666666666666666,
+                  0.75,
+                  0.75,
+                  0.8333333333333334
+                ],
+                [
+                  0.75,
+                  0.75,
+                  0.8333333333333334,
+                  0.8333333333333334
+                ]
+              ],
+              "error_type": "NONE"
+            },
+            {
+              "status": "REVIEW",
+              "reason": "회색 각주가 강하게 흐려 자모 경계와 획이 구분되지 않는다. · 문맥·권리 또는 불확실한 관찰은 사람 검토 필요",
+              "rects": [
+                [
+                  0.6666666666666666,
+                  0.75,
+                  0.75,
+                  0.8333333333333334
+                ],
+                [
+                  0.75,
+                  0.75,
+                  0.8333333333333334,
+                  0.8333333333333334
+                ],
+                [
+                  0.8333333333333334,
+                  0.75,
+                  0.9166666666666666,
+                  0.8333333333333334
+                ]
+              ],
+              "error_type": "VISUAL_TEXT_DEFECT"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "improved",
+      "labelled_cases": 5,
+      "faults": 4,
+      "normal": 1,
+      "detection_rate": 0.0,
+      "false_positive_rate": 0.0,
+      "ocr_omission_rate": 0.4,
+      "review_rate": 0.6,
+      "counts": {
+        "PASS": 2,
+        "REVIEW": 3
+      },
+      "cases": [
+        {
+          "image": "QA_03_ocr_readability.png",
+          "target": "기관명 오탈자",
+          "expected": "FAIL",
+          "predicted": "PASS",
+          "ocr_omitted": false,
+          "matches": [
+            {
+              "status": "PASS",
+              "reason": "독립 전사가 일치하며 해당 원본 영역의 획·철자 검사에서 결함을 발견하지 않았습니다.",
+              "rects": [
+                [
+                  0.08875,
+                  0.34,
+                  0.459375,
+                  0.411
+                ]
+              ],
+              "error_type": "NONE"
+            }
+          ]
+        },
+        {
+          "image": "QA_03_ocr_readability.png",
+          "target": "본문 흐림(실물 가독성 저하)",
+          "expected": "FAIL",
+          "predicted": "REVIEW",
+          "ocr_omitted": true,
+          "matches": [
+            {
+              "status": "REVIEW",
+              "reason": "전 구간이 심하게 흐려져 자모의 세부 획과 받침 위치를 판별하기 어려움. 띄어쓰기 경계만 대략 보임.",
+              "rects": [
+                [
+                  0.101875,
+                  0.639,
+                  0.558125,
+                  0.686
+                ]
+              ],
+              "error_type": "OCR_UNCERTAIN"
+            },
+            {
+              "status": "REVIEW",
+              "reason": "OCR007과 유사한 흐린 문구의 일부로 보이며, 좌측이 잘렸고 전반적 블러가 심해 실제 획 판별이 어려움.",
+              "rects": [
+                [
+                  0.16666666666666663,
+                  0.6666666666666666,
+                  0.5,
+                  0.75
+                ]
+              ],
+              "error_type": "OCR_UNCERTAIN"
+            }
+          ]
+        },
+        {
+          "image": "QA_03_ocr_readability.png",
+          "target": "정상 신청방법 안내",
+          "expected": "PASS",
+          "predicted": "PASS",
+          "ocr_omitted": false,
+          "matches": [
+            {
+              "status": "PASS",
+              "reason": "독립 전사가 일치하며 해당 원본 영역의 획·철자 검사에서 결함을 발견하지 않았습니다.",
+              "rects": [
+                [
+                  0.095625,
+                  0.788,
+                  0.448125,
+                  0.832
+                ]
+              ],
+              "error_type": "NONE"
+            }
+          ]
+        },
+        {
+          "image": "QA_07_culture_food.png",
+          "target": "비빔밤 오탈자",
+          "expected": "FAIL",
+          "predicted": "REVIEW",
+          "ocr_omitted": false,
+          "matches": [
+            {
+              "status": "REVIEW",
+              "reason": "전문 OCR과 독립 원본 판독이 다릅니다. 인식 오류 후보이며 원본 오타로 확정하지 않습니다.",
+              "rects": [
+                [
+                  0.7,
+                  0.722,
+                  0.774375,
+                  0.779
+                ]
+              ],
+              "error_type": "OCR_RECOGNITION_ERROR"
+            }
+          ]
+        },
+        {
+          "image": "QA_07_culture_food.png",
+          "target": "흐린 설명 문구",
+          "expected": "FAIL",
+          "predicted": "REVIEW",
+          "ocr_omitted": true,
+          "matches": [
+            {
+              "status": "REVIEW",
+              "reason": "전 영역이 강한 블러로 자모 획과 받침 위치를 식별할 수 없음",
+              "rects": [
+                [
+                  0.715625,
+                  0.781,
+                  0.765625,
+                  0.799
+                ]
+              ],
+              "error_type": "OCR_UNCERTAIN"
+            },
+            {
+              "status": "REVIEW",
+              "reason": "어절 간 공백은 보이나 각 글자 내부 획이 뭉개져 판독 불가",
+              "rects": [
+                [
+                  0.69625,
+                  0.78,
+                  0.82,
+                  0.801
+                ]
+              ],
+              "error_type": "OCR_UNCERTAIN"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "unlabelled_failures": {
+    "baseline": [],
+    "improved": []
+  },
+  "usage": {
+    "baseline": {
+      "calls": 8,
+      "tokens": 94430,
+      "estimated_cost_usd": 0.28790425000000003,
+      "total_seconds": 131.81
+    },
+    "improved": {
+      "calls": 8,
+      "tokens": 17589,
+      "estimated_cost_usd": 0.16203499999999998,
+      "total_seconds": 155.28
+    }
+  },
+  "usage_basis": {
+    "baseline": "기존 문자 관련 검사 전체 호출량",
+    "improved": "기존 첫 관찰을 재사용한 추가 OCR 경로만의 호출량. 전체 파이프라인 비용이 아니며 baseline과 직접 비용 절감 비교 불가."
+  }
+}
