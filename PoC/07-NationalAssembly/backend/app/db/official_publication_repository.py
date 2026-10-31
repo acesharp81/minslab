@@ -256,7 +256,7 @@ class OfficialPublicationRepository:
             labels = classify_official_utterance(text)
             row = self.connection.execute(
                 """
-                INSERT INTO official_utterance_annotations (
+                INSERT INTO official_annotation_rows (
                     id, utterance_id, generator_version, classification_method,
                     topics, ministries, source_committee, generated_at, evidence_text_hash,
                     utterance_kind, evidence_keywords, topic_links, ministry_links
@@ -514,7 +514,7 @@ class OfficialPublicationRepository:
         for utterance in body.utterances:
             result = self.connection.execute(
                 """
-                INSERT INTO official_transcript_utterances (
+                INSERT INTO official_utterance_rows (
                     id, document_id, sequence_number, source_speaker_id,
                     source_span_id, agenda_item_ref, speaker_name, speaker_role,
                     text, text_hash, source_locator

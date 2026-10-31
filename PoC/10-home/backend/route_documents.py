@@ -249,6 +249,7 @@ def collect_eum(source, fetcher, service):
         # Each concurrent document owns its raw manifest. Sharing a Fetcher
         # would associate one attachment with another request's last file.
         local=Fetcher(source['id'],fetcher.raw_dir) if detail_workers>1 else fetcher
+        if detail_workers>1:local.scheduled_bulk=getattr(fetcher,'scheduled_bulk',False)
         try:
             body=local.get(row['evidence_url']);p=eum_detail(body,row);p.update(original(local,body))
             eum_attachments(p,local)

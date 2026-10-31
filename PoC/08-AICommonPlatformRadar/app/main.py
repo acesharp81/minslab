@@ -4,6 +4,7 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import secrets
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
@@ -82,6 +83,21 @@ def _authorized(request: Request) -> bool:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # A validated standby must not initialize/recover DB state or start a second
+    # opinion worker before the previous API has drained and stopped.
+    activation = settings.data_dir / "runtime" / "local-mirror-activation"
+    if os.getenv("POC08_STANDBY", "0") == "1" and not activation.is_file():
+        async def activate_background() -> None:
+            while not activation.is_file():
+                await asyncio.sleep(1)
+            await _refresh_opinion_tracking_loop()
+        task = asyncio.create_task(activate_background())
+        try:
+            yield
+        finally:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+        return
     settings.ensure_directories()
     configure_logging()
     init_db()

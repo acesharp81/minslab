@@ -1,0 +1,17 @@
+{
+  "report_preserved": {
+    "topics": true,
+    "tasks": true,
+    "topic_groups": true,
+    "live_topic_lineage": true,
+    "report_summary": true
+  },
+  "groups": 22,
+  "summary_groups": 23,
+  "tests_passed": 71,
+  "noop_db_test": {
+    "identical_updates": 0,
+    "changed_updates": 1,
+    "old_revision_preserved": true
+  }
+}

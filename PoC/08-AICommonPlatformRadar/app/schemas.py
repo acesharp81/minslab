@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import StrictBool, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Evidence(BaseModel):
@@ -260,3 +260,7 @@ class AdminPasswordChange(BaseModel):
     model_config = ConfigDict(extra="forbid")
     current_password: str = Field(min_length=1, max_length=300)
     new_password: str = Field(min_length=8, max_length=300)
+
+
+class CollectionSettingsPatch(BaseModel):
+    enabled: StrictBool

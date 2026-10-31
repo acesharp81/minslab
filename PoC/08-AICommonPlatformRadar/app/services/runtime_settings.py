@@ -20,6 +20,7 @@ def _path() -> Path:
 def _defaults() -> dict:
     return {
         "admin": {"password_hash": "", "session_secret": secrets.token_urlsafe(32)},
+        "collection": {"enabled": True, "updated_at": None},
         "notifications": {
             "enabled": False,
             "recipients": [],
@@ -39,7 +40,7 @@ def load_runtime_settings() -> dict:
     if path.is_file():
         try:
             loaded = json.loads(path.read_text(encoding="utf-8"))
-            for section in ("admin", "notifications"):
+            for section in ("admin", "notifications", "collection"):
                 if isinstance(loaded.get(section), dict):
                     data[section].update(loaded[section])
         except (OSError, json.JSONDecodeError):
@@ -137,3 +138,36 @@ def update_notification_settings(values: dict) -> dict:
         data["notifications"]["smtp_password"] = password
     save_runtime_settings(data)
     return public_notification_settings()
+
+
+def collection_enabled(data_dir: Path | None = None) -> bool:
+    directory = data_dir or get_settings().data_dir
+    if (directory / "collection.disabled").exists():
+        return False
+    path = directory / "runtime_settings.json"
+    if not path.exists():
+        return True
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return data.get("collection", {}).get("enabled", True) is True
+    except (OSError, ValueError, AttributeError):
+        return False  # A damaged settings file must not restart collection.
+
+
+def public_collection_settings() -> dict:
+    values = dict(load_runtime_settings()["collection"])
+    values["enabled"] = collection_enabled()
+    return values
+
+
+def update_collection_settings(enabled: bool) -> dict:
+    from datetime import datetime, timezone
+    data = load_runtime_settings()
+    data["collection"] = {"enabled": enabled, "updated_at": datetime.now(timezone.utc).isoformat()}
+    save_runtime_settings(data)
+    marker = get_settings().data_dir / "collection.disabled"
+    if enabled:
+        marker.unlink(missing_ok=True)
+    else:
+        marker.touch(mode=0o600, exist_ok=True)
+    return public_collection_settings()

@@ -121,6 +121,8 @@ def narrative_projection(brief: dict[str, Any]) -> dict[str, Any]:
         result = {'topics': topics, 'topic_groups': groups,
                   'status': 'AVAILABLE' if topics else 'PENDING',
                   'source': 'STORED_AI_BRIEF', 'authority_status': 'PROVISIONAL'}
+    from .report_parent_groups import compact_report_parents
+    result = compact_report_parents(result)
     attach_narrative_tasks(result, brief)
     result['presentation_version'] = 'meeting-summary/3'
     return result

@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily HOME source-retention check
+[Timer]
+OnCalendar=*-*-* 02:40:00 Asia/Seoul
+RandomizedDelaySec=10min
+Persistent=true
+[Install]
+WantedBy=timers.target

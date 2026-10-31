@@ -14,12 +14,15 @@ def settings(store):
  init(store);base=store.settings()
  model=base.get('selected_model') or ('solar-pro4' if base['profile']=='SOLAR' else 'gpt-5.4-mini')
  values={r:dict(role=r,model=model if r=='collection' else 'solar-pro4',enabled=base['enabled'] if r=='collection' else False,
-    review_model='',hour_kst=base['hour_kst'] if r=='collection' else 6 if r=='algorithm' else 8,version=0) for r in ROLES}
+    review_model='',hour_kst=2 if r=='collection' else 1 if r=='algorithm' else 3,version=0) for r in ROLES}
  with store.db() as c:
   for row in c.execute('SELECT role,payload FROM agent_settings'):values[row[0]]=json.loads(row[1])
+ for role,value in values.items():
+  if not 1<=value['hour_kst']<5:value['hour_kst']={'algorithm':1,'collection':2,'officer':3}[role]
  return values
 
 def configure(store,role,value):
+ if not 1<=value['hour_kst']<5:raise ValueError('자동 일괄 작업은 한국시간 01~05시에 예약하세요')
  validate(role,value['model'])
  if value.get('review_model'):
   from .ai_agent_catalog import NEMO

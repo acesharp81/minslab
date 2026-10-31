@@ -1,0 +1,30 @@
+{
+  "ai_panel_seconds": 2.493,
+  "quota_rows": 5,
+  "ratios": [
+    {
+      "expected": 100,
+      "actual": 100
+    },
+    {
+      "expected": 100,
+      "actual": 100
+    },
+    {
+      "expected": 2,
+      "actual": 2.0199275362318843
+    },
+    {
+      "expected": 100,
+      "actual": 100
+    }
+  ],
+  "mobile": {
+    "width": 354,
+    "scroll": 354
+  },
+  "hidden_poll_requests": 0,
+  "visible_resume_requests": 1,
+  "errors": [],
+  "failed_api": []
+}

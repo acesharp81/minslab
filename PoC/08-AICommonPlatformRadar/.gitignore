@@ -17,3 +17,5 @@ backups/*
 !data/reports/.gitkeep
 !data/logs/.gitkeep
 !backups/.gitkeep
+data/collection.disabled
+data/runtime/

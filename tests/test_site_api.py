@@ -5,7 +5,6 @@ import unittest
 from unittest import mock
 
 import main
-import poc09_proxy
 import poc10_proxy
 import httpx
 
@@ -183,56 +182,9 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(dict(start["headers"])[b"allow"], b"GET, HEAD")
                 self.assertIn(b"method not allowed", body)
 
-    async def test_mmj_destination_forwards_to_isolated_service(self):
-        async def fake_proxy(scope, receive, send, upstream):
-            self.assertEqual(scope["path"], "/poc/mwomeokji/")
-            self.assertEqual(upstream, "http://127.0.0.1:18090")
-            await send({"type": "http.response.start", "status": 200, "headers": [(b"content-type", b"text/html")]})
-            await send({"type": "http.response.body", "body": b"ordering app"})
 
-        with mock.patch.object(main, "proxy_poc09", side_effect=fake_proxy):
-            start, body = await call_app("/poc/mwomeokji/")
-        self.assertEqual(start["status"], 200)
-        self.assertEqual(body, b"ordering app")
 
-    async def test_mmj_customer_and_merchant_paths_forward(self):
-        seen = []
-        async def fake_proxy(scope, receive, send, upstream):
-            seen.append((scope["method"], scope["path"]))
-            await send({"type": "http.response.start", "status": 204, "headers": []})
-            await send({"type": "http.response.body", "body": b""})
 
-        with mock.patch.object(main, "proxy_poc09", side_effect=fake_proxy):
-            await call_app("/poc/mwomeokji/s/orange-table/")
-            await call_app("/poc/mwomeokji/api/checkout/", method="POST")
-            await call_app("/poc/mwomeokji/merchant/")
-        self.assertEqual(seen, [
-            ("GET", "/poc/mwomeokji/s/orange-table/"),
-            ("POST", "/poc/mwomeokji/api/checkout/"),
-            ("GET", "/poc/mwomeokji/merchant/"),
-        ])
-
-    async def test_mmj_rejects_unsupported_methods(self):
-        start, _ = await call_app("/poc/mwomeokji/", method="PUT")
-        self.assertEqual(start["status"], 405)
-        self.assertEqual(dict(start["headers"])[b"allow"], b"GET, HEAD, POST, PATCH, DELETE")
-
-    async def test_mmj_proxy_only_forwards_its_own_cookies(self):
-        observed = {}
-        def upstream(request):
-            observed["cookie"] = request.headers.get("cookie")
-            return httpx.Response(200, headers={"set-cookie": "poc09_guest=new; Path=/poc/mwomeokji; HttpOnly"}, text="ok")
-        original_client = httpx.AsyncClient
-        transport = httpx.MockTransport(upstream)
-        with mock.patch.object(poc09_proxy.httpx, "AsyncClient", side_effect=lambda **kw: original_client(transport=transport, **kw)):
-            start, body = await call_app("/poc/mwomeokji/api/health/", headers=[
-                (b"cookie", b"site_admin=secret; poc09_guest=visitor-token; other_poc=hidden"),
-                (b"host", b"www.minslab.kr"),
-            ])
-        self.assertEqual(start["status"], 200)
-        self.assertEqual(body, b"ok")
-        self.assertEqual(observed["cookie"], "poc09_guest=visitor-token")
-        self.assertIn(b"poc09_guest=new", dict(start["headers"])[b"set-cookie"])
 
     async def test_poc_shortcuts_reject_write_methods(self):
         start, body = await call_app("/kjon", method="POST")
@@ -242,27 +194,7 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(headers[b"allow"], b"GET, HEAD")
         self.assertIn(b"method not allowed", body)
 
-    async def test_master_press_pause_page_displays_closed_popup(self):
-        with mock.patch.object(main, "MASTER_PRESS_PAUSED", True):
-            start, body = await call_app("/poc/master-press/")
 
-        headers = dict(start["headers"])
-        self.assertEqual(start["status"], 200)
-        self.assertEqual(headers[b"cache-control"], b"no-store")
-        self.assertEqual(headers[b"retry-after"], b"86400")
-        self.assertIn("당분간 영업 종료 중입니다".encode("utf-8"), body)
-        self.assertIn(b'role="dialog"', body)
-
-    async def test_master_press_pause_blocks_api_before_module_load(self):
-        with (
-            mock.patch.object(main, "MASTER_PRESS_PAUSED", True),
-            mock.patch.object(main, "load_master_press_module") as load_module,
-        ):
-            start, body = await call_app("/api/poc/master-press/admin/tick", method="POST")
-
-        self.assertEqual(start["status"], 503)
-        self.assertIn(b"master_press_paused", body)
-        load_module.assert_not_called()
 
     async def test_ai_common_radar_put_is_supported_and_requires_admin(self):
         with mock.patch.object(main, "admin_session", return_value=None):
@@ -553,3 +485,22 @@ class SiteApiTests(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RetirementTests(unittest.IsolatedAsyncioTestCase):
+    async def test_retired_routes_never_load_or_forward(self):
+        for path in ['/poc/mois-kms/', '/api/poc/mois-kms/tasks',
+                     '/poc/north-korea-night-lights/map', '/poc/mwomeokji/api/health']:
+            for method in ['GET', 'POST', 'HEAD']:
+                start, body = await call_app(path, method=method)
+                self.assertEqual(start['status'], 410, (path, method))
+                if method == 'HEAD': self.assertEqual(body, b'')
+
+
+class PausedProjectTests(unittest.IsolatedAsyncioTestCase):
+    async def test_poc04_retains_code_but_blocks_runtime_when_paused(self):
+        with mock.patch.object(main,'MASTER_PRESS_PAUSED',True), mock.patch.object(main,'load_master_press_module',side_effect=AssertionError('must stay paused')):
+            start,body=await call_app('/api/poc/master-press/collect',method='POST')
+            self.assertEqual(start['status'],503)
+            start,body=await call_app('/poc/master-press/')
+            self.assertEqual(start['status'],200)

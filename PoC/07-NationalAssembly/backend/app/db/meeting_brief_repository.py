@@ -23,7 +23,7 @@ class MeetingBriefRepository:
             """
             SELECT id, broadcast_id, transcript_hash, source_last_event_cursor,
                    provider, model, prompt_version, authority_status, review_status,
-                   brief, usage_metadata, generated_at
+                   meeting_brief_payload(id,brief) AS brief, usage_metadata, generated_at
             FROM meeting_briefs
             WHERE broadcast_id = %s AND transcript_hash = %s
               AND provider = %s AND model = %s AND prompt_version = %s
@@ -40,7 +40,7 @@ class MeetingBriefRepository:
             """
             SELECT id, broadcast_id, transcript_hash, source_last_event_cursor,
                    provider, model, prompt_version, authority_status, review_status,
-                   brief, usage_metadata, generated_at
+                   meeting_brief_payload(id,brief) AS brief, usage_metadata, generated_at
             FROM meeting_briefs
             WHERE broadcast_id = %s AND id = %s
             """,
@@ -53,7 +53,7 @@ class MeetingBriefRepository:
             """
             SELECT id, broadcast_id, transcript_hash, source_last_event_cursor,
                    provider, model, prompt_version, authority_status, review_status,
-                   brief, usage_metadata, generated_at
+                   meeting_brief_payload(id,brief) AS brief, usage_metadata, generated_at
             FROM meeting_briefs WHERE broadcast_id = %s
             ORDER BY (provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')) DESC,
                      generated_at DESC, id DESC LIMIT 1
@@ -71,7 +71,7 @@ class MeetingBriefRepository:
             SELECT DISTINCT ON (broadcast_id)
                    id, broadcast_id, transcript_hash, source_last_event_cursor,
                    provider, model, prompt_version, authority_status, review_status,
-                   brief, usage_metadata, generated_at
+                   meeting_brief_payload(id,brief) AS brief, usage_metadata, generated_at
             FROM meeting_briefs
             WHERE broadcast_id = ANY(%s)
             ORDER BY broadcast_id,
@@ -91,7 +91,7 @@ class MeetingBriefRepository:
                    brief.id, brief.broadcast_id, brief.transcript_hash,
                    brief.source_last_event_cursor, brief.provider, brief.model,
                    brief.prompt_version, brief.authority_status,
-                   brief.review_status, brief.brief, brief.usage_metadata,
+                   brief.review_status, meeting_brief_payload(brief.id,brief.brief) AS brief, brief.usage_metadata,
                    brief.generated_at
             FROM meeting_briefs brief
             JOIN live_broadcasts broadcast ON broadcast.id = brief.broadcast_id
@@ -124,7 +124,7 @@ class MeetingBriefRepository:
                    id, broadcast_id, transcript_hash, source_last_event_cursor,
                    provider, model, prompt_version, authority_status, review_status,
                    jsonb_build_object(
-                       'utterance_count', brief->'utterance_count', 'finalization', brief->'finalization'
+                       'utterance_count', brief->'utterance_count', 'finalization', meeting_brief_payload(id,brief)->'finalization'
                    ) AS brief,
                    '{}'::jsonb AS usage_metadata, generated_at
             FROM meeting_briefs
@@ -319,7 +319,7 @@ class MeetingBriefRepository:
             DO UPDATE SET usage_metadata = meeting_briefs.usage_metadata
             RETURNING id, broadcast_id, transcript_hash, source_last_event_cursor,
                       provider, model, prompt_version, authority_status, review_status,
-                      brief, usage_metadata, generated_at
+                      meeting_brief_payload(id,brief) AS brief, usage_metadata, generated_at
             """,
             (
                 uuid.uuid4(),
@@ -338,29 +338,45 @@ class MeetingBriefRepository:
             raise RuntimeError("meeting brief was not saved")
         return item
 
-    def update_brief(self, brief_id: Any, brief: dict[str, Any]) -> dict[str, Any]:
+    def save_finalization(self, brief_id: Any, state: dict[str, Any]) -> None:
         from psycopg.types.json import Jsonb
-
         self.connection.execute(
-            "INSERT INTO meeting_brief_revisions(meeting_brief_id,brief,reason) "
-            "SELECT id,brief,'AUTOMATIC_ENRICHMENT' FROM meeting_briefs WHERE id=%s AND brief IS DISTINCT FROM %s",
-            (brief_id, Jsonb(brief)),
+            "INSERT INTO meeting_brief_finalization_state(meeting_brief_id,state) VALUES(%s,%s) "
+            "ON CONFLICT(meeting_brief_id) DO UPDATE SET state=EXCLUDED.state,updated_at=now() "
+            "WHERE meeting_brief_finalization_state.state IS DISTINCT FROM EXCLUDED.state",
+            (brief_id, Jsonb(state)),
         )
 
-        row = self.connection.execute(
-            """
-            UPDATE meeting_briefs SET brief = %s
-            WHERE id = %s
-            RETURNING id, broadcast_id, transcript_hash, source_last_event_cursor,
-                      provider, model, prompt_version, authority_status, review_status,
-                      brief, usage_metadata, generated_at
-            """,
-            (Jsonb(brief), brief_id),
-        ).fetchone()
-        item = self._row(row)
-        if item is None:
+    def update_brief(self, brief_id: Any, brief: dict[str, Any]) -> dict[str, Any]:
+        from psycopg.types.json import Jsonb
+        current = self._row(self.connection.execute(
+            "SELECT id,broadcast_id,transcript_hash,source_last_event_cursor,"
+            "provider,model,prompt_version,authority_status,review_status,"
+            "meeting_brief_payload(id,brief),usage_metadata,generated_at "
+            "FROM meeting_briefs WHERE id=%s FOR UPDATE", (brief_id,),
+        ).fetchone())
+        if current is None:
             raise RuntimeError("meeting brief was not updated")
-        return item
+        before = current["brief"]
+        body = {k: v for k, v in brief.items() if k != "finalization"}
+        prior_body = {k: v for k, v in before.items() if k != "finalization"}
+        # Content enrichment may have loaded its input before progress advanced.
+        # Progress writers use save_finalization(); never restore a stale state
+        # carried along by an asynchronous body update.
+        if "finalization" not in before and "finalization" in brief:
+            self.save_finalization(brief_id, brief["finalization"])
+        if body != prior_body:
+            self.connection.execute(
+                "INSERT INTO meeting_brief_revisions(meeting_brief_id,brief,reason) VALUES(%s,%s,'AUTOMATIC_ENRICHMENT')",
+                (brief_id, Jsonb(before)),
+            )
+            # The initial marker remains compatible with older read-only consumers;
+            # all current progress comes from the small state row.
+            stored = {**body, **({"finalization": before["finalization"]} if "finalization" in before else {})}
+            self.connection.execute("UPDATE meeting_briefs SET brief=%s WHERE id=%s", (Jsonb(stored),brief_id))
+        current["brief"] = {**body, **({"finalization": before.get("finalization", brief.get("finalization"))}
+                                      if "finalization" in before or "finalization" in brief else {})}
+        return current
 
     def is_deferred(
         self,

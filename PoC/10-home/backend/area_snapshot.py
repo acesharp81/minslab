@@ -14,7 +14,7 @@ from .read_scope import projection_reads
 REGIONS=('서울특별시','경기도','인천광역시')
 FORMAT=1
 CHECK_SECONDS=300
-MAX_AGE_SECONDS=21600
+MAX_AGE_SECONDS=86400
 KINDS=tuple(sorted(set(COLLECTION_REVISION_KINDS)-set(RAW_BUILDING_KINDS)|{
     'area_stat','area_benchmark','area_living','living_stat','unsold','statistic','statistic_reference'}))
 
@@ -78,21 +78,26 @@ class SnapshotStore:
             regions={r:data['contexts'][r][''] for r in REGIONS},supply=data['annual'][region],
             outlook=data['outlooks'].get(region),places=data['places'],
             snapshot=dict(generated_at=data['generated_at'],source_checked_at=health.get('source_checked_at'),
-                refresh_interval_seconds=CHECK_SECONDS,max_refresh_seconds=MAX_AGE_SECONDS,
+                refresh_interval_seconds=CHECK_SECONDS,max_refresh_seconds=MAX_AGE_SECONDS,bulk_window='01:00–05:00 Asia/Seoul',
                 refreshing=health.get('status')=='BUILDING',refresh_failed=bool(health.get('last_error')),
                 stale=(datetime.now(timezone.utc)-generated).total_seconds()>MAX_AGE_SECONDS+3600,
                 basis='내부 DB의 수집 원천으로 미리 계산한 자료. 실제 자료 기준일은 각 그래프에 표기합니다.'))
 
-def refresh(service,state=None,stop=None,years=None):
+def refresh(service,state=None,stop=None,years=None,scheduled=False):
     """Only replace a year after a complete build and unchanged committed inputs."""
     from .area_stats import area_places
     state=state if state is not None else {};store=SnapshotStore(service)
+    from .operations_window import night_open
+    if scheduled and not night_open():
+        state.update(status='NIGHT_WAIT',building_year=None);return []
     version=stamp(service);places=area_places(service)
     state.update(source_checked_at=datetime.now(timezone.utc).isoformat(),last_error=None)
     years=years if years is not None else range(today().year,2017,-1)
     done=[]
     for year in years:
         if stop and stop.is_set():break
+        if scheduled and not night_open():
+            state.update(status='NIGHT_WAIT',building_year=None);return done
         previous=store.read(year)
         if previous and previous.get('version')==version and (datetime.now(timezone.utc)-datetime.fromisoformat(previous['generated_at'])).total_seconds()<MAX_AGE_SECONDS:continue
         state.update(status='BUILDING',building_year=year)

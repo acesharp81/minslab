@@ -1,0 +1,7 @@
+{
+  "source": "lh_notice_detail",
+  "sample_files": 10,
+  "raw_bytes": 2007257,
+  "gzip_bytes": 450660,
+  "note": "Small convenience sample, not a whole-store saving estimate."
+}

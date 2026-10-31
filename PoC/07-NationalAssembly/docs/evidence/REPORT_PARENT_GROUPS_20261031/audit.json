@@ -1,0 +1,187 @@
+{
+  "checked_at": "2026-10-31T03:13:19.819518+00:00",
+  "broadcast_id": "8809d5e4-13bc-41dd-a9b4-291afca60c0c",
+  "brief_id": "48284c6c-df3f-4d45-b5c6-f4866a7fd53f",
+  "headline": "초과세수의 채무 상환·미래투자 배분과 미래대응기금 통제 논쟁",
+  "before_groups": 47,
+  "after_groups": 22,
+  "before_summary_groups": 48,
+  "after_summary_groups": 23,
+  "issues": 120,
+  "tasks": 27,
+  "preservation_checks": {
+    "topics": true,
+    "tasks": true,
+    "live_topic_lineage": true,
+    "structure_review_items": true,
+    "narrative_coverage": true,
+    "narrative_topics": true
+  },
+  "groups": [
+    {
+      "id": "structured-policy-parent-724c4f8702e1d5f9",
+      "title": "반도체 경기·초과세수와 재정 운용",
+      "topic_count": 25,
+      "original_titles": [
+        "반도체 경기 변동에 대비한 재정 건전화",
+        "반도체 경기 변동과 재정 대응",
+        "반도체 호황기 재정운용과 국가채무 관리",
+        "반도체 경기 변동과 재정 위험",
+        "반도체 호황의 성격과 2027년 예산 활용"
+      ]
+    },
+    {
+      "id": "structured-group-a1dd3cf276046b0a",
+      "title": "2027년도 예산안과 일시적 세수 증가 대응",
+      "topic_count": 1,
+      "original_titles": []
+    },
+    {
+      "id": "structured-policy-parent-0025f94a19ea2b7e",
+      "title": "미래대응기금",
+      "topic_count": 35,
+      "original_titles": [
+        "첨단산업 연구개발 예산과 미래대응기금 운용",
+        "미래대응기금 재원 배분과 경기대응 여력",
+        "미래대응기금의 배분·지출 종료 원칙",
+        "미래대응기금과 예산총계주의",
+        "지방정부의 미래대응기금 활성화",
+        "미래대응기금의 성격과 초과세수 활용",
+        "미래대응기금의 재정안정화 기능",
+        "미래대응기금의 세입 추세선 설정",
+        "미래대응기금의 국회 재정통제와 차입수권",
+        "미래대응기금의 추세선 설정",
+        "반도체 호황 초과세수 활용과 미래기금 재정운용 논란",
+        "미래대응기금과 국가채무 전망",
+        "미래대응기금과 예산의 선제적 재정투자 및 구조조정",
+        "명절 할인 지원 예산의 미래대응기금 활용과 국회 결정권",
+        "정부 재정의 지속가능성 부족과 미래대응기금 운용 비판",
+        "재정민주주의와 미래대응기금의 국회 통제"
+      ]
+    },
+    {
+      "id": "structured-group-fab2aeed4f55e86e",
+      "title": "제조업 부진과 산업 경쟁력 약화",
+      "topic_count": 2,
+      "original_titles": []
+    },
+    {
+      "id": "structured-policy-parent-6001e64b3ff657c1",
+      "title": "재정준칙·국가채무 관리",
+      "topic_count": 19,
+      "original_titles": [
+        "재정준칙과 독립적 재정위원회",
+        "장기재정전망에 따른 재정준칙",
+        "국채상환과 미래세대 재정선택권",
+        "국가채무 수준 전망",
+        "초과세수 활용과 국가채무 전망",
+        "국가재정 전망과 재정위기 주장에 대한 반박"
+      ]
+    },
+    {
+      "id": "structured-group-b7b007e44d2c315f",
+      "title": "자율주행차·드론·저궤도 위성 기술 현황",
+      "topic_count": 1,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-e2b679eeaa06fae9",
+      "title": "안보용 드론과 저궤도 위성의 규제 대응",
+      "topic_count": 1,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-17a0a186d6e4397b",
+      "title": "AI 시대의 경제 격차와 국민 삶의 체감 개선",
+      "topic_count": 5,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-9271da5f4572f072",
+      "title": "에너지정책과 전력비용",
+      "topic_count": 2,
+      "original_titles": []
+    },
+    {
+      "id": "structured-policy-parent-505c4e6ffd3354f2",
+      "title": "첨단산업 투자·연구개발",
+      "topic_count": 11,
+      "original_titles": [
+        "첨단산업 기반 투자와 다년도 재정지원",
+        "첨단산업 재정투자의 후속연계와 평가"
+      ]
+    },
+    {
+      "id": "structured-group-5e7ab45a4379b077",
+      "title": "대미 투자와 알래스카 LNG 사업 참여 방식",
+      "topic_count": 3,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-f3d0fde85031dd2b",
+      "title": "온누리상품권 축소와 공적주택 재정 확대 필요성",
+      "topic_count": 1,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-ffca3a9c7ad12333",
+      "title": "소상공인 지원과 정부 재정정책의 적정성",
+      "topic_count": 2,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-f0446ea8b8970409",
+      "title": "광주 반도체 투자와 3대 메가프로젝트의 추진 필요성",
+      "topic_count": 2,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-3fbe9a4dc36fe441",
+      "title": "예산총계주의와 세입세출 외 항목 확대",
+      "topic_count": 2,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-886225c0ead0a739",
+      "title": "정부 예산안의 재정 균형점 조정",
+      "topic_count": 1,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-12ed4685e00d3748",
+      "title": "재정사업 성과평가체계 개편과 정부 의지",
+      "topic_count": 1,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-595cd1ddf8be72e2",
+      "title": "미래투자기금 여유자금의 국가채무 감축 효과",
+      "topic_count": 1,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-08c1f07bb2b62568",
+      "title": "양극화 해소를 위한 복지와 노동소득 지원",
+      "topic_count": 1,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-68fdcdddcdbab634",
+      "title": "중국 제조업 투자 사례와 반도체 기금 투입 심사",
+      "topic_count": 1,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-5d4b28c4e765a340",
+      "title": "정권 전환기 경제 상황과 부채 관리 논의",
+      "topic_count": 2,
+      "original_titles": []
+    },
+    {
+      "id": "structured-group-f6982e7766528725",
+      "title": "부채 상환과 미래 투자 균형",
+      "topic_count": 1,
+      "original_titles": []
+    }
+  ]
+}

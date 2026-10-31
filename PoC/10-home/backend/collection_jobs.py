@@ -1,18 +1,35 @@
 """Durable per-source collection, linking and snapshot jobs with lease recovery."""
-from datetime import timedelta
+from datetime import timedelta, timezone
 import os
 import threading
-from sqlalchemy import select, text
+from sqlalchemy import select, text, func, or_, and_
 from sqlalchemy.exc import IntegrityError
 from .db import CollectionJob, Batch, now, uid
 from .service import as_utc
 from .sources import SOURCES
+from .collection_policy import structural_failure, unchanged_collection, backfill_window_open, REPAIR_MARKER
+from zoneinfo import ZoneInfo
+from .operations_window import night_open, next_night, bulk_work, NightWindowClosed
 
 ACTIVE = ('QUEUED', 'RUNNING', 'RETRY')
 # Public notice changes are checked separately from expensive historic backfill.
 FAST = {'molit_press_watch':3600, 'opm_press_watch':3600, 'sh_notice_watch':3600, 'lh_press_watch':3600, 'ih_press_watch':3600, 'seoul_press_watch':3600, 'newsis_housing_watch':3600,
-        'lh_notice': 900, 'lh_notice_detail': 1800, 'gh_notice': 1800, 'ih_notice':3600,
-        'sh_inventory': 3600, 'seoul_cleanup': 3600, 'gh_completion_evidence': 3600}
+        'lh_notice': 7200, 'lh_notice_detail': 14400, 'gh_notice': 7200, 'ih_notice':7200,
+        'sh_inventory': 21600, 'seoul_cleanup': 21600, 'gh_completion_evidence': 21600}
+
+DAYTIME = {k for k in FAST if k.endswith('_watch')} | {'lh_notice','gh_notice','ih_notice'}
+
+
+def collection_context_unchanged(service, source_id):
+    # Completeness/coverage/backfill metadata can change without a new fact row.
+    # Preserve those changes and the first successful run in downstream views.
+    with service.sessions() as db:
+        rows=db.scalars(select(Batch).where(Batch.source_id==source_id, Batch.status=='SUCCESS').order_by(Batch.finished_at.desc()).limit(2)).all()
+        if len(rows)<2:
+            return False
+        volatile={'new','changed','unchanged','record_count','entity_ids'}
+        states=[{k:v for k,v in (row.stats or {}).items() if k not in volatile} for row in rows]
+        return states[0]==states[1]
 
 
 def enqueue(service, source_id, force=False):
@@ -29,14 +46,18 @@ def enqueue(service, source_id, force=False):
                 last_batch = db.scalar(select(Batch).where(Batch.source_id == source_id, Batch.status == 'SUCCESS').order_by(Batch.finished_at.desc()).limit(1))
                 last = last_batch.finished_at if last_batch else None
                 seconds = FAST.get(source_id, source.get('refresh_days', 1)*86400)
-                if last_batch and source.get('backfill_seconds') and ((last_batch.stats or {}).get('scope_remaining_dongs',0)>0 or (last_batch.stats or {}).get('backfill_pending')):
-                    seconds = source['backfill_seconds']
+                if last_batch and source.get('backfill_seconds') and ((last_batch.stats or {}).get('scope_remaining_dongs',0)>0 or (last_batch.stats or {}).get('backfill_pending')) and backfill_window_open(now()):
+                    start = now().astimezone(ZoneInfo('Asia/Seoul')).replace(hour=0,minute=0,second=0,microsecond=0).astimezone(timezone.utc)
+                    successes = db.scalar(select(func.count(Batch.id)).where(Batch.source_id==source_id, Batch.status=='SUCCESS', Batch.finished_at>=start))
+                    if successes < 3:
+                        seconds = max(3600, source['backfill_seconds'])
                 if last and as_utc(last) > now()-timedelta(seconds=seconds):
                     return None
-                failed = db.scalar(select(CollectionJob.finished_at).where(CollectionJob.source_id == source_id, CollectionJob.status == 'FAILED').order_by(CollectionJob.finished_at.desc()).limit(1))
-                if failed and as_utc(failed) > now()-timedelta(hours=1):
+                failed = db.scalar(select(CollectionJob).where(CollectionJob.source_id == source_id, CollectionJob.status == 'FAILED').order_by(CollectionJob.finished_at.desc()).limit(1))
+                cooldown = 24 if failed and (failed.error or '').startswith(REPAIR_MARKER) else 1
+                if failed and failed.finished_at and as_utc(failed.finished_at) > now()-timedelta(hours=cooldown):
                     return None
-            job = CollectionJob(source_id=source_id, status='QUEUED', stage='COLLECT', run_after=now())
+            job = CollectionJob(source_id=source_id, status='QUEUED', stage='COLLECT', run_after=now(), result={'manual':bool(force)})
             db.add(job); db.flush()
             return job.id
     except IntegrityError:
@@ -44,10 +65,31 @@ def enqueue(service, source_id, force=False):
 
 
 def enqueue_due(service):
-    return [identity for s in sorted(SOURCES, key=lambda s:s['id'] not in FAST)
-            if not s.get('manual_only') and s.get('implemented', True)
-            if not s.get('requires_key_for_schedule') or any(os.environ.get(name,'').strip() for name in (s.get('key_env') or '',s.get('fallback_key_env') or ''))
-            if (identity := enqueue(service, s['id']))]
+    """Read all due-state metadata once; recheck only eligible sources under enqueue."""
+    instant=now()
+    candidates=[s for s in SOURCES if not s.get('manual_only') and s.get('implemented',True)
+        and (night_open(instant) or s['id'] in DAYTIME)
+        and (not s.get('requires_key_for_schedule') or any(os.environ.get(k,'').strip() for k in (s.get('key_env') or '',s.get('fallback_key_env') or '')))]
+    if not candidates:return []
+    with service.sessions() as db:
+        active=set(db.scalars(select(CollectionJob.source_id).where(CollectionJob.status.in_(ACTIVE))))
+        success=dict(db.execute(select(Batch.source_id,func.max(Batch.finished_at)).where(Batch.status=='SUCCESS').group_by(Batch.source_id)).all())
+        failed={}
+        for sid,finished,error in db.execute(select(CollectionJob.source_id,CollectionJob.finished_at,CollectionJob.error).where(
+                CollectionJob.status=='FAILED',CollectionJob.finished_at>=instant-timedelta(hours=24)).order_by(CollectionJob.finished_at.desc())):
+            failed.setdefault(sid,(as_utc(finished),error))
+    result=[]
+    for source in sorted(candidates,key=lambda s:s['id'] not in DAYTIME):
+        sid=source['id']
+        if sid in active:continue
+        seconds=FAST.get(sid,source.get('refresh_days',1)*86400)
+        # Backfill's detailed quota/coverage check remains in enqueue().
+        if not (source.get('backfill_seconds') and night_open(instant)) and success.get(sid) and as_utc(success[sid])>instant-timedelta(seconds=seconds):continue
+        failure=failed.get(sid)
+        if failure and failure[0]>instant-timedelta(hours=24 if (failure[1] or '').startswith(REPAIR_MARKER) else 1):continue
+        identity=enqueue(service,sid)
+        if identity:result.append(identity)
+    return result
 
 
 def claim(service, lane=None):
@@ -60,13 +102,16 @@ def claim(service, lane=None):
             job.status='RETRY'; job.run_after=instant; job.error='작업 임대 만료 · 같은 단계부터 재시도'
         db.flush()
         query=select(CollectionJob).where(CollectionJob.status.in_(('QUEUED','RETRY')), CollectionJob.run_after <= instant)
+        if not night_open(instant):
+            query=query.where(or_(CollectionJob.result['manual'].as_boolean().is_(True),
+                and_(CollectionJob.stage=='COLLECT',CollectionJob.source_id.in_(DAYTIME))))
         if lane=='LATEST':query=query.where(CollectionJob.source_id.in_(FAST))
         elif lane=='BACKFILL':query=query.where(CollectionJob.source_id.not_in(FAST))
         job = db.scalar(query.order_by(CollectionJob.run_after, CollectionJob.created_at).with_for_update(skip_locked=True).limit(1))
         if job is None:return None
         job.status='RUNNING'; job.attempts+=1; job.lease_until=instant+timedelta(minutes=10)
         job.lease_token=uid()
-        return dict(id=job.id, source_id=job.source_id, stage=job.stage, attempts=job.attempts,lease_token=job.lease_token)
+        return dict(id=job.id, source_id=job.source_id, stage=job.stage, attempts=job.attempts,lease_token=job.lease_token,manual=bool((job.result or {}).get('manual')))
 
 
 def run_next(service, lane=None):
@@ -85,7 +130,9 @@ def run_next(service, lane=None):
     try:
         source=next(s for s in SOURCES if s['id']==job['source_id'])
         if job['stage']=='COLLECT':
-            result=service.collect_one(source)
+            with bulk_work(not job['manual'] and job['source_id'] not in DAYTIME):
+                result=service.collect_one(source)
+            if result.get('status')=='PAUSED':raise NightWindowClosed(result['error'])
             if result.get('status')=='BUSY':
                 # Manual backfills hold the same source lock. Contention is not
                 # a source failure and must not exhaust the five retry attempts.
@@ -96,9 +143,20 @@ def run_next(service, lane=None):
                     row.status='QUEUED';row.attempts=max(0,row.attempts-1)
                     row.run_after=now()+timedelta(seconds=60);row.lease_until=None;row.error=None
                 return dict(job,status='BUSY',next_stage='COLLECT')
-            if result.get('status')!='SUCCESS':raise RuntimeError('원천 수집 미완료 · 배치 이력 참조')
-            # Discovery has no approved business facts to reconcile.
-            next_stage=None if source.get('discovery_only') else 'LINK'
+            if result.get('status')!='SUCCESS':
+                if structural_failure(result.get('error')):
+                    with service.sessions.begin() as db:
+                        row=db.get(CollectionJob,job['id'],with_for_update=True)
+                        if row.status!='RUNNING' or row.lease_token!=job['lease_token']:
+                            return dict(id=job['id'],status='STALE_WORKER')
+                        row.status='FAILED';row.finished_at=now();row.lease_until=None
+                        row.result=dict(row.result or {},COLLECT=result)
+                        row.error=REPAIR_MARKER+str(result.get('error',''))[:240]
+                    return dict(job,status='FAILED',reason='SOURCE_REPAIR_REQUIRED',retry_after_hours=24)
+                raise RuntimeError('원천 수집 미완료 · 배치 이력 참조')
+            # Preserve fresh collection history, but do not rebuild all business
+            # projections or freeze another snapshot when no source fact changed.
+            next_stage=None if source.get('discovery_only') or (unchanged_collection(result) and collection_context_unchanged(service,job['source_id'])) else 'LINK'
         elif job['stage']=='LINK':
             from .stage_evidence import refresh
             from .project_collection import refresh_links
@@ -120,9 +178,16 @@ def run_next(service, lane=None):
             if row.status!='RUNNING' or row.lease_token!=job['lease_token']:return dict(id=job['id'],status='STALE_WORKER')
             row.result=dict(row.result or {},**{job['stage']:result});row.error=None;row.lease_until=None
             row.stage=next_stage or job['stage'];row.status='QUEUED' if next_stage else 'SUCCESS'
-            row.run_after=now();row.attempts=0
+            row.run_after=(next_night(now()) if next_stage and not job['manual'] else now());row.attempts=0
             if not next_stage:row.finished_at=now()
         return dict(job, status='ADVANCED' if next_stage else 'SUCCESS', next_stage=next_stage)
+    except NightWindowClosed:
+        with service.sessions.begin() as db:
+            row=db.get(CollectionJob,job['id'],with_for_update=True)
+            if row.status=='RUNNING' and row.lease_token==job['lease_token']:
+                row.status='QUEUED';row.run_after=next_night(now());row.lease_until=None
+                row.attempts=max(0,row.attempts-1);row.error='야간 시간 대기 · 01:00~05:00 KST'
+        return dict(job,status='PAUSED')
     except Exception as error:
         with service.sessions.begin() as db:
             row=db.get(CollectionJob,job['id'],with_for_update=True)

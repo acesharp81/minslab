@@ -294,6 +294,10 @@ def create_app(engine=None, auto_collect=None):
     from .projection_cache import collection_projection_version, workspace_projection_version, requirements_projection_version
     for name in ('project_collection','project_information','project_locations','policy_monitor','mappings','mapping_workbench'):
         read_caches[name] = ProjectionCache(lambda: collection_projection_version(service), build_guard=None if name in nested_projections else projection_builds)
+    # These summaries read committed project/catalogue rows, not batch status.
+    # A no-change collection must not rebuild them or block the progress chart.
+    for name in ('policy_monitor','mappings'):
+        read_caches[name] = ProjectionCache(lambda: collection_projection_version(service, include_batch_status=False), build_guard=projection_builds)
     read_caches['requirements_status'] = ProjectionCache(lambda: requirements_projection_version(service))
     read_caches['project_workspace'] = ProjectionCache(lambda: workspace_projection_version(service), build_guard=projection_builds)
     for name in ('housing_indicators', 'area_context', 'area_outlook','delivery_view'):
@@ -457,6 +461,16 @@ def create_app(engine=None, auto_collect=None):
         if request.url.path.startswith(PREFIX+'/integrity-documents/'):
             response.headers['Content-Security-Policy']="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; frame-ancestors 'self'; base-uri 'none'; form-action 'none'"
         return response
+
+    @app.get(PREFIX + '/api/operations/status')
+    def operations_status():
+        from .operations_window import night_open, next_night
+        from pathlib import Path
+        path=Path(service.data_dir)/'runtime'/'operations-maintenance.json'
+        try:progress=json.loads(path.read_text())
+        except (OSError,ValueError):progress={}
+        return dict(timezone='Asia/Seoul',bulk_window='01:00–05:00',night_open=night_open(),
+                    next_bulk_at=next_night().isoformat(),maintenance=progress)
 
     @app.get("/health")
     def health():
@@ -850,7 +864,7 @@ def create_app(engine=None, auto_collect=None):
 
     @app.get(PREFIX + '/api/policy-delivery/view')
     def policy_delivery_view(as_of_date: date | None = None,group: str = Query('policy',max_length=150),scope: str | None = Query(None,max_length=300),report: bool = False):
-        from .policy_delivery_view import screen_view, policy_report_view
+        from .policy_delivery_view import screen_view, policy_report_view, trim_screen_details
         day=as_of_date or today()
         if day>today():raise HTTPException(422,'미래 실제 기준일은 조회할 수 없습니다')
         if report:
@@ -858,7 +872,7 @@ def create_app(engine=None, auto_collect=None):
             try:return cached_json('delivery_view',dict(day=day,group=group,scope=scope,report=True),lambda:policy_report_view(service,day,scope))
             except ValueError as error:raise HTTPException(422,str(error)) from None
         def build():
-            body,_=delivery_screen_input.get(day.isoformat(),lambda:build_delivery(service,day,comparison_scopes=()))
+            body,_=delivery_screen_input.get(day.isoformat(),lambda:trim_screen_details(build_delivery(service,day,comparison_scopes=(),include_snapshots=False)))
             return screen_view(json.loads(body),group,scope,report=report)
         try:return cached_json('delivery_view',dict(day=day,group=group,scope=scope,report=report),build)
         except ValueError as error:raise HTTPException(422,str(error)) from None

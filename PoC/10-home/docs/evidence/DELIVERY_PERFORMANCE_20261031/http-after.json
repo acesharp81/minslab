@@ -1,0 +1,17 @@
+{
+  "requests": [
+    {
+      "seconds": 2.8680857240688056,
+      "bytes": 3645880,
+      "gzip_bytes": "416509",
+      "cache": null
+    },
+    {
+      "seconds": 0.09265047591179609,
+      "bytes": 3645880,
+      "gzip_bytes": "416509",
+      "cache": null
+    }
+  ],
+  "all_retained_fields_equal": true
+}

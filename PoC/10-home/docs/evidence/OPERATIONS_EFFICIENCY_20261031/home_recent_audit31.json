@@ -1,0 +1,214 @@
+{
+  "recent_batches": [
+    {
+      "source_id": "gh_completion_evidence",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 03:32:57.531510+00:00"
+    },
+    {
+      "source_id": "gh_files",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 03:27:54.201969+00:00"
+    },
+    {
+      "source_id": "ih_press_watch",
+      "status": "SUCCESS",
+      "runs": 1,
+      "latest": "2026-10-31 02:58:58.213536+00:00"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 03:13:51.234133+00:00"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 02:48:51.335797+00:00"
+    },
+    {
+      "source_id": "lh_press_watch",
+      "status": "SUCCESS",
+      "runs": 1,
+      "latest": "2026-10-31 02:58:56.614169+00:00"
+    },
+    {
+      "source_id": "lh_stock",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 02:55:19.526258+00:00"
+    },
+    {
+      "source_id": "molit_press_watch",
+      "status": "SUCCESS",
+      "runs": 1,
+      "latest": "2026-10-31 02:58:51.510017+00:00"
+    },
+    {
+      "source_id": "molit_renewal_inventory",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 03:24:52.805288+00:00"
+    },
+    {
+      "source_id": "newsis_housing_watch",
+      "status": "SUCCESS",
+      "runs": 1,
+      "latest": "2026-10-31 02:59:00.764784+00:00"
+    },
+    {
+      "source_id": "opm_press_watch",
+      "status": "SUCCESS",
+      "runs": 1,
+      "latest": "2026-10-31 02:58:53.713985+00:00"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 02:48:56.763157+00:00"
+    },
+    {
+      "source_id": "seoul_press_watch",
+      "status": "SUCCESS",
+      "runs": 1,
+      "latest": "2026-10-31 02:58:59.456729+00:00"
+    },
+    {
+      "source_id": "sh_contract_file",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 02:48:58.086302+00:00"
+    },
+    {
+      "source_id": "sh_happy_plan_file",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 02:48:55.439789+00:00"
+    },
+    {
+      "source_id": "sh_jeonse_plan_file",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 02:48:54.110861+00:00"
+    },
+    {
+      "source_id": "sh_national_plan_file",
+      "status": "FAILED",
+      "runs": 1,
+      "latest": "2026-10-31 02:48:52.728558+00:00"
+    },
+    {
+      "source_id": "sh_notice_watch",
+      "status": "SUCCESS",
+      "runs": 1,
+      "latest": "2026-10-31 03:02:53.214543+00:00"
+    }
+  ],
+  "current_repair_jobs": [
+    {
+      "source_id": "gh_completion_evidence",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:GH 입주안내 페이지 구조·페이지 수 변경: 기존 정상 자료 유지",
+      "finished_at": "2026-10-31 03:32:57.648383+00:00"
+    },
+    {
+      "source_id": "gh_files",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:GH 공개 CSV 다운로드 링크 미확보",
+      "finished_at": "2026-10-31 03:27:54.522542+00:00"
+    },
+    {
+      "source_id": "molit_renewal_inventory",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:공식 파일 링크·기준일 확인 실패: 원천 페이지 변경",
+      "finished_at": "2026-10-31 03:24:53.145555+00:00"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:공식 파일 링크·기준일 확인 실패: 원천 페이지 변경",
+      "finished_at": "2026-10-31 03:13:51.612347+00:00"
+    },
+    {
+      "source_id": "lh_stock",
+      "status": "FAILED",
+      "attempts": 5,
+      "error": "SOURCE_REPAIR_REQUIRED:LH 단지정보 공개본 날짜·다운로드 링크 미확보",
+      "finished_at": "2026-10-31 02:55:19.910012+00:00"
+    },
+    {
+      "source_id": "sh_contract_file",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:공식 파일 링크·기준일 확인 실패: 원천 페이지 변경",
+      "finished_at": "2026-10-31 02:48:58.406663+00:00"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:공식 파일 링크·기준일 확인 실패: 원천 페이지 변경",
+      "finished_at": "2026-10-31 02:48:57.080454+00:00"
+    },
+    {
+      "source_id": "sh_happy_plan_file",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:공식 파일 링크·기준일 확인 실패: 원천 페이지 변경",
+      "finished_at": "2026-10-31 02:48:55.757245+00:00"
+    },
+    {
+      "source_id": "sh_jeonse_plan_file",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:공식 파일 링크·기준일 확인 실패: 원천 페이지 변경",
+      "finished_at": "2026-10-31 02:48:54.433592+00:00"
+    },
+    {
+      "source_id": "sh_national_plan_file",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:공식 파일 링크·기준일 확인 실패: 원천 페이지 변경",
+      "finished_at": "2026-10-31 02:48:53.104316+00:00"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "status": "FAILED",
+      "attempts": 1,
+      "error": "SOURCE_REPAIR_REQUIRED:공식 파일 링크·기준일 확인 실패: 원천 페이지 변경",
+      "finished_at": "2026-10-31 02:48:51.721091+00:00"
+    }
+  ],
+  "first_last_repair": [
+    {
+      "source_id": "gh_completion_evidence",
+      "error": "GH 입주안내 페이지 구조·페이지 수 변경: 기존 정상 자료 유지"
+    },
+    {
+      "source_id": "gh_files",
+      "error": "GH 공개 CSV 다운로드 링크 미확보"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "error": "공식 파일 링크·기준일 확인 실패: 원천 페이지 변경"
+    },
+    {
+      "source_id": "lh_stock",
+      "error": "LH 단지정보 공개본 날짜·다운로드 링크 미확보"
+    }
+  ],
+  "snapshots_after_worker": [
+    {
+      "total": 0
+    }
+  ]
+}

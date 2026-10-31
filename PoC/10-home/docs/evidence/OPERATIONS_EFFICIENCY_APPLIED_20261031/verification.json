@@ -1,0 +1,172 @@
+{
+  "health": {
+    "status": 200,
+    "seconds": 0.028,
+    "bytes": 57
+  },
+  "operations": {
+    "status": 200,
+    "seconds": 0.002,
+    "bytes": 134
+  },
+  "ai": {
+    "status": 200,
+    "seconds": 0.009,
+    "bytes": 24911
+  },
+  "ai-legacy": {
+    "status": 200,
+    "seconds": 0.013,
+    "bytes": 23698
+  },
+  "ai-history": {
+    "status": 200,
+    "seconds": 0.016,
+    "bytes": 67937
+  },
+  "items-algorithm": {
+    "status": 200,
+    "seconds": 0.825,
+    "bytes": 721930
+  },
+  "items-collection": {
+    "status": 200,
+    "seconds": 0.121,
+    "bytes": 1448733
+  },
+  "items-officer": {
+    "status": 200,
+    "seconds": 0.091,
+    "bytes": 317043
+  },
+  "csv-all": {
+    "status": 200,
+    "seconds": 0.201,
+    "bytes": 1336060
+  },
+  "csv-collection": {
+    "status": 200,
+    "seconds": 0.14,
+    "bytes": 1245056
+  },
+  "csv-officer": {
+    "status": 200,
+    "seconds": 0.104,
+    "bytes": 91278
+  },
+  "csv_rows": {
+    "all": 144,
+    "collection": 98,
+    "officer": 46
+  },
+  "delivery": {
+    "status": 200,
+    "seconds": 16.048,
+    "bytes": 3645880
+  },
+  "delivery_unchanged": true,
+  "delivery-warm": {
+    "status": 200,
+    "seconds": 0.062,
+    "bytes": 3645880
+  },
+  "sources": {
+    "status": 200,
+    "seconds": 0.393,
+    "bytes": 3805695
+  },
+  "area": {
+    "status": 200,
+    "seconds": 0.026,
+    "bytes": 146984
+  },
+  "snapshot": {
+    "status": 200,
+    "seconds": 0.249,
+    "bytes": 3041208
+  },
+  "snapshot_keys": [
+    "id",
+    "known_at",
+    "actor",
+    "reason",
+    "digest",
+    "context",
+    "result"
+  ],
+  "public_status": 200,
+  "response_hashes": {
+    "ai-after.json": {
+      "sha256": "b2bcdb17a7bb9a239be12b81bbc72abe9937008b67c4d00eec4dd5244997bb5f",
+      "bytes": 24911
+    },
+    "ai-history-after.json": {
+      "sha256": "cf1b8fa6cb3979c736c10230a799357f36b53443e3509fc4bebd94b6f5103b8a",
+      "bytes": 67937
+    },
+    "ai-legacy-after.json": {
+      "sha256": "af3fdb8aaf65a8080e6de3da44df6ba0f5953497935e150c1e9b612c7dd7d3a6",
+      "bytes": 23698
+    },
+    "area-after.json": {
+      "sha256": "114f00b68e5ba0a44bb0715e9106742486a552710f15bf7c309ac809393a8774",
+      "bytes": 146984
+    },
+    "csv-all.csv": {
+      "sha256": "4a28f25aca06decac3d848b4a0ad249985e41d2c4b15259f1cd21f256174019c",
+      "bytes": 1336060
+    },
+    "csv-collection.csv": {
+      "sha256": "70ba745e253b5954226db17f3512f31bccdccf624ff3737429871fc87ac3cbf0",
+      "bytes": 1245056
+    },
+    "csv-officer.csv": {
+      "sha256": "523d67ae7fa498ccbbbade5ae71f7c8a72ffe2786d908970792a081a71f6af48",
+      "bytes": 91278
+    },
+    "delivery-after.json": {
+      "sha256": "40822f3caf953cefc213af0125bf048df9a5df616438bb3c6e9edaf2b9686a27",
+      "bytes": 3645880
+    },
+    "delivery-before.json": {
+      "sha256": "40822f3caf953cefc213af0125bf048df9a5df616438bb3c6e9edaf2b9686a27",
+      "bytes": 3645880
+    },
+    "delivery-warm-after.json": {
+      "sha256": "40822f3caf953cefc213af0125bf048df9a5df616438bb3c6e9edaf2b9686a27",
+      "bytes": 3645880
+    },
+    "health-after.json": {
+      "sha256": "dae9601bf38e5dd2c53708947e8ea7ffcc12ee75f545b9af2f2c16b60ba002ca",
+      "bytes": 57
+    },
+    "health-before.json": {
+      "sha256": "dae9601bf38e5dd2c53708947e8ea7ffcc12ee75f545b9af2f2c16b60ba002ca",
+      "bytes": 57
+    },
+    "items-algorithm-after.json": {
+      "sha256": "d148c0c7ddfe369beade1683ae3b6029f6800635e7868332344501e2eeb3d672",
+      "bytes": 721930
+    },
+    "items-collection-after.json": {
+      "sha256": "747e050186e0d98d6cdb07cf11a5cb50c95b37368684409549f1c27841242ae3",
+      "bytes": 1448733
+    },
+    "items-officer-after.json": {
+      "sha256": "dfd396e9c635db681df592ad30818567edb9d5dd9570c83021a687c7a0351b78",
+      "bytes": 317043
+    },
+    "operations-after.json": {
+      "sha256": "a78dc0ddcf4b84af1b79c34821591020bcc34abd5627f6f8d41fca318d1cbdd4",
+      "bytes": 134
+    },
+    "snapshot-after.json": {
+      "sha256": "f7320c13cfe98e7b0a49f60724b8a94e3dbe200b467f57de63ddee1c05ce6462",
+      "bytes": 3041208
+    },
+    "sources-after.json": {
+      "sha256": "0e96ca7b00055831ac5a7bcfe2b02e0e2495a61fa5d89917af7e0de23e96a92d",
+      "bytes": 3805695
+    }
+  }
+}

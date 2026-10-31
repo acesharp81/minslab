@@ -55,13 +55,13 @@ COLLECTION_REVISION_KINDS = (
 )
 
 
-def collection_projection_version(service):
+def collection_projection_version(service, include_batch_status=True):
     # Unlinked bulk general permits/registers/statistics do not change this
     # project matrix. Persisted link changes and officer audits still invalidate
     # synchronously; historical dates and query variants remain separate keys.
     from .project_collection import CATALOG
     sources = set().union(*CATALOG.values()) | {'official_document', 'officer', 'manual_delivery'}
-    return projection_version(service, COLLECTION_REVISION_KINDS, sources,
+    return projection_version(service, COLLECTION_REVISION_KINDS, sources if include_batch_status else (),
                               ignored_audit_actions=(
                                   'START_CANDIDATE_FOUND', 'INDEPENDENT_SNAPSHOT',
                                   'DATA_INTEGRITY_ROUND', 'DATA_INTEGRITY_ROUND_AMENDED',

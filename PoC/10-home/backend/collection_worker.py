@@ -20,7 +20,11 @@ def worker_loop(service,lane,stop):
         except Exception as error:
             print(json.dumps(dict(event='collection_worker_retry',lane=lane,error_type=type(error).__name__)),flush=True)
             result=None
-        stop.wait(1 if result else 10)
+        if not result and lane=='BACKFILL':
+            from .operations_maintenance import step
+            try:step(service)
+            except Exception as error:print(json.dumps(dict(event='maintenance_retry',error_type=type(error).__name__)),flush=True)
+        stop.wait(1 if result else 30)
 
 
 def scheduler_loop(service,stop):

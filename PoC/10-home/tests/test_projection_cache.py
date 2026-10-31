@@ -176,6 +176,26 @@ class ProjectionCacheTests(unittest.TestCase):
         self.assertNotEqual(reviewed,collection_projection_version(service))
         engine.dispose()
 
+    def test_policy_summaries_ignore_batch_only_changes_but_refresh_saved_data(self):
+        from backend.db import Audit, Batch, now
+        engine=create_engine('sqlite://',poolclass=StaticPool)
+        self.addCleanup(engine.dispose);Base.metadata.create_all(engine);service=HomeService(engine)
+        version=lambda:collection_projection_version(service, include_batch_status=False)
+        cache=ProjectionCache(version)
+        cache.get('summary',lambda:{'units':8})
+        collection_before=collection_projection_version(service)
+        with service.sessions.begin() as db:
+            db.add(Batch(source_id='lh_completion_plan',status='SUCCESS',finished_at=now()))
+        self.assertEqual(cache.get('summary',lambda:self.fail('batch-only refresh'))[1],'HIT')
+        self.assertNotEqual(collection_before,collection_projection_version(service))
+        for kind in ('project','execution_schedule','stage_evidence','program_profile','evidence_bridge'):
+            with service.sessions.begin() as db:
+                upsert_revision(db,kind,'officer',kind,{'units':16},'review')
+            self.assertEqual(cache.get('summary',lambda:{'units':16})[1],'MISS',kind)
+        with service.sessions.begin() as db:
+            db.add(Audit(entity_id='p',action='OFFICER_START_CONFIRMED',before={},after={}))
+        self.assertEqual(cache.get('summary',lambda:{'units':16})[1],'MISS')
+
     def test_revision_change_and_variant_separation(self):
         version=[1];calls=[]
         cache=ProjectionCache(lambda:version[0])

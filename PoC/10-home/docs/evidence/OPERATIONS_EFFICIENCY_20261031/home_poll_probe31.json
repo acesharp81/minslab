@@ -1,0 +1,20 @@
+{
+  "events": [
+    {
+      "phase": "initial",
+      "seconds": 0.89,
+      "path": "ai-collection",
+      "status": 200,
+      "bytes": "11064"
+    },
+    {
+      "phase": "open",
+      "seconds": 10.94,
+      "path": "ai-collection",
+      "status": 200,
+      "bytes": "11063"
+    }
+  ],
+  "errors": [],
+  "note": "Read-only UI; no collection/run actions."
+}

@@ -2,6 +2,7 @@
 No keys or new API calls are required. Capital observations keep their existing
 source identifiers so the same province/month is never counted twice.
 """
+from .raw_archive import read_raw
 import hashlib
 import json
 from collections import Counter
@@ -27,7 +28,7 @@ def replay(service, source, fetcher):
         if not all(k in q for k in ('form_id','style_num','start_dt','end_dt')):continue
         series=next((s for s in STAT_SERIES if s[:2]==(q['form_id'][0],q['style_num'][0])),None)
         if not series:continue
-        path=service.data_dir/'raw'/item['file'];content=path.read_bytes()
+        path=service.data_dir/'raw'/item['file'];content=read_raw(path)
         if hashlib.sha256(content).hexdigest()!=item['sha256']:raise ValueError('원본 무결성 검증 실패')
         data=json.loads(content)
         current=parse_statistics(data,spec,series,q['start_dt'][0],q['end_dt'][0])

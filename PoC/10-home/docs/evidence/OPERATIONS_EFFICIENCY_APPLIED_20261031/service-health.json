@@ -1,0 +1,50 @@
+{
+  "poc10-home-api": {
+    "health": "healthy",
+    "restart_count": 0,
+    "log_config": {
+      "Type": "local",
+      "Config": {
+        "max-file": "3",
+        "max-size": "10m"
+      }
+    },
+    "errors": []
+  },
+  "poc10-home-worker": {
+    "health": "healthy",
+    "restart_count": 0,
+    "log_config": {
+      "Type": "local",
+      "Config": {
+        "max-file": "3",
+        "max-size": "10m"
+      }
+    },
+    "errors": []
+  },
+  "poc10-home-ai-worker": {
+    "health": "healthy",
+    "restart_count": 0,
+    "log_config": {
+      "Type": "local",
+      "Config": {
+        "max-file": "3",
+        "max-size": "10m"
+      }
+    },
+    "errors": []
+  },
+  "poc10-home-area-worker": {
+    "health": "healthy",
+    "restart_count": 0,
+    "log_config": {
+      "Type": "local",
+      "Config": {
+        "max-file": "3",
+        "max-size": "10m"
+      }
+    },
+    "errors": []
+  }
+}

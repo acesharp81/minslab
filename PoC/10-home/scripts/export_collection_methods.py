@@ -94,6 +94,8 @@ METRIC_DEFINITIONS = {
 }
 
 MODULE = {
+    'ai_publication': 'backend/ai_collection.py::process_run',
+    **{sid:'backend/publication_watch.py::collect' for sid in ('ih_press_watch','lh_press_watch','molit_press_watch','newsis_housing_watch','opm_press_watch','seoul_press_watch','sh_notice_watch')},
     'lh_policy_followup': 'backend/lh_policy_followup.py::collect',
     'lh_happy_plan_file': 'backend/agency_plan_files.py::collect_plan_file',
     'sh_national_plan_file': 'backend/agency_plan_files.py::collect_plan_file',
@@ -196,13 +198,13 @@ def build(root):
         output.append({
             'source_id': sid, 'name': source['name'], 'organization': source['org'],
             'source_url': source['url'], 'method': method(sid),
-            'collector_entry': 'backend/service.py::HomeService.collect_one',
+            'collector_entry': 'backend/ai_collection.py::process_run' if sid=='ai_publication' else 'backend/service.py::HomeService.collect_one',
             'collector_module': MODULE[sid],
             'authentication_env_name': source.get('key_env'),
             'manual_only': bool(source.get('manual_only')),
-            'schedule': '수동 실행' if source.get('manual_only') else
-                f"기동 후 자동 수집 · 최근 성공 뒤 {source['refresh_days']}일 간격" if source.get('refresh_days') else
-                '기동 후 및 기본 24시간 간격 자동 수집',
+            'schedule': '설정된 AI 야간 일정 또는 명시적 수동 실행' if sid=='ai_publication' else '수동 실행' if source.get('manual_only') else
+                f"자동 수집(대량 작업은 01–05시 KST) · 최근 성공 뒤 {source['refresh_days']}일 간격" if source.get('refresh_days') else
+                '기본 24시간 간격 자동 수집 · 대량 작업은 01–05시 KST',
             'validation_note': VALIDATION.get(sid, '원천별 파서·지역/날짜/중복 검증; 자세한 기준은 collector_module과 배치 stats 참조'),
             'current_records': source['current'],
             'first_source_date': source['first_source_date'],

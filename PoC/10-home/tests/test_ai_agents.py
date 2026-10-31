@@ -168,7 +168,11 @@ def test_scheduler_runs_three_roles_in_order_without_overlap(env,monkeypatch):
  from datetime import datetime
  from zoneinfo import ZoneInfo
  _,s,_,_=env
- for role in ('algorithm','collection','officer'):config(s,role,enabled=True,hour_kst=0)
+ for role in ('algorithm','collection','officer'):config(s,role,enabled=True,hour_kst=1)
+ class Night(datetime):
+  @classmethod
+  def now(cls,tz=None):return datetime(2026,10,31,4,tzinfo=ZoneInfo('Asia/Seoul'))
+ monkeypatch.setattr(worker,'datetime',Night)
  seen=[]
  def finish(service,store,run):seen.append(run['config']['agent_role']);store.finish(run['id'],'COMPLETED')
  monkeypatch.setattr(worker,'process_run',finish);monkeypatch.setattr(work,'process',finish)

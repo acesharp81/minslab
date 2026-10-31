@@ -10,6 +10,13 @@ from backend.collection_jobs import enqueue_due
 
 SOURCE=next(s for s in SOURCES if s['id']=='building_general_permit')
 
+def scheduled_jobs():
+    engine=create_engine('sqlite://');Base.metadata.create_all(engine)
+    try:
+        with patch('backend.collection_jobs.night_open',return_value=True):
+            return enqueue_due(HomeService(engine))
+    finally:engine.dispose()
+
 
 def row(**extra):
     return dict(mgmPmsrgstPk='1000000000000000123456',sigunguCd='11680',bjdongCd='10300',
@@ -60,7 +67,7 @@ def test_missing_key_is_not_queued_and_partial_pages_are_rejected(monkeypatch):
         assert enqueue_due(object())==[];queued.assert_not_called()
     monkeypatch.setenv('POC10_GENERAL_BUILDING_SERVICE_KEY','test-key')
     with patch('backend.collection_jobs.SOURCES',[SOURCE]),patch('backend.collection_jobs.enqueue',return_value='job'):
-        assert enqueue_due(object())==['job']
+        assert scheduled_jobs()==['job']
     class Fetch:
         def get(self,*args,**kwargs):return __import__('json').dumps(response([row()],101))
     with patch('backend.general_building_permits.next_districts',return_value=([('서울특별시','11680','10300','개포동')],{},1)):
@@ -73,7 +80,7 @@ def test_existing_portal_key_is_reused_for_collection_and_scheduling(monkeypatch
     monkeypatch.setenv('POC10_BUILDING_HUB_SERVICE_KEY','shared%2Bkey%3D')
     assert key_for(SOURCE)=='shared+key='
     with patch('backend.collection_jobs.SOURCES',[SOURCE]),patch('backend.collection_jobs.enqueue',return_value='job'):
-        assert enqueue_due(object())==['job']
+        assert scheduled_jobs()==['job']
     monkeypatch.setenv('POC10_GENERAL_BUILDING_SERVICE_KEY','override')
     assert key_for(SOURCE)=='override'
 

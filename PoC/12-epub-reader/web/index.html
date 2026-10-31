@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko" data-theme="paper">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="EPUB과 PDF를 열고, 읽고, 책갈피로 이어가는 나만의 로컬 서재.">
+<title>책자리 · EPUB · PDF 리더</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23295b48'/%3E%3Ctext x='6' y='24' fill='white' font-size='23'%3E冊%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="./styles.css">
+<script defer src="./vendor/jszip.min.js"></script><script defer src="./vendor/purify.min.js"></script>
+<script type="module" src="./app.js"></script>
+</head>
+<body>
+<header class="site-header"><a class="brand" href="./" aria-label="책자리 서재"><span class="brand-mark" aria-hidden="true">冊</span><span>책자리 <small>나만의 EPUB · PDF 서재</small></span></a><span class="local-badge"><i></i> 이 브라우저에 저장</span><button class="primary" id="import-top">＋ 책 추가</button></header>
+<input type="file" id="file-input" accept=".epub,.pdf,application/epub+zip,application/pdf" multiple hidden>
+<main id="library" class="library">
+  <section class="intro"><div><span class="eyebrow">YOUR READING CORNER · PORTFOLIO 12</span><h1>읽던 곳에,<br>다시 머무르다.</h1><p>책 한 권을 열고 나만의 속도로 읽어보세요.<br>마지막 문장과 책갈피는 이곳에 남겨둘게요.</p></div><div class="book-art" aria-hidden="true"><div class="art-book back">나의 서재</div><div class="art-book front"><span>한 페이지의<br>여유</span><small>BOOKJARI<br>READ AT YOUR PACE</small></div><div class="art-caption">A LITTLE SPACE FOR YOUR BOOKS</div></div></section>
+  <section class="shelf-section" aria-labelledby="shelf-heading"><div class="section-heading"><div><h2 id="shelf-heading">내 서재 <span id="book-count">0</span></h2><p>다시 열면 마지막으로 읽던 자리부터.</p></div><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="제목 또는 저자 찾기" aria-label="제목 또는 저자 찾기"></label></div>
+  <div id="shelf" class="shelf"></div><div id="empty" class="drop-zone"><div class="empty-icon" aria-hidden="true">＋</div><h3>첫 번째 책을 놓아주세요</h3><p>EPUB · PDF 파일을 여기로 끌어오거나 선택하세요.</p><button id="import-empty" class="primary">EPUB · PDF 파일 선택</button><small>EPUB 2 · EPUB 3 · PDF / 파일당 최대 50 MB</small></div>
+  <p id="no-results" hidden>검색한 책이 없습니다.</p></section>
+  <footer class="library-footer"><span>책은 내 기기에, 이야기는 내 안에.</span><p>책과 독서 기록은 서버로 전송하지 않습니다. 같은 주소·브라우저에서 이어 읽을 수 있으며, 브라우저 데이터를 지우면 삭제됩니다.</p></footer>
+</main>
+<section id="reader" hidden aria-label="책 읽기">
+  <div class="reader-toolbar">
+    <button id="back-library" class="quiet" title="서재로 돌아가기">← 서재</button>
+    <div class="current-book"><strong id="reader-title"></strong><span id="reader-author"></span></div>
+    <span id="chapter-label"></span>
+    <form id="pdf-page-jump" hidden><label for="pdf-page-input" class="sr-only">PDF 페이지 이동</label><input id="pdf-page-input" type="number" min="1" step="1" required aria-label="PDF 페이지 이동"><button type="submit" class="quiet">쪽 이동</button></form>
+    <button id="toggle-sidebar" class="quiet" aria-expanded="false" aria-controls="sidebar">목차 · 책갈피</button>
+    <button id="add-bookmark" class="primary">＋ 책갈피</button>
+    <div class="preferences"><button id="font-minus" aria-label="글자 작게">가−</button><output id="font-size">19</output><button id="font-plus" aria-label="글자 크게">가＋</button>
+      <label for="pdf-zoom" class="sr-only">PDF 확대</label><select id="pdf-zoom" hidden><option value="1">화면 맞춤</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option></select>
+      <label for="page-layout" class="sr-only">페이지 표시</label><select id="page-layout"><option value="2">두 쪽</option><option value="1">한 쪽</option></select>
+      <label for="theme" class="sr-only">읽기 화면 색상</label><select id="theme"><option value="paper">종이</option><option value="light">밝게</option><option value="dark">어둡게</option></select>
+    </div>
+  </div>
+  <div class="reader-layout"><aside id="sidebar" hidden><div class="tabs" role="tablist" aria-label="책 탐색"><button id="toc-tab" role="tab" aria-selected="true" aria-controls="toc-panel">목차</button><button id="marks-tab" role="tab" aria-selected="false" aria-controls="marks-panel">책갈피 <span id="mark-count">0</span></button></div><div id="toc-panel" role="tabpanel" aria-labelledby="toc-tab"></div><div id="marks-panel" role="tabpanel" aria-labelledby="marks-tab" hidden></div></aside>
+  <div class="reading-column"><div id="page-wrap" data-columns="2"><iframe id="book-frame" title="EPUB 본문" sandbox="allow-same-origin" referrerpolicy="no-referrer"></iframe><div id="pdf-pages" role="region" aria-label="PDF 본문" tabindex="0" hidden></div><div class="page-numbers" aria-hidden="true"><span id="left-page-number"></span><span id="right-page-number"></span></div><div id="reader-loading" hidden>책장을 펼치는 중…</div></div><div class="reader-footer"><button id="prev-page" class="quiet" aria-label="이전 페이지">← 이전 쪽</button><div class="progress-info"><span id="progress-label">0%</span><progress id="reading-progress" max="100" value="0" aria-label="독서 진행률"></progress><small id="save-status" role="status">읽는 위치를 자동으로 저장합니다</small></div><button id="next-page" class="quiet" aria-label="다음 페이지">다음 쪽 →</button></div></div></div>
+</section>
+<div id="status" role="status" aria-live="polite" hidden></div><div id="drop-overlay" hidden>EPUB · PDF 파일을 놓아 서재에 추가하세요</div>
+<dialog id="delete-dialog"><h2>서재에서 삭제할까요?</h2><p id="delete-description"></p><p>이 브라우저에 저장한 책과 책갈피가 삭제됩니다. 원본 파일은 그대로 남습니다.</p><div class="dialog-actions"><button id="delete-cancel">취소</button><button id="delete-confirm" class="danger">책 삭제</button></div></dialog>
+</body></html>

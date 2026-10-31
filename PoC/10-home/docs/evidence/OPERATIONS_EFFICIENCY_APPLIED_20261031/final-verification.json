@@ -1,0 +1,62 @@
+{
+  "/health": {
+    "status": 200,
+    "seconds": 0.021,
+    "bytes": 57
+  },
+  "/poc/home/api/operations/status": {
+    "status": 200,
+    "seconds": 0.002,
+    "bytes": 134
+  },
+  "/poc/home/api/ai-agents": {
+    "status": 200,
+    "seconds": 0.153,
+    "bytes": 24911
+  },
+  "ai_schedule": {
+    "algorithm": {
+      "hour": 1,
+      "enabled": true
+    },
+    "collection": {
+      "hour": 2,
+      "enabled": true
+    },
+    "officer": {
+      "hour": 3,
+      "enabled": true
+    }
+  },
+  "active_ai_runs": [],
+  "/poc/home/api/policy-delivery/view": {
+    "status": 200,
+    "seconds": 0.074,
+    "bytes": 3645880
+  },
+  "policy_response_unchanged": true,
+  "poc10-home-api": {
+    "image": "poc10-home:efficient-night-20261031-v2",
+    "health": "healthy",
+    "restart_count": 0,
+    "errors": []
+  },
+  "poc10-home-worker": {
+    "image": "poc10-home:efficient-night-20261031-v2",
+    "health": "healthy",
+    "restart_count": 0,
+    "errors": []
+  },
+  "poc10-home-ai-worker": {
+    "image": "poc10-home:efficient-night-20261031-v2",
+    "health": "healthy",
+    "restart_count": 0,
+    "errors": []
+  },
+  "poc10-home-area-worker": {
+    "image": "poc10-home:efficient-night-20261031-v2",
+    "health": "healthy",
+    "restart_count": 0,
+    "errors": []
+  }
+}

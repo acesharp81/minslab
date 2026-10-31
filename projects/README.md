@@ -1,147 +1,42 @@
-# 포트폴리오 프로젝트 안내
+# 포트폴리오 등록·운영
 
-MinsLab 홈페이지의 포트폴리오 목록은 projects/*/project.json을 자동으로 읽어 구성합니다.
+포트폴리오는 프로젝트의 메뉴 분류입니다. 완성된 프로젝트도 기존 `PoC/NN-project/` 폴더와 최초 번호, 서비스 URL을 유지합니다. `portfolio_loader.py`는 `PoC/`와 `projects/`의 `project.json`을 함께 읽습니다.
 
-## 현재 프로젝트
+## 현재 포트폴리오
 
-| 번호 | 폴더 | 프로젝트 | 실행 방식 |
-| --- | --- | --- | --- |
-| 01 | 01-chunking-lab | 청킹 실습 | 홈페이지 실행형 Supabase·LLM 비교 |
-| 02 | 02-chunking-rag-lab | 청킹실습(과제) | 홈페이지 실행형 청킹·임베딩·RAG |
-| 03 | 03-multiagent-harness | 계층형 멀티에이전트 하네스 | 홈페이지 실행형 픽셀 오피스·계층형 DAG |
-| 04 | 04-report-draft | 보고서 초안 생성 | 홈페이지 실행형 로컬 Ollama |
-
-각 폴더의 README.md에 현재 실행 구조, 공용 환경변수, 사용법과 주의사항을 기록합니다.
-
-## 기본 폴더 구조
-
-~~~text
-projects/
-└── 05-new-project/
-    ├── project.json   # 홈페이지 목록과 설명
-    ├── README.md      # 실행 구조와 학습 기록
-    ├── main.py        # 대표 소스 예시
-    └── assets/        # 이미지와 샘플 결과물
-~~~
-
-폴더명의 두 자리 번호, project.json의 order와 display_no는 같은 번호로 맞춥니다.
-
-## project.json 필수 기준
-
-- id: 전체 컬렉션에서 중복되지 않는 영문 식별자
-- order: 좌측 목록 정렬 순서
-- display_no: 화면에 표시할 두 자리 번호
-- title: 프로젝트 이름
-- summary: 한 문장 요약
-- description: 현재 동작 기준 설명
-- entry_file: 홈페이지 코드 미리보기에 사용할 파일
-- usage: 사용자 실행 순서
-- note: 보안, 데이터와 검토 주의사항
-
-entry_file이 없으면 홈페이지에는 실행 파일을 찾을 수 없다는 안내가 표시됩니다.
-
-## 실행 방식
-
-### 문서형 프로젝트
-
-project.json과 entry_file만 추가하면 설명, 기능, 코드와 실행 방법이 기본 화면에 표시됩니다.
-
-03 계층형 멀티에이전트 하네스는 전용 정적 앱과 홈페이지 API를 연결하는 실행형 프로젝트입니다.
-
-### 홈페이지 실행형 프로젝트
-
-화면 상호작용이 필요한 프로젝트는 main.py에 해당 project id의 렌더 함수와 ASGI API를 연결합니다.
-
-현재 실행형 프로젝트:
-
-- chunking-lab
-- chunking-rag-lab
-- report-draft
-
-공용 처리 로직은 프로젝트 폴더 또는 루트 모듈에 두되, 별도 웹서버와 중복 포트를 만들지 않습니다.
-
-## 공용 환경변수
-
-프로젝트별 비밀키 파일을 만들지 않고 저장소 루트 .env를 사용합니다.
-
-- Supabase: SUPABASE2_URL, SUPABASE2_SERVICE_ROLE_KEY
-- OpenRouter: OPENROUTER_API_KEY, OPENROUTER_BASE_URL
-- Ollama: OLLAMA_BASE_URL
-- Cohere: COHERE_API_KEY, COHERE_RERANK_MODEL
-
-프로젝트별 선택 환경변수는 해당 README와 루트 .env.example에 함께 기록합니다.
-
-## README 현행화 기준
-
-README에는 최소한 다음 내용을 포함합니다.
-
-1. 현재 상태와 홈페이지 경로
-2. 실제 실행 흐름
-3. 필요한 환경변수
-4. API 또는 CLI 실행 방법
-5. 파일 구성
-6. 데이터 변경 동작
-7. 보안과 검토 주의사항
-8. 별도 포트 사용 여부
-
-구현을 바꾸면 project.json 설명과 README를 같은 작업에서 함께 갱신합니다.
-
-## 등록 후 검증
-
-~~~bash
-cd /home/ubuntu/apps/myservice
-python3 -c "from portfolio_loader import load_projects; print([(p['no'], p['id']) for p in load_projects()])"
-python3 -m py_compile main.py portfolio_loader.py
-git diff --check
-sudo systemctl restart myservice
-curl -fsS http://127.0.0.1:8000/health
-~~~
-
-홈페이지 확인:
-
-~~~text
-https://www.minslab.kr/portfolio
-~~~
-
-## 보안 원칙
-
-- API 키, 비밀번호와 service-role 키를 저장소에 커밋하지 않습니다.
-- service-role 키는 브라우저 코드에 포함하지 않습니다.
-- 외부 API 응답과 스크린샷에서 개인정보와 인증 토큰을 제거합니다.
-- 생성형 AI 결과는 검토 전 결과로 취급합니다.
-- 실습 테이블과 운영 데이터를 분리합니다.
-
-
-## 공통 통합 동작
-
-`portfolio_loader.py`는 `projects/*/project.json`을 읽고 `order`와 `title`로 정렬합니다. 엔트리 파일은 UTF-8로 읽어 코드 미리보기에 포함하고, 읽기 실패나 JSON 오류가 있는 프로젝트는 서버 로그에 원인을 남긴 뒤 목록에서 제외합니다.
-
-홈페이지 실행형 프로젝트의 책임 경계는 다음과 같습니다.
-
-| 계층 | 책임 |
-| --- | --- |
-| `project.json` | 목록 메타데이터와 대표 소스 지정 |
-| 프로젝트 폴더 | 도메인 로직, 샘플 데이터, 정적 앱, 테스트 |
-| `main.py` | 화면 렌더링, 요청 크기 제한, ASGI 응답과 스트리밍 |
-| 공통 서비스 | Ollama, Supabase, OpenRouter, Hugging Face, Cohere 연결 |
-| 브라우저 | 입력 검증, 진행 상태, 중지, 결과 시각화 |
-
-## 프로젝트별 데이터 변경 범위
-
-| 프로젝트 | 읽기 | 쓰기 |
+| 최초 번호 | 폴더 | 프로젝트 |
 | --- | --- | --- |
-| 01 청킹 실습 | Supabase `documents`, `documents_test` | 없음 |
-| 02 청킹·RAG | `chucking_test1~3` 또는 legacy alias | 선택 슬롯 테이블 전체 교체 |
-| 03 멀티에이전트 | 메모리 내 실행 설정 | 최근 실행 12개를 프로세스 메모리에 보관 |
-| 04 보고서 초안 | `data/civil_reply_context.xml` | 브라우저 localStorage의 생성 옵션만 변경 |
+| 07 | `PoC/07-NationalAssembly` | 지금 우리 국회에선 |
+| 08 | `PoC/08-AICommonPlatformRadar` | 조달췤! |
+| 10 | `PoC/10-home` | HOME |
+| 12 | `PoC/12-epub-reader` | 책자리 · EPUB · PDF 리더 |
 
-## 새 프로젝트 체크리스트
+이전 청킹 실습·청킹 RAG·멀티에이전트 하네스·보고서 초안 프로젝트는 삭제했습니다.
 
-1. 번호 폴더와 `project.json`을 만들고 `id/order/display_no`를 맞춥니다.
-2. 대표 소스인 `entry_file`이 실제로 존재하는지 확인합니다.
-3. 프로젝트 README에 입력, 처리, 출력, 데이터 변경과 실패 모드를 기록합니다.
-4. 외부 서비스가 있다면 루트 `.env.example`에 공개 가능한 변수 이름만 추가합니다.
-5. 전용 화면이 필요하면 `main.py` 렌더러가 정확한 `id`를 처리하는지 확인합니다.
-6. API는 허용 모델·테이블·입력 크기를 서버에서 다시 검증합니다.
-7. 별도 포트를 만들기 전에 기존 ASGI 정적 제공 또는 모듈 API로 통합할 수 있는지 확인합니다.
-8. `python3 -m py_compile`, 프로젝트 테스트, `git diff --check`를 통과시킵니다.
+## 메뉴 전환
+
+프로젝트의 `project.json`에서 `menu_group`을 `portfolio`로 바꿉니다. PoC에 남길 때는 `poc`를 사용합니다. `display_no`, `id`, 폴더명과 `app_path`는 유지합니다. 목록 순서가 바뀌어도 번호를 다시 매기지 않습니다.
+
+```json
+{
+  "id": "national-assembly",
+  "order": 7,
+  "display_no": "07",
+  "menu_group": "portfolio",
+  "lifecycle": "live"
+}
+```
+
+`title`, `summary`, `description`, `features`, `usage`, `note`, `entry_file`로 프로젝트 설명을 관리합니다. 독립 앱은 `app_path`로 기존 경로를 연결하며, 사용하지 않는 코드 전문은 메뉴 HTML에 넣지 않습니다.
+
+## 검증과 배포
+
+```bash
+python3 -m unittest discover -s tests -p 'test_portfolio_catalog.py'
+python3 -m py_compile portfolio_loader.py main.py
+git diff --check
+```
+
+운영 반영은 기존 연결을 마친 뒤 전환하고 공개 경로와 인증을 점검합니다. 단순 메뉴 분류 변경을 위해 개별 프로젝트의 API·DB·워커를 재시작하지 않습니다.
+
+실제 키·DB·수집 파일·실행 상태는 Git에 넣지 않습니다. 서비스별 설정과 복구 방법은 해당 프로젝트 문서를 따릅니다.

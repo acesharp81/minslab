@@ -40,5 +40,7 @@
   "url": "/imgscan",
   "app_path": "/imgscan",
   "app_caption": "25개 체크리스트로 대외 홍보물의 이미지·표현을 검수하고 근거와 검토 이력을 남깁니다.",
-  "app_policy": "자동 검수는 공개 승인과 별개 · 담당자 근거 검토"
+  "app_policy": "자동 검수는 공개 승인과 별개 · 담당자 근거 검토",
+  "menu_group": "poc",
+  "lifecycle": "live"
 }

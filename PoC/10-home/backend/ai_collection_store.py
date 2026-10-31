@@ -9,7 +9,7 @@ import time
 import uuid
 from .ai_collection_progress import summarize
 
-DEFAULTS = dict(enabled=False, profile='OPENAI', hour_kst=7, max_documents=20,
+DEFAULTS = dict(enabled=False, profile='OPENAI', hour_kst=2, max_documents=20,
                 daily_usd=2.0, monthly_usd=30.0, solar_total_usd=110.0,
                 mini_tokens=9_000_000, large_tokens=900_000, search_enabled=True,
                 queries=['수도권 주택 공급 착공 모집 공고', '서울 경기 인천 주택 정정 재모집'],
@@ -40,6 +40,7 @@ class Store:
                 reserved_usd REAL, input_tokens INTEGER, output_tokens INTEGER,
                 cost_usd REAL, status TEXT);
             CREATE INDEX IF NOT EXISTS calls_created ON calls(created);
+            CREATE INDEX IF NOT EXISTS calls_run ON calls(run_id);
             CREATE INDEX IF NOT EXISTS events_run ON events(run_id,id);
             CREATE TABLE IF NOT EXISTS shared_settlements (event_id TEXT PRIMARY KEY, payload TEXT NOT NULL, synced INTEGER NOT NULL DEFAULT 0);
             CREATE TABLE IF NOT EXISTS scans (document_id TEXT PRIMARY KEY, checked REAL);
@@ -95,21 +96,25 @@ class Store:
         with self.db(True) as db:
             db.execute('INSERT OR REPLACE INTO worker VALUES (1,?)', (time.time(),))
 
-    def claim(self):
+    def claim(self, allow_scheduled=True):
         with self.db(True) as db:
             # Do not replay an uncertain/billed operation after process loss.
             db.execute("UPDATE runs SET status='INTERRUPTED',error='작업자 중단 · 완료 자료 보존, 다시 실행 가능' "
                        "WHERE status IN ('RUNNING','STOPPING') AND updated<?", (time.time()-300,))
             if db.execute("SELECT 1 FROM runs WHERE status IN ('RUNNING','STOPPING')").fetchone(): return None
-            row = db.execute("SELECT * FROM runs WHERE status='QUEUED' ORDER BY created LIMIT 1").fetchone()
+            row = db.execute("SELECT * FROM runs WHERE status='QUEUED' AND (? OR schedule_day IS NULL) ORDER BY created LIMIT 1", (allow_scheduled,)).fetchone()
             if not row: return None
             db.execute("UPDATE runs SET status='RUNNING',updated=? WHERE id=?", (time.time(), row['id']))
             return {**dict(row), 'config': json.loads(row['config'])}
 
-    def alive(self, rid):
+    def alive(self, rid, allow_finish=False):
         with self.db(True) as db:
-            row = db.execute('SELECT status FROM runs WHERE id=?', (rid,)).fetchone()
+            row = db.execute('SELECT status,schedule_day FROM runs WHERE id=?', (rid,)).fetchone()
             if not row or row[0] != 'RUNNING': return False
+            from .operations_window import night_open
+            if row['schedule_day'] and not allow_finish and not night_open():
+                db.execute("UPDATE runs SET status='STOPPING',error='야간 시간 종료 · 완료 자료 보존' WHERE id=?",(rid,))
+                return False
             db.execute('UPDATE runs SET updated=? WHERE id=?', (time.time(), rid))
             return True
 
@@ -182,18 +187,22 @@ class Store:
         with self.db(True) as db:
             db.execute("UPDATE calls SET status='UNKNOWN_COST' WHERE id=?", (cid,))
 
-    def status(self):
+    def status(self, include_events=True):
         with self.db() as db:
             runs = [dict(r) for r in db.execute('SELECT * FROM runs ORDER BY created DESC LIMIT 20')]
+            ids=[r['id'] for r in runs];slots=','.join('?' for _ in ids) or 'NULL'
+            from collections import defaultdict
+            calls_by=defaultdict(list);counts_by=defaultdict(dict)
+            for row in db.execute(f'SELECT run_id,model,input_tokens,output_tokens,reserved_tokens,status,cost_usd,reserved_usd FROM calls WHERE run_id IN ({slots})',ids):calls_by[row['run_id']].append(dict(row))
+            for row in db.execute(f'SELECT run_id,kind,count(*) n FROM events WHERE run_id IN ({slots}) GROUP BY run_id,kind',ids):counts_by[row['run_id']][row['kind']]=row['n']
+            progress_by={r['run_id']:json.loads(r['payload']) for r in db.execute(f'SELECT run_id,payload FROM run_progress WHERE run_id IN ({slots})',ids)}
             for r in runs:
-                r['config'] = json.loads(r['config'])
-                r['events'] = [dict(kind=e['kind'], **json.loads(e['payload'])) for e in db.execute(
-                    'SELECT kind,payload FROM events WHERE run_id=? ORDER BY id DESC LIMIT 100', (r['id'],))]
-                r['cost_usd'] = db.execute('SELECT COALESCE(SUM(COALESCE(cost_usd,reserved_usd)),0) FROM calls WHERE run_id=?', (r['id'],)).fetchone()[0]
-                progress=db.execute('SELECT payload FROM run_progress WHERE run_id=?',(r['id'],)).fetchone()
-                calls=[dict(c) for c in db.execute('SELECT model,input_tokens,output_tokens,reserved_tokens,status FROM calls WHERE run_id=?',(r['id'],))]
-                counts=dict(db.execute('SELECT kind,count(*) FROM events WHERE run_id=? GROUP BY kind',(r['id'],)).fetchall())
-                r['progress']=summarize(r,json.loads(progress[0]) if progress else {},calls,counts)
+                r['config']=json.loads(r['config'])
+                r['events']=[dict(kind=e['kind'],**json.loads(e['payload'])) for e in db.execute(
+                    'SELECT kind,payload FROM events WHERE run_id=? ORDER BY id DESC LIMIT 100',(r['id'],))] if include_events else []
+                calls=calls_by[r['id']]
+                r['cost_usd']=sum(c['cost_usd'] if c['cost_usd'] is not None else c['reserved_usd'] for c in calls)
+                r['progress']=summarize(r,progress_by.get(r['id'],{}),calls,counts_by[r['id']])
             day = datetime.now(timezone.utc).replace(hour=0,minute=0,second=0,microsecond=0).timestamp()
             usage = [dict(r) for r in db.execute('SELECT provider,token_group,SUM(COALESCE(input_tokens+output_tokens,reserved_tokens)) AS tokens, '
                 'SUM(COALESCE(cost_usd,reserved_usd)) AS cost_usd FROM calls WHERE created>=? GROUP BY provider,token_group', (day,))]

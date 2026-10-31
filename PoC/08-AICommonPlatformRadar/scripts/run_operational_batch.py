@@ -97,6 +97,10 @@ def main() -> None:
     parser.add_argument("--lookback-days", type=int, default=None)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+    from app.services.runtime_settings import collection_enabled
+    if not collection_enabled():
+        print(json.dumps({"phase": args.phase, "status": "disabled", "collection_enabled": False}, ensure_ascii=False))
+        return
     init_db()
     with SessionLocal() as db:
         outside_midday_window = (

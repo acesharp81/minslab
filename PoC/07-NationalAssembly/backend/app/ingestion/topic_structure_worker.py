@@ -77,6 +77,7 @@ def pace_nim(client: Any) -> None:
 
 
 def consolidate_partitioned(item, facets, items, prior):
+    from ..services.provider_retry_gate import blocked_provider
     from ..services.partitioned_consolidation import PROFILE, BATCH_START, partitions, prompt, schema, normalize
     from .meeting_brief_worker import safe_brief_error_code
     from datetime import datetime, timedelta, timezone
@@ -110,7 +111,9 @@ def consolidate_partitioned(item, facets, items, prior):
                 return {'status':'RETRY_DEFERRED','broadcast_id':str(item['broadcast_id']),'completed':index,'total':len(plan)}
             attempt=max([h['attempt'] for h in history]+[0]);success=False
             for client in pool:
-                attempt+=1;data={};metadata={'provider':client.provider,'model':client.model};error=None
+                if blocked_provider(client,history):
+                    continue
+                attempt+=1;data={};metadata={'provider':client.provider,'model':client.model,'attempted_model':client.model};error=None
                 try:
                     pace_nim(client)
                     raw,usage=client._post(prompt(items,indices),schema(items,indices),'discussion_structure_consolidation')
@@ -138,7 +141,7 @@ def consolidate_partitioned(item, facets, items, prior):
             if current and current['brief_id']==item['brief_id'] and current['brief'].get('finalization'):
                 brief=dict(current['brief']);state=dict(brief['finalization'])
                 state.update(status='PROCESSING',phase='CONSOLIDATING',integration_batches_done=index+1,integration_batches_total=len(plan))
-                state.pop('retry_after',None);brief['finalization']=state;repo.update_brief(current['brief_id'],brief)
+                state.pop('retry_after',None);repo.save_finalization(current['brief_id'],state)
     result={'assignments':combined,'partition_profile':PROFILE}
     reviewed=apply_consolidation(facets,result)
     attempt=max([h['attempt'] for h in prior if h['index']==CONSOLIDATION_BATCH]+[0])+1
@@ -151,6 +154,7 @@ def consolidate_partitioned(item, facets, items, prior):
 
 
 def consolidate_one(item: dict[str, Any], structure: dict[str, Any]) -> dict[str, Any]:
+    from ..services.provider_retry_gate import blocked_provider
     from .meeting_brief_worker import safe_brief_error_code
     s = get_settings()
     structure_id = structure['topic_structure']['revision_id']
@@ -209,6 +213,8 @@ def consolidate_one(item: dict[str, Any], structure: dict[str, Any]) -> dict[str
         attempt += 1
         client = pool[provider_attempt % len(pool)]
         provider_attempt += 1
+        if blocked_provider(client,matching):
+            continue
         data, metadata, error = {}, {}, None
         try:
             pace_nim(client)
@@ -228,7 +234,7 @@ def consolidate_one(item: dict[str, Any], structure: dict[str, Any]) -> dict[str
         with connect(s.database_url) as c:
             TopicStructureRepository(c).record(structure_id, CONSOLIDATION_BATCH, attempt,
                                                {'issues': items, 'request_profile': CONSOLIDATION_PROFILE},
-                                               data, metadata, error)
+                                               data, {**metadata,'provider':client.provider,'attempted_model':client.model}, error)
         if not error:
             return {'status': 'CONSOLIDATED', 'broadcast_id': str(item['broadcast_id']),
                     'issues_before': len(items), 'issues_after': len(consolidation_input(reviewed))}

@@ -261,9 +261,25 @@ def parse_preferred_attachments(db: Session, notice: Notice, *, force: bool = Fa
     return {row.source_url: row.parse_status for row in attachments}
 
 
+from .runtime_settings import collection_enabled
+
+
+class CollectionPaused(RuntimeError):
+    pass
+
+
+def _check_collection_enabled(settings):
+    if not collection_enabled(settings.data_dir):
+        raise CollectionPaused("설정에서 수집이 비활성화되었습니다.")
+
+
 async def run_collection(db: Session, lookback_days: int | None = None, *, analyze: bool = True) -> dict[str, int | str]:
     settings = get_settings()
+    if not collection_enabled(settings.data_dir):
+        return {"status": "disabled", "message": "설정에서 수집이 비활성화되어 있습니다."}
     with exclusive_collection_lock(settings.data_dir):
+        if not collection_enabled(settings.data_dir):
+            return {"status": "disabled"}
         return await _run_collection(db, lookback_days, analyze=analyze, settings=settings)
 
 
@@ -298,6 +314,7 @@ async def _run_collection(
         items = sorted(items, key=_collection_priority, reverse=True)
         stats["received"] = len(items)
         for position, item in enumerate(items, start=1):
+            _check_collection_enabled(settings)
             try:
                 policy_attachments = select_preferred_documents(item.attachments, name=lambda row: row.name)
                 metadata_rule = evaluate_notice(
@@ -364,6 +381,7 @@ async def _run_collection(
             )).all()
             backlog = []
             for notice in all_notices:
+                _check_collection_enabled(settings)
                 if not _needs_backlog_analysis(notice):
                     continue
                 rule = evaluate_notice(
@@ -383,6 +401,7 @@ async def _run_collection(
                     backlog.append(notice)
             backlog.sort(key=_notice_priority, reverse=True)
             for index, notice in enumerate(backlog):
+                _check_collection_enabled(settings)
                 try:
                     analyze_notice(db, notice, deep=True)
                     stats["analyzed"] += 1
@@ -394,6 +413,7 @@ async def _run_collection(
                 except Exception:
                     logger.exception("공고 %s 분석 실패", notice.id)
                     stats["analysis_failed"] += 1
+        _check_collection_enabled(settings)
         opinion_stats = await refresh_tracked_opinions(db)
         stats["opinions_checked"] = opinion_stats["checked"]
         stats["opinions_replied"] = opinion_stats["replied"]
@@ -402,6 +422,15 @@ async def _run_collection(
         run.stats_json = json.dumps(stats, ensure_ascii=False)
         run.finished_at = datetime.now(timezone.utc)
         db.add(AuditLog(event_type="collection_finished", entity_type="pipeline_run", entity_id=str(run.id), detail_json=run.stats_json))
+        db.commit()
+        return stats
+    except CollectionPaused:
+        db.commit()
+        run = db.get(PipelineRun, run.id)
+        run.status = "paused"
+        run.finished_at = datetime.now(timezone.utc)
+        stats["status"] = "paused"
+        run.stats_json = json.dumps(stats, ensure_ascii=False)
         db.commit()
         return stats
     except Exception as exc:
@@ -422,6 +451,7 @@ async def _run_collection(
 
 def reparse_failed(db: Session) -> dict[str, int]:
     settings = get_settings()
+    _check_collection_enabled(settings)
     stats = {"retried": 0, "parsed": 0, "failed": 0}
     rows = db.scalars(select(Attachment).where(
         Attachment.file_path.is_not(None),

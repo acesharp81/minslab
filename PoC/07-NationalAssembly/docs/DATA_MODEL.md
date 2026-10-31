@@ -373,3 +373,25 @@ PoC7·PoC10·PoC11은 기존 `openai_group_daily_usage`(mini/main, UTC 일자)�
 ### Solar 무제한 운영 표시 (2026-10-30)
 
 `SHARED_SOLAR_UNLIMITED=true`일 때 같은 `shared_solar_grant_usage`와 `shared_model_reservations`에 기록하되 예약 시 달러 상한으로 거절하지 않는다. 상태 응답은 `status=UNLIMITED`, `limit=null`, `remaining=null`과 누적 입력/출력/호출 수를 제공한다. 토큰/사용액 기록과 모델 간 공용 원장의 원자성은 유지하며 신규 스키마 변경은 없다. 유료 기간으로 전환하면 별도 grant ID로 이전 무제한 기간의 환산액과 분리한다.
+
+
+## 2026-10-31 보고서·공식자료 중복 저장 분리 (0063–0065)
+
+- `meeting_brief_finalization_state`: 보고서별 최신 진행 상태. `meeting_brief_finalization_events`는 변경된 상태만 기록한다. `meeting_brief_payload(id, brief)`로 기존 응답 계약을 복원한다. 진행률 변경은 본문 UPDATE나 본문 이력 추가를 발생시키지 않는다.
+- `meeting_brief_revision_entries`는 기존 이력 ID·사유·시각과 `body_hash`, `finalization`, 필드 존재 여부를 보존한다. `meeting_brief_revision_bodies`는 finalization을 제외한 동일 JSON을 SHA-256 단위로 공유한다. 이전 이름 `meeting_brief_revisions`는 원래 JSON을 복원하는 읽기/INSERT 호환 뷰다.
+- `meeting_topic_structure_attempts`는 기존 배치 ID·응답·오류·사용량을 보존하고, `meeting_structure_requests`의 SHA-256 키를 참조한다. `meeting_topic_structure_batches`는 원래 컬럼 순서와 INSERT 계약을 유지하는 뷰다. 요청이 같아도 서로 다른 응답/시도 이력은 삭제하지 않는다.
+- `official_utterance_rows`는 기존 공식 발언 ID·문서 ID·화자·원문 위치·text_hash를 유지하며 `official_text_payloads`에 동일 원문 바이트를 공유한다. `official_annotation_rows`는 기존 주석 ID·분류·기관·권위·검토 상태를 유지하며 `official_annotation_payloads`에 근거 키워드·주제/기관 연결 JSON을 공유한다. `official_transcript_utterances`, `official_utterance_annotations`는 기존 필드와 값을 복원하는 읽기 뷰다. 기존 외래키는 이름이 바뀐 원래 테이블을 계속 참조한다.
+- 공식자료 쓰기는 `OfficialPublicationRepository`에서 base table에 수행하며 트리거가 새 원문/주석을 공유 저장한다. 과거분은 `python -m app.ingestion.normalize_official_storage --blocks 2048`로 정리한다. 백업 검증 후에만 실행하며 `storage_normalization_jobs`의 페이지 커서에서 재개한다. `storage_normalization_batches`에 각 배치의 처리 수와 전후 JSON 해시를 기록하며 불일치하면 해당 배치를 롤백한다. 이 배치 체크포인트는 업무 원문이 아니다.
+- 문서 버전·발언·주석의 논리 ID와 외부 참조, 원문 파일은 삭제하지 않는다. 뷰에 `ON CONFLICT`를 실행할 수 없으므로 직접 쓰는 유지관리 스크립트는 새 base table/저장소 클래스를 사용한다. 신규 공식자료 컬럼을 추가할 때는 호환 뷰와 정규화 검증 projection도 함께 수정한다.
+
+
+### 후속 인덱스·진행 이력 보완 (0066–0067)
+
+`official_transcript_utterances_document_idx`는 UNIQUE `(document_id, sequence_number)` 인덱스와 같은 컬럼·연산자·정렬을 가진 중복 인덱스이며 제약조건 참조가 없어 제거한다. 운영에서는 `DROP INDEX CONCURRENTLY`로 적용하고, 원래 UNIQUE 제약은 유지한다.
+
+`meeting_brief_finalization_events`는 `updated_at`만 달라진 폴링에는 행을 추가하지 않는다. 최신 상태의 확인 시각은 갱신해 큐 공정성을 유지한다. 본문 보완은 함께 전달된 과거 finalization으로 최신 진행 상태를 덮어쓰지 않으며 상태 변경은 `save_finalization()`으로 수행한다.
+
+
+### 이관 후 부분 백업 주의
+
+기존 `meeting_brief_revisions`, `meeting_topic_structure_batches`, `official_transcript_utterances`, `official_utterance_annotations`는 이제 뷰다. 이 이름만 `pg_dump -t`로 지정하면 실제 공유 데이터는 포함되지 않는다. 전체 DB custom dump를 권장하며, 부분 백업을 만들 때는 대응하는 entries/attempts/rows와 bodies/requests/payloads, 진행 상태·이력 및 스키마 함수·뷰를 함께 포함해야 한다. 원문 버전/출처 참조까지 복원하려면 그 참조 테이블도 필요하다.

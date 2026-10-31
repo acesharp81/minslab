@@ -85,13 +85,13 @@ def save_settings(service,revision_no,targets,events,occupancy_observations=None
         if outcome!='unchanged':session.add(Audit(entity_id=POLICY_ID,action='DELIVERY_TARGETS_UPDATED',before=old.payload if old else {},after=payload))
         return dict(payload,revision_no=row.revision_no,outcome=outcome)
 
-def build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False,comparison_scopes=None):
+def build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False,comparison_scopes=None,include_snapshots=True):
     from .read_scope import projection_reads
     with projection_reads():
-        return _build_delivery(service,reference,include_portfolio_comparisons,indicators_only,comparison_scopes)
+        return _build_delivery(service,reference,include_portfolio_comparisons,indicators_only,comparison_scopes,include_snapshots)
 
 
-def _build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False,comparison_scopes=None):
+def _build_delivery(service,reference,include_portfolio_comparisons=True,indicators_only=False,comparison_scopes=None,include_snapshots=True):
     plans=service.rows('policy_delivery_plan',reference)
     plan=next((r for r in plans if r.get('policy_id')==POLICY_ID),None)
     if not plan:return dict(policy_id=POLICY_ID,status='PLAN_NOT_COLLECTED',target_units=1350000,
@@ -302,15 +302,16 @@ def _build_delivery(service,reference,include_portfolio_comparisons=True,indicat
                     totals[pool]-=shift;totals[goal['stage']]+=shift;deficit-=shift
         return dict(date=cutoff,month=cutoff[:7],totals=totals,total_units=sum(totals.values()),forecast=forecast,cohorts=details)
     snapshots=[]
-    dates=[d for c in portfolio for d in [*(e['event_date'] for e in c['events']),*(s['due_date'] for s in c['schedules'])] if d]
-    dates.extend(d for p in plan.get('program_profiles',{}).values() for d in (p['values']['period_start'],p['values']['period_end']))
-    first_year=min([reference.year-5,int(plan['period_start'][:4])]+[int(d[:4]) for d in dates]);last_year=max([reference.year+5,int(plan['period_end'][:4])]+[int(d[:4]) for d in dates])
-    for year in range(first_year,last_year+1):
-        for month in range(1,13):
-            cutoff=f'{year}-{month:02d}-{monthrange(year,month)[1]:02d}'
-            if cutoff[:7]==reference.strftime('%Y-%m'):cutoff=reference.isoformat()
-            state=cohort_state(cutoff,cutoff>reference.isoformat())
-            snapshots.append({k:v for k,v in state.items() if k!='cohorts'})
+    if include_snapshots:
+        dates=[d for c in portfolio for d in [*(e['event_date'] for e in c['events']),*(s['due_date'] for s in c['schedules'])] if d]
+        dates.extend(d for p in plan.get('program_profiles',{}).values() for d in (p['values']['period_start'],p['values']['period_end']))
+        first_year=min([reference.year-5,int(plan['period_start'][:4])]+[int(d[:4]) for d in dates]);last_year=max([reference.year+5,int(plan['period_end'][:4])]+[int(d[:4]) for d in dates])
+        for year in range(first_year,last_year+1):
+            for month in range(1,13):
+                cutoff=f'{year}-{month:02d}-{monthrange(year,month)[1]:02d}'
+                if cutoff[:7]==reference.strftime('%Y-%m'):cutoff=reference.isoformat()
+                state=cohort_state(cutoff,cutoff>reference.isoformat())
+                snapshots.append({k:v for k,v in state.items() if k!='cohorts'})
     current=cohort_state(reference.isoformat())
     current_index={c['id']:c for c in current['cohorts']}
     for c in portfolio:

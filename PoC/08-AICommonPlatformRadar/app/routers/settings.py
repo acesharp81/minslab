@@ -11,10 +11,13 @@ from sqlalchemy.orm import Session
 
 from ..config import get_settings
 from ..db import get_db
+from ..db import get_db
 from ..models import AuditLog
-from ..schemas import AdminPasswordChange, NotificationSettingsPatch, OpinionSenderProfile
+from ..schemas import CollectionSettingsPatch, AdminPasswordChange, NotificationSettingsPatch, OpinionSenderProfile
 from ..services.opinion_guidance import load_opinion_sender_profile, save_opinion_sender_profile
 from ..services.runtime_settings import (
+    public_collection_settings,
+    update_collection_settings,
     change_admin_password,
     create_admin_session,
     public_notification_settings,
@@ -56,6 +59,7 @@ def settings_page(request: Request, db: Session = Depends(get_db)):
     return request.app.state.templates.TemplateResponse(request, "settings.html", {
         "profile": load_opinion_sender_profile(),
         "notifications": public_notification_settings(),
+        "collection": public_collection_settings(),
         "error_reports": reports,
         "admin_username": get_settings().admin_username or "admin",
     })
@@ -129,3 +133,21 @@ def update_admin_password(patch: AdminPasswordChange):
         raise HTTPException(400, "현재 암호가 올바르지 않습니다.")
     change_admin_password(patch.new_password)
     return {"updated": True}
+
+
+@router.get("/api/settings/collection")
+def collection_settings_api(request: Request):
+    if not settings_authorized(request):
+        raise HTTPException(401, "설정 로그인이 필요합니다.")
+    return public_collection_settings()
+
+
+@router.put("/api/settings/collection")
+def set_collection_settings(payload: CollectionSettingsPatch, request: Request, db: Session = Depends(get_db)):
+    if not settings_authorized(request):
+        raise HTTPException(401, "설정 로그인이 필요합니다.")
+    values = update_collection_settings(payload.enabled)
+    db.add(AuditLog(event_type="collection_setting_changed", entity_type="settings", entity_id="collection",
+                    detail_json=json.dumps(values, ensure_ascii=False)))
+    db.commit()
+    return values

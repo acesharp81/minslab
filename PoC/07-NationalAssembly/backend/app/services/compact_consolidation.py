@@ -2,13 +2,14 @@
 from __future__ import annotations
 import json
 from typing import Any
+from .report_parent_groups import PARENT_POLICY_INSTRUCTION, policy_parent_catalogue, parent_title_schema
 
 PROFILE = 'indexed-groups/2'
 
 
 def schema(items: list[dict[str, Any]]) -> dict[str, Any]:
     group = {'type':'object','additionalProperties':False,'properties':{
-        'parent':{'type':'string','maxLength':80},
+        'parent':parent_title_schema(items),
         'issue_groups':{'type':'array','items':{'type':'array','items':{
             'type':'integer','minimum':0,'maximum':max(0,len(items)-1)}}}},
         'required':['parent','issue_groups']}
@@ -29,7 +30,9 @@ def prompt(items: list[dict[str, Any]]) -> str:
             '자료 제출 요구는 해당 사건·정책에 연결하고 자료 요구만 별도 주제로 만들지 마라. '
             'parent는 구체적인 정책 대상을 나타내는 6~15개 범주를 지향하되 개수를 강제하지 않는다. '
             '근거에 없는 인명·사건·기관명은 추측하거나 교정하지 마라. 모든 원문 번호를 보존하라. '
-            'JSON만 반환한다.\n'+json.dumps(source,ensure_ascii=False,separators=(',',':')))
+            'JSON만 반환한다. '+PARENT_POLICY_INSTRUCTION+'\n'+json.dumps(
+                {'policy_parent_catalogue':policy_parent_catalogue(items),'sources':source},
+                ensure_ascii=False,separators=(',',':')))
 
 
 def normalize(items: list[dict[str, Any]], data: Any) -> dict[str, Any]:

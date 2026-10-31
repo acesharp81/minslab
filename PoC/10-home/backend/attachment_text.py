@@ -1,4 +1,5 @@
 """Bounded text recovery from verified archived EUM attachments; no stage facts."""
+from .raw_archive import read_raw
 import copy
 import hashlib
 import os
@@ -55,7 +56,7 @@ def recover_item(item, data_dir):
     path=(Path(data_dir)/item['original_file']).resolve()
     if not path.is_relative_to((Path(data_dir)/'raw').resolve()):raise ValueError('ARCHIVE_PATH_INVALID')
     if path.stat().st_size>15_000_000:raise ValueError('FILE_SIZE_LIMIT')
-    body=path.read_bytes()
+    body=read_raw(path)
     if hashlib.sha256(body).hexdigest()!=item.get('original_sha256'):raise ValueError('ARCHIVE_HASH_MISMATCH')
     return extract(path,body)
 

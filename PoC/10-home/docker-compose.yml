@@ -1,7 +1,14 @@
+x-home-logging: &home-logging
+  driver: local
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     image: postgis/postgis:16-3.5
     container_name: poc10-home-db
+    logging: *home-logging
     mem_limit: 2g
     memswap_limit: 4g
     restart: unless-stopped
@@ -19,6 +26,8 @@ services:
     build: .
     image: poc10-home:local
     container_name: poc10-home-api
+    logging: *home-logging
+    command: ["sh", "-c", "alembic upgrade head && uvicorn backend.app:app --host 0.0.0.0 --port 8000 --lifespan off"]
     networks: [default, ai-budget]
     mem_limit: 1536m
     memswap_limit: 3g
@@ -29,7 +38,7 @@ services:
       POC10_DATABASE_URL: postgresql+psycopg://home:${POC10_DB_PASSWORD}@db:5432/home
       POC10_AUTO_COLLECT: "false"
     ports:
-      - "127.0.0.1:18100:8000"
+      - "127.0.0.1:${POC10_HOST_PORT:-18100}:8000"
     volumes:
       - ./data:/app/data
     depends_on:
@@ -44,6 +53,7 @@ services:
   worker:
     image: poc10-home:local
     container_name: poc10-home-worker
+    logging: *home-logging
     command: ["python", "-m", "backend.collection_worker"]
     mem_limit: 1536m
     memswap_limit: 2g
@@ -67,6 +77,7 @@ services:
   area-worker:
     image: poc10-home:local
     container_name: poc10-home-area-worker
+    logging: *home-logging
     command: ["python", "-m", "backend.area_snapshot_worker"]
     mem_limit: 1536m
     memswap_limit: 2g
@@ -91,6 +102,7 @@ services:
   ai-worker:
     image: poc10-home:local
     container_name: poc10-home-ai-worker
+    logging: *home-logging
     networks: [default, ai-budget]
     command: ["python", "-m", "backend.ai_collection_worker"]
     mem_limit: 512m
@@ -107,7 +119,7 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "from backend.ai_collection_store import Store; assert Store('/app/data').status()['worker_online']"]
+      test: ["CMD", "python", "-c", "from backend.ai_worker_health import online; assert online('/app/data')"]
       interval: 30s
       timeout: 5s
       retries: 3

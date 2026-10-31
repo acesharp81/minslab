@@ -1,0 +1,17 @@
+[Unit]
+Description=HOME verified old unreferenced LH-response retention
+After=docker.service
+Requires=docker.service
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/home/ubuntu/apps/myservice
+# A persistent timer may catch up after a daytime reboot; defer to the next night.
+ExecCondition=/usr/bin/python3 -c "from datetime import datetime; from zoneinfo import ZoneInfo; import sys; sys.exit(0 if 1 <= datetime.now(ZoneInfo('Asia/Seoul')).hour < 5 else 1)"
+ExecStart=/usr/bin/python3 /home/ubuntu/apps/myservice/deploy/maintenance/storage-retention/home_retention.py --apply
+Nice=19
+IOSchedulingClass=idle
+MemoryMax=192M
+TimeoutStartSec=20min
+UMask=0077
+NoNewPrivileges=true

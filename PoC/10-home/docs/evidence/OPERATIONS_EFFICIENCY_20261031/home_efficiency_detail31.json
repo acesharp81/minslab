@@ -1,0 +1,445 @@
+{
+  "batch_24h": {
+    "seconds": 0.6321608499856666,
+    "rows": [
+      {
+        "source_id": "lh_notice",
+        "status": "SUCCESS",
+        "runs": 85,
+        "records": "0",
+        "new_records": "4",
+        "changed_records": "4030",
+        "unchanged_records": "338457",
+        "first_started": "2026-10-30 04:01:16.828371+00:00",
+        "last_started": "2026-10-31 02:40:09.973940+00:00"
+      },
+      {
+        "source_id": "sh_national_plan_file",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 03:54:59.982166+00:00",
+        "last_started": "2026-10-31 02:48:52.728558+00:00"
+      },
+      {
+        "source_id": "molit_renewal_inventory",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 04:22:22.732725+00:00",
+        "last_started": "2026-10-31 03:24:52.805288+00:00"
+      },
+      {
+        "source_id": "lh_stock",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 04:03:27.615048+00:00",
+        "last_started": "2026-10-31 02:55:19.526258+00:00"
+      },
+      {
+        "source_id": "sh_contract_file",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 03:55:05.707072+00:00",
+        "last_started": "2026-10-31 02:48:58.086302+00:00"
+      },
+      {
+        "source_id": "sh_happy_plan_file",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 03:55:02.802440+00:00",
+        "last_started": "2026-10-31 02:48:55.439789+00:00"
+      },
+      {
+        "source_id": "reb_movein_plan_file",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 03:55:04.217007+00:00",
+        "last_started": "2026-10-31 02:48:56.763157+00:00"
+      },
+      {
+        "source_id": "lh_completion_plan",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 04:08:19.209452+00:00",
+        "last_started": "2026-10-31 03:13:51.234133+00:00"
+      },
+      {
+        "source_id": "gh_files",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 04:37:28.344952+00:00",
+        "last_started": "2026-10-31 03:27:54.201969+00:00"
+      },
+      {
+        "source_id": "sh_jeonse_plan_file",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 03:55:01.348696+00:00",
+        "last_started": "2026-10-31 02:48:54.110861+00:00"
+      },
+      {
+        "source_id": "lh_happy_plan_file",
+        "status": "FAILED",
+        "runs": 76,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 03:54:58.556169+00:00",
+        "last_started": "2026-10-31 02:48:51.335797+00:00"
+      },
+      {
+        "source_id": "gh_completion_evidence",
+        "status": "FAILED",
+        "runs": 71,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 06:10:55.248524+00:00",
+        "last_started": "2026-10-31 03:32:57.531510+00:00"
+      },
+      {
+        "source_id": "lh_notice_detail",
+        "status": "SUCCESS",
+        "runs": 44,
+        "records": "0",
+        "new_records": "3",
+        "changed_records": "141",
+        "unchanged_records": "6035",
+        "first_started": "2026-10-30 03:59:17.753167+00:00",
+        "last_started": "2026-10-31 02:20:05.121171+00:00"
+      },
+      {
+        "source_id": "gh_notice",
+        "status": "SUCCESS",
+        "runs": 44,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "12",
+        "unchanged_records": "11296",
+        "first_started": "2026-10-30 04:14:15.207292+00:00",
+        "last_started": "2026-10-31 02:35:04.973274+00:00"
+      },
+      {
+        "source_id": "sh_notice_watch",
+        "status": "SUCCESS",
+        "runs": 24,
+        "records": "0",
+        "new_records": "4",
+        "changed_records": "6",
+        "unchanged_records": "402",
+        "first_started": "2026-10-30 03:55:13.117269+00:00",
+        "last_started": "2026-10-31 03:02:53.214543+00:00"
+      },
+      {
+        "source_id": "lh_press_watch",
+        "status": "SUCCESS",
+        "runs": 23,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "115",
+        "first_started": "2026-10-30 04:33:26.243093+00:00",
+        "last_started": "2026-10-31 02:58:56.614169+00:00"
+      },
+      {
+        "source_id": "newsis_housing_watch",
+        "status": "SUCCESS",
+        "runs": 23,
+        "records": "0",
+        "new_records": "10",
+        "changed_records": "0",
+        "unchanged_records": "174",
+        "first_started": "2026-10-30 04:33:30.358090+00:00",
+        "last_started": "2026-10-31 02:59:00.764784+00:00"
+      },
+      {
+        "source_id": "molit_press_watch",
+        "status": "SUCCESS",
+        "runs": 23,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "184",
+        "first_started": "2026-10-30 04:43:32.635880+00:00",
+        "last_started": "2026-10-31 02:58:51.510017+00:00"
+      },
+      {
+        "source_id": "opm_press_watch",
+        "status": "SUCCESS",
+        "runs": 23,
+        "records": "0",
+        "new_records": "1",
+        "changed_records": "0",
+        "unchanged_records": "86",
+        "first_started": "2026-10-30 04:43:34.853215+00:00",
+        "last_started": "2026-10-31 02:58:53.713985+00:00"
+      },
+      {
+        "source_id": "ih_press_watch",
+        "status": "SUCCESS",
+        "runs": 23,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "93",
+        "first_started": "2026-10-30 04:33:27.833068+00:00",
+        "last_started": "2026-10-31 02:58:58.213536+00:00"
+      },
+      {
+        "source_id": "sh_inventory",
+        "status": "SUCCESS",
+        "runs": 23,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "414",
+        "first_started": "2026-10-30 04:13:22.152303+00:00",
+        "last_started": "2026-10-31 02:21:30.048080+00:00"
+      },
+      {
+        "source_id": "seoul_press_watch",
+        "status": "SUCCESS",
+        "runs": 23,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "115",
+        "first_started": "2026-10-30 04:33:29.074861+00:00",
+        "last_started": "2026-10-31 02:58:59.456729+00:00"
+      },
+      {
+        "source_id": "ih_notice",
+        "status": "SUCCESS",
+        "runs": 22,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "186",
+        "unchanged_records": "147",
+        "first_started": "2026-10-30 04:33:31.722372+00:00",
+        "last_started": "2026-10-31 02:00:01.520718+00:00"
+      },
+      {
+        "source_id": "seoul_cleanup",
+        "status": "SUCCESS",
+        "runs": 22,
+        "records": "0",
+        "new_records": "1",
+        "changed_records": "1393",
+        "unchanged_records": "24911",
+        "first_started": "2026-10-30 04:30:27.089514+00:00",
+        "last_started": "2026-10-31 01:55:53.254715+00:00"
+      },
+      {
+        "source_id": "eum_housing_notices",
+        "status": "SUCCESS",
+        "runs": 21,
+        "records": "0",
+        "new_records": "18",
+        "changed_records": "346",
+        "unchanged_records": "12127",
+        "first_started": "2026-10-30 04:55:27.351637+00:00",
+        "last_started": "2026-10-31 02:07:04.366925+00:00"
+      },
+      {
+        "source_id": "building_general_permit",
+        "status": "FAILED",
+        "runs": 4,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 18:53:05.585201+00:00",
+        "last_started": "2026-10-30 19:09:32.671591+00:00"
+      },
+      {
+        "source_id": "gh_completion_evidence",
+        "status": "SUCCESS",
+        "runs": 2,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "14",
+        "first_started": "2026-10-30 04:10:14.109407+00:00",
+        "last_started": "2026-10-30 05:10:39.072152+00:00"
+      },
+      {
+        "source_id": "policy_history",
+        "status": "SUCCESS",
+        "runs": 1,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "5",
+        "first_started": "2026-10-30 12:34:33.333238+00:00",
+        "last_started": "2026-10-30 12:34:33.333238+00:00"
+      },
+      {
+        "source_id": "kosis_household_size",
+        "status": "SUCCESS",
+        "runs": 1,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "552",
+        "first_started": "2026-10-30 11:46:24.926940+00:00",
+        "last_started": "2026-10-30 11:46:24.926940+00:00"
+      },
+      {
+        "source_id": "gh_supply_plan",
+        "status": "SUCCESS",
+        "runs": 1,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "2",
+        "first_started": "2026-10-30 12:20:57.039670+00:00",
+        "last_started": "2026-10-30 12:20:57.039670+00:00"
+      },
+      {
+        "source_id": "lh_incheon_sale",
+        "status": "SUCCESS",
+        "runs": 1,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "0",
+        "unchanged_records": "5",
+        "first_started": "2026-10-30 09:02:41.042645+00:00",
+        "last_started": "2026-10-30 09:02:41.042645+00:00"
+      },
+      {
+        "source_id": "building_register_recap",
+        "status": "SUCCESS",
+        "runs": 1,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "262",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 16:31:00.522324+00:00",
+        "last_started": "2026-10-30 16:31:00.522324+00:00"
+      },
+      {
+        "source_id": "lh_policy_followup",
+        "status": "SUCCESS",
+        "runs": 1,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "2",
+        "unchanged_records": "31",
+        "first_started": "2026-10-30 13:20:41.709318+00:00",
+        "last_started": "2026-10-30 13:20:41.709318+00:00"
+      },
+      {
+        "source_id": "lh_supply_history",
+        "status": "SUCCESS",
+        "runs": 1,
+        "records": "0",
+        "new_records": "0",
+        "changed_records": "87",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 12:17:25.488944+00:00",
+        "last_started": "2026-10-30 12:17:25.488944+00:00"
+      },
+      {
+        "source_id": "building_register",
+        "status": "SUCCESS",
+        "runs": 1,
+        "records": "0",
+        "new_records": "5",
+        "changed_records": "32213",
+        "unchanged_records": "0",
+        "first_started": "2026-10-30 17:20:43.431603+00:00",
+        "last_started": "2026-10-30 17:20:43.431603+00:00"
+      }
+    ]
+  },
+  "snapshot_counts": {
+    "seconds": 0.0684975350741297,
+    "rows": [
+      {
+        "actor": "자동 수집",
+        "snapshots": 5017,
+        "last_24h": 305,
+        "first_created": "2026-10-16 15:05:44.653922+00:00",
+        "last_created": "2026-10-31 02:41:13.952048+00:00"
+      },
+      {
+        "actor": "김민",
+        "snapshots": 13,
+        "last_24h": 0,
+        "first_created": "2026-10-16 14:56:56.744730+00:00",
+        "last_created": "2026-10-16 17:59:41.878467+00:00"
+      },
+      {
+        "actor": "담당자 대행",
+        "snapshots": 6,
+        "last_24h": 0,
+        "first_created": "2026-10-19 16:47:04.014487+00:00",
+        "last_created": "2026-10-21 21:22:47.401731+00:00"
+      }
+    ]
+  },
+  "revision_growth": {
+    "error": "OperationalError"
+  },
+  "audit_24h": {
+    "error": "OperationalError"
+  },
+  "batch_samples": {
+    "seconds": 14.83362715493422,
+    "rows": [
+      {
+        "source_id": "gh_completion_evidence",
+        "status": "FAILED",
+        "stored_responses": 1
+      }
+    ]
+  },
+  "snapshot_recent12_normalized": {
+    "rows": 12,
+    "distinct_without_known_at": 4,
+    "group_sizes": [
+      7,
+      2,
+      2,
+      1
+    ],
+    "mean_uncompressed_bytes": 3202191
+  }
+}

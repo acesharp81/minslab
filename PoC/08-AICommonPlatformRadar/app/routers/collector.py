@@ -14,6 +14,7 @@ from ..db import SessionLocal, get_db
 from ..models import AuditLog, PipelineRun
 from ..services.collector import reparse_failed, run_collection
 from ..services.report_builder import _batch_data
+from ..services.runtime_settings import collection_enabled
 
 
 router = APIRouter()
@@ -71,6 +72,8 @@ def collect_run(
     analyze: bool = True,
     db: Session = Depends(get_db),
 ):
+    if not collection_enabled():
+        raise HTTPException(409, "공고·첨부 수집이 비활성화되어 있습니다. 설정에서 활성화하세요.")
     if not _manual_job_guard.acquire(blocking=False):
         raise HTTPException(409, "수동 수집·후보판정 작업이 이미 실행 중입니다.")
     previous = db.scalar(select(PipelineRun).order_by(PipelineRun.id.desc()))
@@ -90,6 +93,8 @@ def collect_status(db: Session = Depends(get_db)):
 
 @router.post("/api/maintenance/reparse", status_code=202)
 def maintenance_reparse(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    if not collection_enabled():
+        raise HTTPException(409, "수집이 비활성화되어 문서 재수집을 시작할 수 없습니다.")
     if not _reparse_job_guard.acquire(blocking=False):
         raise HTTPException(409, "문서 오류 재처리 작업이 이미 실행 중입니다.")
     previous = db.scalar(select(PipelineRun).where(
