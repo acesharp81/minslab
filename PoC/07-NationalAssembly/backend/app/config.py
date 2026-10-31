@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     llm_provider: str = "disabled"
     llm_model: str = ""
     meeting_brief_provider: str = ""
-    meeting_brief_model: str = "dots-studio/dots-3-note-preview:free"
+    meeting_brief_model: str = "nvidia/nemotron-3.5-super-vl:free"
     meeting_brief_mistral_model: str = "mistral-small-2603"
     meeting_brief_openai_model: str = "gpt-5.4-mini"
     meeting_brief_nvidia_enabled: bool = False
@@ -58,9 +58,13 @@ class Settings(BaseSettings):
     openai_mini_daily_token_limit: int = 10_000_000
     openai_daily_token_limit: int = 1_000_000
     # Confirmed credit grant; never fabricate a reset or assume the cash balance is free.
+    shared_solar_grant_id: str = "solar-202610-shared"
+    shared_solar_budget_usd: float = 110.0
+    shared_solar_unlimited: bool = False
     openai_credit_grant_id: str = ""
     openai_credit_expires_at: str = ""
     openai_credit_budget_usd: float = 0.0
+    openai_credit_month_start_renewal: bool = False
     openai_credit_month_end_renewal: bool = False
     openai_credit_monthly_budget_usd: float = 100.0
     openai_other_projects_mini_tokens: int = 0

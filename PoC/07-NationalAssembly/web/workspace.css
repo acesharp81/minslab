@@ -1980,9 +1980,12 @@ body.meeting-report-print-mode .meeting-source-quotes { display: none; }
 
 .topbar > .ai-usage-grouped { padding-bottom: 0; }
 .ai-usage-grouped .ai-usage-model { grid-template-columns: minmax(0,1fr); gap: 2px; }
-.ai-usage-grouped .ai-usage-model > span { font-size: 9px; line-height: 1.15; }
+.ai-usage-grouped .ai-usage-model > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; line-height: 1.15; }
 .ai-usage-grouped .ai-usage-model b { font-size: 11px; line-height: 1.2; }
 .ai-usage-grouped .ai-usage-model .ai-usage-meter { margin-top: 1px; }
 
 .ai-usage-grouped .ai-usage-model { grid-template-columns: minmax(0,1fr) auto; column-gap: 4px; align-items: baseline; }
 @media (max-width: 1250px) { .ai-usage-grouped .ai-usage-model b { font-size: 10px; } }
+
+/* Preserve compact model rows on narrow headers without vertical wrapping. */
+@media (max-width: 1250px) { .ai-usage-grouped .ai-usage-group { padding-inline: 4px; } }

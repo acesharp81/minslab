@@ -1,0 +1,70 @@
+[
+  {
+    "case": "mixed_holdout",
+    "model": "gpt-5.4-mini",
+    "seconds": 3.58,
+    "requested": 2,
+    "accepted": 2,
+    "task_matches": [
+      true,
+      false
+    ],
+    "inputs": [
+      "교육부는 학교 급식 안전점검 결과를 다음 주까지 서면으로 제출해 주십시오. 그리고 오늘 현장 점검을 몇 곳 했는지는 이 자리에서 답해 주십시오.",
+      "서면 결과는 다음 주까지 제출하겠습니다. 오늘 점검한 학교는 12곳입니다."
+    ],
+    "output": [
+      {
+        "content_hash": "340e8f63ca7169a00545f3c7ae1dd7a5ddf4e7562b34385ba8cbdfe419857219",
+        "summary": "교육부에 학교 급식 안전점검 결과를 다음 주까지 서면 제출해 달라고 요구하고, 오늘 현장 점검 학교 수를 답해 달라고 했다.",
+        "live_insight": {
+          "topic": "학교 급식 안전점검 결과 서면 제출과 현장 점검 수 확인",
+          "topic_key": "학교 급식 안전점검",
+          "role": "QUESTION",
+          "task": "학교 급식 안전점검 결과 서면 제출",
+          "owners": [
+            "교육부"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "FOLLOW_UP_REQUEST",
+          "task_evidence_quote": "학교 급식 안전점검 결과를 다음 주까지 서면으로 제출해 주십시오.",
+          "task_validation": "direct-follow-up/1",
+          "task_evidence_start": 5,
+          "task_evidence_end": 41
+        }
+      },
+      {
+        "content_hash": "69d719c2d0211b48ad088ec5ef2c82178c9240e0d43b1a6609c36d49c7b7501b",
+        "summary": "교육부에 서면 결과를 다음 주까지 제출하겠다고 답하고, 오늘 현장 점검한 학교는 12곳이라고 밝혔다.",
+        "live_insight": {
+          "topic": "학교 급식 안전점검 결과 제출과 현장 점검 수 보고",
+          "topic_key": "학교 급식 안전점검",
+          "role": "ANSWER",
+          "task": null,
+          "owners": [
+            "교육부"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1413,
+      "completion_tokens": 306,
+      "total_tokens": 1719,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "actual_model": "gpt-5.4-mini"
+  }
+]

@@ -356,3 +356,20 @@ DB migration 없이 `report.sections[].discussions[]`를 선택적으로 추가�
 
 ### PoC11 공용 OpenRouter 사용량 (2026-10-29)
 스키마 변경 없음. 기존 gateway_requests에 project=poc11-image-inspection, workload=image-observation, model=nvidia/nemotron-3.5-super-vl:free로 예약한다. PoC7 요청과 동일 usage_date/일별 합계를 사용한다. external_usage_events는 별도 토큰/비용 메타데이터이며 무료 요청 수에 다시 가산하지 않는다.
+
+
+## 공통 AI 예산 원장 (0061)
+
+PoC7·PoC10·PoC11은 기존 `openai_group_daily_usage`(mini/main, UTC 일자)와 `openai_credit_grant_usage`(지급 주기)를 공유한다. PoC7의 직접 PG 예약과 외부 서비스의 HTTP 예약 모두 같은 행을 원자적으로 차감한다.
+
+`shared_model_reservations`는 요청 ID·프로젝트·모델·예약 시점의 기간·예약량·정산량을 보존한다. 동일 ID 재시도는 추가 예약하지 않으며 정산은 행 잠금으로 1회만 처리한다. 이미 정산된 ID로 다시 호출할 수 없다. `shared_solar_grant_usage`는 별도 Solar 지급 ID의 누적 비용·예약·미확정 비용을 기록한다. 기존 중앙 Solar telemetry는 이벤트 ID로 중복 없이 이관한다. 응답 유실은 예약 상한만큼 미확정으로 보존하며 임의 시간 만료로 해제하지 않는다.
+
+이 원장은 연결된 서비스의 운영 한도이며 제공사 청구/크레딧 잔액 API가 아니다. Solar $110에 자동 월 초기화를 적용하지 않는다. 실제 충전/새 지급 확인 없이 grant ID를 변경하면 과거 사용량을 누락하므로 변경하지 않는다.
+
+### 2026-10-30 알림 폴링 조회 인덱스 (0062)
+
+`transcript_segments(broadcast_id, id)`와 `transcript_segment_revisions(segment_id, received_at) INCLUDE(event_cursor)`를 추가했다. 종료 경계 집계의 원문 행 접근과 다른 방송 스캔을 줄인다. 원본·경계·알림 데이터의 의미는 바꾸지 않는다. 운영에서는 `CREATE INDEX CONCURRENTLY`로 생성 후 유효성을 확인하고 마이그레이션 이력을 기록했다.
+
+### Solar 무제한 운영 표시 (2026-10-30)
+
+`SHARED_SOLAR_UNLIMITED=true`일 때 같은 `shared_solar_grant_usage`와 `shared_model_reservations`에 기록하되 예약 시 달러 상한으로 거절하지 않는다. 상태 응답은 `status=UNLIMITED`, `limit=null`, `remaining=null`과 누적 입력/출력/호출 수를 제공한다. 토큰/사용액 기록과 모델 간 공용 원장의 원자성은 유지하며 신규 스키마 변경은 없다. 유료 기간으로 전환하면 별도 grant ID로 이전 무제한 기간의 환산액과 분리한다.

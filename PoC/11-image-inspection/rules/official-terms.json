@@ -1,0 +1,36 @@
+{
+  "version": "2026-10-31",
+  "terms": [
+    {
+      "canonical": "행정안전부",
+      "context": [
+        "기관명",
+        "부처명",
+        "기관 간판"
+      ],
+      "english": "Ministry of the Interior and Safety",
+      "sources": [
+        "https://mois.go.kr/frt/sub/a07/ministryInfo/screen.do",
+        "https://www.mois.go.kr/"
+      ]
+    },
+    {
+      "canonical": "KOREAN AIR",
+      "context": [
+        "비행기",
+        "항공기",
+        "여객기"
+      ],
+      "identity_context": [
+        "대한항공"
+      ],
+      "aliases": [
+        "KOREA AIR"
+      ],
+      "sources": [
+        "https://news.koreanair.com/대한항공-신규-ci-및-리버리-공개-태극마크-현대적-이/",
+        "https://www.airportal.go.kr/airline/airCompanyInfo.do"
+      ]
+    }
+  ]
+}

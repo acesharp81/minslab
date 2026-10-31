@@ -1,0 +1,69 @@
+{
+  "live": true,
+  "ratios": [
+    {
+      "expected": 78.4,
+      "actual": 78.41483979763912
+    },
+    {
+      "expected": 62.7,
+      "actual": 62.69814502529511
+    },
+    {
+      "expected": 4.1,
+      "actual": 4.107631860935825
+    },
+    {
+      "expected": 99.7,
+      "actual": 99.70810667374288
+    }
+  ],
+  "page_errors": [],
+  "api": [
+    {
+      "path": "policy-monitor?as_of_date=2026-10-30&policy_id=POL_2025_0907",
+      "ms": 1095,
+      "cache": "MISS"
+    },
+    {
+      "path": "mappings?as_of_date=2026-10-30&policy_id=POL_2025_0907&compact=true",
+      "ms": 797,
+      "cache": "MISS"
+    },
+    {
+      "path": "policy-delivery/view?as_of_date=2026-10-30&group=policy&scope=policy",
+      "ms": 249,
+      "cache": "HIT"
+    },
+    {
+      "path": "policy-monitor?as_of_date=2026-10-30&policy_id=POL_2025_0907",
+      "ms": 47,
+      "cache": "HIT"
+    },
+    {
+      "path": "mappings?as_of_date=2026-10-30&policy_id=POL_2025_0907&compact=true",
+      "ms": 29,
+      "cache": "HIT"
+    },
+    {
+      "path": "policy-delivery/view?as_of_date=2026-10-30&group=policy&scope=policy",
+      "ms": 90,
+      "cache": "HIT"
+    },
+    {
+      "path": "policy-monitor?as_of_date=2026-10-30&policy_id=POL_2025_0907",
+      "ms": 43,
+      "cache": "HIT"
+    },
+    {
+      "path": "mappings?as_of_date=2026-10-30&policy_id=POL_2025_0907&compact=true",
+      "ms": 27,
+      "cache": "HIT"
+    },
+    {
+      "path": "policy-delivery/view?as_of_date=2026-10-30&group=policy&scope=policy",
+      "ms": 69,
+      "cache": "HIT"
+    }
+  ]
+}

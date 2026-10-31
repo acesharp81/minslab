@@ -17,6 +17,8 @@ FAST = {'molit_press_watch':3600, 'opm_press_watch':3600, 'sh_notice_watch':3600
 
 def enqueue(service, source_id, force=False):
     source = next((s for s in SOURCES if s['id'] == source_id), None)
+    if source and source.get('collection_mode')=='AI_DISCOVERY':
+        raise ValueError('신규 자료 검토의 AI 자료 수집 자동화에서 실행하세요')
     if source is None or source.get('implemented', True) is False:
         raise ValueError('지원하지 않는 원천입니다')
     try:

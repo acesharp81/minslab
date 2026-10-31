@@ -28,8 +28,19 @@ class Usage:
             with self.store.connect() as c:
                 if c.execute('SELECT count(*) FROM usage_events WHERE synced=0').fetchone()[0]:
                     raise BudgetError('공용 사용량 미전송 기록을 먼저 동기화해야 합니다.')
-        if provider=='openai' and self.s.flag('SHARED_BUDGET_REQUIRED',True):
+        if provider=='openai' and not self.shared_http() and self.s.flag('SHARED_BUDGET_REQUIRED',True):
             if not self.s.get('SHARED_BUDGET_DATABASE_URL'):raise BudgetError('PoC7 공용 OpenAI 예산 연결 미설정')
+    def shared_http(self):
+        return self.s.flag('SHARED_BUDGET_HTTP',True)
+    def shared_request(self,action,payload=None):
+        url=self.s.get('USAGE_GATEWAY_URL').rstrip('/')
+        token=self.s.get('USAGE_METER_TOKEN')
+        if not url or not token:raise BudgetError('공통 예산 연결 설정 필요')
+        try:
+            headers={'x-minslab-meter-token':token}
+            r=httpx.get(url+'/internal/budget/status',headers=headers,timeout=5) if action=='status' else httpx.post(url+'/internal/budget/'+action,json=payload,headers=headers,timeout=5)
+            r.raise_for_status();return r.json()
+        except (httpx.HTTPError,ValueError):raise BudgetError('공통 예산 부족 또는 중앙 연결 확인 필요') from None
     def period_details(self):
         grant=self.s.get('SHARED_CREDIT_GRANT_ID')
         try:
@@ -38,12 +49,16 @@ class Usage:
             if not grant or not expiry.tzinfo or amount<=0:raise ValueError()
             current=datetime.now(timezone.utc)
             if current>=expiry:
-                if not self.s.flag('SHARED_CREDIT_MONTH_END_RENEWAL'):raise ValueError()
+                if not (self.s.flag('SHARED_CREDIT_MONTH_START_RENEWAL') or self.s.flag('SHARED_CREDIT_MONTH_END_RENEWAL')):raise ValueError()
                 from calendar import monthrange
                 from zoneinfo import ZoneInfo
                 local=current.astimezone(ZoneInfo('Asia/Seoul'))
                 boundary=local.replace(day=monthrange(local.year,local.month)[1],hour=0,minute=0,second=0,microsecond=0)
-                if local<boundary:
+                if self.s.flag('SHARED_CREDIT_MONTH_START_RENEWAL'):
+                    start=local.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
+                    y,m=(start.year+1,1) if start.month==12 else (start.year,start.month+1)
+                    expiry=start.replace(year=y,month=m)
+                elif local<boundary:
                     y,m=(local.year-1,12) if local.month==1 else (local.year,local.month-1)
                     start=boundary.replace(year=y,month=m,day=monthrange(y,m)[1]);expiry=boundary
                 else:
@@ -59,7 +74,10 @@ class Usage:
         return grant,amount
     def reserve(self, event_id, model, input_bound, output_bound):
         if model not in RATES:raise BudgetError('가격 분류가 없는 모델입니다.')
-        if model=='solar-pro4' or model.endswith(':free'):return None
+        if model.endswith(':free'):return None
+        if self.shared_http():
+            return self.shared_request('reserve',dict(event_id=event_id,project='poc11',model=model,input_bound=input_bound,output_bound=output_bound))
+        if model=='solar-pro4':raise BudgetError('Solar는 공통 예산 HTTP 연결이 필요합니다')
         url=self.s.get('SHARED_BUDGET_DATABASE_URL')
         if not url:
             if self.s.flag('SHARED_BUDGET_REQUIRED',True):raise BudgetError('공용 예산 연결 필요')
@@ -91,6 +109,10 @@ class Usage:
         return {'event_id':event_id,'grant_id':grant,'amount':str(amount)}
     def settle(self, reservation, cost, event=None):
         if not reservation:return
+        if reservation.get('kind')=='shared_http':
+            e=event or {}
+            rejected=e.get('http_status') in (400,401,403,404,422,429) and cost==0
+            return self.shared_request('settle',dict(event_id=reservation['event_id'],input_tokens=e.get('input_tokens'),output_tokens=e.get('output_tokens'),cost_usd=cost,rejected=rejected))
         if reservation.get('kind')=='daily_tokens':
             with psycopg.connect(self.s.get('SHARED_BUDGET_DATABASE_URL'),connect_timeout=5) as c:
                 token_budget.settle(c,reservation,event or {'cost_usd':cost})
@@ -127,6 +149,12 @@ class Usage:
             except (httpx.HTTPError,psycopg.Error,ValueError,RuntimeError):break
         return done
     def budget_snapshot(self):
+        if self.shared_http():
+            try:
+                card=next(m for m in self.shared_request('status')['models'] if m['id']=='openai-shared')
+                if card['remaining'] is None:return {'budget':None,'budget_error':'공통 크레딧 기간 확인 필요'}
+                return {'budget':dict(limit_usd=card['limit'],remaining_usd=card['remaining'],spent_usd=card['used'],reserved_usd=card['reserved'],unknown_usd=card['unknown'],scope=card['scope'],expires_at=card['expires_at'])}
+            except (BudgetError,KeyError,StopIteration):return {'budget':None,'budget_error':'공통 예산 연결 확인 필요'}
         result={'budget':None}
         if self.s.get('SHARED_BUDGET_DATABASE_URL'):
             try:
@@ -134,19 +162,26 @@ class Usage:
                 with psycopg.connect(self.s.get('SHARED_BUDGET_DATABASE_URL'),connect_timeout=5) as c:
                     row=c.execute('SELECT spent_usd,reserved_usd,unknown_usd FROM openai_credit_grant_usage WHERE grant_id=%s',(grant,)).fetchone() or (0,0,0)
                 result['budget']={'limit_usd':float(cap),'remaining_usd':max(0,float(cap)-float(sum(row))),'spent_usd':float(row[0]),'reserved_usd':float(row[1]),'unknown_usd':float(row[2]),'scope':'PoC7·PoC11 동일 크레딧 원장','expires_at':self.period_details()[2],
-                    'monthly_limit_usd':float(self.s.get('SHARED_CREDIT_MONTHLY_BUDGET_USD','100')) if self.s.flag('SHARED_CREDIT_MONTH_END_RENEWAL') else float(cap),
-                    'renewal':'KST_MONTH_LAST_DAY_00:00' if self.s.flag('SHARED_CREDIT_MONTH_END_RENEWAL') else None}
+                    'monthly_limit_usd':float(self.s.get('SHARED_CREDIT_MONTHLY_BUDGET_USD','100')) if (self.s.flag('SHARED_CREDIT_MONTH_START_RENEWAL') or self.s.flag('SHARED_CREDIT_MONTH_END_RENEWAL')) else float(cap),
+                    'renewal':'KST_MONTH_FIRST_DAY_00:00' if self.s.flag('SHARED_CREDIT_MONTH_START_RENEWAL') else 'KST_MONTH_LAST_DAY_00:00' if self.s.flag('SHARED_CREDIT_MONTH_END_RENEWAL') else None}
             except (BudgetError,psycopg.Error):result['budget_error']='공용 예산 연결 또는 기간 확인 필요'
         return result
 
     def remaining(self):
+        if self.shared_http():
+            try:result=self.shared_request('status')
+            except BudgetError:
+                result={'models':[dict(id=i,label=l,unit=u,remaining=None,limit=None,status='UNAVAILABLE',note='공통 예산 연결 확인 필요') for i,l,u in [('gpt-5.4','GPT 5.4','tokens'),('gpt-5.4-mini','GPT 5.4 mini','tokens'),('openai-shared','OpenAI 공용 크레딧','USD'),('solar-pro4','Solar Pro 4','USD')]],'checked_at':now()}
+            from .naver_ocr import snapshot as ocr_snapshot
+            result['models'] += [self.openrouter_remaining(),ocr_snapshot(self.s,self.store)]
+            return result
         snapshot=self.budget_snapshot()
         budget=snapshot['budget']
         models=[{'id':'openai-shared','label':'GPT 6.0·6.1','unit':'USD','scope':'POC7_SHARED_OPENAI_CREDIT',
             'remaining':budget['remaining_usd'] if budget else None,'limit':budget.get('monthly_limit_usd',budget['limit_usd']) if budget else None,
             'current_period_allowance':budget['limit_usd'] if budget else None,
             'expires_at':budget['expires_at'] if budget else None,'status':'AVAILABLE' if budget else 'UNAVAILABLE',
-            'note':('PoC7 공용 · 월 $100 · 매월 말일 한국시간 00시 갱신. 이번 주기 시작 배정 $'+format(budget['limit_usd'],'.2f')+'에서 사용액을 차감합니다.') if budget and budget.get('renewal') else 'GPT 6.0·6.1은 PoC7과 같은 크레딧 예산을 사용합니다. GPT-5.4 일별 토큰과 별도입니다.'}]
+            'note':('PoC7 공용 · 월 $100 · '+('매월 1일' if budget.get('renewal')=='KST_MONTH_FIRST_DAY_00:00' else '매월 말일')+' 한국시간 00시 갱신. 최초 잔액 $'+format(budget['limit_usd'],'.2f')+'에서 사용액을 차감합니다.') if budget and budget.get('renewal') else 'GPT 6.0·6.1은 PoC7과 같은 크레딧 예산을 사용합니다. GPT-5.4 일별 토큰과 별도입니다.'}]
         models.insert(0,self.gpt54_remaining())
         models.insert(1,self.gpt54_remaining('mini'))
         models.append({'id':'solar-pro4','label':'Solar Pro 4','unit':'USD','scope':'USAGE_ONLY',

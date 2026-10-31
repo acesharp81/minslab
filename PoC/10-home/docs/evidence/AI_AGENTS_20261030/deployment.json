@@ -1,0 +1,16 @@
+{
+  "backups": {
+    "poc10-home-api": "poc10-home-api-before-shared-1793365610",
+    "poc10-home-ai-worker": "poc10-home-ai-worker-before-shared-1793365633"
+  },
+  "containers": {
+    "poc10-home-api": {
+      "image": "poc10-home:agents3-20261030",
+      "image_id": "sha256:fe9775539b93a19a3af487534775aa14b7edae6218937a7cf0cb7428fdb74261"
+    },
+    "poc10-home-ai-worker": {
+      "image": "poc10-home-ai:agents3-20261030",
+      "image_id": "sha256:9471d9c3c329f3f0881206e8439b4540e2ffe7532ddab8c81ff14653b667d7de"
+    }
+  }
+}

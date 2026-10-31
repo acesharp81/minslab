@@ -1,0 +1,42 @@
+{
+  "ratios": [
+    {
+      "expected": 78.4,
+      "ratio": 78.41483979763912
+    },
+    {
+      "expected": 62.7,
+      "ratio": 62.69814502529511
+    },
+    {
+      "expected": 4.1,
+      "ratio": 4.107631860935825
+    },
+    {
+      "expected": 99.7,
+      "ratio": 99.70810667374288
+    }
+  ],
+  "edge_cases": [
+    {
+      "expected": 0,
+      "ratio": 0
+    },
+    {
+      "expected": 50,
+      "ratio": 49.99437886453064
+    },
+    {
+      "expected": 100,
+      "ratio": 100
+    },
+    {
+      "expected": 0,
+      "ratio": 0
+    }
+  ],
+  "side_by_side": true,
+  "mobile_overflow": false,
+  "csp_errors": [],
+  "page_errors": []
+}

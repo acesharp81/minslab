@@ -29,3 +29,15 @@ test('temporary official omission keeps recent records but not ended or stale or
   {...saved(),broadcast_id:'test',source_system:'poc07.test'}]);
  assert.equal(items.length,1);assert.equal(items[0].is_live,false);assert.equal(items[0].status_text,'방송 상태 확인 중');
 });
+
+test('live tab opens its first broadcast once, including delayed list arrival',()=>{
+ const source=code.slice(code.indexOf('let firstLiveBroadcastPending'),code.indexOf('const latestMeetingReportState'));
+ let clicks=0,hidden=false,row=null;
+ const ctx=vm.createContext({document:{querySelector:s=>s.includes('workspace-panel')?{hidden}:row}});
+ vm.runInContext(source,ctx);
+ vm.runInContext('firstLiveBroadcastPending=true;openFirstLiveBroadcast()',ctx);
+ row={click:()=>clicks++};vm.runInContext('openFirstLiveBroadcast();openFirstLiveBroadcast()',ctx);
+ assert.equal(clicks,1);
+ hidden=true;vm.runInContext('firstLiveBroadcastPending=true;openFirstLiveBroadcast()',ctx);
+ assert.equal(clicks,1);
+});

@@ -65,7 +65,8 @@ def collection_projection_version(service):
                               ignored_audit_actions=(
                                   'START_CANDIDATE_FOUND', 'INDEPENDENT_SNAPSHOT',
                                   'DATA_INTEGRITY_ROUND', 'DATA_INTEGRITY_ROUND_AMENDED',
-                                  'DATA_INTEGRITY_ROUND_REPLACED'))
+                                  'DATA_INTEGRITY_ROUND_REPLACED',
+                                  'AI_PUBLICATION_DISCOVERY', 'AI_PUBLICATION_ANALYSIS'))
 
 
 RAW_BUILDING_KINDS=('permit','general_permit','register','register_recap','permit_dong','permit_parcel')
@@ -100,10 +101,10 @@ def delivery_projection_version(service):
     """
     def scalar(q):return q.scalar_subquery()
     query=select(
-        scalar(select(func.max(Revision.recorded_at)).where(Revision.kind.not_in(RAW_BUILDING_KINDS))),
+        scalar(select(func.max(Revision.recorded_at)).where(Revision.kind.not_in(RAW_BUILDING_KINDS+('ai_publication_analysis',)))),
         scalar(select(func.sum(Mapping.revision_no))),scalar(select(func.count(Mapping.id))),
         scalar(select(func.sum(ProgramMapping.revision_no))),scalar(select(func.count(ProgramMapping.id))),
-        scalar(select(func.max(Audit.recorded_at)).where(Audit.action!='START_CANDIDATE_FOUND')),
+        scalar(select(func.max(Audit.recorded_at)).where(Audit.action.not_in(('START_CANDIDATE_FOUND', 'AI_PUBLICATION_DISCOVERY', 'AI_PUBLICATION_ANALYSIS')))),
         scalar(select(func.max(Batch.finished_at)).where(Batch.source_id.not_in(RAW_BUILDING_SOURCES))))
     with service.sessions() as db:return tuple(db.execute(query).one())
 

@@ -1,0 +1,39 @@
+[
+  {
+    "source": "국토교통부 주택 보도자료 신규 탐색",
+    "ok": true,
+    "found": 8,
+    "stats": {
+      "incremental": true,
+      "complete_query": true,
+      "complete_population": false,
+      "discovery_only": true,
+      "provided": 30,
+      "fetched": 8,
+      "feed_counts": [
+        {
+          "url": "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=1",
+          "listed": 10
+        },
+        {
+          "url": "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=2",
+          "listed": 10
+        },
+        {
+          "url": "https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage=3",
+          "listed": 10
+        }
+      ],
+      "latest_published": "2026-10-30",
+      "actual_events_created": 0,
+      "period_start": "2026-09-30",
+      "period_end": "2026-10-30",
+      "scope_note": "등록 공식 게시판 최신 페이지 또는 언론사 RSS 현재 항목 중 최근30일 주택 키워드. 과거 전수·모든 언론사 탐색 아님. 원문 링크 검토 후보로 보존; 호수/실적 자동 추출 없음."
+    }
+  },
+  {
+    "source": "뉴스 검색: 수도권 주택 공급 착공 모집 공고",
+    "ok": true,
+    "found": 11
+  }
+]

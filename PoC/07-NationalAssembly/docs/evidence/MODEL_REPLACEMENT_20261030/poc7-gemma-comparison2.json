@@ -1,0 +1,16 @@
+[
+  {
+    "case": "request_commitment",
+    "model": "google/gemma-4-26b-a4b-it:free",
+    "seconds": 0.51,
+    "error_type": "HTTPError",
+    "error": "OpenRouter 429: google/gemma-4-26b-a4b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations"
+  },
+  {
+    "case": "request_commitment",
+    "model": "google/gemma-4-31b-it:free",
+    "seconds": 0.54,
+    "error_type": "HTTPError",
+    "error": "OpenRouter 429: google/gemma-4-31b-it:free is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations"
+  }
+]

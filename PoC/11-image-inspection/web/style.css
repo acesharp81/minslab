@@ -67,3 +67,26 @@ header{height:64px;padding:0 24px;gap:28px}nav{gap:20px}main{max-width:1920px;pa
 @media(prefers-reduced-motion:reduce){.quota-meter i{transition:none}}
 
 .recheck-card{padding:12px;border:1px solid var(--line);border-radius:6px;margin:10px 0;background:#f5faf8}.verification-images{display:grid;grid-template-columns:1fr 1fr;gap:12px}.verification-images figure{margin:0;min-width:0}.verification-images img,.verification-images svg{width:100%;height:170px;object-fit:contain;background:white;border:1px solid var(--line)}.verification-images figcaption{font-size:10px;margin-top:4px;color:var(--muted)}
+
+/* Viewport transforms all image coordinates together; marker sizes stay fixed. */
+.image-stage{position:relative;isolation:isolate;overscroll-behavior:contain}
+#image-wrap{transform-origin:center;flex-shrink:0}
+.image-zoom-controls{position:absolute;right:12px;top:12px;z-index:5;display:flex;gap:1px;align-items:center;border:1px solid #becdce;border-radius:8px;background:#fff;box-shadow:0 2px 10px #172d3533;overflow:hidden}
+.image-zoom-controls button{height:34px;min-width:34px;padding:0 8px;border:0;background:#fff;color:#172d35;font-size:20px;font-weight:700;line-height:1}
+.image-zoom-controls button[data-zoom="reset"]{font-size:11px;min-width:53px}
+.image-zoom-controls button:hover{background:#edf5f4}
+.image-can-pan #image-wrap{cursor:grab;touch-action:none;user-select:none}
+.image-can-pan #image-wrap:active{cursor:grabbing}
+#pins .pin,#pins .pin.selected{transform:translate(-50%,-50%) scale(var(--pin-scale,1))}
+@media print{.image-zoom-controls{display:none!important}#image-wrap{transform:none!important;--pin-scale:1!important}}
+
+.inspection-failure{margin:12px 0;padding:16px;border:2px solid #b3261e;border-radius:10px;background:#fff3f1;color:#781e18;overflow-wrap:anywhere}.inspection-failure strong{font-size:16px}.inspection-failure p{margin:8px 0}.inspection-failure .row{flex-wrap:wrap}.inspection-failure[hidden]{display:none}
+
+.compact-usage .model-quota .quota-reset{position:relative;z-index:1;display:block;grid-column:1/-1;font-size:9px;line-height:1.5;white-space:normal;color:var(--muted)}
+
+/* Compact, grouped shared quotas; full amounts and reset times remain in the tooltip and usage page. */
+.compact-usage .remaining-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;width:440px;max-width:100%;border:1px solid #cfe0db;border-radius:11px;overflow:hidden}.quota-compact-group{min-width:0;padding:7px 8px 5px;background:#f0f6f4}.quota-compact-group+.quota-compact-group{border-left:1px solid #d6e3df;background:#edf8f6}.quota-compact-group:last-child{background:#f6f3fa}.quota-compact-group h3{margin:0 0 5px;font-size:11px;line-height:14px;white-space:nowrap;color:#345850}.compact-usage .model-quota{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:3px 4px;min-width:0;width:100%;margin-top:5px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}.compact-usage .model-quota .quota-name{grid-column:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:10px;line-height:12px}.compact-usage .model-quota b{font-size:11px;line-height:12px;white-space:nowrap}.compact-usage .model-quota .quota-percent,.compact-usage .model-quota small,.compact-usage .model-quota .quota-reset{display:none}.compact-usage .model-quota .quota-meter{position:static;grid-column:1/-1;inset:auto;height:3px;border-radius:3px;background:#dce8e3}.compact-usage .quota-meter i{border:0;background:#5a9b85}.quota-compact-group:nth-child(2) .quota-meter i{background:#36aa99}.quota-compact-group:last-child .quota-meter i{background:#9b83be}.compact-usage .model-quota:focus-visible{outline:2px solid #4a8c7e;outline-offset:2px}@media(max-width:480px){.compact-usage .remaining-cards{width:100%}.quota-compact-group{padding:7px 5px 5px}.quota-compact-group h3{font-size:10px}.compact-usage .model-quota .quota-name{font-size:9px}.compact-usage .model-quota b{font-size:10px}}
+#job-models{display:inline-block;margin-left:8px;line-height:1.6;color:var(--muted,#536d78)}
+
+/* Analysis actions are unavailable until an administrator session is confirmed. */
+body:not(.can-run-analysis) :is(#run,#reanalyze,#rerun,#run-crop,#retry-step,#crop-step,#retry-failed-inspection,#demo,[data-reanalysis-job],[data-source-run],[data-result-view="selection"],.parent-select){display:none!important}

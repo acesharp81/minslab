@@ -1,0 +1,72 @@
+[
+  {
+    "case": "request_commitment",
+    "id": "d25cf8a8d6a3b07dd9153626663c06d8ff080592f3a578567322afea939bd010",
+    "rejected": false
+  },
+  {
+    "case": "request_commitment",
+    "id": "543792bea2b7563b8527c14d606d06ae00de2b7f39906b1897148bcd2bae23ae",
+    "rejected": false
+  },
+  {
+    "case": "question_not_request",
+    "id": "ec70fa4e3008a9f571768d193a35ad973d55d9ee9be9db8698b25f3fe5ffff2e",
+    "rejected": false
+  },
+  {
+    "case": "question_not_request",
+    "id": "2f66c47aa4a8a682fc1611a9ae6e38ec068099d1befa442f133f1e7d75c814e6",
+    "rejected": false
+  },
+  {
+    "case": "past_and_denial",
+    "id": "791097b2515b1e0f9e89936e94ea9cf052e2513c882bed6c6aad0831d5a2174e",
+    "rejected": false
+  },
+  {
+    "case": "past_and_denial",
+    "id": "08d7310d58c70fa46f5b9e0e7223d65827a1aacf73aaa2bbbb3031fadf2f6be0",
+    "rejected": false
+  },
+  {
+    "case": "numbers_and_dispute",
+    "id": "40271e3c3c6eb9c6371ae10fda5c9c81763003e5377ca54b555b5a7c3f11e11e",
+    "rejected": false
+  },
+  {
+    "case": "numbers_and_dispute",
+    "id": "a68fa239f98dc508e46c1e0ac4ca4e0482c4c1f0ec074e380a268ba9eacb902b",
+    "rejected": false
+  },
+  {
+    "case": "procedural",
+    "id": "a439abbc3b2bc746b307716bef825405201cc2dea282aa38abab4012d2193bf1",
+    "rejected": false
+  },
+  {
+    "case": "procedural",
+    "id": "3312607533507f0667197ea6073a6bf092e9dbf898e244317259e9478b1cbe04",
+    "rejected": false
+  },
+  {
+    "case": "multiple_topics",
+    "id": "59ab0999aea1e2bf055dda543d7d5d8b3f57087f2ec3afffc0fb65a39f3a611e",
+    "rejected": false
+  },
+  {
+    "case": "multiple_topics",
+    "id": "07c6299fe0edc1e40fdeecaa21ccce063a4824383d566c3330cff8c5539d108e",
+    "rejected": false
+  },
+  {
+    "case": "mixed_holdout",
+    "id": "340e8f63ca7169a00545f3c7ae1dd7a5ddf4e7562b34385ba8cbdfe419857219",
+    "rejected": true
+  },
+  {
+    "case": "mixed_holdout",
+    "id": "69d719c2d0211b48ad088ec5ef2c82178c9240e0d43b1a6609c36d49c7b7501b",
+    "rejected": false
+  }
+]

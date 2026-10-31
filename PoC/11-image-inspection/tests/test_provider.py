@@ -179,3 +179,26 @@ def test_solar_standard_and_reasoning_keep_structured_response_contract(tmp_path
     monkeypatch.setattr('app.providers.httpx.Client',lambda **kwargs:real(transport=httpx.MockTransport(respond)))
     data,meta=Provider(s,Meter()).call('solar-pro4',json.dumps({'rules':[{'rule_id':'D-02-e'}],'observation':{'objects':[{'id':'o1'}]},'approved_references':[]}),workload='checklist-analysis')
     assert data['results'][0]['status']=='FAIL' and meta['model']=='solar-pro4-260806'
+
+
+@pytest.mark.parametrize('status,retryable',[(520,True),(503,True),(401,False),(429,False)])
+def test_http_failure_records_status_and_retryability(tmp_path,monkeypatch,status,retryable):
+    meter=Meter();s=Settings({'DATA_DIR':str(tmp_path),'OPENAI_API_KEY':'test','OPENAI_BASE_URL':'https://example.org/v1'})
+    real=httpx.Client
+    monkeypatch.setattr('app.providers.httpx.Client',lambda **kwargs:real(transport=httpx.MockTransport(lambda req:httpx.Response(status,json={'error':{}}))))
+    with pytest.raises(ProviderError) as error:Provider(s,meter).call('gpt-6.1-sol','test')
+    assert error.value.call_meta['http_status']==status
+    assert error.value.call_meta['retryable'] is retryable
+    assert meter.events[0][0]['cost_usd'] is None if retryable else meter.events[0][0]['cost_usd']==0
+
+
+def test_provider_diagnostics_keep_ids_but_not_error_body(tmp_path,monkeypatch):
+    meter=Meter();s=Settings({'DATA_DIR':str(tmp_path),'OPENAI_API_KEY':'test','OPENAI_BASE_URL':'https://example.org/v1'})
+    real=httpx.Client
+    response=httpx.Response(520,headers={'x-request-id':'req_example','cf-ray':'abc123-ICN','set-cookie':'private-cookie'},json={'secret':'must-not-log'})
+    monkeypatch.setattr('app.providers.httpx.Client',lambda **kwargs:real(transport=httpx.MockTransport(lambda req:response)))
+    with pytest.raises(ProviderError) as exc:Provider(s,meter).call('gpt-6.1-sol','test')
+    assert exc.value.call_meta['provider_request_id']=='req_example'
+    assert exc.value.call_meta['provider_ray_id']=='abc123-ICN'
+    assert meter.events[0][0]['http_elapsed_ms']>=0
+    assert 'must-not-log' not in json.dumps(meter.events) and 'private-cookie' not in json.dumps(meter.events)

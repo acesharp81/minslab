@@ -1,0 +1,18 @@
+[
+  {
+    "site": "https://kjon.aigov.go.kr/",
+    "reportsTabRetained": true,
+    "liveCardInReports": false,
+    "liveCardInLive": true,
+    "openedReport": "제46회 국무회의 브리핑",
+    "errors": []
+  },
+  {
+    "site": "https://www.minslab.kr/poc/national-assembly/",
+    "reportsTabRetained": true,
+    "liveCardInReports": false,
+    "liveCardInLive": true,
+    "openedReport": "제46회 국무회의 브리핑",
+    "errors": []
+  }
+]

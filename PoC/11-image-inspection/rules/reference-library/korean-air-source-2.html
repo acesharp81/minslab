@@ -1,0 +1,2119 @@
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+	
+
+
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>항공정보포털시스템</title>
+<meta name="keywords" content="Airportal, 항공 정보 포털 시스템">
+<meta name="Description" content="항공 정보 포털 시스템">
+<meta property="og:description" content="항공 정보 포털 시스템">
+<meta property="og:title" content="Airportal">
+
+<link rel="icon" href="/images/egovframework/img/favicon.ico" type="image/x-icon">
+
+<!-- css -->
+<link rel="stylesheet" href="/css/egovframework/main.css">
+<link rel="stylesheet" href="/css/egovframework/responsive.css">
+
+<!-- js -->
+<script src="/js/egovframework/url/jquery.min.js"></script>
+<script src="/js/egovframework/url/moment.min.js"></script>
+<script src="/js/egovframework/core.min.js" ></script>
+<script src="/js/egovframework/sha256.min.js" ></script>
+
+<script src="/js/egovframework/util.js"></script>
+<script src="/js/egovframework/default.js"></script>
+
+</head>
+
+<body>
+<!-- 이쯤에 적용하면 전체가 먹힐겁니다 공통부분입니다. -->
+<script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+<script>
+
+	$(function() {
+		
+		Kakao.init("65f5e23baa5fb5f52babd3a31ec264e0");
+		
+		// 공유 버튼
+		$('.share_btn').click(function(){
+
+			$(this).toggleClass('active');
+			$('.share_list').toggleClass('active');
+
+		});
+		
+		// SNS 공유하기
+		$(document).on("click", ".share_list p", function() {
+			let id = this.id;
+			if(id != "url") {
+				// URL 복사 제외
+				snsShareFn(id);
+			}
+		});
+
+		// 다른 영역 클릭 시 닫힘
+		$(document).mouseup(function(e) {
+
+			// share_list 영역 외 클릭 시
+			if (!$('.share_btn').is(e.target) && $('.share_btn').has(e.target).length === 0 &&
+
+				!$('.share_list').is(e.target) && $('.share_list').has(e.target).length === 0) {
+				$('.share_btn').removeClass('active');
+				$('.share_list').removeClass('active');
+
+			}
+		});
+
+		// url 버튼 클릭 시
+		$('#url').click(function() {
+
+			var input =  document.createElement("input");
+
+			document.body.appendChild(input);
+
+			input.value = window.location.href;
+
+			input.select();
+
+			document.execCommand("copy");
+
+			cmm.alert("URL이 복사되었습니다.");
+
+			document.body.removeChild(input);
+
+		});
+	});
+
+
+	/** 전자도서관 검색 화면 이동 **/
+	function ebookSearchFn(text = '') {
+
+		sessionStorage.setItem("ebookSearchText", text);
+
+		location.href = "/library/ebookSearchList.do"; 
+
+	}
+	
+	
+	/** SNS 공유 **/
+	function snsShareFn(sns) {
+		
+		let url = document.location.href;
+		
+		let num = "";
+		
+// 		if(num != null && num != "") {
+// 			// 만약 상세페이지일 경우
+// 			url = url + "?num=" + num;
+// 		}
+		
+		if(sns == "facebook") {
+			// 페이스북
+			let sendUrl = "http://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url);
+
+			window.open(sendUrl, "", "width=486, height=286");
+			
+		} else if(sns == "twitter") {
+			// 트위터
+			let title = "Airportal";
+
+			let sendUrl = "http://twitter.com/share?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(title);
+			
+			window.open(sendUrl, "tweetPop", "width=486, height=286,scrollbars=yes");
+			
+		} else if(sns == "kakao") {
+			// 카카오
+			Kakao.Link.sendDefault({
+				objectType: 'feed',
+				content: {
+					title: 'Airportal',
+					description: 'Airportal',
+					imageUrl: '/images/egovframework/img/img-logo@2x.png',
+// 					imageUrl: "https://airportal.co.kr/images/egovframework/img/img-logo@2x.png",
+					link: {
+						// Web 플랫폼에서 설정한 주소
+						mobileWebUrl: 'http://localhost:8080',
+						webUrl: 'http://localhost:8080',
+// 						mobileWebUrl: 'https://airportal.co.kr',
+// 						webUrl: 'https://airportal.co.kr',
+					},
+				},
+				buttons: [{
+					title: '웹으로 보기',
+					link: {
+						// 웹으로버튼 클릭하면 열리는 url 페이지 (파라미터 포함 가능)
+						mobileWebUrl: url,
+						webUrl: url,
+					}
+				}],
+
+				// 카카오톡 미설치 시 카카오톡 설치 경로이동
+				installTalk: true,
+			});
+		}
+		
+		$('.share_btn').removeClass('active');
+		$('.share_list').removeClass('active');
+	}
+
+</script>
+
+<div id="wrap">
+
+	<div id="header">
+
+<link rel="stylesheet" type="text/css"
+	href="/css/egovframework/skydesign/pretendard.css" />
+<link rel="stylesheet" type="text/css"
+	href="/css/egovframework/skydesign/swiper-bundle.min.css" />
+<link rel="stylesheet" type="text/css"
+	href="/css/egovframework/skydesign/common.css" />
+<link rel="stylesheet" type="text/css"
+	href="/css/egovframework/skydesign/style.css" />
+<link rel="stylesheet" type="text/css"
+	href="/css/egovframework/skydesign/responsive.css" />
+<link rel="stylesheet" type="text/css"
+	href="/css/egovframework/skydesign/layout.css" />
+
+<script src="/js/egovframework/skydesign/layout.js"></script>
+
+<style>
+@media ( min-width :768px) {
+	/* 1depth 메뉴 */
+	header .header_inner>ul {
+		display: flex;
+	}
+	header .header_inner>ul>li {
+		position: relative;
+	}
+	header .header_inner>ul>li>a {
+		height: 6.5rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 0 30px;
+		font-size: 1.4375rem;
+		font-weight: bold;
+	}
+
+	/* 하위(2depth) 메뉴 - 처음에는 숨김 */
+	header .header_inner>ul>li ul {
+		position: absolute;
+		top: 6.5rem;
+		left: 0;
+		min-width: 160px;
+		padding: 10px 0;
+	}
+	header .header_inner>ul>li ul li a {
+		display: block;
+		padding: 8px 15px;
+		font-size: 14px;
+		text-align: left;
+		font-weight: normal;
+		border: none;
+	}
+
+	/* 기본 : 하위메뉴 숨김 */
+	#headerUl>li ul {
+		display: none;
+	}
+	#subArea {
+		display: none;
+		position: absolute;
+		top: 6.5rem;
+		left: 0;
+		width: 100%;
+		background: #f2f6ff;
+		padding: 20px 30px;
+		z-index: 10;
+		text-align: center;
+	}
+	#subArea ul {
+		display: inline-block;
+		vertical-align: top;
+		width: 160px;
+		margin-right: 20px;
+	}
+	#subArea ul li a {
+		display: block;
+		padding: 10px 0;
+		text-align: center;
+		color: #2D2D2D;
+		font-weight: 600;
+		line-height: 1.6;
+		font-size: 1rem;
+	}
+}
+
+/* 모바일에서는 subArea 영역 숨김(보호용) */
+@media ( max-width :767px) {
+	#subArea {
+		display: none !important;
+	}
+}
+</style>
+
+<script>
+
+	// 상위메뉴 클릭 시
+	$(document).on('click', '#headerUl > li > a', function (e) {
+	  e.preventDefault();
+	
+	  // 모든 li 의 하위 ul 을 subArea 로 이동
+	  $('#headerUl > li > ul').appendTo('#subArea');
+	
+	  // subArea 표시
+	  $('#subArea').slideToggle();
+	});
+
+	// 바깥 영역 클릭 시 닫기
+	$(document).on('click', function(e){
+	  // 클릭한 요소가 subArea 또는 상위메뉴 링크가 아니면
+	  if( !$(e.target).closest('#subArea').length && !$(e.target).closest('#headerUl > li > a').length ) {
+	    $('#subArea').slideUp();
+	  }
+	});
+
+	// oAuth 로그인
+	var oAuthLoginStateCode = "null";
+	var accessToken = "null";
+	var provider = "null";
+
+	$(function() {
+
+		//selectMenuFn();
+		//headerActiveFn();
+
+		// oAuth 로그인
+		if(oAuthLoginStateCode == '20002') {	// oAuth 로그인 성공
+
+			oAuthLoginFn();
+
+		} else if(oAuthLoginStateCode == '409') {	// 토큰 충돌
+
+			cmm.confirm(
+				  "기존에 접속된 계정입니다.<br>새로 로그인 하시겠습니까?"
+				, function() {
+
+				oAuthLoginFn(true);
+
+				}
+				, function() {
+
+					removeSession();
+
+				}
+			);
+
+		} else if(oAuthLoginStateCode == '40010') {	// 만 14세 이하
+
+			cmm.alert("만 14세 이상만 회원가입 가능합니다.", function() {
+
+				removeSession();
+
+			});
+		}
+
+		if(window.navigator.userAgent.indexOf('Mobile') > -1) {	// Mobile
+
+			if(sessionStorage.getItem(cmm.jwtHeaderName) != null) {
+
+				$('#mobileMyInfo').removeClass("hide");
+				$('#mobileLoginBtn').text("로그아웃");
+				$('#mobileLoginBtn').attr("onclick", "logoutFn();");
+
+			} else {
+
+				$('#mobileLoginBtn').text("로그인");
+				$('#mobileLoginBtn').attr("onclick", "location.href = '/login/login.do'");
+
+			}
+
+		}
+
+		// top_title a 클릭 시
+		$(document).on('click', '.top_title a', function (event) {
+
+			// 모바일 링크 이동 방지
+			if (window.innerWidth <= 768) {
+
+				event.preventDefault();
+
+			}
+
+			$('.top_title').removeClass('m_active');
+			$('.m_on').removeClass('m_on');
+			$(this).closest('.top_title').addClass('m_active');
+			$(this).closest('.top_title').siblings('li:not(.top_title)').addClass('m_on');
+
+		});
+
+
+		// 헤더 검색 클릭시
+		$('.head_search').click(function(e){
+
+			e.preventDefault();
+
+			$('.head_sch').toggleClass('active');
+			$(this).toggleClass('close');
+
+			if($('.head_sch').hasClass('active')) {
+
+				$('body').addClass('scr');
+				$('main').addClass('bg_filter');
+
+			} else {
+
+				$('body').removeClass('scr');
+				$('main').removeClass('bg_filter');
+
+			}
+		});
+
+		// 헤더 검색
+		$('#headerSearchText').keyup(function(event) {
+
+			if (event.keyCode === 13) {
+
+				moveSearchResultFn();
+
+			}
+		});
+
+		// 헤더 내정보 클릭시 head_info
+		$('.btn_login').click(function(e) {
+
+			e.preventDefault();
+
+			if(sessionStorage.getItem(cmm.jwtHeaderName) != null) {
+
+				$('#headerName').text(sessionStorage.getItem("name") + "님");
+				$('.header_my').toggle();
+
+			} else {
+
+				location.href = "/login/login.do";
+
+			}
+		});
+
+		// 다른 영역 클릭 시 사라지게
+		$(document).mouseup(function(e) {
+
+			// 내정보 영역 외 클릭 시
+			if (!$('.header_my').is(e.target) && $('.header_my').has(e.target).length === 0 && !$('.btn_login').is(e.target)) {
+
+				$('.header_my').hide();
+
+			}
+
+			// 검색 영역 외 클릭 시
+			if (!$('.head_sch').is(e.target) && $('.head_sch').has(e.target).length === 0 && !$('.head_search').is(e.target)) {
+
+				$('.head_sch').removeClass('active');
+				$('.head_search').removeClass('close');
+				$('body').removeClass('scr');
+				$('main').removeClass('bg_filter');
+
+			}
+		});
+		
+		$('#userInfoBtn').click(function(e) {
+
+			e.preventDefault();
+			
+			location.href = "/login/userInfo.do";
+		})
+
+
+		// 로그아웃 버튼 클릭 시
+		$('#logoutBtn').click(function() {
+
+			cmm.confirm("로그아웃 하시겠습니까?", function() {
+
+				logoutFn();
+
+			});
+		})
+
+		// 헤더 햄버거 메뉴 클릭시
+		$('.head_menu').click(function(e){
+
+			e.preventDefault();
+
+			$('.all_menu').toggleClass('show');
+
+		});
+
+		$('.all_close').click(function(e){
+
+			e.preventDefault();
+
+			$('.all_menu').removeClass('show'); 
+
+		});
+
+		// 모바일 all_menu li 위치 설정
+		const tops_nth1 = ["0rem", "0rem", "3.375rem", "6.75rem"];
+		const tops_nth2 = ["", "-3.5rem", "-0.125rem", "3.25rem", "6.625rem"];
+		const tops_nth3 = ["", "-7rem", "-3.625rem", "-0.25rem", "3.125rem"];
+		const tops_nth4 = ["", "-10.5rem", "-7.125rem", "-3.75rem", "-0.375rem", "3.375rem"];
+		const tops_nth5 = ["", "-14rem", "-10.625rem", "-7.25rem", "-3.875rem"];
+		const tops_nth6 = ["", "-17.5rem", "-14.125rem", "-10.75rem", "-7.375rem"];
+		const tops_nth7 = ["", "-21rem", "-17.625rem", "-14.29rem", "-4.156rem", "4.5rem", "12.781rem"];
+		const topsArray = [tops_nth1, tops_nth2, tops_nth3, tops_nth4, tops_nth5, tops_nth6, tops_nth7];
+
+		topsArray.forEach((tops, nth) => {
+			$(".all_menu ul:nth-of-type(" + (nth + 1) + ") li").each(function(index) {
+				if (index < tops.length) {
+					$(this).css("top", tops[index]);
+				}
+			});
+		});
+	});
+
+
+	/** 서버 세션 삭제 **/
+	function removeSession() {
+
+		var prarm = {};
+
+		param = JSON.stringify(prarm);
+
+		cmm.call("/oauth2/removeAccessToken.do", param);
+
+	}
+
+
+	/** 메뉴 조회 **/
+	function selectMenuFn() {
+
+		var param = {};
+
+		param['menuLevelNo'] = 3;
+
+		param = JSON.stringify(param);
+
+		var data = cmm.call("/getMainMenu.do", param, "selectMenuCallback");
+
+		setHeaderFn(data);
+		setAllMenuFn(data);
+
+	}
+
+
+	/** 헤더 세팅 **/
+	/* function setHeaderFn(data) {
+
+		if(data != null && data.content != null && data.content.length > 0) {
+
+			var list = data.content;
+
+			for(var i = 0; i < list.length; i++) {
+
+				var li = $("<li data-id='" + list[i].menuId + "'></li>");
+
+				li.append("<a href='" + list[i].srcNm + "'>" + list[i].menuNm + "</a>");
+
+				$('#headerUl').append(li);
+
+			}
+		}
+	} */
+	
+	function setHeaderFn(data) {
+		  if (data && data.content && data.content.length > 0) {
+		    var list = data.content;
+
+		    for (var i = 0; i < list.length; i++) {
+		      // 상위 메뉴
+		      var li = $("<li data-id='" + list[i].menuId + "'></li>");
+		      li.append("<a href='" + list[i].srcNm + "'>" + list[i].menuNm + "</a>");
+
+		      switch( i ) {
+		      
+		      	case 0:
+			      // 공항
+			      var subUl = $("<ul></ul>");
+	
+			      var subLi1 = $("<li></li>");
+			      subLi1.append("<a href='/airport/airport.do'>공항정보</a>");
+			      subUl.append(subLi1);
+	
+			      var subLi2 = $("<li></li>");
+			      subLi2.append("<a href='/airport/aircraftInfo.do'>항공기 출도착</a>");
+			      subUl.append(subLi2);
+
+			      var subLi4 = $("<li></li>");
+			      subLi4.append("<a href='http://amo.kma.go.kr/'>공항기상정보</a>");
+			      subUl.append(subLi4);
+
+			      var subLi3 = $("<li></li>");
+			      subLi3.append("<a href='https://aim.koca.go.kr/aim/main.do'>e-AIP</a>");
+			      subUl.append(subLi3);
+			      			      
+			      var subLi5 = $("<li></li>");
+			      subLi5.append("<a href='20250324_전세계신공항건설현황_202503281414501743138890774.pdf'>신공항건설현황</a>");
+			      subUl.append(subLi5);
+			      
+			      var subLi6 = $("<li></li>");
+			      subLi6.append("<a href='https://www.avsec365.or.kr/'>항공보안365</a>");
+			      subUl.append(subLi6);
+	
+			      li.append(subUl);
+			      break;
+			      
+		      	case 1:
+				  // 항공사
+			      var subUl = $("<ul></ul>");
+	
+			      var subLi1 = $("<li></li>");
+			      subLi1.append("<a href='/airline/airCompanyInfo.do'>항공사 정보</a>");
+			      subUl.append(subLi1);
+	
+			      var subLi2 = $("<li></li>");
+			      subLi2.append("<a href='/airline/airplaneSchedule.do'>항공사 스케줄</a>");
+			      subUl.append(subLi2);
+	
+			      var subLi3 = $("<li></li>");
+			      subLi3.append("<a href='/airline/invest.do'>항공안전투자공시</a>");
+			      subUl.append(subLi3);
+			      
+			      var subLi4 = $("<li></li>");
+			      subLi4.append("<a href='/airline/reservation.do'>항공권 예약</a>");
+			      subUl.append(subLi4);
+			      
+			      var subLi5 = $("<li></li>");
+                  // # PMS-2338-ydg : 항공사서비스평가 링크 변경
+			      //subLi5.append("<a href='https://www.molit.go.kr/USR/WPGE0201/m_37227/DTL.jsp'>항공권 예약</a>");
+			      subLi5.append("<a href='https://www.molit.go.kr/USR/WPGE0201/m_37264/DTL.jsp'>항공권 예약</a>");
+			      subUl.append(subLi5);
+ 				      
+			      li.append(subUl);
+			      break;
+			      
+		      	case 2:
+				  // 항공기
+			      var subUl = $("<ul></ul>");
+	
+			      var subLi1 = $("<li></li>");
+			      subLi1.append("<a href='/airplane/airplaneInfo.do'>항공기 정보</a>");
+			      subUl.append(subLi1);
+			      
+			      var subLi4 = $("<li></li>");
+			      subLi4.append("<a href='http://atis.koca.go.kr/'>항공기술정보시스템(ATIS)</a>");
+			      subUl.append(subLi4);
+	
+			      var subLi5 = $("<li></li>");
+			      subLi5.append("<a href='항공정보매뉴얼_202503171450201742190620377.pdf'>항공정보 매뉴얼</a>");
+			      subUl.append(subLi5);
+
+			      var subLi3 = $("<li></li>");
+			      subLi3.append("<a href='/airplane/uamMain.do'>UAM•드론</a>");
+			      subUl.append(subLi3);
+			      			      
+			      var subLi2 = $("<li></li>");
+			      subLi2.append("<a href='/airplane/leisure.do'>항공레저</a>");
+			      subUl.append(subLi2);
+				      
+			      li.append(subUl);
+				  break;
+			      
+		      	case 3:
+				  // 항공통계
+			      var subUl = $("<ul></ul>");
+	
+			      var subLi1 = $("<li></li>");
+			      subLi1.append("<a href='/stats/transport/dashboard.do'>항공운송통계</a>");
+			      subUl.append(subLi1);
+	
+			      var subLi2 = $("<li></li>");
+			      subLi2.append("<a href='/stats/industry/industryTransit.do'>항공산업실적</a>");
+			      subUl.append(subLi2);
+			      
+			      var subLi3 = $("<li></li>");
+			      subLi3.append("<a href='/stats/survey/odMain.do'>항공여객OD조사통계</a>");
+			      subUl.append(subLi3);
+				      
+			      var subLi4 = $("<li></li>");
+			      subLi4.append("<a href='/stats/leisure/flight01.do'>레저통계</a>");
+			      subUl.append(subLi4);
+				      
+			      var subLi5 = $("<li></li>");
+			      subLi5.append("<a href='/file/upload/stats/항공통계매뉴얼.pdf/downloadFile.do'>항공통계 매뉴얼</a>");
+			      subUl.append(subLi5);
+			      
+			      var subLi6 = $("<li></li>");
+			      subLi6.append("<a href='/file/upload/stats/항공통계용어.pdf/downloadFile.do'>통계 용어</a>");
+			      subUl.append(subLi6);
+
+			      li.append(subUl);
+			      break;
+			      
+		      	case 4:
+				  // 항공자료관
+			      var subUl = $("<ul></ul>");
+	
+			      var subLi1 = $("<li></li>");
+			      subLi1.append("<a href='/library/ebookSearchList.do'>전자도서관</a>");
+			      subUl.append(subLi1);
+	
+			      var subLi2 = $("<li></li>");
+			      subLi2.append("<a href='/library/history.do'>항공역사</a>");
+			      subUl.append(subLi2);
+	
+			      var subLi3 = $("<li></li>");
+			      subLi3.append("<a href='/library/statute.do'>항공법령</a>");
+			      subUl.append(subLi3);
+			      
+			      var subLi6 = $("<li></li>");
+			      subLi6.append("<a href='/library/ebookLink.do'>학회지</a>");
+			      subUl.append(subLi6);
+			      
+			      var subLi5 = $("<li></li>");
+			      subLi5.append("<a href='/library/international.do'>국제기구</a>");
+			      subUl.append(subLi5);
+	
+			      var subLi4 = $("<li></li>");
+			      subLi4.append("<a href='/library/ebookinfo.do'>기관•단체정보</a>");
+			      subUl.append(subLi4);
+
+			      var subLi7 = $("<li></li>");
+			      subLi7.append("<a href='/library/safety.do'>항공안전</a>");
+			      subUl.append(subLi7);
+	
+			      var subLi8 = $("<li></li>");
+			      subLi8.append("<a href='/library/security.do'>항공보안</a>");
+			      subUl.append(subLi8);
+			      li.append(subUl);
+			      break;
+			      
+		      	case 5:
+				  // 항공소식
+			      var subUl = $("<ul></ul>");
+	
+			      var subLi1 = $("<li></li>");
+			      subLi1.append("<a href='/news/eventAirzine.do'>에어진</a>");
+			      subUl.append(subLi1);
+	
+			      var subLi2 = $("<li></li>");
+			      subLi2.append("<a href='/news/newsMain.do'>항공뉴스</a>");
+			      subUl.append(subLi2);
+	
+			      var subLi3 = $("<li></li>");
+			      subLi3.append("<a href='/news/eventScheduleImg.do'>행사일정</a>");
+			      subUl.append(subLi3);
+			      
+			      var subLi4 = $("<li></li>");
+			      subLi4.append("<a href='/news/airplaneVideo.do'>항공영상</a>");
+			      subUl.append(subLi4);
+				      
+			      li.append(subUl);
+			      break;
+			      
+		      	case 6:
+				  // 항공일자리
+			      var subUl = $("<ul></ul>");
+	
+			      var subLi0 = $("<li></li>");
+			      subLi0.append("<a href='/work/workMain.do' target='_blank'>HOME</a>");
+			      subUl.append(subLi0);
+			      
+			      var subLi1 = $("<li></li>");
+			      subLi1.append("<a href='/work/employment/workList.do'>채용정보</a>");
+			      subUl.append(subLi1);
+	
+			      var subLi2 = $("<li></li>");
+			      subLi2.append("<a href='/work/fair/workFair.do'>일자리 박람회</a>");
+			      subUl.append(subLi2);
+	
+			      var subLi3 = $("<li></li>");
+			      subLi3.append("<a href='/work/guide/jobQuest.do'>취업가이드</a>");
+			      subUl.append(subLi3);
+			      
+			      var subLi4 = $("<li></li>");
+			      subLi4.append("<a href='/work/program/programList.do'>프로그램</a>");
+			      subUl.append(subLi4);
+			      
+			      var subLi5 = $("<li></li>");
+			      subLi5.append("<a href='/work/alarm/alarmBoardList.do'>알림마당</a>");
+			      subUl.append(subLi5);
+			      
+			      var subLi6 = $("<li></li>");
+			      subLi6.append("<a href='/work/center/center.do'>일자리센터</a>");
+			      subUl.append(subLi6);
+				      
+			      li.append(subUl);
+			      break;
+		      }
+		      // 최종 추가
+		      $("#headerUl").append(li);
+		    }
+		  }
+		}
+
+
+
+	/** 전체 메뉴 세팅 **/
+	function setAllMenuFn(data) {
+
+		if(data != null && data.content != null && data.content.length > 0) {
+
+			var list = data.content;
+
+			for(var i = 0; i < list.length; i++) {
+
+				var ul = $("<ul></ul>");
+
+				ul.append(
+					  "<li class='top_title' data-id='" + list[i].menuId + "'>"
+						+ "<a href='" + list[i].srcNm + "'>" + list[i].menuNm + "</a>"
+					+ "</li>"
+				);
+
+				if(list[i].children.length > 0) {
+
+					var depth2List = list[i].children;
+
+					for(var j = 0; j < depth2List.length; j++) {
+
+						var li = $("<li data-url='" + depth2List[j].srcNm + "' data-id='" + depth2List[j].menuId + "'></li>");
+
+						li.append("<a href='" + depth2List[j].srcNm + "'>" + depth2List[j].menuNm + "</a>");
+
+						if(depth2List[j].children.length > 0) {
+
+							var depth3List = depth2List[j].children;
+							var div = $("<div class='almn_mb'></div>");
+
+							li.addClass("mb_bt");
+
+							for(var k = 0; k < depth3List.length; k++) {
+
+								div.append("<a href='" + depth3List[k].srcNm + "'>" + depth3List[k].menuNm + "</a>");
+
+								li.append(div);
+
+							}
+						}
+
+						ul.append(li);
+
+					}
+				}
+
+				$('#allMenuDiv').append(ul);
+
+			}
+		}
+	}
+
+
+	/** 헤더 활성화 **/
+	function headerActiveFn() {
+
+		var depth = location.href.split('/')[3];
+		var url = window.location.pathname;
+
+		$('.m_active').removeClass('m_active');			// depth 1
+		$('.dep2_active').removeClass('dep2_active');	// depth 2
+		$('.dep3_active').removeClass('dep2_active');	// depth 3
+		$('.m_on').removeClass('m_on');					// depth 2, depth 3 show
+
+		if(depth == "airport") {	// 공항
+
+			var depth1 = $('#allMenuDiv li[data-id="APT001"]');
+
+			// header
+			$('#headerUl li[data-id="APT001"] a').addClass('active');
+
+			// all menu
+			depth1.addClass('m_active');
+			depth1.siblings('li').addClass('m_on');
+
+		} else if(depth == "airline") {	// 항공사
+
+			var depth1 = $('#allMenuDiv li[data-id="AIR001"]');
+
+			// header
+			$('#headerUl li[data-id="AIR001"] a').addClass('active');
+
+			// all menu
+			depth1.addClass('m_active');
+			depth1.siblings('li').addClass('m_on');
+
+		} else if(depth == "airplane") {// 항공기
+
+			var depth1 = $('#allMenuDiv li[data-id="ACF001"]');
+
+			// header
+			$('#headerUl li[data-id="ACF001"] a').addClass('active');
+
+			// all menu
+			depth1.addClass('m_active');
+			depth1.siblings('li').addClass('m_on');
+
+		} else if(depth == "stats") {	// 항공통계
+
+			var depth1 = $('#allMenuDiv li[data-id="AST001"]');
+
+			// header
+			$('#headerUl li[data-id="AST001"] a').addClass('active');
+
+			// all menu
+			depth1.addClass('m_active');
+			depth1.siblings('li').addClass('m_on');
+
+		} else if(depth == "library") {	// 항공자료관
+
+			var depth1 = $('#allMenuDiv li[data-id="ALB001"]');
+
+			// header
+			$('#headerUl li[data-id="ALB001"] a').addClass('active');
+
+			// all menu
+			depth1.addClass('m_active');
+			depth1.siblings('li').addClass('m_on');
+
+		} else if(depth == "news") {	// 항공소식
+
+			var depth1 = $('#allMenuDiv li[data-id="ANE001"]');
+
+			// header
+			$('#headerUl li[data-id="ANE001"] a').addClass('active');
+
+			// all menu
+			depth1.addClass('m_active');
+			depth1.siblings('li').addClass('m_on');
+
+		}
+
+		$('#allMenuDiv li[data-url="' + url + '"]').addClass('dep2_active');	// depth 2
+		$('#allMenuDiv div[data-url="' + url + '"]').addClass('dep3_active');	// depth 3
+
+	}
+
+
+	/** oAuth 로그인 **/
+	function oAuthLoginFn(bool) {
+
+		var param = {};
+
+		param['provider'] = provider;
+
+		if(bool) {
+
+			param["replaceSession"] = bool;
+
+		}
+
+		param = JSON.stringify(param);
+
+		$.ajax({
+			url: '/oauth2/oauthLogin.do',
+			type:'POST',
+			async : false,
+			contentType: 'application/json;charset=UTF-8',
+			dataType: 'json',
+			data: param,
+
+			beforeSend : function(xhr) {
+				xhr.setRequestHeader("X-Access-Token", accessToken);
+			},
+
+			success: function (data, status, request) {
+
+				sessionStorage.setItem("name", data.content.name);
+				sessionStorage.setItem("no", data.content.userNo);
+				sessionStorage.setItem("provider", data.content.provider);
+				sessionStorage.setItem(cmm.jwtHeaderName, request.getResponseHeader(cmm.jwtHeaderName));
+
+				location.href = "/main.do"
+
+			},
+
+			error:function(request, status, error) {
+
+				alert("code : " + request.status + "\n" + "message : " + request.responseText + "\n" + "error : " + error);
+
+				return;
+
+			}
+		});
+	}
+
+
+	/** 통합 검색 **/
+	function moveSearchResultFn() {
+
+		var searchText = $('#headerSearchText').val();
+
+		if(searchText.length > 0) {
+
+			sessionStorage.setItem("searchText", searchText);
+
+			location.href = "/search/searchResult.do";
+
+		}
+	}
+
+	/** 회원 정보 버튼 **/
+	function userInfoFn() {
+
+		//if(sessionStorage.getItem('provider')) {
+
+			if (e) e.preventDefault();
+  			e?.stopPropagation();
+			location.href = "/login/userInfo.do";
+
+		//} else {
+
+		//	location.href='/login/checkPw.do'
+
+		//}
+	}
+
+
+	/** 로그아웃 **/
+	function logoutFn() {
+
+		var param = {};
+
+		param['userNo'] = sessionStorage.getItem("no") * 1;
+
+		param = JSON.stringify(param);
+
+		var data = cmm.call("/login/logoutProc.do", param);
+
+		if(data != null && data.resultCode == "200") {
+
+			sessionStorage.clear();
+
+			cmm.alert("로그아웃되었습니다.", function() {
+
+				location.href = "/main.do";
+
+			});
+
+		} else {
+
+			cmm.alert("처리중 오류가 발생했습니다. 다시 시도해주세요.");
+
+		}
+	}
+
+</script>
+
+<header>
+	<div class="gnb">
+		<div class="inner">
+			<h1>
+				<a href="/"> <img
+					src="/images/egovframework/skydesign/contents/layout/logo_airportal.png"
+					alt="Airportal" />
+				</a>
+			</h1>
+			<div class="main_menu">
+				<div class="bg_main_menu"></div>
+				<ul class="flex">
+					<li><a href="">공항</a>
+						<ul class="sub_menu">
+							<li><a href="/airport/airport.do">공항정보</a></li>
+							<li><a href="/airport/aircraftInfo.do">항공기 출도착</a></li>
+							<li><a href="https://aim.koca.go.kr/aim/main.do"
+								target="_blank">e-AIP</a></li>
+						</ul></li>
+					<li><a href="">항공사</a>
+						<ul class="sub_menu">
+							<li><a href="/airline/airCompanyInfo.do">항공사 정보</a></li>
+							<li><a href="/airline/airplaneSchedule.do">항공사 스케줄</a></li>
+							<li><a href="/airline/invest.do">항공안전투자공시</a></li>
+							<li><a href="/airline/reservation.do">항공권 예약</a></li>
+							<!-- <li><a href="/airline/consumerInfo.do">소비자 항공 정보</a></li> -->
+                            <!-- # PMS-2338-ydg : 항공사서비스평가 링크 변경 -->
+							
+                            <li><a href="https://www.molit.go.kr/USR/WPGE0201/m_37264/DTL.jsp" target="_blank">항공사 서비스 평가</a></li>
+						</ul></li>
+					<li><a href="">항공기</a>
+						<ul class="sub_menu">
+							<li><a href="/airplane/airplaneInfo.do">항공기 정보</a></li>
+							<li><a href="http://atis.koca.go.kr/" target="_blank">항공기술정보시스템(ATIS)</a>
+							<li><a href="/airplane/leisure.do">항공레저</a></li>
+							<li><a href="/airplane/uamMain.do">UAM•드론</a></li>
+							</li>
+						</ul></li>
+					<li><a href="">항공통계</a>
+						<ul class="sub_menu">
+							<li><a href="/stats/transport/dashboard.do">항공운송통계</a></li>
+							<li><a href="/stats/industry/industryTransit.do">항공산업실적</a>
+							</li>
+							<li><a href="/stats/survey/odMain.do">항공여객OD조사통계</a></li>
+							<li><a href="/stats/leisure/flight01.do">레저통계</a></li>
+						</ul></li>
+					<li><a href="">항공자료관</a>
+						<ul class="sub_menu">
+							<li><a href="/library/ebookSearchList.do">전자도서관</a></li>
+							<li><a href="/library/history.do">항공역사</a></li>
+							<li><a href="/library/statute.do">항공법령</a></li>
+							<li><a href="/library/international.do">국제기구</a></li>
+							<li><a href="/library/ebookinfo.do">기관•단체정보</a></li>
+							<li><a href="/library/safety.do">항공안전</a></li>
+							<li><a href="/library/security.do">항공보안</a></li>
+						</ul></li>
+					<li><a href="">항공소식</a>
+						<ul class="sub_menu">
+							<li><a href="/news/eventAirzine.do">에어진</a></li>
+							<li><a href="/news/newsMain.do">항공뉴스</a></li>
+							<li><a href="/news/eventScheduleImg.do">행사일정</a></li>
+							<li><a href="/news/airplaneVideo.do">항공영상</a></li>
+						</ul></li>
+					<li><a href="">항공일자리</a>
+						<ul class="sub_menu">
+							
+							<li><a href="/work/workMain.do" target="_blank">HOME</a></li>
+							<li><a href="/work/employment/workList.do" target="_blank">채용정보</a></li>
+							<li><a href="/work/fair/workFair.do" target="_blank">일자리 박람회</a></li>
+							<li><a href="/work/guide/jobQuest.do" target="_blank">취업가이드</a></li>
+							<li><a href="/work/program/programList.do" target="_blank">프로그램</a></li>
+							<li><a href="/work/alarm/alarmBoardList.do" target="_blank">알림마당</a></li>
+							<li><a href="/work/center/center.do" target="_blank">일자리센터</a></li>
+						</ul></li>
+				</ul>
+			</div>
+			<div class="side_menu">
+				<a href="" class="btn_search"><span class="sr_only">검색</span></a> 
+				<a href="" class="btn_login"><span class="sr_only">로그인</span></a>
+<!--  				<a href=""> class="head_info"> -->
+<!-- 					<span class="hide">나의정보</span> -->
+					<ul class="header_my">
+						<li class="name" id="headerName"></li>
+						<li id="userInfoBtn">회원정보</li>
+						<li class="logout" id="logoutBtn">로그아웃</li>
+					</ul>
+<!-- 				</a> -->
+				<a href="" class="btn_gnb"><span class="sr_only">전체메뉴</span></a>
+			</div>
+		</div>
+		<div class="header_search">
+			<div class="box">
+				<div class="inner">
+					<input type="text" id="headerSearchText"
+						placeholder="검색어를 입력해 주세요." />
+					<button onclick="moveSearchResultFn()">
+						<span class="sr_only">검색</span>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div id="gnb_all">
+			<button type="button" class="btn_close">
+				<span class="sr_only">닫기</span>
+			</button>
+			<h2 class="sr_only">전체메뉴</h2>
+			<ul class="flex">
+				<li class="on"><a href="/airport/airport.do">공항</a>
+					<ul class="sub_menu">
+						<li><a href="/airport/airport.do">공항정보</a></li>
+						<li><a href="/airport/aircraftInfo.do">항공기 출도착</a></li>
+						<li><a href="https://aim.koca.go.kr/aim/main.do"
+							target="_blank">e-AIP</a></li>
+					</ul></li>
+				<li><a href="/airline/airCompanyInfo.do">항공사</a>
+					<ul class="sub_menu">
+						<li><a href="/airline/airCompanyInfo.do">항공사 정보</a></li>
+						<li><a href="/airline/airplaneSchedule.do">항공사 스케줄</a></li>
+						<li><a href="/airline/invest.do">항공안전투자공시</a></li>
+						<li><a href="/airline/reservation.do">항공권 예약</a></li>
+                        <!-- # PMS-2338-ydg : 항공사서비스평가 링크 변경 -->
+						
+                        <li><a href="https://www.molit.go.kr/USR/WPGE0201/m_37264/DTL.jsp" target="_blank">항공사 서비스 평가</a></li>
+					</ul></li>
+				<li><a href="/airplane/airplaneInfo.do">항공기</a>
+					<ul class="sub_menu">
+						<li><a href="/airplane/airplaneInfo.do">항공기 정보</a></li>
+						<li><a href="http://atis.koca.go.kr/" target="_blank">항공기술정보시스템(ATIS)</a>
+						<li><a href="/airplane/leisure.do">항공레저</a></li>
+						<li><a href="/airplane/uamMain.do">UAM•드론</a></li>
+						</li>
+					</ul></li>
+				<li><a href="/stats/transport/dashboard.do">항공통계</a>
+					<ul class="sub_menu">
+						<li><a href="/stats/transport/dashboard.do">항공운송통계</a></li>
+						<li><a href="/stats/industry/industryTransit.do">항공산업실적</a></li>
+						<li><a href="/stats/survey/odMain.do">항공여객OD조사통계</a></li>
+						<li><a href="/stats/leisure/flight01.do">레저통계</a></li>
+					</ul></li>
+				<li><a href="/library/ebookSearchList.do">항공자료관</a>
+					<ul class="sub_menu">
+						<li><a href="/library/ebookSearchList.do">전자도서관</a></li>
+						<li><a href="/library/history.do">항공역사</a></li>
+						<li><a href="/library/statute.do">항공법령</a></li>
+						<li><a href="/library/international.do">국제기구</a></li>
+						<li><a href="/library/ebookinfo.do">기관•단체정보</a></li>
+						<li><a href="/library/safety.do">항공안전</a></li>
+						<li><a href="/library/security.do">항공보안</a></li>
+					</ul></li>
+				<li><a href="/news/eventAirzine.do">항공소식</a>
+					<ul class="sub_menu">
+						<li><a href="/news/eventAirzine.do">에어진</a></li>
+						<li><a href="/news/newsMain.do">항공뉴스</a></li>
+						<li><a href="/news/eventScheduleImg.do">행사일정</a></li>
+						<li><a href="/news/airplaneVideo.do">항공영상</a></li>
+					</ul></li>
+				<li><a href="/work/workMain.do">항공일자리</a>
+					<ul class="sub_menu">
+						<li><a href="/work/workMain.do" target="_blank">HOME</a></li>
+						<li><a href="/work/employment/workList.do">채용정보</a></li>
+						<li><a href="/work/fair/workFair.do">일자리 박람회</a></li>
+						<li><a href="/work/guide/jobQuest.do">취업가이드</a>
+							<ul class="depth_menu">
+								<li><a href="/work/guide/jobQuest.do">직업(직무)탐색</a></li>
+								<li><a href="/work/guide/ecosystem.do">항공산업 생태계</a></li>
+								<li><a href="/work/guide/interviewList.do">현직자 인터뷰</a></li>
+							</ul></li>
+						<li><a href="/work/program/programList.do">프로그램</a>
+							<ul class="depth_menu">
+								<li><a href="/work/program/programList.do">프로그램 소개</a></li>
+								<li><a href="/work/program/mentorList.do">상담위원(멘토) 소개</a></li>
+								<li><a href="/work/program/reservation.do">이용방법(예약)</a></li>
+							</ul></li>
+						<li><a href="/work/alarm/alarmBoardList.do">알림마당</a>
+							<ul class="depth_menu">
+								<li><a href="/work/alarm/alarmBoardList.do">공지사항</a></li>
+								<li><a href="/work/alarm/alarmNewsList.do">항공일자리 소식</a></li>
+							</ul></li>
+						<li><a href="/work/center/center.do">일자리센터</a>
+							<ul class="depth_menu">
+								<li><a href="/work/center/center.do">센터 소개</a></li>
+								<li><a href="/work/center/groupMap.do">조직도</a></li>
+								<li><a href="/work/center/map.do">오시는 길</a></li>
+							</ul></li>
+					</ul></li>
+			</ul>
+		</div>
+	</div>
+</header>
+
+<!-- <header> -->
+<!-- 	<div class="bx_1795 header_inner"> -->
+<!-- 		<h1><a href="/main.do"><span class="hide">Airportal</span></a></h1> -->
+<!-- 		<ul id="headerUl"></ul> -->
+<!-- 		<div id="subArea"></div> -->
+<!-- 		<div class="header_btn"> -->
+<!-- 			<a href="" class="head_search"><span class="hide">검색</span></a> -->
+<!-- 			<a href="" class="head_info"> -->
+<!-- 				<span class="hide">나의정보</span> -->
+<!-- 				<ul class="header_my"> -->
+<!-- 					<li class="name" id="headerName"></li> -->
+<!-- 					<li onclick="userInfoFn();">회원정보</li> -->
+<!-- 					<li class="logout" id="logoutBtn">로그아웃</li> -->
+<!-- 				</ul> -->
+<!-- 			</a> -->
+<!-- 			<a href="" class="head_menu"><span class="hide">메뉴</span></a> -->
+<!-- 		</div> -->
+<!-- 	</div> -->
+<!-- </header> -->
+
+<!-- <!-- 헤더 검색 -->
+<!-- <div class="head_sch"> -->
+<!-- 	<div class="bx_1320"> -->
+<!-- 		<input type="text" id="headerSearchText" placeholder="검색어를 입력해 주세요"> -->
+<!-- 		<button onclick="moveSearchResultFn();"></button> -->
+<!-- 	</div> -->
+<!-- </div> -->
+
+<!-- <div class="all_menu" id="allMenuDiv"> -->
+<!-- 	<div class="mb_bar"></div> -->
+<!-- 	<div class="mb_top"> -->
+<!-- 		<button class="log_btn" id="mobileLoginBtn"></button> -->
+<!-- 		<h2>전체메뉴</h2> -->
+<!-- 	</div> -->
+<!-- 	<a class="ic_my hide" id="mobileMyInfo" onclick="location.href='/login/checkPw.do'"></a> -->
+<!-- 	<span class="all_close"></span> -->
+<!-- </div> -->
+</div>
+	<div id="menu">
+
+<!-- <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" /> -->
+<!-- <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script> -->
+<link rel="stylesheet" href="/css/egovframework/url/swiper-bundle.min.css" />
+<script src="/js/egovframework/url/swiper-bundle.min.js"></script>
+
+<!-- 항공사 정보 페이지 -->
+<script>
+
+	$(function () {
+		
+		setMenuFn();
+		
+		/** 퀵메뉴 셋팅 **/
+	    settingQuickMenuFn();
+	
+	    const currentUrl = window.location.pathname;
+	
+	    let isMatchFound = false; 
+	    
+	    $(".quick_swiper li").each(function () {
+
+			let detail = $(this).data("detail");
+	
+	        if (detail === currentUrl) {
+	            // 현재 URL과 일치하는 li가 있는 경우
+	            $(this).addClass("on");
+	            $(this).css("filter", "none");
+	            $(this).find("span").css("color", "");
+	            $("#menuDepth").append("<a>"+this.innerText+"</a>");
+	            isMatchFound = true;
+	        } else {
+	            // URL이 일치하지 않는 경우
+	            $(this).css("filter", "grayscale(100%)");
+	            $(this).find("span").css("color", "rgba(255, 255, 255, 0.38)");
+	        }
+	    });
+	
+	    // URL과 일치하는 li가 없는 경우
+	    if (!isMatchFound) {
+	    	$(".quick_swiper li").addClass("on");
+	    	$(".quick_swiper li").css("filter", "none");
+	    	$(".quick_swiper li").find("span").css("color", "");
+	    }
+	});
+
+	// 퀵메뉴 swiper
+	document.addEventListener("DOMContentLoaded", function () {
+
+		const quickSwiper = new Swiper('.quick_swiper', {
+			slidesPerView: 6, //10,
+			loop: false,
+			breakpoints: {
+				0: {
+					slidesPerView: 3,//6,
+				},
+				758: {
+					slidesPerView: 3,
+				},				
+				1024: {
+					slidesPerView: 7,
+				}
+			}
+		});
+
+		quickSwiper.on('resize', function () {
+			this.slideTo(0);
+		});
+	});
+	
+	
+	/** 퀵메뉴 셋팅 **/
+    function settingQuickMenuFn() {
+		
+    	$("#quickMenuUl").empty();
+		
+		let param = {};
+		
+		param['menuId'] = "AIR001";
+		
+		param = JSON.stringify(param);
+		
+		let data = cmm.call("/common/getQuickMenu.do", param);
+		
+		if(data != null & data.resultCode == "200") {
+			
+			let result = data.content;
+			
+			if(result.length > 0) {
+				
+				for(let i=0; i<result.length; i++) { //result.length; i++) {
+					
+					let li = $("<li class='swiper-slide' style='background: url(/file/upload/common/"+result[i].img+"/downloadFile.do)no-repeat;' onclick='actionDetailFn(this);' data-code='"+result[i].actionTpCode+"' data-detail='"+result[i].actionDetail+"' data-word='"+result[i].searchKeyword+"' data-sq='" + result[i].seq + "'>");
+					
+					li.append("<span>"+result[i].menuNm+"</span>");
+					
+					$("#quickMenuUl").append(li);
+				}
+			}
+		}
+	}
+	
+	
+	/** 액션 실행 **/
+	function actionDetailFn(obj) {
+		
+		let detail = $(obj).data("detail");
+		let word = $(obj).data("word");
+		let code = $(obj).data("code");
+		
+		if(code == "1") {
+			// 파일 다운로드
+			location.href = "/file/upload/common/" + encodeURI(detail) + "/downloadFile.do";
+			
+		} else if(code == "2") {
+			// URL 이동
+			if(detail.indexOf("https://") == -1 && detail.indexOf("http://") == -1) {
+				// 필수값 셋팅
+				detail = "https://" + detail;
+			}
+			
+			window.open(detail);
+			
+		} else if(code == "3") {
+			// 화면 이동
+			if(word != null && word != "") {
+				// 검색어 있는 경우(전자도서관)
+				ebookSearchFn(word);
+				
+			} else {
+				// 단순 이동
+				location.href = detail;
+			}
+		}
+	}
+
+</script>
+
+<div class="sub_banner" style="background: url(/images/egovframework/img/bg-sub-2@2x.png)no-repeat;">
+	<div class="bx_1440">
+		<div class="banner_depth" id="menuDepth">
+			<a href="/main.do">홈</a>
+			<a href="/airline/airCompanyInfo.do">항공사</a>
+		</div>
+		<div class="bx_share">
+			<a class="share_btn"><span class="hide">공유</span></a>
+			<div class="share_list">
+				<p id="facebook"><span class="hide">페이스북</span></p>
+				<p id="kakao"><span class="hide">카카오톡</span></p>
+				<p id="twitter"><span class="hide">트위터</span></p>
+				<p id="url"><span class="hide">url</span></p>
+			</div>
+		</div>
+		<h2 id="menuTitle"></h2>
+		<span id="menuContents"></span>
+		<div class="swiper quick_swiper">
+			<ul class="swiper-wrapper" id="quickMenuUl"></ul>
+		</div>
+	</div>
+</div>
+<!---->
+</div>
+	<div id="body">
+
+<link rel="stylesheet" type="text/css" href="/css/egovframework/skydesign/airline.css" />
+
+<!-- 항공사 페이지 -->
+<script>
+
+	var currentPage = 1;
+	var searchOption = "";
+	var searchKeyword = "";
+
+	$(function() {
+		
+		$('header .gnb .inner .main_menu .flex > li:eq(1)').addClass('active');
+		
+		var fromSearch = sessionStorage.getItem("fromSearch");
+		var searchText = sessionStorage.getItem("searchText");
+
+		sessionStorage.removeItem("fromSearch");
+		sessionStorage.removeItem("searchText");
+
+		if(fromSearch) {
+
+			$('#searchText').val(searchText);
+
+		}
+
+		searchFn();
+
+		// 항공사명 검색
+		$('#searchText').keyup(function(event) {
+
+			if (event.keyCode === 13) {
+
+				searchFn();
+
+			}
+		});
+
+		// 검색 키워드 클릭 시
+		$(".searchKeyword li").click(function(){
+
+			if($(this).hasClass('active')) {
+
+				$(this).removeClass('active');
+
+				searchOption = "";
+				searchKeyword = "";
+
+			} else {
+
+				$('.searchKeyword li').removeClass('active');
+				$(this).addClass('active');
+
+				searchOption = $(this).parent().data('option');
+				searchKeyword = $(this).text();
+
+			}
+
+			searchFn();
+
+		});
+
+		// 운영여부 선택 시
+		$('#operationSelect').change(function() {
+
+			searchFn();
+
+		});
+
+		// 정렬 조건 선택 시
+		$('#searchOrder').change(function() {
+
+			searchFn();
+
+		});
+
+		// PDF 버튼 클릭 시
+		$(document).on("click", ".facilityFee", function() {
+
+			var fileName = $(this).data('file');
+
+			if(fileName != null && fileName != "undefined" && fileName != '') {
+
+				location.href = "/file/upload/airline/" + fileName + "/downloadFile.do";
+
+			}
+		});
+
+		// 리스트 클릭 시 상세 표시
+		$(document).on("click", ".tblTd", function() {
+
+			$('.airport_detail').hide();
+
+			$(this).parent().next().show();
+
+		});
+
+		// 상세 닫기
+		$(document).on("click", ".list_close", function() {
+
+			$(this).parents('.airport_detail').hide();
+
+		});
+	});
+
+
+	/** 퀵메뉴 세팅 **/
+	function setMenuFn() {
+
+		$('#menuTitle').text("항공사");
+		$('#menuContents').text("전세계 주요 항공사의 현황, 역사, 노선취항정보, 제휴현황, 수송실적 등을 제공해 드립니다.");
+
+	}
+
+
+	/** 항공사 리스트 조회 **/
+	function searchFn(page) {
+
+		var param = {};
+
+		if(page) {
+
+			param['pageNumber'] = page;
+
+			currentPage = page;
+
+		} else {
+
+			param['pageNumber'] = 1;
+
+			currentPage = 1;
+
+		}
+
+		param['pageSize'] = cmm.pageCnt;
+		param['isActive'] = $('#operationSelect option:selected').val() == "true";
+		param['order'] = $('#searchOrder option:selected').data('order');
+		param['orderNm'] = $('#searchOrder option:selected').data('name');
+
+		if(searchOption == "name") {
+
+			param['name'] = searchKeyword;
+
+		} else if(searchOption == "name2") {
+
+			param['name2'] = searchKeyword;
+
+		} else if(searchOption == "name3") {
+
+			param['name3'] = searchKeyword;
+
+		}
+
+		if($('#searchText').val().length > 0) {
+
+			param['searchName'] = $('#searchText').val();
+
+		}
+
+		param = JSON.stringify(param);
+
+		cmm.call("/airline/searchAirline.do", param, "searchCallback");
+
+	}
+
+
+	/** 항공사 리스트 조회 콜백 **/
+	function searchCallback(data) {
+
+		$('#tblTbody').empty();
+		$("#pageUl").empty();
+
+		if(data != null && data.content != null && data.content.length > 0) {
+
+			$('#noList').addClass("hide");
+
+			var list = data.content;
+
+			// 숫자 콤마 편집
+			$('#total').text(Number(data.total).toLocaleString());
+
+			for(var i = 0; i < list.length; i++) {
+
+				var tr = $("<tr></tr>");
+				var num = (currentPage - 1) * 10 + (i + 1);
+
+				tr.append("<td class='tblTd'>" + num + "</td>");	// No
+
+				// 항공사 이미지, 국문 항공사명
+				if(list[i].logoFile != null && list[i].logoFile != undefined && list[i].logoFile != '') {
+
+					tr.append("<td class='tblTd'><img src='/file/upload/airline/" +  list[i].logoFile + "/downloadFile.do'>" + list[i].name2 + "</td>");
+
+				} else {
+
+					tr.append("<td class='tblTd'>" + list[i].name2 + "</td>");
+
+				}
+
+				tr.append("<td class='tblTd'>" + list[i].name + "</td>");			// 영문 항공사명
+				tr.append("<td class='tblTd'><span class='mb_txt'>IATA</span>" + list[i].iataCode + "</td>");		// IATA
+				tr.append("<td class='tblTd'><span class='mb_txt'>ICAO</span>" + list[i].icaoCode + "</td>");		// ICAO
+				tr.append("<td class='tblTd'><span class='mb_txt'>국가</span>" + list[i].en2Country + "</td>");		// 국가
+				tr.append("<td class='tblTd'><span class='mb_txt'>사업모델</span>" + list[i].businessModel + "</td>");	// 사업모델
+
+				$("#tblTbody").append(tr);
+
+				var trDetail = 
+					$(
+						"<tr class='airport_detail' rowspan='5'><td colspan='7'>"
+							+ "<ul class='table_4'>"
+								+ "<li><p>운영여부</p><span>" + list[i].section + "</span></li>"
+								+ "<li><p>콜사인</p><span>" + emptyToHypen(list[i].callSign) + "</span></li>"
+							+ "</ul>"
+							+ "<ul class='table_4'>"
+								+ "<li><p>지역</p><span>" + emptyToHypen(list[i].areaCode) + " / " + emptyToHypen(list[i].area) + "</span></li>"
+								+ "<li><p>국가</p><span>" + emptyToHypen(list[i].en2Country) + " / " + emptyToHypen(list[i].en1Country) + "</span></li>"
+								+ "<li><p>도시</p><span>" + emptyToHypen(list[i].city) + " / " + emptyToHypen(list[i].koCity) + "</span></li>"
+							+ "</ul>"
+							+ "<ul class='table_1'>"
+								+ "<li><p>주소</p><span>" + emptyToHypen(list[i].address) + "</span></li>"
+							+ "</ul>"
+							+ "<ul class='table_2'>"
+								+ "<li><p>홈페이지</p><span>" + emptyToHypen(list[i].homepage) + "</li>"
+								+ "<li><p>이메일</p><span>" + emptyToHypen(list[i].email) + "</li>"
+							+ "</ul>"
+                            // # PMS-2340-ydg : PDF 영역 제거
+							// + "<ul class='table_1'>"
+							// 	+ "<li><p>관련자료</p><span class='tag facilityFee' data-file='" + list[i].dataFile + "'>PDF</span></li></ul>"
+							// + "</ul>"
+							+ "<div class='list_close'></div>"
+						+ "</td></tr>"
+					);
+
+				$("#tblTbody").append(trDetail);
+
+			}
+
+			// paging
+			var endPage = (Math.ceil(currentPage / cmm.listCnt) * cmm.listCnt);
+			var startPage = (endPage - cmm.listCnt) + 1;
+			var totalPage = Math.ceil(data.total / cmm.pageCnt);
+
+			if(totalPage < endPage) {
+
+				endPage = totalPage
+
+			}
+
+			var prevLi = $("<li></li>");
+			var numLi = $("<li></li>");
+			var nextLi = $("<li></li>");
+
+			prevLi.append("<a class='page_first' onclick='movePageFn(" + 1 + ")'></a>");
+
+			if(startPage > 1) {
+
+				prevLi.append("<a class='page_prevrow' onclick='movePageFn(" + (currentPage - cmm.listCnt) + ")'></a>");
+				prevLi.append("<a class='page_prev' onclick='movePageFn(" + (currentPage - 1) + ")'></a>");
+
+			} else {
+
+				prevLi.append("<a class='page_prevrow'></a>");
+				prevLi.append("<a class='page_prev' onclick='movePageFn("+(currentPage > 1 ? currentPage - 1 : 1)+")'></a>");
+
+			}
+
+			for(var p = startPage; p <= endPage; p++) {
+
+				if(p == currentPage) {
+
+					numLi.append("<a class='active' onclick='movePageFn(" + p + ")'>" + p + "</a>");
+
+				} else {
+
+					numLi.append("<a onclick='movePageFn(" + p + ")'>" + p + "</a>");
+
+				}
+			}
+
+			if(endPage < totalPage) {
+
+				nextLi.append("<a class='page_next' onclick='movePageFn(" + (currentPage + 1) + ")'></a>");
+				
+				if(totalPage < currentPage + cmm.listCnt) {
+
+					nextLi.append("<a class='page_nextrow' onclick='movePageFn(" + totalPage + ")'></a>");
+
+				} else {
+
+					nextLi.append("<a class='page_nextrow' onclick='movePageFn(" + (currentPage + cmm.listCnt) + ")'></a>");
+
+				}
+
+			} else {
+
+				nextLi.append("<a class='page_next'></a>");
+				nextLi.append("<a class='page_nextrow'></a>");
+
+			}
+
+			nextLi.append("<a class='page_last' onclick='movePageFn(" + totalPage + ")'></a>");
+
+			$("#pageUl").append(prevLi);
+			$("#pageUl").append(numLi);
+			$("#pageUl").append(nextLi);
+
+		} else {
+
+			$('#total').text("0");
+			$('#noList').removeClass('hide');
+
+		}
+	}
+
+
+	/** 페이지 번호 클릭 **/
+	function movePageFn(page) {
+
+		$('#pageUl a').removeClass("active");
+
+		searchFn(page);
+
+	}
+
+
+	/** 항공사코드집 다운로드 **/
+	function excelFn() {
+
+		var param = {};
+
+		param['isActive'] = $('#operationSelect option:selected').val() == "true";
+		param['order'] = $('#searchOrder option:selected').data('order');
+		param['orderNm'] = $('#searchOrder option:selected').data('name');
+
+		if(searchOption == "name") {
+
+			param['name'] = searchKeyword;
+
+		} else if(searchOption == "name2") {
+
+			param['name2'] = searchKeyword;
+
+		} else if(searchOption == "name3") {
+
+			param['name3'] = searchKeyword;
+
+		}
+
+		if($('#searchText').val().length > 0) {
+
+			param['searchName'] = $('#searchText').val();
+
+		}
+
+		param = JSON.stringify(param);
+
+		var data = cmm.excel("/airline/exportExcelAirline.do", param, "항공사코드집");
+
+	}
+
+</script>
+
+<main id="airCompanyInfo">
+	<div class="bg_gra">
+		<div class="bx_1440 pb_160">
+			<div class="bx_title">
+				<h2 class="section_title">세계 항공사 찾기</h2>
+			</div>
+			<div class="sch_keyboard">
+				<div class="sch_airport mb_bb">
+					<input type="text" id="searchText" placeholder="항공사명, 항공사코드, 국가명 등 키워드로 검색하여 주시기 바랍니다.">
+					<button onclick="searchFn();"><span class="hide">검색</span></button>
+				</div>
+				<div class="pc">
+					<span>영문 항공사 찾기</span>
+					<ul class="searchKeyword" data-option="name">
+						<li>A</li>
+						<li>B</li>
+						<li>C</li>
+						<li>D</li>
+						<li>E</li>
+						<li>F</li>
+						<li>G</li>
+						<li>H</li>
+						<li>I</li>
+						<li>J</li>
+						<li>K</li>
+						<li>L</li>
+						<li>M</li>
+						<li>N</li>
+						<li>O</li>
+						<li>P</li>
+						<li>Q</li>
+						<li>R</li>
+						<li>S</li>
+						<li>T</li>
+						<li>U</li>
+						<li>V</li>
+						<li>W</li>
+						<li>X</li>
+						<li>Y</li>
+						<li>Z</li>
+					</ul>
+				</div>
+				<div class="pc">
+					<span>국문 항공사 찾기</span>
+					<ul class="searchKeyword" data-option="name2">
+						<li>ㄱ</li>
+							<li>ㄴ</li>
+							<li>ㄷ</li>
+							<li>ㄹ</li>
+							<li>ㅁ</li>
+							<li>ㅂ</li>
+							<li>ㅅ</li>
+							<li>ㅇ</li>
+							<li>ㅈ</li>
+							<li>ㅊ</li>
+							<li>ㅋ</li>
+							<li>ㅌ</li>
+							<li>ㅍ</li>
+							<li>ㅎ</li>
+					</ul>
+					<ul class="ml_7 searchKeyword" data-option="name3">
+						<li>0-9</li>
+					</ul>
+				</div>
+			</div>
+  
+			<div class="sch_total mb_flxre">
+				<span>총 <i id="total"></i>건</span>
+				<div>
+					<div class="custom_select">
+						<select id="operationSelect">
+							<option value="true">운영중</option>
+							<option value="false">운영중단</option>
+						</select>
+					</div>
+					<div class="custom_select">
+						<select id="searchOrder">
+							<option data-name="name2" data-order="asc">국문 항공사명 오름차순</option>
+								<option data-name="name2" data-order="desc">국문 항공사명 내림차순</option>
+								<option data-name="name" data-order="asc">영문 항공사명 오름차순</option>
+								<option data-name="name" data-order="desc">영문 항공사명 내림차순</option>
+								<option data-name=iataCode data-order="asc">IATA 오름차순</option>
+								<option data-name="iataCode" data-order="desc">IATA 내림차순</option>
+								<option data-name="icaoCode" data-order="asc">ICAO 오름차순</option>
+								<option data-name="icaoCode" data-order="desc">ICAO 내림차순</option>
+						</select>
+					</div>
+					<a class="codezip" onclick="excelFn();">항공사코드집</a>
+				</div>
+			</div>
+
+			<!-- 항공사 정보 리스트 -->
+			<table class="table_list curs">
+				<colgroup>
+					<col style="width: 5%;" />
+					<col style="width: 20%;" />
+					<col style="width: 17%;" />
+					<col style="width: 9%;" />
+					<col style="width: 9%;" />
+					<col style="width: 20%;" />
+					<col style="width: 20%;" />
+				</colgroup>
+				<thead>
+					<tr class="title">
+						<th>No</th>
+						<th>국문 항공사명</th>
+						<th>영문 항공사명</th>
+						<th>IATA</th>
+						<th>ICAO</th>
+						<th>국가</th>
+						<th>사업모델</th>
+					</tr>
+				</thead>
+				<tbody id="tblTbody">
+<!-- 				    <tr>                    
+                        <td>1</td>
+                        <td>울산공항</td>
+                        <td>Ulsan Airport</td>
+                        <td><span class="mb_txt">IATA</span>USN</td> //모바일 hr예시
+                        <td><span class="mb_txt">ICAO</span>RKPU</td>
+                        <td>Republic of Korea</td>
+                        <td>Full Service Carrier</td>
+                    </tr> -->
+				</tbody>
+			</table>
+
+			<!-- 검색 결과 없을 때 -->
+				<table class="result_none_table hide" id="noList">
+					<tbody>
+						<tr>
+							<td>검색된 결과값이 존재하지 않습니다.</td>
+						</tr>
+					</tbody>
+				</table>
+
+			<!-- pagination -->
+			<ul class="pagination" id="pageUl"></ul>
+
+		</div>
+	</div>
+</main>
+</div>
+	<div id="alert">
+
+<!-- alert -->
+<div class="pop_background pop_alert" id="layerAlert" style="display: none;">
+	<div class="popup line_1">
+		<p id="alertMsg"></p>
+		<div class="pop_btn">
+			<button class="blue_btn" id="alertOk">확인</button>
+		</div>
+	</div>
+</div>
+
+<!-- confirm -->
+<div class="pop_background pop_confirm" id="layerConfirm" style="display: none;">
+	<div class="popup line_1">
+		<p id="confirmMsg"></p>
+		<div class="pop_btn">
+			<button class="cancle_btn" id="confirmCancel">취소</button>
+			<button class="blue_btn" id="confirmOk">확인</button>
+		</div>
+	</div>
+</div>
+
+<!-- titleAlert -->
+<div class="pop_background pop_alert" id="layerTitleAlert" style="display: none;">
+	<div class="popup">
+		<p id="titleAlertMsg"></p>
+		<span id="titleAlertMsgDetail"></span>
+		<div class="pop_btn">
+			<button class="blue_btn" id="titleAlertOk">확인</button>
+		</div>
+	</div>
+</div>
+
+<!-- titleConfirm -->
+<div class="pop_background pop_confirm" id="layerTitleConfirm" style="display: none;">
+	<div class="popup">
+		<p id="titleConfirmMsg"></p>
+		<span id="titleConfirmMsgDetail"></span>
+		<div class="pop_btn">
+			<button class="cancle_btn" id="titleConfirmCancel">취소</button>
+			<button class="blue_btn" id="titleConfirmOk">확인</button>
+		</div>
+	</div>
+</div></div>
+	<div id="footer">
+
+<link rel="stylesheet" type="text/css" href="/css/egovframework/skydesign/pretendard.css" />
+<link rel="stylesheet" type="text/css" href="/css/egovframework/skydesign/swiper-bundle.min.css" />
+<link rel="stylesheet" type="text/css" href="/css/egovframework/skydesign/common.css" />
+<link rel="stylesheet" type="text/css" href="/css/egovframework/skydesign/layout.css" />
+
+<footer>
+    <div class="footer_nav">
+        <div class="inner">
+            <ul class="flex">
+                <li>
+                    <a href="https://data.molit.go.kr/systemQuality/list?system_id=S0049" target="_blank">품질오류 신고 및 확인</a>
+                </li>
+                <li>
+                    <a href="/login/security.do" class="color">개인정보 처리방침</a>
+                </li>
+            </ul>
+            <div class="family_site">
+                <p>유관기관 사이트 바로가기</p>
+                <ul>
+                    <li>
+                        <a href="http://www.molit.go.kr/" target="_blank">국토교통부</a>
+                    </li>
+                    <li>
+                        <a href="http://www.molit.go.kr/sroa/" target="_blank">서울지방항공청</a>
+                    </li>
+                    <li>
+                        <a href="http://www.molit.go.kr/broa/" target="_blank">부산지방항공청</a>
+                    </li>
+                    <li>
+                        <a href="http://www.molit.go.kr/jroa/" target="_blank">제주지방항공청</a>
+                    </li>
+                    <li>
+                        <a href="https://www.molit.go.kr/atmo/intro.do" target="_blank">항공교통본부</a>
+                    </li>
+                    <li>
+                        <a href="http://araib.molit.go.kr/" target="_blank">항공철도사고조사위원회</a>
+                    </li>
+                    <li>
+                        <a href="http://www.airtransport.or.kr/" target="_blank">한국항공협회</a>
+                    </li>
+                    <li>
+                        <a href="http://www.airport.co.kr/" target="_blank">한국공항공사</a>
+                    </li>
+                    <li>
+                        <a href="https://www.airport.kr/" target="_blank">인천국제공항공사</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer_info">
+        <div class="inner">
+            <div class="molit">
+                <a href="https://www.molit.go.kr/" target="_blank">
+                    <img src="/images/egovframework/img/logo-footer-1@2x.png" alt="국토교통부">
+                </a>
+                <ul>
+                    <li>30103 세종특별자치시 도움6로 11 국토교통부</li>
+                </ul>
+                <p class="copy">copyright © Ministry of Land, Infrastructure and Transport. All Rights reserved.</p>
+            </div>
+            <div class="airtransport">
+                <a href="https://www.airtransport.or.kr/home/kor/main.do" target="_blank">
+                    <img src="/images/egovframework/img/logo-footer-2@2x.png" alt="한국항공협회">
+                </a>
+                <ul>
+                    <li>07505 서울특별시 강서구 하늘길 38 국제선 청사 315호</li>
+                    <li>
+                        <dl>
+                            <dt>이메일</dt>
+                            <dd><a href="mailto:webmaster@airportal.go.kr">webmaster@airportal.go.kr</a></dd>
+                        </dl>
+                    </li>
+                </ul>
+                <p class="copy">copyright © 한국항공협회. All Rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- <footer> -->
+<!-- 	<div class="footer_navi"> -->
+<!-- 		<div class="bx_1440"> -->
+<!-- 			<div class="terms"> -->
+<!-- 				<a href="https://data.molit.go.kr/systemQuality/list?system_id=S0049" target="_blank">품질오류 신고 및 확인</a> -->
+<!-- 				<a href="/login/security.do" class="color">개인정보 처리방침</a> -->
+<!-- 			</div> -->
+<!-- 			<div class="select_site"> -->
+<!-- 				<p>유관기관 사이트 바로가기</p> -->
+<!-- 				<ul> -->
+<!-- 					<li onclick="window.open('http://www.molit.go.kr/')">국토교통부</li> -->
+<!-- 					<li onclick="window.open('http://www.molit.go.kr/sroa/')">서울지방항공청</li> -->
+<!-- 					<li onclick="window.open('http://www.molit.go.kr/broa/')">부산지방항공청</li> -->
+<!-- 					<li onclick="window.open('http://www.molit.go.kr/jroa/')">제주지방항공청</li> -->
+<!-- 					<li onclick="window.open('https://www.molit.go.kr/atmo/intro.do')">항공교통본부</li> -->
+<!-- 					<li onclick="window.open('http://araib.molit.go.kr/')">항공철도사고조사위원회</li> -->
+<!-- 					<li onclick="window.open('http://www.airtransport.or.kr/')">한국항공협회</li> -->
+<!-- 					<li onclick="window.open('http://www.airport.co.kr/')">한국공항공사</li> -->
+<!-- 					<li onclick="window.open('https://www.airport.kr/')">인천국제공항공사</li> -->
+<!-- 				</ul> -->
+<!-- 			</div> -->
+<!-- 		</div> -->
+<!-- 	</div> -->
+<!-- 	<div class="bx_1440 footer_info"> -->
+<!-- 		<div> -->
+<!-- 			<a href="https://www.molit.go.kr/" target="_blank"> -->
+<!-- 				<img src="/images/egovframework/img/logo-footer-1@2x.png" alt="국토교통부"> -->
+<!-- 			</a> -->
+<!-- 			<b>30103 세종특별자치시 도움6로 11 국토교통부</b> -->
+<!-- 			<p>copyright © Ministry of Land, Infrastructure and Transport. All Rights reserved.</p> -->
+<!-- 		</div> -->
+<!-- 		<div> -->
+<!-- 			<a href="https://www.airtransport.or.kr/home/kor/main.do" target="_blank"> -->
+<!-- 				<img src="/images/egovframework/img/logo-footer-2@2x.png" alt="한국항공협회"> -->
+<!-- 			</a> -->
+<!-- 			<b>07505 서울특별시 강서구 하늘길 38 국제선 청사 315호</b> -->
+<!-- 			<ul> -->
+<!-- 				<li> -->
+<!-- 					<span>이메일</span> -->
+<!-- 					webmaster@airportal.go.kr -->
+<!-- 				</li> -->
+<!-- 			</ul> -->
+<!-- 			<p>copyright © 한국항공협회. All Rights reserved.</p> -->
+<!-- 		</div> -->
+<!-- 		<div class="m-logo"> -->
+<!-- 			<a href="https://www.molit.go.kr/"> -->
+<!-- 				<img src="/images/egovframework/img/logo-footer-1@2x.png" alt="국토교통부"> -->
+<!-- 			</a> -->
+<!-- 			<a href="https://www.airtransport.or.kr/home/kor/main.do"> -->
+<!-- 				<img src="/images/egovframework/img/logo-footer-2@2x.png" alt="한국항공협회"> -->
+<!-- 			</a> -->
+<!-- 		</div> -->
+<!-- 	</div> -->
+<!-- </footer> -->
+
+<script>
+
+	/* footer 유관기관 */
+	$('.select_site p').click(function(){
+		$(this).next().toggle();
+	});
+	
+	$('.select_site ul li').click(function(){
+		$('.select_site ul').hide();
+		let selectTxt = $(this).children().html();
+		$('.select_site p').html(selectTxt);
+	});
+	
+	/* 다른 영역 클릭 시 닫힘 */
+	$(document).mouseup(function(e) {
+	    // select_site 영역 외 클릭 시
+	    if (!$('.select_site').is(e.target) && $('.select_site').has(e.target).length === 0) {
+	        $('.select_site ul').hide();
+	    }
+	});
+
+</script></div>
+
+</div>
+
+</body>
+</html>

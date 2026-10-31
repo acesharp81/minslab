@@ -1,0 +1,49 @@
+{
+  "errors": [],
+  "ratios": [
+    {
+      "expected": 78.4,
+      "actual": 78.41318443804035
+    },
+    {
+      "expected": 62.7,
+      "actual": 62.68912103746398
+    },
+    {
+      "expected": 4.1,
+      "actual": 4.11231884057971
+    },
+    {
+      "expected": 67.6,
+      "actual": 67.57246376811594
+    }
+  ],
+  "models": {
+    "algorithm": [
+      "Solar Pro 4",
+      "GPT-5.4",
+      "GPT-6.1 Terra"
+    ],
+    "collection": [
+      "Solar Pro 4",
+      "OpenRouter · Nemotron 3.5 Super VL",
+      "GPT-5.4 mini",
+      "GPT-5.4",
+      "GPT-6.1 Terra"
+    ],
+    "officer": [
+      "Solar Pro 4",
+      "GPT-5.4",
+      "GPT-6.1 Terra"
+    ]
+  },
+  "mobile": {
+    "width": 354,
+    "scroll": 354
+  },
+  "csv_rows": {
+    "all": 82,
+    "collection": 69,
+    "officer": 13
+  }
+}

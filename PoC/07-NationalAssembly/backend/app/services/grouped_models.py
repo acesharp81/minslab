@@ -1,7 +1,7 @@
 """Workload routing, independent quotas and a finite confirmed promotional grant.
 
-All ledgers are PoC7 allocations. Other organization projects must deduct their
-allocation here or use a shared gateway; these are not account balance APIs.
+OpenAI ledgers are shared by PoC7, PoC10 and PoC11 through the existing gateway.
+Other organization traffic is excluded; these are not account balance APIs.
 """
 from __future__ import annotations
 
@@ -33,6 +33,13 @@ def credit_period(settings: Any, now: datetime | None = None) -> tuple[str, floa
         if now < expiry:
             amount = float(settings.openai_credit_budget_usd)
             return (settings.openai_credit_grant_id, amount, expiry.isoformat()) if 0 < amount <= 100 else None
+        if getattr(settings, 'openai_credit_month_start_renewal', False):
+            local = now.astimezone(ZoneInfo('Asia/Seoul'))
+            start = local.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
+            year, month = (start.year+1,1) if start.month == 12 else (start.year,start.month+1)
+            end = start.replace(year=year,month=month)
+            amount = float(settings.openai_credit_monthly_budget_usd)
+            return (f'{settings.openai_credit_grant_id}:renew:{start.date()}', amount, end.isoformat()) if 0 < amount <= 100 else None
         if not getattr(settings, 'openai_credit_month_end_renewal', False):
             return None
         local = now.astimezone(ZoneInfo('Asia/Seoul'))
@@ -214,21 +221,21 @@ def usage_groups(settings: Any, connection: Any, *, router_left: int, router_lim
         cap = daily_limit(settings, group)
         left = max(0, cap-usage['total_tokens']-usage['unknown_tokens']-usage['reserved_tokens'])
         entries[group] = {'id': group, 'label': label, 'remaining': left, 'limit': cap,
-            'unit': 'tokens', 'scope': 'POC7_ALLOCATION', 'period': 'DAILY_UTC', **usage}
+            'unit': 'tokens', 'scope': 'POC7_10_11_SHARED', 'period': 'DAILY_UTC', **usage}
     period = credit_period(settings)
     grant_id, allowance, expiry = period or ('',0,None)
     grant = connection.execute("""SELECT spent_usd,reserved_usd,unknown_usd
         FROM openai_credit_grant_usage WHERE grant_id=%s""", (grant_id,)).fetchone()
     active = period is not None
     paid = {'id':'terra', 'label':'6.1 Terra', 'unit':'USD', 'period':'CREDIT_GRANT',
-        'scope':'POC7_ALLOCATION', 'status':'AVAILABLE' if active else 'CREDIT_UNCONFIRMED',
+        'scope':'POC7_10_11_SHARED', 'status':'AVAILABLE' if active else 'CREDIT_UNCONFIRMED',
         'limit':max(allowance,settings.openai_credit_monthly_budget_usd) if active else None,
         'opening_remaining_usd':allowance if active else None,
         'remaining':max(0, allowance-float(sum(grant or (0,0,0)))) if active else None,
-        'expires_at':expiry, 'renewal_basis':'USER_CONFIGURED_MONTH_END_KST'}
+        'expires_at':expiry, 'renewal_basis':'USER_CONFIGURED_MONTH_START_KST' if settings.openai_credit_month_start_renewal else 'USER_CONFIGURED_MONTH_END_KST'}
     return [
         {'id':'realtime','label':'실시간 부분요약','models':[entries['mini'],
-            {'id':'openrouter','label':('Dots3 Note' if settings.llm_model == 'dots-studio/dots-3-note-preview:free' else settings.llm_model.rsplit('/',1)[-1].split(':')[0][:10]),'model':settings.llm_model,'provider':'OpenRouter','remaining':router_left,'limit':router_limit,
+            {'id':'openrouter','label':({'nvidia/nemotron-3.5-super-vl:free':'Nemo3.5 VL','dots-studio/dots-3-note-preview:free':'Dots3 Note'}.get(settings.llm_model,settings.llm_model.rsplit('/',1)[-1].split(':')[0][:10])),'model':settings.llm_model,'provider':'OpenRouter','remaining':router_left,'limit':router_limit,
              'unit':'requests','scope':'SHARED_GATEWAY','period':'DAILY_UTC'}]},
         {'id':'integration','label':'통합+공식자료 대조','models':[entries['main'],paid]},
         {'id':'audio','label':'음성','models':[

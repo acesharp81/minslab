@@ -1,0 +1,32 @@
+{
+  "backups": {
+    "poc07-openrouter-gateway": "poc07-openrouter-gateway-before-shared-1793316524",
+    "poc07-national-assembly-api": "poc07-national-assembly-api-before-shared-1793316527",
+    "poc10-home-api": "poc10-home-api-before-shared-1793317239",
+    "poc10-home-worker": "poc10-home-worker-before-shared-1793316591",
+    "poc10-home-ai-worker": "poc10-home-ai-worker-before-shared-1793317251"
+  },
+  "containers": {
+    "poc07-openrouter-gateway": {
+      "image": "poc07-shared-budget:20261030",
+      "image_id": "sha256:0a96cf1312ed5bc1c6f5ce060f46f7788c2203312abfbd6bb77ac9345adb068c"
+    },
+    "poc07-national-assembly-api": {
+      "image": "poc07-shared-budget:20261030",
+      "image_id": "sha256:0a96cf1312ed5bc1c6f5ce060f46f7788c2203312abfbd6bb77ac9345adb068c"
+    },
+    "poc10-home-api": {
+      "image": "poc10-home:shared-ai-20261030",
+      "image_id": "sha256:36fceace7c7b622ecc32daddc8c2adaa97f5ddecf2ab04d846602ce2004b0ea1"
+    },
+    "poc10-home-worker": {
+      "image": "poc10-home:shared-ai-20261030",
+      "image_id": "sha256:c003754866a1f7ab706a53231ff6fca198b8fdfab6af97aa6f938f7f87b09a0a"
+    },
+    "poc10-home-ai-worker": {
+      "image": "poc10-home:shared-ai-20261030",
+      "image_id": "sha256:36fceace7c7b622ecc32daddc8c2adaa97f5ddecf2ab04d846602ce2004b0ea1"
+    }
+  },
+  "schema": "0061_shared_model_budgets"
+}

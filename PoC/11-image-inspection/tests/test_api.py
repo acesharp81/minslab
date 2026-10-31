@@ -7,11 +7,27 @@ from app.main import create_app
 
 @pytest.fixture
 def client(tmp_path):
-    s=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'admin-test','REVIEWER_PASSWORD':'review-test','SESSION_SECRET':'test-secret','EXTERNAL_API_ENABLED':'false'})
+    s=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'admin-test','REVIEWER_PASSWORD':'review-test','SESSION_SECRET':'test-secret','EXTERNAL_API_ENABLED':'false','SHARED_BUDGET_HTTP':'false','USAGE_GATEWAY_URL':'','SHARED_BUDGET_DATABASE_URL':'','OPENROUTER_API_KEY':'','OPENROUTER_GATEWAY_URL':''})
     with TestClient(create_app(s)) as c:yield c
 
 def login(c,role='admin'):
     assert c.post('/api/login',json={'role':role,'password':'admin-test' if role=='admin' else 'review-test'}).status_code==200
+
+def test_snapshot_reference_image_is_authenticated_and_run_scoped(client):
+    login(client)
+    job=client.post('/api/demo').json()
+    engine=client.app.state.engine;store=engine.store
+    saved=store.get(job['id'])
+    directory=store.path.parent/'references';directory.mkdir(exist_ok=True)
+    (directory/'snapshot.png').write_bytes(b'test-image')
+    saved['runs']=[{'id':'test-run','reference_snapshot':[{'id':'test-ref','image_file':'snapshot.png'}]}]
+    store.save(saved)
+    url=f"/api/jobs/{job['id']}/runs/test-run/references/test-ref/image"
+    assert client.get(url).content==b'test-image'
+    assert client.get(url.replace('test-run','other-run')).status_code==404
+    assert store.references()==[]
+    client.post('/api/logout')
+    assert client.get(url).status_code==401
 
 def wait(c,jid):
     for _ in range(120):
@@ -28,6 +44,53 @@ def test_auth_csrf_prefix_and_secret_nonexposure(client):
     assert client.post('/api/login',headers={'Origin':'https://evil.test'},json={'role':'admin','password':'admin-test'}).status_code==403
     assert 'admin-test' not in client.get('/api/config').text
     login(client,'reviewer');assert client.post('/api/usage/sync').status_code==403
+
+@pytest.mark.parametrize('prefix',['','/poc/image-inspection'])
+def test_logout_revokes_session_and_clears_cookie_at_login_path(client,prefix):
+    response=client.post(prefix+'/api/login',json={'role':'reviewer','password':'review-test'})
+    assert response.status_code==200
+    token=response.cookies['poc11_session']
+    assert client.get(prefix+'/api/jobs').status_code==200
+    response=client.post(prefix+'/api/logout')
+    assert response.status_code==200
+    assert not client.cookies.get('poc11_session')
+    assert client.get(prefix+'/api/config').json()['role'] is None
+    assert client.get(prefix+'/api/jobs').status_code==401
+    assert client.get(prefix+'/api/jobs',headers={'Cookie':'poc11_session='+token}).status_code==401
+
+@pytest.mark.parametrize('options',[
+    {'mode':'live','consent':True},
+    {'mode':'live','consent':True,'force':True,'reuse_observation_run_id':'old'},
+    {'mode':'live','consent':True,'rule_ids':['H-04-a']},
+    {'mode':'live','consent':True,'crop_id':'crop-test'},
+    {'mode':'live','consent':True,'reuse_observation_run_id':'old','recheck_object_ids':['object-1']},
+    {'mode':'mock'},
+])
+def test_reviewer_cannot_submit_any_analysis(client,monkeypatch,options):
+    login(client)
+    job=client.post('/api/demo').json()
+    login(client,'reviewer')
+    submitted=[]
+    monkeypatch.setattr(client.app.state.engine,'submit',lambda *args:submitted.append(args))
+    response=client.post(f'/api/jobs/{job["id"]}/runs',json=options)
+    assert response.status_code==403
+    assert not submitted
+    assert client.get(f'/api/jobs/{job["id"]}').json()['runs']==[]
+
+def test_reviewer_can_read_export_and_record_review_after_admin_analysis(client):
+    login(client)
+    job=client.post('/api/demo').json();jid=job['id']
+    assert client.post(f'/api/jobs/{jid}/runs',json={'mode':'mock'}).status_code==200
+    job=wait(client,jid)
+    login(client,'reviewer')
+    assert client.get('/api/jobs').status_code==200
+    assert client.get(f'/api/jobs/{jid}/image').status_code==200
+    assert client.get(f'/api/jobs/{jid}').status_code==200
+    finding=job['runs'][-1]['results'][0]
+    response=client.post(f'/api/jobs/{jid}/reviews',json={'finding_id':finding['id'],'status':'REVIEW','reason':'검토자 권한으로 근거를 기록합니다.'})
+    assert response.status_code==200
+    assert response.json()['runs'][-1]['reviews'][-1]['reviewer']=='reviewer'
+    assert client.get(f'/api/jobs/{jid}/report').status_code==200
 
 def test_mock_full_flow_reviews_rerun_export_cache(client):
     login(client);job=client.post('/api/demo').json();jid=job['id']

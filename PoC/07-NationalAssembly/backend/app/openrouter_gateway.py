@@ -37,8 +37,8 @@ STALE_INFLIGHT_SECONDS = max(
 FREE_MODELS = tuple(
     value.strip() for value in os.getenv(
         "OPENROUTER_FREE_MODELS",
-        "nvidia/nemotron-3-super-120b-a12b:free,liquid/lfm-2.5-2.6b:free,"
-        "dots-studio/dots-3-note-preview:free",
+        "nvidia/nemotron-3.5-super-vl:free,nvidia/nemotron-3-super-120b-a12b:free,"
+        "liquid/lfm-2.5-2.6b:free",
     ).split(",") if value.strip().endswith(":free")
 )
 
@@ -424,6 +424,67 @@ def record_external_usage(
     return JSONResponse({"recorded": bool(cursor.rowcount)}, status_code=201 if cursor.rowcount else 200)
 
 
+def _shared_snapshot() -> dict[str, Any]:
+    from .config import get_settings
+    from .db.connection import connect
+    from .services.shared_budget import snapshot, import_solar_history
+    settings = get_settings()
+    with _connect() as local:
+        rows = [dict(r) for r in local.execute("SELECT * FROM external_usage_events WHERE provider='upstage'").fetchall()]
+    with connect(settings.database_url) as c:
+        import_solar_history(c, settings, rows)
+        return snapshot(c, settings)
+
+
+@app.get("/internal/budget/status")
+def shared_budget_status(x_minslab_meter_token: str = Header(default="")) -> Response:
+    if not METER_TOKEN or not hmac.compare_digest(x_minslab_meter_token, METER_TOKEN):
+        return _gateway_error(403, "meter_token_required")
+    try:
+        return JSONResponse(_shared_snapshot())
+    except Exception:
+        return _gateway_error(503, "shared_budget_unavailable")
+
+
+@app.post("/internal/budget/{action}")
+def shared_budget_action(action: str, request: Request, x_minslab_meter_token: str = Header(default="")) -> Response:
+    if not METER_TOKEN or not hmac.compare_digest(x_minslab_meter_token, METER_TOKEN):
+        return _gateway_error(403, "meter_token_required")
+    from .config import get_settings
+    from .db.connection import connect
+    from .services.shared_budget import reserve, settle, BudgetUnavailable
+    from .db.openai_daily_budget import DailyTokenLimitReached
+    try:
+        payload = json.loads(request.scope.get("_body", b"") or b"{}")
+        settings = get_settings()
+        if action == 'reserve':
+            if payload.get('model') == 'solar-pro4': _shared_snapshot()
+            from pydantic import BaseModel, Field, ConfigDict
+            class Reservation(BaseModel):
+                model_config = ConfigDict(extra='forbid', strict=True)
+                event_id: str = Field(min_length=8,max_length=100)
+                project: str
+                model: str
+                input_bound: int = Field(gt=0,le=2000000)
+                output_bound: int = Field(gt=0,le=100000)
+            values = Reservation.model_validate(payload).model_dump()
+            with connect(settings.database_url) as c: result = reserve(c, settings, **values)
+        elif action == 'settle':
+            allowed = {'event_id','input_tokens','output_tokens','cost_usd','rejected'}
+            if not isinstance(payload,dict) or set(payload)-allowed or type(payload.get('rejected',False)) is not bool:
+                raise ValueError('invalid settlement')
+            with connect(settings.database_url) as c: result = settle(c, **payload)
+        else:
+            return _gateway_error(404, "unknown_budget_action")
+        return JSONResponse(result)
+    except (BudgetUnavailable, DailyTokenLimitReached) as error:
+        return _gateway_error(409, str(error))
+    except (ValueError, TypeError, KeyError):
+        return _gateway_error(422, "invalid_budget_request")
+    except Exception:
+        return _gateway_error(503, "shared_budget_unavailable")
+
+
 @app.get("/internal/status")
 def internal_status() -> dict[str, Any]:
     with _connect() as connection:
@@ -437,7 +498,12 @@ def internal_status() -> dict[str, Any]:
             GROUP BY project,workload,model,status ORDER BY project,workload,model,status
             """, (_utc_day(),),
         ).fetchall()
+    try:
+        shared = _shared_snapshot()
+    except Exception:
+        shared = {"models": [], "error": "공통 예산 연결 확인 필요"}
     return {
+        "shared_budget": shared,
         "provider": "openrouter", "period": "UTC_DAY", "usage_date": _utc_day(),
         "official_limit": OFFICIAL_LIMIT, "operational_limit": OPERATIONAL_LIMIT,
         "safety_reserve": OFFICIAL_LIMIT - OPERATIONAL_LIMIT,
@@ -487,6 +553,11 @@ def chat_completions(
 ) -> Response:
     if not API_KEY:
         return _gateway_error(503, "gateway_api_key_missing")
+    home = x_minslab_project == 'poc10'
+    if home and (not METER_TOKEN or not hmac.compare_digest(x_minslab_meter_token,METER_TOKEN)):
+        return _gateway_error(403,'meter_token_required')
+    if home and x_minslab_workload not in {'home_collection','home_algorithm','home_officer'}:
+        return _gateway_error(400,'unapproved_home_workload')
     inspection = x_minslab_project == "poc11-image-inspection"
     if inspection and (not METER_TOKEN or not hmac.compare_digest(x_minslab_meter_token, METER_TOKEN)):
         return _gateway_error(403, "meter_token_required")
@@ -512,6 +583,10 @@ def chat_completions(
     ordered_models = ([model] if model in FREE_MODELS else []) + [
         item for item in FREE_MODELS if item != model
     ]
+    if home:
+        if model != 'nvidia/nemotron-3.5-super-vl:free' or model not in FREE_MODELS:
+            return _gateway_error(400,'unapproved_home_model')
+        ordered_models = [model]
     if inspection:
         ordered_models = [model]
     if x_minslab_workload == "meeting_brief_lineage" and model in FREE_MODELS:

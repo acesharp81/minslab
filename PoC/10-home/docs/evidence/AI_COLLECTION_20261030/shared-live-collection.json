@@ -1,0 +1,274 @@
+{
+  "all_runs": [
+    {
+      "id": "3405665f-6366-4aba-90dd-528f9946c72c",
+      "profile": "OPENAI",
+      "status": "PARTIAL",
+      "cost_usd": 0.00570675
+    },
+    {
+      "id": "f9ec5fef-50b5-431d-bb52-c732acbad49f",
+      "profile": "SOLAR",
+      "status": "PARTIAL",
+      "cost_usd": 0.0018309
+    },
+    {
+      "id": "761d3776-88db-40a9-a1e6-66c95c9b6095",
+      "profile": "OPENAI",
+      "status": "PARTIAL",
+      "cost_usd": 0.027192749999999998
+    }
+  ],
+  "business_approval_and_mapping_unchanged": true,
+  "run_id": "3405665f-6366-4aba-90dd-528f9946c72c",
+  "status": "PARTIAL",
+  "events": [
+    {
+      "kind": "ANALYZED",
+      "models": [
+        "gpt-5.4-mini"
+      ]
+    },
+    {
+      "kind": "SEARCH",
+      "found": 0
+    },
+    {
+      "kind": "SEARCH",
+      "found": 11
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "DISCOVERED"
+    },
+    {
+      "kind": "SOURCE",
+      "found": 16,
+      "source": "뉴시스 주택 기사 RSS 신규 탐색"
+    },
+    {
+      "kind": "SOURCE",
+      "found": 5,
+      "source": "서울시 주택 보도자료 RSS 신규 탐색"
+    },
+    {
+      "kind": "SOURCE",
+      "found": 5,
+      "source": "iH 주택 보도자료 신규 탐색"
+    },
+    {
+      "kind": "SOURCE",
+      "found": 5,
+      "source": "LH 주택 보도자료 신규 탐색"
+    },
+    {
+      "kind": "SOURCE",
+      "found": 18,
+      "source": "SH 주택 모집·정정·입주안내 공고 신규 탐색"
+    },
+    {
+      "kind": "SOURCE",
+      "found": 3,
+      "source": "국무조정실 주택공급 점검 보도자료 신규 탐색"
+    },
+    {
+      "kind": "SOURCE_ERROR",
+      "source": "국토교통부 주택 보도자료 신규 탐색"
+    }
+  ],
+  "calls": [
+    {
+      "model": "gpt-5.4-mini",
+      "status": "COMPLETED",
+      "input_tokens": 8298,
+      "output_tokens": 291,
+      "cost_usd": 0.007533
+    },
+    {
+      "model": "gpt-5.4",
+      "status": "COMPLETED",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "model": "gpt-5.4-mini",
+      "status": "COMPLETED",
+      "input_tokens": 8562,
+      "output_tokens": 686,
+      "cost_usd": 0.0095085
+    },
+    {
+      "model": "gpt-5.4",
+      "status": "COMPLETED",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "model": "gpt-5.4-mini",
+      "status": "COMPLETED",
+      "input_tokens": 1737,
+      "output_tokens": 290,
+      "cost_usd": 0.00260775
+    },
+    {
+      "model": "gpt-5.4",
+      "status": "COMPLETED",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "model": "gpt-5.4-mini",
+      "status": "COMPLETED",
+      "input_tokens": 2013,
+      "output_tokens": 600,
+      "cost_usd": 0.00420975
+    },
+    {
+      "model": "gpt-5.4",
+      "status": "COMPLETED",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "model": "gpt-5.4-mini",
+      "status": "COMPLETED",
+      "input_tokens": 1697,
+      "output_tokens": 458,
+      "cost_usd": 0.00333375
+    },
+    {
+      "model": "gpt-5.4",
+      "status": "COMPLETED",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0
+    },
+    {
+      "model": "solar-pro4",
+      "status": "COMPLETED",
+      "input_tokens": 1907,
+      "output_tokens": 1049,
+      "cost_usd": 0.0018309
+    },
+    {
+      "model": "gpt-5.4-mini",
+      "status": "COMPLETED",
+      "input_tokens": 2383,
+      "output_tokens": 871,
+      "cost_usd": 0.00570675
+    },
+    {
+      "model": "gpt-5.4",
+      "status": "COMPLETED",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cost_usd": 0.0
+    }
+  ],
+  "unsettled_outbox": 0,
+  "estimated_standard_cost": 0.00570675,
+  "settings": {
+    "enabled": true,
+    "profile": "OPENAI",
+    "hour_kst": 9,
+    "max_documents": 20
+  },
+  "shared_budget": {
+    "models": [
+      {
+        "id": "gpt-5.4-mini",
+        "label": "GPT 5.4 mini",
+        "unit": "tokens",
+        "limit": 10000000,
+        "used": 1748448,
+        "reserved": 0,
+        "unknown": 0,
+        "remaining": 8251552,
+        "expires_at": "2026-10-30T00:00:00+00:00",
+        "status": "AVAILABLE",
+        "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+        "note": "공용 일일 토큰 · 입력+출력 · 한국시간 매일 09시 초기화"
+      },
+      {
+        "id": "gpt-5.4",
+        "label": "GPT 5.4",
+        "unit": "tokens",
+        "limit": 1000000,
+        "used": 975787,
+        "reserved": 17423,
+        "unknown": 0,
+        "remaining": 6790,
+        "expires_at": "2026-10-30T00:00:00+00:00",
+        "status": "AVAILABLE",
+        "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+        "note": "공용 일일 토큰 · 입력+출력 · 한국시간 매일 09시 초기화"
+      },
+      {
+        "id": "openai-shared",
+        "label": "OpenAI 공용 크레딧",
+        "unit": "USD",
+        "limit": 8.0,
+        "current_period_allowance": 8.0,
+        "used": 1.8289445,
+        "reserved": 0.0,
+        "unknown": 0.57542,
+        "remaining": 5.595635499999999,
+        "expires_at": "2026-10-31T00:00:00+09:00",
+        "status": "AVAILABLE",
+        "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+        "note": "공통 운영 예산 · 설정된 지급 주기 기준 · 제공사 실제 잔액 아님"
+      },
+      {
+        "id": "solar-pro4",
+        "label": "Solar Pro 4",
+        "unit": "USD",
+        "limit": 110.0,
+        "current_period_allowance": 110.0,
+        "used": 0.2865675,
+        "reserved": 0.0,
+        "unknown": 0.0,
+        "remaining": 109.7134325,
+        "expires_at": null,
+        "status": "AVAILABLE",
+        "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+        "note": "누적 $110 한도 · 자동 초기화 없음 · 제공사 실제 잔액 아님"
+      }
+    ],
+    "checked_at": "2026-10-29T23:44:20.988483+00:00",
+    "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+    "note": "세 서비스의 사용·예약·미확정 사용량을 함께 차감합니다. 외부 호출과 제공사 실제 청구 잔액은 포함하지 않는 시스템 추정치입니다."
+  }
+}

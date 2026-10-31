@@ -1,0 +1,515 @@
+[
+  {
+    "case": "request_commitment",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 4.41,
+    "requested": 2,
+    "accepted": 2,
+    "task_matches": [
+      true,
+      true
+    ],
+    "inputs": [
+      "재난안전특별교부세 집행 내역을 다음 주 금요일까지 제출해 주십시오.",
+      "해당 집행 내역은 다음 주 금요일까지 제출하겠습니다."
+    ],
+    "output": [
+      {
+        "content_hash": "d25cf8a8d6a3b07dd9153626663c06d8ff080592f3a578567322afea939bd010",
+        "summary": "재난안전특별교부세 집행 내역을 다음 주 금요일까지 제출해 달라고 요구했다.",
+        "live_insight": {
+          "topic": "재난안전특별교부세 집행 내역 제출 요구",
+          "topic_key": "재난안전특별교부세 집행 내역 제출",
+          "role": "REQUEST",
+          "task": "재난안전특별교부세 집행 내역 제출",
+          "owners": [
+            "장관"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "FOLLOW_UP_REQUEST",
+          "task_evidence_quote": "재난안전특별교부세 집행 내역을 다음 주 금요일까지 제출해 주십시오.",
+          "task_validation": "direct-follow-up/1",
+          "task_evidence_start": 0,
+          "task_evidence_end": 37
+        }
+      },
+      {
+        "content_hash": "543792bea2b7563b8527c14d606d06ae00de2b7f39906b1897148bcd2bae23ae",
+        "summary": "재난안전특별교부세 집행 내역을 다음 주 금요일까지 제출하겠다고 답변했다.",
+        "live_insight": {
+          "topic": "재난안전특별교부세 집행 내역 제출 약속",
+          "topic_key": "재난안전특별교부세 집행 내역 제출",
+          "role": "ANSWER",
+          "task": "재난안전특별교부세 집행 내역 제출",
+          "owners": [
+            "장관"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "COMMITMENT",
+          "task_evidence_quote": "해당 집행 내역은 다음 주 금요일까지 제출하겠습니다.",
+          "task_validation": "direct-follow-up/1",
+          "task_evidence_start": 0,
+          "task_evidence_end": 29
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1301,
+      "completion_tokens": 432,
+      "total_tokens": 1733,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "actual_model": "nvidia/nemotron-3.5-super-vl:free"
+  },
+  {
+    "case": "question_not_request",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 3.86,
+    "requested": 2,
+    "accepted": 2,
+    "task_matches": [
+      true,
+      true
+    ],
+    "inputs": [
+      "현재 지방교부세 배분 기준은 무엇입니까? 예산 증액을 요구하는 것이 아니라 현재 기준을 묻는 것입니다.",
+      "현재 인구와 재정 여건 등을 반영해 배분하고 있습니다."
+    ],
+    "output": [
+      {
+        "content_hash": "ec70fa4e3008a9f571768d193a35ad973d55d9ee9be9db8698b25f3fe5ffff2e",
+        "summary": "지방교부세 배분 기준을 묻고 있으며, 예산 증액 요구는 아니라고 밝혔다.",
+        "live_insight": {
+          "topic": "지방교부세 배분 기준",
+          "topic_key": "지방교부세 배분 기준",
+          "role": "QUESTION",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      },
+      {
+        "content_hash": "2f66c47aa4a8a682fc1611a9ae6e38ec068099d1befa442f133f1e7d75c814e6",
+        "summary": "지방교부세는 인구와 재정 여건 등을 반영해 배분하고 있다고 답변했다.",
+        "live_insight": {
+          "topic": "지방교부세 배분 기준",
+          "topic_key": "지방교부세 배분 기준",
+          "role": "ANSWER",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1303,
+      "completion_tokens": 307,
+      "total_tokens": 1610,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "actual_model": "nvidia/nemotron-3.5-super-vl:free"
+  },
+  {
+    "case": "past_and_denial",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 3.83,
+    "requested": 2,
+    "accepted": 2,
+    "task_matches": [
+      true,
+      true
+    ],
+    "inputs": [
+      "작년에 제출하라고 요구한 자료는 이미 받았습니다. 오늘 추가 제출을 요구하는 것은 아닙니다.",
+      "당시 제출한 자료에는 집행률이 82퍼센트로 적혀 있습니다."
+    ],
+    "output": [
+      {
+        "content_hash": "791097b2515b1e0f9e89936e94ea9cf052e2513c882bed6c6aad0831d5a2174e",
+        "summary": "작년에 요구한 자료는 이미 제출받았으며, 오늘 추가 제출을 요구하지 않는다고 밝혔다.",
+        "live_insight": {
+          "topic": "작년 자료 제출 현황",
+          "topic_key": "작년 자료 제출",
+          "role": "STATEMENT",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      },
+      {
+        "content_hash": "08d7310d58c70fa46f5b9e0e7223d65827a1aacf73aaa2bbbb3031fadf2f6be0",
+        "summary": "당시 제출한 자료에는 집행률이 82퍼센트로 적혀 있다고 답변했다.",
+        "live_insight": {
+          "topic": "자료 내 집행률",
+          "topic_key": "자료 집행률",
+          "role": "ANSWER",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1306,
+      "completion_tokens": 303,
+      "total_tokens": 1609,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "actual_model": "nvidia/nemotron-3.5-super-vl:free"
+  },
+  {
+    "case": "numbers_and_dispute",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 24.62,
+    "requested": 2,
+    "accepted": 2,
+    "task_matches": [
+      true,
+      true
+    ],
+    "inputs": [
+      "사업비가 30억 원에서 45억 원으로 늘어난 이유가 무엇입니까? 위법이 확정됐다는 뜻은 아닙니다.",
+      "사업비 증가분 15억 원은 안전시설 보강 비용입니다. 위법 여부는 현재 조사 중이며 결론이 나지 않았습니다."
+    ],
+    "output": [
+      {
+        "content_hash": "40271e3c3c6eb9c6371ae10fda5c9c81763003e5377ca54b555b5a7c3f11e11e",
+        "summary": "사업비가 30억 원에서 45억 원으로 늘어난 이유를 묻고, 위법이 확정된 것은 아니라고 밝혔다.",
+        "live_insight": {
+          "topic": "사업비 증액 이유 확인",
+          "topic_key": "사업비 증액 이유",
+          "role": "QUESTION",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      },
+      {
+        "content_hash": "a68fa239f98dc508e46c1e0ac4ca4e0482c4c1f0ec074e380a268ba9eacb902b",
+        "summary": "사업비 증가분 15억 원은 안전시설 보강 비용이며, 위법 여부는 조사 중이고 결론이 나지 않았다고 설명했다.",
+        "live_insight": {
+          "topic": "사업비 증가분 사용처와 위법 여부",
+          "topic_key": "사업비 안전시설 위법 여부",
+          "role": "ANSWER",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1377,
+      "completion_tokens": 335,
+      "total_tokens": 1712,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "actual_model": "nvidia/nemotron-3.5-super-vl:free"
+  },
+  {
+    "case": "procedural",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 4.43,
+    "requested": 2,
+    "accepted": 2,
+    "task_matches": [
+      true,
+      true
+    ],
+    "inputs": [
+      "원활한 회의 진행을 위해 10분간 정회하겠습니다. 자료를 제출하라는 요구는 다음 질의에서 다루겠습니다.",
+      "예, 정회 후 다음 질의에 답변하겠습니다."
+    ],
+    "output": [
+      {
+        "content_hash": "a439abbc3b2bc746b307716bef825405201cc2dea282aa38abab4012d2193bf1",
+        "summary": "원활한 회의 진행을 위해 10분간 정회하겠다고 밝히고, 자료 제출 요구는 다음 질의에서 다루겠다고 말했다.",
+        "live_insight": {
+          "topic": "회의 정회 및 자료 제출 요구 처리",
+          "topic_key": "회의 정회 자료 제출",
+          "role": "STATEMENT",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      },
+      {
+        "content_hash": "3312607533507f0667197ea6073a6bf092e9dbf898e244317259e9478b1cbe04",
+        "summary": "정회 후 다음 질의에 답변하겠다고 답했다.",
+        "live_insight": {
+          "topic": "정회 후 질의 답변",
+          "topic_key": "정회 질의 답변",
+          "role": "ANSWER",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1309,
+      "completion_tokens": 304,
+      "total_tokens": 1613,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "actual_model": "nvidia/nemotron-3.5-super-vl:free"
+  },
+  {
+    "case": "multiple_topics",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 6.65,
+    "requested": 2,
+    "accepted": 2,
+    "task_matches": [
+      true,
+      true
+    ],
+    "inputs": [
+      "침수 예측 시스템의 정확도가 낮습니다. 행정안전부는 오경보 개선 계획을 다음 달까지 제출해 주십시오. 별개로 지방교부세 산정에 인구 감소를 어떻게 반영하는지 설명해 주십시오.",
+      "오경보 개선 계획은 다음 달까지 제출하겠습니다. 지방교부세는 인구와 재정 여건을 함께 고려해 산정하고 있습니다."
+    ],
+    "output": [
+      {
+        "content_hash": "59ab0999aea1e2bf055dda543d7d5d8b3f57087f2ec3afffc0fb65a39f3a611e",
+        "summary": "침수 예측 시스템의 정확도가 낮다며 행정안전부에 오경보 개선 계획을 다음 달까지 제출할 것을 요구하고, 지방교부세 산정에 인구 감소를 반영하는 방식을 설명해 달라고 요청했다.",
+        "live_insight": {
+          "topic": "침수 예측 시스템 오경보 개선 계획 제출 요구",
+          "topic_key": "침수 예측 시스템 오경보 개선 계획",
+          "role": "REQUEST",
+          "task": "오경보 개선 계획 제출",
+          "owners": [
+            "행정안전부"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "FOLLOW_UP_REQUEST",
+          "task_evidence_quote": "행정안전부는 오경보 개선 계획을 다음 달까지 제출해 주십시오",
+          "task_validation": "direct-follow-up/1",
+          "task_evidence_start": 22,
+          "task_evidence_end": 55
+        }
+      },
+      {
+        "content_hash": "07c6299fe0edc1e40fdeecaa21ccce063a4824383d566c3330cff8c5539d108e",
+        "summary": "오경보 개선 계획을 다음 달까지 제출하겠다고 밝히고, 지방교부세는 인구와 재정 여건을 함께 고려해 산정하고 있다고 설명했다.",
+        "live_insight": {
+          "topic": "오경보 개선 계획 제출 약속",
+          "topic_key": "오경보 개선 계획",
+          "role": "ANSWER",
+          "task": "오경보 개선 계획 제출",
+          "owners": [
+            "행정안전부"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "COMMITMENT",
+          "task_evidence_quote": "오경보 개선 계획은 다음 달까지 제출하겠습니다",
+          "task_validation": "direct-follow-up/1",
+          "task_evidence_start": 0,
+          "task_evidence_end": 25
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1424,
+      "completion_tokens": 421,
+      "total_tokens": 1845,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "actual_model": "nvidia/nemotron-3.5-super-vl:free"
+  },
+  {
+    "case": "mixed_holdout",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 17.42,
+    "requested": 2,
+    "accepted": 2,
+    "task_matches": [
+      true,
+      true
+    ],
+    "inputs": [
+      "교육부는 학교 급식 안전점검 결과를 다음 주까지 서면으로 제출해 주십시오. 그리고 오늘 현장 점검을 몇 곳 했는지는 이 자리에서 답해 주십시오.",
+      "서면 결과는 다음 주까지 제출하겠습니다. 오늘 점검한 학교는 12곳입니다."
+    ],
+    "output": [
+      {
+        "content_hash": "340e8f63ca7169a00545f3c7ae1dd7a5ddf4e7562b34385ba8cbdfe419857219",
+        "summary": "교육부에 학교 급식 안전점검 결과를 다음 주까지 서면 제출하고, 오늘 현장 점검 학교 수를 이 자리에서 답변할 것을 요구했다.",
+        "live_insight": {
+          "topic": "학교 급식 안전점검 결과 제출 및 현장 점검 현황 답변 요구",
+          "topic_key": "교육부 학교 급식 안전점검 결과 서면 제출 현장 점검 학교 수 답변",
+          "role": "REQUEST",
+          "task": "학교 급식 안전점검 결과 서면 제출, 오늘 현장 점검 학교 수 답변",
+          "owners": [
+            "교육부"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "FOLLOW_UP_REQUEST",
+          "task_evidence_quote": "교육부는 학교 급식 안전점검 결과를 다음 주까지 서면으로 제출해 주십시오. 그리고 오늘 현장 점검을 몇 곳 했는지는 이 자리에서 답해 주십시오.",
+          "task_validation": "direct-follow-up/1",
+          "task_evidence_start": 0,
+          "task_evidence_end": 80
+        }
+      },
+      {
+        "content_hash": "69d719c2d0211b48ad088ec5ef2c82178c9240e0d43b1a6609c36d49c7b7501b",
+        "summary": "장관은 학교 급식 안전점검 서면 결과를 다음 주까지 제출하겠다고 답변하고, 오늘 점검한 학교는 12곳이라고 밝혔다.",
+        "live_insight": {
+          "topic": "학교 급식 안전점검 결과 제출 및 현장 점검 현황 답변",
+          "topic_key": "교육부 학교 급식 안전점검 결과 서면 제출 현장 점검 학교 수 답변",
+          "role": "ANSWER",
+          "task": "학교 급식 안전점검 결과 서면 제출",
+          "owners": [
+            "교육부"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "COMMITMENT",
+          "task_evidence_quote": "서면 결과는 다음 주까지 제출하겠습니다.",
+          "task_validation": "direct-follow-up/1",
+          "task_evidence_start": 0,
+          "task_evidence_end": 22
+        }
+      }
+    ],
+    "usage": {
+      "prompt_tokens": 1372,
+      "completion_tokens": 486,
+      "total_tokens": 1858,
+      "cost": 0,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0,
+        "upstream_inference_prompt_cost": 0,
+        "upstream_inference_completions_cost": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    },
+    "actual_model": "nvidia/nemotron-3.5-super-vl:free"
+  }
+]

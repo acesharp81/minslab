@@ -5,6 +5,7 @@ import json
 import time
 from pathlib import Path
 import httpx
+from admin_auth import AdminAuth
 
 PREFIX='/poc/image-inspection'
 
@@ -43,6 +44,10 @@ async def proxy_inspection(scope,receive,send,upstream,is_admin=False):
         async with httpx.AsyncClient(timeout=40,follow_redirects=False,trust_env=False) as client:
             r=await client.request(method,upstream.rstrip('/')+path+('?' +query if query else ''),headers=headers,content=bytes(body))
         out=[(k.encode(),v.encode('latin1')) for k,v in r.headers.multi_items() if k.lower() in ('content-type','content-disposition','set-cookie','location','cache-control','content-security-policy','x-frame-options','referrer-policy','x-content-type-options')]
+        # The signed site session otherwise immediately logs the user back in.
+        # Only a successful local logout ends the browser's shared site session.
+        if method=='POST' and path==PREFIX+'/api/logout' and 200<=r.status_code<300:
+            out.append((b'set-cookie',AdminAuth.clear_cookie_header().encode('latin1')))
         out.append((b'content-length',str(len(r.content)).encode()))
         await send({'type':'http.response.start','status':r.status_code,'headers':out});await send({'type':'http.response.body','body':r.content if method!='HEAD' else b''})
     except httpx.HTTPError:await error(503,'이미지 검수 서비스에 연결할 수 없습니다.')

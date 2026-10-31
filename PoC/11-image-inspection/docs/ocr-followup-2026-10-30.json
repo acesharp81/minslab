@@ -1,0 +1,489 @@
+{
+  "date": "2026-10-30",
+  "scope": "QA_03·QA_07 문자 라벨 5개 비교, QA_08 정상 이미지 추가 점검. 25개 규칙 전체 평가 아님.",
+  "pipeline": "기존 첫 관찰·Paddle 탐지 캐시 + 수정한 독립 판독 + NAVER. 기존 분석 결과 재사용; 문자 단위·명칭·문맥·확대 실험은 별도이며 기본 서비스 미적용.",
+  "cases": [
+    {
+      "image": "QA_03_ocr_readability",
+      "target": "기관명 오탈자",
+      "expected": "FAIL",
+      "pipeline_status": "REVIEW",
+      "literal_transcription_missing": false
+    },
+    {
+      "image": "QA_03_ocr_readability",
+      "target": "본문 흐림(실물 가독성 저하)",
+      "expected": "FAIL",
+      "pipeline_status": "FAIL",
+      "literal_transcription_missing": true
+    },
+    {
+      "image": "QA_03_ocr_readability",
+      "target": "정상 신청방법 안내",
+      "expected": "PASS",
+      "pipeline_status": "PASS",
+      "literal_transcription_missing": false
+    },
+    {
+      "image": "QA_07_culture_food",
+      "target": "비빔밤 오탈자",
+      "expected": "FAIL",
+      "pipeline_status": "REVIEW",
+      "literal_transcription_missing": false
+    },
+    {
+      "image": "QA_07_culture_food",
+      "target": "흐린 설명 문구",
+      "expected": "FAIL",
+      "pipeline_status": "REVIEW",
+      "literal_transcription_missing": true
+    }
+  ],
+  "metrics": {
+    "faults": 4,
+    "detected": 1,
+    "normal": 1,
+    "false_positives": 0,
+    "review_count": 3,
+    "missing_literal_count": 2
+  },
+  "normal_control": {
+    "image": "QA_08_all_pass",
+    "regions": {
+      "PASS": 8,
+      "FAIL": 0,
+      "REVIEW": 5,
+      "NOT_APPLICABLE": 0
+    },
+    "note": "OCR 영역 단위, 모든 규칙 정상 검증을 뜻하지 않음"
+  },
+  "exploratory_probes": {
+    "character": {
+      "results": [
+        {
+          "region_id": "G1",
+          "text_present": true,
+          "literal_text": "행",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "획이 분리되어 보이며 음절 전체가 선명함.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "단일 음절 crop이라 철자 검사를 미수행함."
+        },
+        {
+          "region_id": "G2",
+          "text_present": true,
+          "literal_text": "안",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "초성·중성·종성 획이 구분되어 보임.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "단일 음절 crop이라 철자 검사를 미수행함."
+        },
+        {
+          "region_id": "G3",
+          "text_present": true,
+          "literal_text": "부",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "초성과 모음 획이 선명하게 구분됨.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "단일 음절 crop이라 철자 검사를 미수행함."
+        },
+        {
+          "region_id": "G4",
+          "text_present": true,
+          "literal_text": "정",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "초성·중성·종성의 획 구성이 명확함.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "단일 음절 crop이라 철자 검사를 미수행함."
+        },
+        {
+          "region_id": "G5",
+          "text_present": true,
+          "literal_text": "정",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "초성·중성·종성의 획 구성이 명확함.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "단일 음절 crop이라 철자 검사를 미수행함."
+        },
+        {
+          "region_id": "G6",
+          "text_present": true,
+          "literal_text": "가",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "초성과 모음 획이 또렷하게 보임.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "단일 음절 crop이라 철자 검사를 미수행함."
+        },
+        {
+          "region_id": "G7",
+          "text_present": true,
+          "literal_text": "비",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "초성과 모음 획이 선명하게 구분됨.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "단일 음절 crop이라 철자 검사를 미수행함."
+        },
+        {
+          "region_id": "G8",
+          "text_present": true,
+          "literal_text": "빔",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "초성·중성·종성의 획이 모두 구분되어 보임.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "단일 음절 crop이라 철자 검사를 미수행함."
+        },
+        {
+          "region_id": "G9",
+          "text_present": true,
+          "literal_text": "밥",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "초성·중성·종성 획이 분리되어 식별 가능함.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "단일 음절 crop이라 철자 검사를 미수행함."
+        }
+      ],
+      "mapping": [
+        {
+          "id": "G1",
+          "image": "QA_03_ocr_readability",
+          "parent": "OCR011",
+          "index": 0,
+          "word": "행정안정부가",
+          "rect_px": [
+            151,
+            351,
+            193,
+            402
+          ]
+        },
+        {
+          "id": "G2",
+          "image": "QA_03_ocr_readability",
+          "parent": "OCR011",
+          "index": 2,
+          "word": "행정안정부가",
+          "rect_px": [
+            231,
+            351,
+            272,
+            402
+          ]
+        },
+        {
+          "id": "G3",
+          "image": "QA_03_ocr_readability",
+          "parent": "OCR011",
+          "index": 4,
+          "word": "행정안정부가",
+          "rect_px": [
+            310,
+            351,
+            352,
+            402
+          ]
+        },
+        {
+          "id": "G4",
+          "image": "QA_03_ocr_readability",
+          "parent": "OCR011",
+          "index": 1,
+          "word": "행정안정부가",
+          "rect_px": [
+            191,
+            351,
+            233,
+            402
+          ]
+        },
+        {
+          "id": "G5",
+          "image": "QA_03_ocr_readability",
+          "parent": "OCR011",
+          "index": 3,
+          "word": "행정안정부가",
+          "rect_px": [
+            270,
+            351,
+            312,
+            402
+          ]
+        },
+        {
+          "id": "G6",
+          "image": "QA_03_ocr_readability",
+          "parent": "OCR011",
+          "index": 5,
+          "word": "행정안정부가",
+          "rect_px": [
+            350,
+            351,
+            392,
+            402
+          ]
+        },
+        {
+          "id": "G7",
+          "image": "QA_07_culture_food",
+          "parent": "OCR012",
+          "index": 0,
+          "word": "비빔밤",
+          "rect_px": [
+            1126,
+            728,
+            1164,
+            778
+          ]
+        },
+        {
+          "id": "G8",
+          "image": "QA_07_culture_food",
+          "parent": "OCR012",
+          "index": 2,
+          "word": "비빔밤",
+          "rect_px": [
+            1198,
+            728,
+            1236,
+            778
+          ]
+        },
+        {
+          "id": "G9",
+          "image": "QA_07_culture_food",
+          "parent": "OCR012",
+          "index": 1,
+          "word": "비빔밤",
+          "rect_px": [
+            1162,
+            728,
+            1200,
+            778
+          ]
+        }
+      ],
+      "usage": {
+        "input_tokens": 1324,
+        "output_tokens": 4815
+      }
+    },
+    "meaning": {
+      "results": [
+        {
+          "target_presence": "PRESENT",
+          "status": "FAIL",
+          "evidence_ids": [
+            "CW1"
+          ],
+          "reference_ids": [
+            "ref-75fcf3a8902d4e2093647f42c05c7d80"
+          ],
+          "reason": "문구가 선명하게 '행정안정부가'로 읽혀 공식 명칭 '행정안전부'와 다릅니다.",
+          "recommended_action": "기관명을 '행정안전부가'로 수정",
+          "error_type": "TYPO_CONFIRMED",
+          "rule_ids": [
+            "D-02-l"
+          ]
+        }
+      ],
+      "mapping": [
+        {
+          "image": "QA_03_ocr_readability",
+          "region": {
+            "id": "CW1",
+            "text": "행정안정부가",
+            "recognition_score": 0.9989485,
+            "rect": [
+              0.095,
+              0.354,
+              0.244375,
+              0.399
+            ],
+            "source": "character-probe",
+            "vision": {
+              "region_id": "CW1",
+              "literal_text": "행정안정부가",
+              "text_present": true,
+              "inferred": false,
+              "uncertain_characters": [],
+              "glyph_quality": "CLEAR",
+              "glyph_evidence": "분리된 원본 음절 판독과 NAVER·Paddle 전사가 일치함",
+              "spelling": "UNCERTAIN",
+              "suggested_text": "",
+              "spelling_evidence": "공식 명칭 대조 필요"
+            },
+            "verdict": {
+              "status": "REVIEW",
+              "error_type": "OCR_UNCERTAIN",
+              "reason": "공식 명칭 대조 필요",
+              "flags": []
+            }
+          },
+          "parent": "OCR011"
+        }
+      ],
+      "usage": {
+        "input_tokens": 4222,
+        "output_tokens": 239
+      }
+    },
+    "context": {
+      "results": [
+        {
+          "region_id": "C1",
+          "text_present": true,
+          "literal_text": "비빔밥",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "대상 글자 4음절의 획 경계가 선명하고 자모 구분이 가능함.",
+          "spelling": "NORMAL",
+          "suggested_text": "",
+          "spelling_evidence": "일반적으로 알려진 음식명 표기와 일치하며 명백한 철자 오류가 보이지 않음."
+        },
+        {
+          "region_id": "C2",
+          "text_present": true,
+          "literal_text": "김치찌개",
+          "uncertain_characters": [],
+          "inferred": false,
+          "glyph_quality": "CLEAR",
+          "glyph_evidence": "대상 글자 4음절의 획 경계가 선명하고 받침/쌍자음 포함 자모 구분이 가능함.",
+          "spelling": "NORMAL",
+          "suggested_text": "",
+          "spelling_evidence": "일반적으로 알려진 음식명 표기와 일치하며 명백한 철자 오류가 보이지 않음."
+        }
+      ],
+      "mapping": [
+        {
+          "id": "C1",
+          "parent": "OCR002",
+          "rect": [
+            0.69625,
+            0.78,
+            0.82,
+            0.801
+          ],
+          "context_rect_px": [
+            1074,
+            696,
+            1351,
+            885
+          ]
+        },
+        {
+          "id": "C2",
+          "parent": "OCR009",
+          "rect": [
+            0.1,
+            0.726,
+            0.194375,
+            0.776
+          ],
+          "context_rect_px": [
+            128,
+            525,
+            343,
+            976
+          ]
+        }
+      ],
+      "usage": {
+        "input_tokens": 1460,
+        "output_tokens": 749
+      }
+    },
+    "pixel": {
+      "error": "응답이 완료되지 않았습니다. 출력 한도 또는 공급자 상태를 확인하십시오."
+    },
+    "pixel-low": {
+      "results": [
+        {
+          "region_id": "P1",
+          "text_present": true,
+          "literal_text": "□□ □ □□□ □□□□",
+          "uncertain_characters": [
+            "1-10자 전체: 원본 픽셀에서 각 글자의 자모 획과 받침 위치가 심하게 뭉개져 식별 불가",
+            "공백 수는 대략적 구분이며 실제 단어 경계도 확정 어려움"
+          ],
+          "inferred": false,
+          "glyph_quality": "DEFECT",
+          "glyph_evidence": "대상 줄 전체에서 글자 획 경계가 전반적으로 번져 자모 분리가 되지 않음. 확대판에서도 각 음절이 회청색 덩어리처럼 보여 ㅏ/ㅓ, ㅣ, 받침 여부를 판별할 수 없음.",
+          "spelling": "UNCERTAIN",
+          "suggested_text": "",
+          "spelling_evidence": "원문 판독이 불가능해 맞춤법 판단 불가."
+        }
+      ],
+      "mapping": [
+        {
+          "id": "P1",
+          "parent": "OCR002",
+          "rect": [
+            0.69625,
+            0.78,
+            0.82,
+            0.801
+          ],
+          "native_pixels": [
+            230,
+            33
+          ]
+        }
+      ],
+      "usage": {
+        "input_tokens": 1353,
+        "output_tokens": 666
+      }
+    }
+  },
+  "known_usage": {
+    "calls": 13,
+    "tokens": 37656
+  },
+  "budget": {
+    "id": "gpt-5.4",
+    "label": "GPT 5.4",
+    "unit": "tokens",
+    "scope": "POC7_SHARED_OPENAI_MAIN_TOKENS",
+    "remaining": 6790,
+    "limit": 1000000,
+    "status": "AVAILABLE",
+    "note": "PoC7·PoC11 공용 일 1,000,000 토큰 · 입력+출력 합산 · 예약·미확정 포함 · 한국시간 09시 초기화",
+    "used_tokens": 975787,
+    "unknown_tokens": 0,
+    "reserved_tokens": 17423,
+    "resets_at": "2026-10-30T00:00:00+00:00"
+  },
+  "limitations": [
+    "개발에 사용한 소규모 표본이며 독립 일반화 검증 아님",
+    "중단된 요청 17,423토큰은 응답을 받지 못해 예약 유지. 실제 사용량으로 임의 정산하지 않음",
+    "추가 실험의 성공을 자동 파이프라인 검출률로 합산하지 않음",
+    "NAVER도 글자와 부호를 누락하거나 다르게 읽으며 전사 성공이 품질 정상 증거는 아님"
+  ]
+}

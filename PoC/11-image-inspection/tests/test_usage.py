@@ -6,9 +6,9 @@ from app.storage import Store
 from app.usage import Usage,BudgetError
 
 def setup(tmp_path,**values):
-    s=Settings({'DATA_DIR':str(tmp_path),'USAGE_GATEWAY_URL':'https://meter.example','USAGE_METER_TOKEN':'meter-test',
+    s=Settings({'DATA_DIR':str(tmp_path),'SHARED_BUDGET_HTTP':'false','USAGE_GATEWAY_URL':'https://meter.example','USAGE_METER_TOKEN':'meter-test',
                 'SHARED_BUDGET_DATABASE_URL':'','OPENROUTER_GATEWAY_URL':'','OPENROUTER_API_KEY':'','SHARED_CREDIT_GRANT_ID':'grant1','SHARED_CREDIT_EXPIRES_AT':'2099-01-01T00:00:00+00:00',
-                'SHARED_CREDIT_BUDGET_USD':'8','SHARED_CREDIT_MONTH_END_RENEWAL':'false',**values})
+                'SHARED_CREDIT_BUDGET_USD':'8','SHARED_CREDIT_MONTH_END_RENEWAL':'false','SHARED_CREDIT_MONTH_START_RENEWAL':'false',**values})
     return Usage(s,Store(tmp_path/'test.sqlite3'))
 
 def event():return dict(event_id='poc11-test-event',project='poc11-image-inspection',workload='text-analysis',provider='upstage',model='solar-pro4',status='COMPLETED',http_status=200,input_tokens=10,output_tokens=4,cost_usd=.01)
@@ -103,3 +103,46 @@ def test_monthly_gauge_denominator_does_not_increase_current_allowance(tmp_path,
     card=next(m for m in u.remaining()['models'] if m['id']=='openai-shared')
     assert card['limit']==100 and card['remaining']==6.82 and card['current_period_allowance']==8
     assert '말일' in card['note']
+
+
+def test_shared_http_admits_solar_and_preserves_settlement_outbox(tmp_path,monkeypatch):
+    u=setup(tmp_path,SHARED_BUDGET_HTTP='true');seen=[]
+    def central(action,payload=None):
+        seen.append((action,payload))
+        return {'kind':'shared_http','event_id':payload['event_id']}
+    monkeypatch.setattr(u,'shared_request',central)
+    reservation=u.reserve('poc11-http-test','solar-pro4',100,10)
+    assert seen[-1][1]['project']=='poc11'
+    monkeypatch.setattr(u,'flush',lambda:0)
+    u.record({**event(),'event_id':'poc11-http-test'},reservation)
+    with u.store.connect() as c:
+        row=json.loads(c.execute('SELECT body FROM usage_events').fetchone()[0])
+        assert not row['budget_settled'] and row['reservation']['kind']=='shared_http'
+    u.settle(reservation,.01,event())
+    assert seen[-1][0]=='settle'
+
+
+def test_shared_snapshot_is_authoritative_for_all_four_groups(tmp_path,monkeypatch):
+    u=setup(tmp_path,SHARED_BUDGET_HTTP='true')
+    cards=[dict(id=id,remaining=7,limit=10) for id in ['gpt-5.4','gpt-5.4-mini','openai-shared','solar-pro4']]
+    monkeypatch.setattr(u,'shared_request',lambda *a:{'models':cards.copy(),'checked_at':'now'})
+    assert u.remaining()['models'][:4]==cards
+    monkeypatch.setattr(u,'shared_request',lambda *a:(_ for _ in ()).throw(BudgetError('offline')))
+    assert all(m['remaining'] is None for m in u.remaining()['models'][:4])
+
+@pytest.mark.parametrize('instant,start,end,amount',[
+ ('2026-10-31T23:59:59+09:00',None,'2026-11-01',8),
+ ('2026-11-01T00:00:00+09:00','2026-11-01','2026-12-01',100),
+ ('2027-01-01T00:00:00+09:00','2027-01-01','2027-02-01',100),
+ ('2028-02-29T23:59:59+09:00','2028-02-01','2028-03-01',100),
+])
+def test_month_start_fallback_keeps_same_grant_as_central(tmp_path,monkeypatch,instant,start,end,amount):
+    from datetime import datetime
+    class Clock(datetime):
+        @classmethod
+        def now(cls,tz=None):return datetime.fromisoformat(instant).astimezone(tz)
+    monkeypatch.setattr('app.usage.datetime',Clock)
+    u=setup(tmp_path,SHARED_CREDIT_EXPIRES_AT='2026-11-01T00:00:00+09:00',SHARED_CREDIT_MONTH_START_RENEWAL='true',SHARED_CREDIT_MONTHLY_BUDGET_USD='100')
+    grant,cap,expiry=u.period_details()
+    assert grant==('grant1:renew:'+start if start else 'grant1')
+    assert cap==amount and expiry.startswith(end)

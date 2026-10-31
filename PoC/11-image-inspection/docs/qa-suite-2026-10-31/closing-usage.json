@@ -1,0 +1,43 @@
+{
+  "checked_at": "2026-10-30T23:55:56.547681+00:00",
+  "models": [
+    {
+      "id": "gpt-5.4-mini",
+      "remaining": 75121,
+      "reserved": 0,
+      "unknown": 0
+    },
+    {
+      "id": "gpt-5.4",
+      "remaining": 60177,
+      "reserved": 0,
+      "unknown": 0
+    },
+    {
+      "id": "openai-shared",
+      "remaining": 2.022042,
+      "reserved": 0.0,
+      "unknown": 0.736045
+    },
+    {
+      "id": "solar-pro4",
+      "remaining": null,
+      "reserved": 0.0,
+      "unknown": 0.0
+    },
+    {
+      "id": "openrouter-free",
+      "remaining": 638,
+      "reserved": null,
+      "unknown": null
+    },
+    {
+      "id": "naver-ocr",
+      "remaining": 91,
+      "reserved": 0,
+      "unknown": 1
+    }
+  ],
+  "unsynced_usage_events": 0,
+  "pending_evaluation_reservations": 0
+}

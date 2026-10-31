@@ -75,6 +75,7 @@ def test_pipeline_blind_to_ocr_and_preserves_empty_recognition(tmp_path,monkeypa
     monkeypatch.setattr(o,'local_ocr',lambda *a:{'status':'COMPLETED','regions':[r,r2],'candidate_count':2})
     def call(model,prompt,images,workload):
         assert 'PRIVATE-OCR-ANSWER' not in prompt and len(images)==2
+        assert all(0<v<1 for v in json.loads(prompt)['tasks'][0]['target_rect_in_crop'])
         return {'results':[{**reading(),'region_id':t['region_id']} for t in json.loads(prompt)['tasks']]},{}
     e=SimpleNamespace(s=s,provider=SimpleNamespace(call=call),checkpoint=lambda *a:None)
     run={'options':{'vision_model':'gpt-5.4'},'calls':[],'observation':{'objects':[]}}
@@ -109,3 +110,34 @@ def test_readable_ocr_does_not_erase_existing_typo_finding():
     rows=o.protect_rows(run,[original],['D-02-l'],'gpt-5.4-mini')
     assert rows[0]['status']=='FAIL' and rows[0]['reason']=='공식 기관명 오탈자'
     assert rows[1]['status']=='REVIEW'
+
+
+def test_ocr_regions_are_usable_evidence_for_text_rules_only():
+    objects=[{'id':'scene'},{'id':'OCR001','ocr_region':True}]
+    run={'analysis_observation':{'objects':objects,'summary':'scene'}}
+    assert [o['id'] for o in o.analysis_observation(run,['D-02-l'])['objects']]==['scene','OCR001']
+    assert [o['id'] for o in o.analysis_observation(run,['H-04-h'])['objects']]==['scene']
+    assert len(run['analysis_observation']['objects'])==2
+
+
+def test_untranscribable_source_defect_is_distinct_from_engine_failure():
+    r=region();r['vision'].update(literal_text='□□',uncertain_characters=['전체 번짐'],glyph_quality='DEFECT',glyph_evidence='원본 줄 전체 획 경계가 번져 있음')
+    assert o.verdict(r)['status']=='FAIL'
+    r['vision'].update(glyph_quality='UNCERTAIN',glyph_evidence='작은 글자라 손상 여부 판단 불가')
+    assert o.verdict(r)['status']=='REVIEW'
+
+
+def test_meaning_uncertainty_does_not_hide_reference_name_error():
+    r=region();r['vision']['spelling']='UNCERTAIN';r['verdict']=o.verdict(r)
+    run={'rule_pack':PACK,'text_ocr':{'status':'COMPLETED','regions':[r]}}
+    original={'rule_id':'D-02-l','status':'FAIL','reason':'승인 명칭과 다름','evidence_ids':['OCR001'],'rects':[r['rect']]}
+    assert o.protect_rows(run,[copy.deepcopy(original)],['D-02-l'],'gpt-5.4')[0]['status']=='FAIL'
+    r['vision']['inferred']=True;r['verdict']=o.verdict(r)
+    assert o.protect_rows(run,[copy.deepcopy(original)],['D-02-l'],'gpt-5.4')[0]['status']=='REVIEW'
+
+
+def test_naver_word_order_is_stable_across_y_bin_boundary():
+    a={'text':'가','rect':[.1,.199,.2,.23],'score':.99}
+    b={'text':'나','rect':[.3,.201,.4,.231],'score':.99}
+    c={'text':'다','rect':[.5,.198,.6,.23],'score':.99}
+    assert [f['text'] for _,f in o.reading_order([(0,c),(1,b),(2,a)])]==['가','나','다']

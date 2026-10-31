@@ -61,6 +61,16 @@ def process_revisions(connection: Any, limit: int = 200) -> int:
     return len(rows)
 
 
+def has_pending_revisions(connection: Any) -> bool:
+    # EXISTS with an init-plan cutoff can scan every revision when caught up.
+    # The indexed global maximum is equivalent, including sequence gaps and
+    # late commits; retain the old NULL/missing worker-state behavior.
+    return bool(connection.execute(
+        """SELECT COALESCE((SELECT MAX(event_cursor) FROM transcript_segment_revisions)
+               > (SELECT event_cursor FROM watch_worker_state WHERE worker_name='watch-alerts'), false)"""
+    ).fetchone()[0])
+
+
 def run_once(database_url: str) -> dict[str, int]:
     emitted = revisions = 0
     with connect(database_url) as connection:
@@ -69,7 +79,7 @@ def run_once(database_url: str) -> dict[str, int]:
         revisions = process_revisions(connection)
         repository = WatchRepository(connection)
         # Do not finalize against a snapshot while detection revisions are still queued.
-        pending = connection.execute("SELECT EXISTS (SELECT 1 FROM transcript_segment_revisions WHERE event_cursor > (SELECT event_cursor FROM watch_worker_state WHERE worker_name='watch-alerts'))").fetchone()[0]
+        pending = has_pending_revisions(connection)
         completion = {} if pending else WatchLifecycleRepository(connection).reconcile()
         verified = repository.refresh_official_verifications()
     return {

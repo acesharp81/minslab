@@ -74,6 +74,23 @@ class ProjectionCacheTests(unittest.TestCase):
             with self.assertRaises(ValueError):first.result(1)
             self.assertEqual(json.loads(queued.result(1)[0]),{'ok':'later'})
 
+    def test_ai_analysis_does_not_rebuild_policy_but_officer_confirmation_does(self):
+        from backend.db import Audit
+        from backend.projection_cache import delivery_projection_version
+        engine=create_engine('sqlite://',poolclass=StaticPool)
+        self.addCleanup(engine.dispose);Base.metadata.create_all(engine);service=HomeService(engine)
+        for version in (collection_projection_version, delivery_projection_version):
+            before=version(service)
+            with service.sessions.begin() as db:
+                for action in ('AI_PUBLICATION_DISCOVERY','AI_PUBLICATION_ANALYSIS'):
+                    db.add(Audit(entity_id='candidate',action=action,before={},after={'note':'review only'}))
+                upsert_revision(db,'ai_publication_analysis','ai','candidate',{'result':'candidate'},'analysis')
+            self.assertEqual(before,version(service))
+            with service.sessions.begin() as db:
+                db.add(Audit(entity_id='project',action='OFFICER_START_CONFIRMED',before={},after={}))
+                upsert_revision(db,'evidence_bridge','officer','bridge',{'source_entity_id':'candidate'},'approval')
+            self.assertNotEqual(before,version(service))
+
     def test_collection_version_ignores_raw_candidate_audit_but_sees_review(self):
         from backend.db import Audit
         engine=create_engine('sqlite://',poolclass=StaticPool)

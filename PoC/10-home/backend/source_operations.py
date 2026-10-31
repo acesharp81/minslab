@@ -23,7 +23,9 @@ def operations(source, stats=None, scheduler_running=None):
     enabled = os.environ.get('POC10_AUTO_COLLECT', 'true').lower() == 'true'
     if scheduler_running is not None:enabled = scheduler_running
     manual = source.get('manual_only', False)
-    if source.get('implemented', True) is False:
+    if mode == 'AI_DISCOVERY':
+        state, frequency = 'AI 수집 설정에서 실행', '신규 자료 검토에서 예약 관리'
+    elif source.get('implemented', True) is False:
         state, frequency = '연결 준비', '정기 수집 없음'
     elif manual:
         state, frequency = '수동 실행', '필요 시 실행'
@@ -40,7 +42,12 @@ def operations(source, stats=None, scheduler_running=None):
     parser = '출처별 API·HTML·파일 파서로 항목을 추출하고 수량·날짜 형식을 정리합니다.'
     pdf = ''
     manual_note = '작업자가 수집 범위와 실행 시점을 정합니다.' if manual else ''
-    if mode == 'PUBLICATION_WATCH':
+    if mode == 'AI_DISCOVERY':
+        discovery_tag = '공개 자료 자동 탐색'
+        discovery = '신규 자료 검토의 AI 자료 수집 자동화에서 등록 출처·뉴스 검색·추가 URL을 탐색합니다. 전수 수집을 보장하지 않습니다.'
+        parser = 'Solar 단독 또는 mini 1차·5.4 재검토로 원문 근거와 검토 질문을 정리합니다. 자료 연결·물량 승인과 별도입니다.'
+        manual_note = '예약·중지·비용 한도는 AI 수집 설정에서 관리합니다.'
+    elif mode == 'PUBLICATION_WATCH':
         discovery_tag = '신규 게시물 탐색'
         discovery = '등록된 공식 보도자료 최신 목록 또는 언론사 RSS에서 최근 30일 주택 관련 제목·게시일·원문 링크를 매시간 탐색합니다. 모든 기관·언론사 또는 과거 게시물 전수를 포함하지 않습니다.'
         parser = 'HTML/RSS의 식별키·게시일·출처 도메인을 검증합니다. 후보만 보관하며 기사 전문·호수·단계 실적을 자동 확정하지 않습니다.'

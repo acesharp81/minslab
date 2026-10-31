@@ -761,7 +761,8 @@ def ai_usage() -> dict[str, object]:
     return {
         "provider": "combined",
         "workload_groups": groups,
-        "usage_scope": "서비스 배정량 기준 · OpenAI 조직 전체 잔액 아님",
+        "shared_budget": gateway.get("shared_budget", {}),
+        "usage_scope": "PoC7·PoC10·PoC11 공용 운영 예산 · 제공사 실제 잔액 아님",
         "auxiliary_models": auxiliaries,
         "provider_label": "Mini + OpenRouter 부분요약 · GPT-5.4 + Terra 통합 · Mistral 음성",
         "model": f"{settings.llm_model or '-'} · {settings.executive_transcription_model}",

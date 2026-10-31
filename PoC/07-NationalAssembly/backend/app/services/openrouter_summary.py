@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 from dataclasses import dataclass
 from typing import Any, Iterable
@@ -19,7 +20,7 @@ from .summary_contract import (
 
 PROVIDER = "openrouter"
 PROMPT_VERSION = COMMON_PROMPT_VERSION
-DEFAULT_MODEL = "nvidia/nemotron-3-super-120b-a12b:free"
+DEFAULT_MODEL = "nvidia/nemotron-3.5-super-vl:free"
 MAX_BATCH_ITEMS = 8
 MAX_BATCH_CHARS = 12_000
 CONTEXT_BEFORE_ITEMS = 4
@@ -61,6 +62,20 @@ def parse_summary_items(text: str) -> list[Any]:
     return parsed
 
 
+def mixes_immediate_reply_task(item: dict[str, Any], source: str) -> bool:
+    """Reject ambiguous oral-answer tasks for Mini to reprocess, not silently erase them."""
+    task = str((item.get("live_insight") or {}).get("task") or "")
+    if not re.search(r"설명|답변|응답", task):
+        return False
+    for clause in re.split(r"[.!?。！？]", source):
+        # Written/future answers may be genuine follow-up tasks.
+        if re.search(r"서면|답변서|추후|다음|내일|모레|까지|추가로|후에", clause):
+            continue
+        if re.search(r"(?:설명|답변|답|응답)\s*(?:해|하여)\s*(?:주십|주시|주세요|달라)", clause):
+            return True
+    return False
+
+
 class OpenRouterSummaryClient:
     provider = PROVIDER
     prompt_version = PROMPT_VERSION
@@ -99,14 +114,19 @@ class OpenRouterSummaryClient:
                 "allow_fallbacks": True, "require_parameters": True,
             },
         }
-        # Do not mix models with incompatible reasoning requirements in one
-        # gateway fallback request. Dots supports direct JSON without reasoning;
-        # Nemotron requires reasoning, which must remain enabled for that route.
-        if self.model in {
-            "nvidia/nemotron-3-super-120b-a12b:free",
-            "dots-studio/dots-3-note-preview:free",
-        }:
-            body["models"] = [self.model]
+        # Pin the evaluated model; provider fallback must not change its identity.
+        body["models"] = [self.model]
+        if self.model == "nvidia/nemotron-3.5-super-vl:free":
+            # Validated for short Korean extraction; hidden reasoning still costs latency.
+            body["reasoning"] = {"enabled": False, "exclude": True}
+            body["messages"][0]["content"] += (
+                " 한 발언에 후속 조치 요구와 즉석 질문이 섞이면 summary에는 둘 다 남기되, "
+                "task에는 후속 조치만 남겨라. 현장에서 설명해 달라거나 답해 달라는 부분은 "
+                "자료 제출·개선 계획 과제와 합치지 마라. task_evidence_quote 역시 "
+                "그 후속 조치의 직접 요구 구간만 인용하라."
+            )
+            # Keep room for production batches larger than the two-item pilot.
+            body["max_tokens"] = 8192
         if self.model == "dots-studio/dots-3-note-preview:free":
             body["reasoning"] = {"enabled": False, "exclude": True}
             body["max_tokens"] = 8192
@@ -140,6 +160,15 @@ class OpenRouterSummaryClient:
         message = ((payload.get("choices") or [{}])[0].get("message") or {})
         parsed = parse_summary_items(str(message.get("content") or ""))
         items = validated_summary_items(parsed, utterances)
+        quality_rejections: dict[str, str] = {}
+        if self.model == DEFAULT_MODEL:
+            sources = {u["content_hash"]: str(u.get("text") or "") for u in utterances}
+            quality_rejections = {
+                item["content_hash"]: "IMMEDIATE_REPLY_MIXED_IN_FOLLOW_UP"
+                for item in items
+                if mixes_immediate_reply_task(item, sources.get(item["content_hash"], ""))
+            }
+            items = [item for item in items if item["content_hash"] not in quality_rejections]
         return OpenRouterSummaryResult(
             items=items,
             usage_metadata={
@@ -147,6 +176,7 @@ class OpenRouterSummaryClient:
                 "upstream_provider": str(payload.get("provider") or ""),
                 "response_model": str(payload.get("model") or ""),
                 "raw_response": str(message.get("content") or ""),
+                "quality_rejections": quality_rejections,
                 "rejected_ids": [str(row.get('id')) for row in parsed if isinstance(row, dict)
                     and row.get('id') in {u['content_hash'] for u in utterances}
                     and row.get('id') not in {i['content_hash'] for i in items}],

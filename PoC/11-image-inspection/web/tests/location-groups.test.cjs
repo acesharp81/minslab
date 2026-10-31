@@ -67,3 +67,19 @@ test('observed unreadable text stays spatial while document-only review stays se
  const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row],observation:{objects:[{id:'text',label:'작은 표지',rects:row.rects}]}});
  assert.equal(groups[0].number,1);assert.ok(groups[0].anchor);assert.equal(groups[0].status,'REVIEW');
 });
+
+test('small background figures do not get OCR warning pins; context conflicts remain visible',()=>{
+ const objects=[{id:'person',label:'작은 보행 인물',text:'',text_legibility:'NOT_TEXT',rects:[[.3,.3,.4,.4]]},{id:'symbol',label:'본체 부속 표식',text:'',text_legibility:'NOT_TEXT',rects:[[.8,.1,.9,.2]]}];
+ const rows=[{id:'p',rule_id:'D-04-b',parent_id:'D-04',status:'REVIEW',reason:'작아서 식별 불가',error_type:'OCR_UNREADABLE',evidence_ids:['person'],rects:objects[0].rects},{id:'s',rule_id:'H-05-c',parent_id:'H-05',status:'REVIEW',reason:'국가 정체성 설명과 표식 충돌',review_basis:'CONTEXT_CONFLICT',evidence_ids:['symbol'],rects:objects[1].rects}];
+ const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},observation:{objects},results:rows});
+ assert.deepEqual(Array.from(groups.filter(g=>g.number),g=>g.id),['symbol']);
+ assert.ok(groups.find(g=>g.rows.includes(rows[0]))); // retained in report, not a visual defect
+ rows[0].review_basis='READING_LIMIT';rows[0].visual_issue=true;
+ assert.equal(fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},observation:{objects},results:rows}).filter(g=>g.number).length,1);
+});
+
+test('text reading limits remain actionable without flagging ordinary background simplification',()=>{
+ const row={id:'text',rule_id:'D-02-l',parent_id:'D-02',status:'REVIEW',reason:'획을 판독할 수 없음',review_basis:'READING_LIMIT',error_type:'OCR_UNREADABLE',evidence_ids:['text'],rects:[[.2,.3,.3,.4]]};
+ const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row],observation:{objects:[{id:'text',label:'작은 안내판',text_legibility:'UNREADABLE',rects:row.rects}]}});
+ assert.equal(groups[0].number,1);
+});

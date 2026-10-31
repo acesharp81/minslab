@@ -1,0 +1,10 @@
+{
+  "container": "poc10-home-api",
+  "built_image": "poc10-home:ai-roles-20261030",
+  "static_files": [
+    "ai-collection.js",
+    "ai-collection.css",
+    "index.html"
+  ],
+  "cache_preserved": true
+}

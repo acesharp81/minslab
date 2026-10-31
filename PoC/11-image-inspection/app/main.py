@@ -31,6 +31,7 @@ class RunInput(BaseModel):
     consent: bool=False
     force: bool=False
     reuse_observation_run_id: str | None=None
+    recheck_object_ids: list[str]=Field(default_factory=list,max_length=9)
 class RuleEditInput(BaseModel):
     markdown: str=Field(min_length=1,max_length=150000)
     base_version: str=Field(max_length=100)
@@ -202,16 +203,27 @@ def create_app(settings=None):
     def detail(jid:str,request:Request):actor(request);return public_job(getjob(jid))
     @app.get('/api/jobs/{jid}/image')
     def image(jid:str,request:Request):actor(request);getjob(jid);return FileResponse(s.data/jid/'image.png',media_type='image/png')
+    @app.get('/api/jobs/{jid}/runs/{run_id}/references/{rid}/image')
+    def snapshot_reference_image(jid:str,run_id:str,rid:str,request:Request):
+        actor(request)
+        run=next((r for r in getjob(jid)['runs'] if r['id']==run_id),None)
+        ref=next((r for r in (run or {}).get('reference_snapshot',[]) if r['id']==rid),None)
+        name=(ref or {}).get('image_file')
+        if not name or Path(name).name!=name:raise HTTPException(404)
+        path=s.data/'references'/name
+        if not path.is_file():raise HTTPException(404)
+        return FileResponse(path,media_type='image/png')
     @app.post('/api/jobs/{jid}/runs')
     def run(jid:str,data:RunInput,request:Request):
-        who=actor(request);job=getjob(jid)
+        who=actor(request,True);job=getjob(jid)
         if data.mode not in ('mock','live','blocked') or data.vision_model not in ('gpt-5.4','gpt-5.4-mini','gpt-6.1-sol','gpt-6-astra','nvidia/nemotron-3.5-super-vl:free') or data.analysis_model not in ('solar-pro4','gpt-5.4','gpt-5.4-mini','gpt-6.1-sol','gpt-6-astra',''):
             raise HTTPException(400,'지원하지 않는 실행 설정')
         if data.reuse_observation_run_id and (data.mode!='live' or data.crop_id):raise HTTPException(400,'관찰 재사용은 전체 이미지 실제 분석에서만 가능합니다.')
+        if data.recheck_object_ids and not data.reuse_observation_run_id:raise HTTPException(400,'객체 재판독에는 재사용할 관찰 버전이 필요합니다.')
         if data.crop_id and data.crop_id not in {x['id'] for x in job['crops']}:raise HTTPException(400,'잘못된 확대 영역')
         if data.mode=='live':
             if not data.consent or not s.flag('EXTERNAL_API_ENABLED',True):raise HTTPException(400,'외부 전송 허용을 확인하십시오.')
-            models=[data.analysis_model or data.vision_model]+([] if data.reuse_observation_run_id else [data.vision_model])
+            models=[data.analysis_model or data.vision_model]+([] if data.reuse_observation_run_id and not data.recheck_object_ids else [data.vision_model])
             for model in models:
                 key='OPENROUTER_API_KEY' if model.endswith(':free') else 'UPSTAGE_API_KEY' if model=='solar-pro4' else 'OPENAI_API_KEY'
                 if not s.get(key):raise HTTPException(400,f'{key} 설정이 필요합니다.')

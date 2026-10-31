@@ -19,6 +19,7 @@ FIELDS = (
     '신규등록대상사업명_JSON', '이름유사후보_동일사업미확정_JSON',
     '검토주제', '검토질문', '검토안내근거', '원문확인항목_JSON', '후속조치안내',
     '최근판단반영범위', '검토이력_JSON', '외부검증결과', '외부검증사유', '추가확인사항',
+    'AI수집본문', 'AI분석_JSON',
     '수동수집상태', '수동수집본문', '수동수집확인내용', '수동수집첨부_JSON',
 )
 
@@ -60,6 +61,8 @@ def export_csv(service, status='ALL', priority=None, search=''):
                     histories[doc_id].append(dict(r.payload, revision_no=r.revision_no, recorded_at=r.recorded_at.isoformat()))
     from .publication_supplements import load as load_supplements
     supplements = load_supplements(service, [r['id'] for r in items])
+    from .ai_collection import annotations
+    ai = annotations(service, [r['id'] for r in items])
     projects = {p['id']: p for p in data['projects']}
     policies = {p['id']: p['name'] for p in data['policies']}
     policies['UNASSIGNED'] = '정책 미지정'
@@ -86,6 +89,7 @@ def export_csv(service, status='ALL', priority=None, search=''):
             encoded(selected), encoded(d.get('new_project_names', [])), encoded(r['candidates']),
             r['review_topic'], g.get('decision', r['question']), g.get('basis'), encoded(g.get('checks', [])),
             g.get('next_step'), d.get('effect'), encoded(histories[r['id']]), '', '', '',
+            ai.get(r['id'],{}).get('body_text',''), encoded(r.get('ai_analysis',{})),
             extra_state, extra.get('body_text'), extra.get('summary'), encoded(extra.get('attachments', [])),
         )
         writer.writerow({key: cell(value) for key, value in zip(FIELDS, values, strict=True)})

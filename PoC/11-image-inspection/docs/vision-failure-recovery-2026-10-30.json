@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-30",
+  "incident": {
+    "run_id": "3d90f7580aea4de4935efee0b243ecc4",
+    "stage": "image-observation",
+    "model": "gpt-6.1-sol",
+    "http_status": 520,
+    "observation_objects": 0,
+    "analysis_calls": 0,
+    "usage": "unknown; shared reservation retained"
+  },
+  "recovery": {
+    "run_id": "19bd2685723649f7bc2a734f022569bb",
+    "state": "COMPLETED",
+    "elapsed_seconds": 232.14,
+    "observed_objects": 32,
+    "completed_steps": 156,
+    "total_steps": 156,
+    "result_rows": {
+      "NOT_APPLICABLE": 96,
+      "PASS": 66,
+      "REVIEW": 58,
+      "FAIL": 6
+    },
+    "model_usage": {
+      "gpt-6.1-sol": {
+        "calls": 4,
+        "input_tokens": 39518,
+        "output_tokens": 10367
+      },
+      "gpt-5.4-mini-2026-03-17": {
+        "calls": 8,
+        "input_tokens": 183699,
+        "output_tokens": 24002
+      }
+    },
+    "numbered_locations_browser": 7
+  },
+  "validation": {
+    "python_passed": 122,
+    "python_skipped": 2,
+    "browser": [
+      "prominent failure stage and model",
+      "invalid empty observation reuse disabled",
+      "previous observation action",
+      "recovered numbered results",
+      "zoom marker anchoring and constant marker size",
+      "wheel and drag",
+      "mobile overflow and JS errors"
+    ]
+  },
+  "limits": [
+    "HTTP 520 internal supplier cause is not available in the saved response. A subsequent same-model request succeeded; provider availability is not guaranteed.",
+    "Successful execution does not establish full detection accuracy. Small text normalization and inconsistent transcription still occur.",
+    "FAIL row count is not a count of distinct defects; rules can share the same evidence object.",
+    "One automatic reading retry only for specified HTTP 5xx errors; each attempt separately metered. No automatic retry for timeouts, authentication, or budget failures."
+  ]
+}

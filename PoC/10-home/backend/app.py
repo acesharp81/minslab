@@ -1181,6 +1181,9 @@ def create_app(engine=None, auto_collect=None):
                 return build_status(service, collection_matrix(service, policy_id='POL_2025_0907', include_link_history=False), json.loads(project_locations().body))
         return cached_json('requirements_status', {}, build)
 
+    from .ai_collection_api import install as install_ai_collection
+    install_ai_collection(app,service,authenticated,PREFIX)
+
     @app.get(PREFIX + '/api/publication-reviews')
     def publication_reviews_api():
         from .publication_reviews import queue

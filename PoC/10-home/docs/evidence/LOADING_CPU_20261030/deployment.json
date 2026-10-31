@@ -1,0 +1,16 @@
+{
+  "backups": {
+    "poc07-national-assembly-watch-worker": "poc07-national-assembly-watch-worker-before-shared-1793362189",
+    "poc10-home-api": "poc10-home-api-before-shared-1793362333"
+  },
+  "containers": {
+    "poc07-national-assembly-watch-worker": {
+      "image": "poc07-watch:polling-fix-20261030",
+      "image_id": "sha256:ba6b5d85d5a88f77e13cafc4d427098154c142882e9e42c35962f36b53b09c9a"
+    },
+    "poc10-home-api": {
+      "image": "poc10-home:loading-fix-20261030",
+      "image_id": "sha256:895987262a02e5d9ea463f368ce50868222cb1dcfeb021b48e2a12bf695d6e5a"
+    }
+  }
+}

@@ -1,0 +1,293 @@
+[
+  {
+    "url": "http://127.0.0.1:8000/poc/home/",
+    "requests": [
+      {
+        "url": "api/policy-delivery/view?as_of_date=2026-10-30&group=policy&scope=policy",
+        "ms": 6395,
+        "type": "fetch"
+      },
+      {
+        "url": "api/policy-monitor?as_of_date=2026-10-30&policy_id=POL_2025_0907",
+        "ms": 2263,
+        "type": "fetch"
+      },
+      {
+        "url": "api/mappings?as_of_date=2026-10-30&policy_id=POL_2025_0907&compact=true",
+        "ms": 2013,
+        "type": "fetch"
+      },
+      {
+        "url": "assets/app.js?v=20261028-loading",
+        "ms": 596,
+        "type": "script"
+      },
+      {
+        "url": "assets/publication-reviews.js?v=20261030-ai",
+        "ms": 592,
+        "type": "script"
+      },
+      {
+        "url": "assets/ai-collection.js?v=20261030-progress2",
+        "ms": 590,
+        "type": "script"
+      },
+      {
+        "url": "assets/source-years.js?v=20261022-ui-refinement",
+        "ms": 587,
+        "type": "script"
+      },
+      {
+        "url": "assets/progress-report.js?v=20261023-project-brief-v2",
+        "ms": 579,
+        "type": "script"
+      },
+      {
+        "url": "assets/collection-schema.js?v=20261022-starmap-3d-v3",
+        "ms": 579,
+        "type": "script"
+      },
+      {
+        "url": "assets/report-md.js?v=20261022-sequence-rule",
+        "ms": 579,
+        "type": "script"
+      },
+      {
+        "url": "assets/source-preview.js?v=20261022-document-cards",
+        "ms": 569,
+        "type": "script"
+      },
+      {
+        "url": "assets/project-brief-report.js?v=20261023-v7",
+        "ms": 569,
+        "type": "script"
+      },
+      {
+        "url": "assets/portfolio-progress-report.js?v=20261022-sequence-metrics-v2",
+        "ms": 566,
+        "type": "script"
+      },
+      {
+        "url": "assets/policy-brief-report.js?v=20261023-shared-v6",
+        "ms": 554,
+        "type": "script"
+      },
+      {
+        "url": "assets/user-guide.js?v=20261022-documents-v16",
+        "ms": 537,
+        "type": "script"
+      },
+      {
+        "url": "assets/requirements-manual.js?v=20261022-ui-refinement",
+        "ms": 534,
+        "type": "script"
+      },
+      {
+        "url": "assets/scope-evidence.js",
+        "ms": 532,
+        "type": "script"
+      },
+      {
+        "url": "assets/project-area-charts.js?v=20261022-null-statistics-v17",
+        "ms": 531,
+        "type": "script"
+      }
+    ],
+    "errors": [],
+    "body": "주택공급 디지털 상황판\n☰\n주택공급 모니터링\nPoC 10\n\nWORKSPACE\n\n공급현황\n⌄\n추진현황\n⌄\n정책\n프로그램\n사업\n데이터관리\n⌄\n문서\n⌄\n공식 원천 기반 데이터\n\n서울 · 인천 · 경기\n\nMinsLab 프로젝트 ↗\nthe주택 / 정책 추진현황\n정책\n9.7 주택공급 확대방안\n관리자 로그인 ↗\n추진현황 보고서 만들기\n보고서용 MD파일 만들기\n지역·표시 기준\n2D\n3D\n전체\n서울\n경기\n인천\n정책\n사업화\n인허가\n건설\n공급\n입주\n기준 연도\n2026\n2021\n2026 현재\n2031\n현재 연도로\n공급 누적 · 2026-10-30 기준\n승인 연결 사업 전체 · 착공연도로 자동 제외하지 않음\n면 높이·색 농도는 누적 도달량 · 🔴 ! 지연 단계 있음 (부족률 2% 이상)\n지역 선택 해제\n수도권 지역별 추진현황\n경기도\n30,706호\n인천광역시\n5,245호\n서울특별시\n1,821호\n적음\n많음\n정책 개요 · 발표 2025-09-07\n9·7 주택공급 확대방안\n\n선호 입지에 내집 마련의 기회를 대폭 늘리고, 위축된 주택공급 여건을 개선하여 주택시장 안정 및 국민 주거안정 도모\n\n수도권 신규 착공 목표\n1,350,000호\n2026–2030년\n서울특별시\n334,000호\n\n노후 임"
+  },
+  {
+    "url": "http://127.0.0.1:18100/poc/home/",
+    "requests": [
+      {
+        "url": "api/policy-delivery/view?as_of_date=2026-10-30&group=policy&scope=policy",
+        "ms": 6329,
+        "type": "fetch"
+      },
+      {
+        "url": "api/policy-monitor?as_of_date=2026-10-30&policy_id=POL_2025_0907",
+        "ms": 2235,
+        "type": "fetch"
+      },
+      {
+        "url": "api/mappings?as_of_date=2026-10-30&policy_id=POL_2025_0907&compact=true",
+        "ms": 1785,
+        "type": "fetch"
+      },
+      {
+        "url": "assets/ai-collection.js?v=20261030-progress2",
+        "ms": 311,
+        "type": "script"
+      },
+      {
+        "url": "assets/source-years.js?v=20261022-ui-refinement",
+        "ms": 311,
+        "type": "script"
+      },
+      {
+        "url": "assets/project-brief-report.js?v=20261023-v7",
+        "ms": 310,
+        "type": "script"
+      },
+      {
+        "url": "assets/portfolio-progress-report.js?v=20261022-sequence-metrics-v2",
+        "ms": 310,
+        "type": "script"
+      },
+      {
+        "url": "assets/policy-brief-report.js?v=20261023-shared-v6",
+        "ms": 310,
+        "type": "script"
+      },
+      {
+        "url": "assets/report-md.js?v=20261022-sequence-rule",
+        "ms": 310,
+        "type": "script"
+      },
+      {
+        "url": "assets/collection-schema.js?v=20261022-starmap-3d-v3",
+        "ms": 310,
+        "type": "script"
+      },
+      {
+        "url": "assets/progress-report.js?v=20261023-project-brief-v2",
+        "ms": 310,
+        "type": "script"
+      },
+      {
+        "url": "assets/publication-reviews.js?v=20261030-ai",
+        "ms": 310,
+        "type": "script"
+      },
+      {
+        "url": "assets/app.js?v=20261028-loading",
+        "ms": 310,
+        "type": "script"
+      },
+      {
+        "url": "assets/map.js?v=20261022-ui-refinement",
+        "ms": 302,
+        "type": "script"
+      },
+      {
+        "url": "assets/history.js?v=20261022-compact-sources",
+        "ms": 302,
+        "type": "script"
+      },
+      {
+        "url": "assets/vendor/d3-shape/d3-shape.min.js",
+        "ms": 300,
+        "type": "script"
+      },
+      {
+        "url": "assets/policy-region-map.js?v=20261019-scope-final",
+        "ms": 300,
+        "type": "script"
+      },
+      {
+        "url": "assets/project-collection.js?v=20261022-field-cells-r2",
+        "ms": 300,
+        "type": "script"
+      }
+    ],
+    "errors": [],
+    "body": "주택공급 디지털 상황판\n☰\n주택공급 모니터링\nPoC 10\n\nWORKSPACE\n\n공급현황\n⌄\n추진현황\n⌄\n정책\n프로그램\n사업\n데이터관리\n⌄\n문서\n⌄\n공식 원천 기반 데이터\n\n서울 · 인천 · 경기\n\nMinsLab 프로젝트 ↗\nthe주택 / 정책 추진현황\n정책\n9.7 주택공급 확대방안\n관리자 로그인 ↗\n추진현황 보고서 만들기\n보고서용 MD파일 만들기\n지역·표시 기준\n2D\n3D\n전체\n서울\n경기\n인천\n정책\n사업화\n인허가\n건설\n공급\n입주\n기준 연도\n2026\n2021\n2026 현재\n2031\n현재 연도로\n공급 누적 · 2026-10-30 기준\n승인 연결 사업 전체 · 착공연도로 자동 제외하지 않음\n면 높이·색 농도는 누적 도달량 · 🔴 ! 지연 단계 있음 (부족률 2% 이상)\n지역 선택 해제\n수도권 지역별 추진현황\n경기도\n30,706호\n인천광역시\n5,245호\n서울특별시\n1,821호\n적음\n많음\n정책 개요 · 발표 2025-09-07\n9·7 주택공급 확대방안\n\n선호 입지에 내집 마련의 기회를 대폭 늘리고, 위축된 주택공급 여건을 개선하여 주택시장 안정 및 국민 주거안정 도모\n\n수도권 신규 착공 목표\n1,350,000호\n2026–2030년\n서울특별시\n334,000호\n\n노후 임"
+  },
+  {
+    "url": "http://127.0.0.1:8000/poc/home/#publication-reviews",
+    "requests": [
+      {
+        "url": "assets/app.js?v=20261028-loading",
+        "ms": 485,
+        "type": "script"
+      },
+      {
+        "url": "assets/ai-collection.js?v=20261030-progress2",
+        "ms": 484,
+        "type": "script"
+      },
+      {
+        "url": "assets/publication-reviews.js?v=20261030-ai",
+        "ms": 482,
+        "type": "script"
+      },
+      {
+        "url": "assets/policy-brief-report.js?v=20261023-shared-v6",
+        "ms": 474,
+        "type": "script"
+      },
+      {
+        "url": "assets/progress-report.js?v=20261023-project-brief-v2",
+        "ms": 473,
+        "type": "script"
+      },
+      {
+        "url": "assets/collection-schema.js?v=20261022-starmap-3d-v3",
+        "ms": 472,
+        "type": "script"
+      },
+      {
+        "url": "assets/report-md.js?v=20261022-sequence-rule",
+        "ms": 471,
+        "type": "script"
+      },
+      {
+        "url": "assets/source-years.js?v=20261022-ui-refinement",
+        "ms": 468,
+        "type": "script"
+      },
+      {
+        "url": "assets/project-brief-report.js?v=20261023-v7",
+        "ms": 467,
+        "type": "script"
+      },
+      {
+        "url": "assets/portfolio-progress-report.js?v=20261022-sequence-metrics-v2",
+        "ms": 455,
+        "type": "script"
+      },
+      {
+        "url": "assets/source-preview.js?v=20261022-document-cards",
+        "ms": 454,
+        "type": "script"
+      },
+      {
+        "url": "assets/user-guide.js?v=20261022-documents-v16",
+        "ms": 450,
+        "type": "script"
+      },
+      {
+        "url": "assets/requirements-manual.js?v=20261022-ui-refinement",
+        "ms": 444,
+        "type": "script"
+      },
+      {
+        "url": "assets/project-summary-card.js?v=20261016-columns",
+        "ms": 433,
+        "type": "script"
+      },
+      {
+        "url": "assets/project-information.js?v=20261022-project-desc",
+        "ms": 432,
+        "type": "script"
+      },
+      {
+        "url": "assets/project-area-charts.js?v=20261022-null-statistics-v17",
+        "ms": 426,
+        "type": "script"
+      },
+      {
+        "url": "assets/scope-evidence.js",
+        "ms": 424,
+        "type": "script"
+      },
+      {
+        "url": "assets/project-living-charts.js",
+        "ms": 415,
+        "type": "script"
+      }
+    ],
+    "errors": [],
+    "body": "주택공급 디지털 상황판\n☰\n주택공급 모니터링\nPoC 10\n\nWORKSPACE\n\n공급현황\n⌄\n추진현황\n⌄\n데이터관리\n⌄\n출처와 수집현황\n신규 자료 검토\n117\n정책-프로그램-사업 연결\n사업별 수집연계\n데이터 정합성 확인\n문서\n⌄\n공식 원천 기반 데이터\n\n서울 · 인천 · 경기\n\nMinsLab 프로젝트 ↗\nthe주택 / 신규 자료 검토\n서울 + 인천 + 경기\n관리자 로그인 ↗\n\n자료 발견 → 담당자 검토 → 사업 연결\n\n신규 자료 검토\n\n새로 수집한 자료가 어느 주택사업의 근거인지 판단하는 화면입니다. 왼쪽에서 자료를 고르면 오른쪽에 확인할 질문과 처리 방법이 나옵니다.\n\n새로고침\nAI 자료 수집 자동화\n공식·언론 자료 탐색부터 검토 준비까지\n검토 대기\n71\n보류\n13\n사업 등록 대기\n33\n자료 연결 승인\n11\n제외\n49\n검토 상태\n미완료 전체\n전체\n검토 대기\n보류\n제외\n자료 연결 승인\n검토 승인 · 사업 등록 대기\n우선순위\n전체\n1 · 계획 누락 확인\n2 · 귀속·단계 확인\n3 · 범위·중복 확인\n참고·관련성 분류\n자료 검색\n\n조회 117건 / 전체 177건 · 우선순위는 제목 기반 검토 제안이며 사업 동일성 확정이 아닙니다.\n\n외부 검증용 CSV\n\n상태별 목"
+  }
+]

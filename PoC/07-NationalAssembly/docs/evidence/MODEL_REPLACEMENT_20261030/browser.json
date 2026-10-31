@@ -1,0 +1,20 @@
+[
+  {
+    "site": "https://kjon.aigov.go.kr/",
+    "real_live_cards": 0,
+    "live_tab_retained": true,
+    "synthetic_first_live_opened": true,
+    "report_tab_retained": true,
+    "model_label": "Nemo3.5 VL",
+    "errors": []
+  },
+  {
+    "site": "https://www.minslab.kr/poc/national-assembly/",
+    "real_live_cards": 0,
+    "live_tab_retained": true,
+    "synthetic_first_live_opened": true,
+    "report_tab_retained": true,
+    "model_label": "Nemo3.5 VL",
+    "errors": []
+  }
+]

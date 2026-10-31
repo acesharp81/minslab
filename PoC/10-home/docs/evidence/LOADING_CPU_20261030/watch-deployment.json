@@ -1,0 +1,11 @@
+{
+  "backups": {
+    "poc07-national-assembly-watch-worker": "poc07-national-assembly-watch-worker-before-shared-1793362517"
+  },
+  "containers": {
+    "poc07-national-assembly-watch-worker": {
+      "image": "poc07-watch:polling-fix-v2-20261030",
+      "image_id": "sha256:f08170a1966370202f027363c4c5df8a840e5913890387a2972990508fe0a073"
+    }
+  }
+}

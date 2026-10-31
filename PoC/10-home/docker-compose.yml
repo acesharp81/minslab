@@ -19,6 +19,7 @@ services:
     build: .
     image: poc10-home:local
     container_name: poc10-home-api
+    networks: [default, ai-budget]
     mem_limit: 1536m
     memswap_limit: 3g
     restart: unless-stopped
@@ -87,5 +88,37 @@ services:
       retries: 3
       start_period: 60s
 
+  ai-worker:
+    image: poc10-home:local
+    container_name: poc10-home-ai-worker
+    networks: [default, ai-budget]
+    command: ["python", "-m", "backend.ai_collection_worker"]
+    mem_limit: 512m
+    memswap_limit: 768m
+    cpus: 0.5
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      POC10_DATABASE_URL: postgresql+psycopg://home:${POC10_DB_PASSWORD}@db:5432/home
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "from backend.ai_collection_store import Store; assert Store('/app/data').status()['worker_online']"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
 volumes:
   home_pgdata:
+
+networks:
+  default:
+    name: poc10-home
+  ai-budget:
+    name: minslab-ai-budget
+    external: true

@@ -49,3 +49,17 @@ def save(service, document_id, source_revision_no, body_text, summary_text, atta
         row,outcome=upsert_revision(db,KIND,'publication_manual',document_id,payload,'manual-publication-collection')
         db.add(Audit(entity_id=row.entity_id,action='PUBLICATION_MANUAL_COLLECTION',before={},after=payload))
         return dict(id=row.entity_id,revision_no=row.revision_no,outcome=outcome)
+
+
+def usable(payload, source_revision_no, analysis=None):
+    """A manual recovery may replace only an older extraction of the same revision."""
+    from datetime import datetime
+    if not payload or payload.get('source_revision_no') != source_revision_no or not payload.get('body_text'):
+        return False
+    analysis = analysis or {}
+    if not analysis.get('collected_at'):
+        return not analysis.get('body_text')
+    try:
+        return datetime.fromisoformat(payload['collected_at']) >= datetime.fromisoformat(analysis['collected_at'])
+    except (KeyError, TypeError, ValueError):
+        return False

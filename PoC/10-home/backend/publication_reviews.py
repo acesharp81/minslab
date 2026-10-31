@@ -63,6 +63,16 @@ def queue(service, include_options=True):
        status=state,status_label=STATES[state],source_changed=stale,link_changed=link_changed,decision=decision,candidates=matches,guidance=guidance(p.get('name',''),matches,t['priority']) if include_options else None,**t))
   for item in items:
    if item['id'] in supplements:item['supplement']=supplement_summary(supplements[item['id']],item['source_revision_no'])
+  if include_options:
+   from .ai_collection import annotations
+   ai=annotations(service,[d.entity_id for d in docs])
+   for item in items:
+    if item['id'] in ai:
+     value=ai[item['id']]
+     item['ai_analysis']={k:v for k,v in value.items() if k!='body_text'}
+     item['ai_analysis']['stale']=(value['source_revision_no']!=item['source_revision_no'] or value.get('review_revision_no',0)!=item['review_revision_no'])
+     if value.get('source_text_changed') and value.get('review_revision_no',0)==item['review_revision_no']:
+      item['status']='REVIEW';item['status_label']=STATES['REVIEW'];item['ai_source_changed']=True
   items.sort(key=lambda r:(r['priority'],tuple(-ord(c) for c in (r['source_date'] or '')),r['id']))
   counts=dict(Counter(r['status'] for r in items))
   pending=sum(counts.get(k,0) for k in ('REVIEW','HOLD','REGISTRATION_REQUIRED'))
@@ -76,7 +86,7 @@ def history(service, document_id):
   eid=entity_id(KIND,OWNER,document_id)
   return [dict(r.payload,revision_no=r.revision_no,recorded_at=r.recorded_at.isoformat()) for r in db.scalars(select(Revision).where(Revision.entity_id==eid).order_by(Revision.revision_no.desc()))]
 
-def save(service, document_id, source_revision_no, review_revision_no, status, policy_id, project_ids, new_project_names, actor, reason, source_checked):
+def save(service, document_id, source_revision_no, review_revision_no, status, policy_id, project_ids, new_project_names, actor, reason, source_checked, expected_projects=None):
  if status not in STATES:raise ValueError('지원하지 않는 검토 상태입니다')
  if not actor.strip() or len(reason.strip())<5:raise ValueError('담당자와 5자 이상의 판단 사유를 입력하세요')
  if len(project_ids)!=len(set(project_ids)):raise ValueError('중복 사업 선택을 제거하세요')
@@ -102,6 +112,9 @@ def save(service, document_id, source_revision_no, review_revision_no, status, p
   if doc.revision_no!=source_revision_no or (old.revision_no if old else 0)!=review_revision_no:return dict(conflict=True)
   selected=list(db.scalars(select(Revision).where(Revision.kind=='project',Revision.entity_id.in_(project_ids),Revision.superseded_at.is_(None)))) if project_ids else []
   if len(selected)!=len(project_ids):raise ValueError('선택한 사업이 변경되었거나 없습니다')
+  if expected_projects is not None:
+   selected=list(db.scalars(select(Revision).where(Revision.kind=='project',Revision.entity_id.in_(project_ids),Revision.superseded_at.is_(None)).with_for_update()))
+   if {r.entity_id:r.revision_no for r in selected}!=expected_projects:return dict(conflict=True)
   stamp=now().isoformat();payload=dict(document_id=document_id,source_id=doc.source_id,source_revision_no=doc.revision_no,
       title=doc.payload.get('name'),evidence_url=public_url(doc.payload.get('evidence_url')),status=status,policy_id=policy_id,
       project_ids=project_ids,project_names=[r.payload.get('name') for r in selected],new_project_names=names,

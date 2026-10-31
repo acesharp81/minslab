@@ -1,0 +1,242 @@
+[
+  {
+    "site": "kjon",
+    "viewport": 1440,
+    "width": 392,
+    "height": 75.875,
+    "rows": [
+      {
+        "name": "GPT-5.4 mini",
+        "value": "(일) 795만",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Dots3 Note",
+        "value": "(일) 876회",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "GPT-5.4",
+        "value": "(일) 6,790",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "6.1 Terra",
+        "value": "(월) $5.596",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Mistral",
+        "value": "(월) $7.60",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      }
+    ]
+  },
+  {
+    "site": "kjon",
+    "viewport": 1100,
+    "width": 343,
+    "height": 74,
+    "rows": [
+      {
+        "name": "GPT-5.4 mini",
+        "value": "(일) 795만",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Dots3 Note",
+        "value": "(일) 876회",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "GPT-5.4",
+        "value": "(일) 6,790",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "6.1 Terra",
+        "value": "(월) $5.596",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Mistral",
+        "value": "(월) $7.60",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      }
+    ]
+  },
+  {
+    "site": "kjon",
+    "viewport": 390,
+    "width": 358,
+    "height": 73.875,
+    "rows": [
+      {
+        "name": "GPT-5.4 mini",
+        "value": "(일) 795만",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Dots3 Note",
+        "value": "(일) 876회",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "GPT-5.4",
+        "value": "(일) 6,790",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "6.1 Terra",
+        "value": "(월) $5.596",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Mistral",
+        "value": "(월) $7.60",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      }
+    ]
+  },
+  {
+    "site": "kjon",
+    "viewport": 360,
+    "width": 328,
+    "height": 73.875,
+    "rows": [
+      {
+        "name": "GPT-5.4 mini",
+        "value": "(일) 795만",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Dots3 Note",
+        "value": "(일) 876회",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "GPT-5.4",
+        "value": "(일) 6,790",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "6.1 Terra",
+        "value": "(월) $5.596",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Mistral",
+        "value": "(월) $7.60",
+        "overlap": false,
+        "clipped": true,
+        "overflow": false,
+        "sameLine": true
+      }
+    ]
+  },
+  {
+    "site": "minslab",
+    "viewport": 1440,
+    "width": 392,
+    "height": 75.875,
+    "rows": [
+      {
+        "name": "GPT-5.4 mini",
+        "value": "(일) 795만",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Dots3 Note",
+        "value": "(일) 876회",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "GPT-5.4",
+        "value": "(일) 6,790",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "6.1 Terra",
+        "value": "(월) $5.596",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      },
+      {
+        "name": "Mistral",
+        "value": "(월) $7.60",
+        "overlap": false,
+        "clipped": false,
+        "overflow": false,
+        "sameLine": true
+      }
+    ]
+  }
+]

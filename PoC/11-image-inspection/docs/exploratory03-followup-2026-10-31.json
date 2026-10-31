@@ -1,0 +1,35 @@
+{
+  "job_id": "1f28a87482404e998d864c85ad56f6a0",
+  "source_run_id": "300fd8b8ad044533bf1c8ee2472ab2be",
+  "run_ids": [
+    "62a451ead25a42dbb8e28a40b3f5bf60",
+    "4fe7fa06b1464f25b309b61086fae2eb",
+    "10d2896077544941bbdd3db8b9c6fdd9"
+  ],
+  "usage_completed": {
+    "gpt-5.4": {
+      "calls": 4,
+      "input_tokens": 25813,
+      "output_tokens": 17005,
+      "cost_usd": 0.319607
+    },
+    "gpt-5.4-mini": {
+      "calls": 2,
+      "input_tokens": 63440,
+      "output_tokens": 4636,
+      "cost_usd": 0.068442
+    },
+    "gpt-6.1-sol": {
+      "calls": 1,
+      "input_tokens": 14771,
+      "output_tokens": 5446,
+      "cost_usd": 0.128306
+    }
+  },
+  "failed_unknown_usage_event": "poc11-46e3898ebdd04019b08933a069a92d83",
+  "automatic_detection_limit": "문맥 제거 후에도 버스 문구·지도 제목 획 결함을 CLEAR로 판독. 사용자 피드백 보완을 자동 검출 성공으로 계산하지 않음.",
+  "tests": {
+    "python": 101,
+    "javascript": 21
+  }
+}

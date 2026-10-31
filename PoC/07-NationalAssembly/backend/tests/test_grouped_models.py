@@ -79,3 +79,31 @@ def test_unconfigured_paid_credit_cannot_make_even_input_count_request(monkeypat
     post=Mock();monkeypatch.setattr('app.services.meeting_brief.requests.post',post)
     with pytest.raises(DailyTokenLimitReached):gm.quota_client(s,'paid')._post('p',{},'meeting_brief')
     post.assert_not_called()
+
+@pytest.mark.parametrize('when,start,end,amount',[
+ ('2026-10-31T23:59:59+09:00',None,'2026-11-01',8),
+ ('2026-11-01T00:00:00+09:00','2026-11-01','2026-12-01',100),
+ ('2026-12-31T23:59:59+09:00','2026-12-01','2027-01-01',100),
+ ('2027-01-01T00:00:00+09:00','2027-01-01','2027-02-01',100),
+ ('2028-02-29T23:59:59+09:00','2028-02-01','2028-03-01',100),
+ ('2028-03-01T00:00:00+09:00','2028-03-01','2028-04-01',100),
+])
+def test_calendar_month_preserves_initial_balance(when,start,end,amount):
+    s=config(openai_credit_month_start_renewal=True)
+    s.openai_credit_expires_at='2026-11-01T00:00:00+09:00'
+    period=gm.credit_period(s,datetime.fromisoformat(when))
+    assert period[0]==('initial:renew:'+start if start else 'initial')
+    assert period[1]==amount and period[2].startswith(end)
+
+
+def test_shared_card_uses_monthly_denominator_without_restoring_spent_balance(monkeypatch):
+    from app.services import shared_budget as b
+    s=config(openai_credit_month_start_renewal=True)
+    c=Mock();c.execute.return_value.fetchone.return_value=(1.8,0,.604)
+    monkeypatch.setattr(b,'credit_period',lambda _:('initial',8,'2026-11-01T00:00:00+09:00'))
+    monkeypatch.setattr(b.OpenAIGroupBudget,'today',lambda _:dict(total_tokens=0,reserved_tokens=0,unknown_tokens=0))
+    card=next(m for m in b.snapshot(c,s)['models'] if m['id']=='openai-shared')
+    assert card['limit']==100 and card['current_period_allowance']==8
+    assert card['opening_used']==92 and card['used']==93.8
+    assert card['remaining']==pytest.approx(5.596)
+    assert '매월 1일' in card['note']

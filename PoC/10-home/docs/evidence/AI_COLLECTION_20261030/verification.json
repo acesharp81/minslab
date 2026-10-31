@@ -1,0 +1,11 @@
+{
+  "candidate_image": "sha256:087d06beae8bc713ca1886ae89068b94a98dc7956fc741e748bf2021baeb6c6c",
+  "running_api_image": "sha256:3e5dc1f95552537c903d1b0cc5680f0468c10f38c169f1c9a6268534e6bf362f",
+  "production_deployed": false,
+  "home_regression_tests_passed": 88,
+  "proxy_tests_passed": 5,
+  "browser_checks_passed": true,
+  "live_model_requests": 3,
+  "estimated_list_cost_usd": 0.0101099,
+  "deployment_status": "AUTO_REVIEW_REJECTED_AWAITING_USER_APPROVAL"
+}

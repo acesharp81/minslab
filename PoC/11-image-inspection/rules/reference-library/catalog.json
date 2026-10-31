@@ -455,6 +455,77 @@
       ],
       "image": "korea-geography.jpg",
       "image_sha256": "99a16d95d04a3063b2459b42be6a0cf60b3603534750320667c5dea05942db55"
+    },
+    {
+      "key": "police-chest-badge",
+      "reference": {
+        "name": "경찰 가슴표장 — 겹친 두 원·태극무궁화",
+        "kind": "official-emblems",
+        "issuer": "경찰청 / 국가법령정보센터",
+        "official_url": "https://www.police.go.kr/www/agency/intro/intro0201.jsp",
+        "content": "대한민국 경찰 가슴표장 기준: 태양과 달을 뜻하는 두 원이 겹친 마패형 외곽, 앞 원의 중앙 태극과 주위 태극 5개가 이루는 무궁화, 뒤 원 상단의 경찰 및 POLICE 표기. 기관 CI/모자 참수리와 구분한다. 2001년 이전 흉장·다른 나라/기관·소매패치·지휘관표장에는 적용하지 않는다. 크기·가림 때문에 미세 문자를 읽지 못하는 것과 확인된 외곽/중앙 형태 차이를 구분한다. 작은 꽃모양을 무조건 외국 배지라고 단정하지 않는다. 실제 대상 시기/기관이 불명확하면 검토 필요.\n\n2차 검증 기록 (2026-10-31)\n경찰청 설명·원본 도안: 겹친 두 원, 중앙 태극무궁화, 경찰/POLICE 확인\n출처: https://www.police.go.kr/www/agency/intro/intro0201.jsp\nSHA-256: d6c0faa8cf030aeca913046050f141be4bf4be2fa9e806f45e159dc4d759e622\n경찰복제 규칙 별표 5의 가슴표장 구성·도안과 교차 대조\n출처: https://www.law.go.kr/flDownload.do?bylClsCd=110201&flSeq=112035361&gubun=\nSHA-256: 2a29b5b8a6a40571241b6ba85a0aadb63b08b997bf57d28ddad2637352a6ce2b",
+        "parent_ids": [
+          "H-07"
+        ],
+        "version": "verified-2026-10-31-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://www.police.go.kr/www/agency/intro/intro0201.jsp",
+          "file": "police-badge.html",
+          "sha256": "d6c0faa8cf030aeca913046050f141be4bf4be2fa9e806f45e159dc4d759e622",
+          "checked_on": "2026-10-31",
+          "method": "공식 원문 대조",
+          "result": "경찰청 설명·원본 도안: 겹친 두 원, 중앙 태극무궁화, 경찰/POLICE 확인"
+        },
+        {
+          "url": "https://www.law.go.kr/flDownload.do?bylClsCd=110201&flSeq=112035361&gubun=",
+          "file": "police-insignia-2021.pdf",
+          "sha256": "2a29b5b8a6a40571241b6ba85a0aadb63b08b997bf57d28ddad2637352a6ce2b",
+          "checked_on": "2026-10-31",
+          "method": "공식 원문 대조",
+          "result": "경찰복제 규칙 별표 5의 가슴표장 구성·도안과 교차 대조"
+        }
+      ],
+      "image": "police-chest-badge.png",
+      "image_sha256": "cddec0ec63151b135e1a2d379b0fd2f62ac1e4572473a79903628c11b71f268b"
+    },
+    {
+      "key": "korean-air-name",
+      "reference": {
+        "name": "대한항공 영문명 — KOREAN AIR·신형 KOREAN 표기",
+        "kind": "language",
+        "issuer": "대한항공 / 항공정보포털",
+        "official_url": "https://news.koreanair.com/대한항공-신규-ci-및-리버리-공개-태극마크-현대적-이/",
+        "content": "대한항공을 지칭하는 항공사명은 KOREAN AIR이다. KOREA AIR는 해당 공식 영문명과 다르다. 원문 판독은 교정하지 않고 별도로 대조한다. 일반 문장의 Korea air 또는 정체 불명 가상 항공사에 강제 적용하지 않는다. 2025년 새 항공기 리버리는 KOREAN 단독 표기도 사용하므로 AIR 생략 자체를 오류로 삼지 않는다. 구형 적청 태극 로고가 있다는 이유만으로 현행 CI 위반을 확정하지 않는다.\n\n2차 검증 기록 (2026-10-31)\nKorean Air 영문명 확인\n출처: https://news.koreanair.com/대한항공-신규-ci-및-리버리-공개-태극마크-현대적-이/\nSHA-256: fa62853f5217c09d4105a45393c0deddfa2eced76da164ec3c03e6e037668813\nKorean Air 영문명 확인\n출처: https://www.airportal.go.kr/airline/airCompanyInfo.do\nSHA-256: 0a3bf1aa35f88b4edc5e701952728beb69a0d03f9dd39a3a33dab0924332ca77",
+        "parent_ids": [
+          "H-06",
+          "D-02"
+        ],
+        "version": "verified-2026-10-31-v1",
+        "effective_from": "",
+        "effective_to": ""
+      },
+      "verifications": [
+        {
+          "url": "https://news.koreanair.com/대한항공-신규-ci-및-리버리-공개-태극마크-현대적-이/",
+          "file": "korean-air-source-1-web-note.txt",
+          "sha256": "fa62853f5217c09d4105a45393c0deddfa2eced76da164ec3c03e6e037668813",
+          "checked_on": "2026-10-31",
+          "method": "공식 영문명 교차 확인",
+          "result": "Korean Air 영문명 확인"
+        },
+        {
+          "url": "https://www.airportal.go.kr/airline/airCompanyInfo.do",
+          "file": "korean-air-source-2.html",
+          "sha256": "0a3bf1aa35f88b4edc5e701952728beb69a0d03f9dd39a3a33dab0924332ca77",
+          "checked_on": "2026-10-31",
+          "method": "공식 영문명 교차 확인",
+          "result": "Korean Air 영문명 확인"
+        }
+      ]
     }
   ]
 }

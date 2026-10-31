@@ -2,6 +2,8 @@ import base64
 import json
 import io
 import math
+import re
+import time
 from PIL import Image
 import uuid
 import httpx
@@ -57,6 +59,7 @@ class Provider:
             props=response_schema['$defs']['Recheck']['properties']
             props['object_id']['enum']=[t['object_id'] for t in data['tasks']]
             props['cell_ids']['items']['enum']=[f'R{r:02}C{c:02}' for r in range(1,9) for c in range(1,9)]
+            response_schema['$defs']['GlyphCheck']['properties']['cell_ids']['items']['enum']=props['cell_ids']['items']['enum']
             refids=[r['reference_id'] for r in data['reference_images']]
             if refids:response_schema['$defs']['Comparison']['properties']['reference_id']['enum']=refids
             else:props['comparisons']['maxItems']=0
@@ -81,7 +84,12 @@ class Provider:
         if text_workload:output=min(output,10000 if workload=='text-ocr-recheck' else 6000)
         detail=self.s.get('IMAGE_DETAIL','high')
         if text_workload:detail='original' if model in ('gpt-5.4','gpt-5.4-mini','gpt-6-astra','gpt-6.1-sol') else 'high'
+        if workload=='image-verification' and provider=='openai':detail='original'
         effort='high' if workload=='text-ocr-recheck' else 'low' if text_workload else self.s.get('REASONING_EFFORT','medium')
+        if workload=='text-ocr':
+            effort=self.s.get('OCR_REASONING_EFFORT','low')
+            if effort not in ('low','medium','high'):raise ProviderError('OCR 추론 강도 설정을 확인하십시오.')
+        if workload=='image-verification' and provider=='openai':effort=self.s.get('VERIFICATION_REASONING_EFFORT','medium')
         # Input size bound for budget admission; fixed image thumbnails are <=1536px.
         image_bound=len(images)*20000
         if text_workload:
@@ -136,13 +144,20 @@ class Provider:
                 url=gateway+'/api/v1/chat/completions'
                 headers={'X-Minslab-Meter-Token':self.s.get('USAGE_METER_TOKEN'),'X-Minslab-Project':'poc11-image-inspection',
                     'X-Minslab-Workload':workload,'X-Minslab-Priority':'30','X-Minslab-Data-Class':'user_consented_image','X-Idempotency-Key':eid}
+            started=time.monotonic()
             with httpx.Client(timeout=self.s.integer('API_TIMEOUT_SECONDS',120),follow_redirects=False) as client:
                 response=client.post(url,headers=headers,json=payload)
             event['http_status']=response.status_code
+            event['http_elapsed_ms']=round((time.monotonic()-started)*1000)
+            # Diagnostic IDs only, never response bodies, URLs, cookies or credentials.
+            for header,field in [('x-request-id','provider_request_id'),('cf-ray','provider_ray_id')]:
+                value=response.headers.get(header,'')
+                if re.fullmatch(r'[A-Za-z0-9_-]{1,128}',value):event[field]=value
             if response.status_code>=400:
                 # Definite rejected requests have no generation usage; timeouts/5xx remain unknown.
                 if response.status_code in (400,401,403,404,422,429):event['cost_usd']=0
-                raise ProviderError(f'공급자 HTTP {response.status_code} · 키/모델 접근권한/한도 확인 필요')
+                hint='공급자 서버 또는 중계 연결 오류' if response.status_code>=500 else '키/모델 접근권한/한도 확인 필요'
+                raise ProviderError(f'공급자 HTTP {response.status_code} · {hint}')
             body=response.json();it,ot,cost=token_cost(model,body.get('usage') or {})
             if provider=='openrouter':
                 choices=body.get('choices') or []
@@ -150,7 +165,10 @@ class Provider:
                 body={**body,'status':'completed' if choice.get('finish_reason')=='stop' else 'incomplete',
                     'output':[{'type':'message','content':[{'type':'output_text','text':choice.get('message',{}).get('content') or ''}]}]}
             event.update(input_tokens=it,output_tokens=ot,cost_usd=cost)
-            if body.get('status')!='completed':raise ProviderError('응답이 완료되지 않았습니다. 출력 한도 또는 공급자 상태를 확인하십시오.')
+            if body.get('status')!='completed':
+                exc=ProviderError('응답이 완료되지 않았습니다. 출력 한도 또는 공급자 상태를 확인하십시오.')
+                exc.output_truncated=ot>=output or body.get('incomplete_details',{}).get('reason')=='max_output_tokens' or (provider!='openai' and choice.get('finish_reason')=='length')
+                raise exc
             parts=[p for item in body.get('output',[]) if item.get('type')=='message' for p in item.get('content',[])]
             if any(p.get('type')=='refusal' for p in parts):raise ProviderError('모델이 검사를 거절했습니다.')
             text=''.join(p.get('text','') for p in parts if p.get('type')=='output_text')
@@ -174,5 +192,7 @@ class Provider:
             import sys
             exc=sys.exc_info()[1]
             if exc is not None:
-                exc.call_meta={'event_id':eid,'model':model,'workload':workload,'status':event['status'],'cost_usd':event['cost_usd'],'usage':{'input_tokens':event['input_tokens'],'output_tokens':event['output_tokens']},'usage_unknown':event['cost_usd'] is None}
+                exc.call_meta={'event_id':eid,'model':model,'workload':workload,'status':event['status'],'http_status':event['http_status'],'retryable':event['http_status'] in (500,502,503,504,520,521,522,523,524),'cost_usd':event['cost_usd'],'usage':{'input_tokens':event['input_tokens'],'output_tokens':event['output_tokens']},'usage_unknown':event['cost_usd'] is None}
+                if getattr(exc,'output_truncated',False):exc.call_meta['output_truncated']=True
+                exc.call_meta.update({k:event[k] for k in ('provider_request_id','provider_ray_id','http_elapsed_ms') if k in event})
             self.usage.record(event,reservation)

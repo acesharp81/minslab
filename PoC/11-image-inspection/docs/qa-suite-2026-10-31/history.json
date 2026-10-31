@@ -1,0 +1,86 @@
+[
+  {
+    "id": "4f3fd3746a71564b8d77e3f659b32ea1",
+    "image": "QA_01_flag_symbols.png",
+    "runs": 1,
+    "skipped": false
+  },
+  {
+    "id": "fd87c1b7962855d8b0d274076118f4c5",
+    "image": "QA_02_hands.png",
+    "runs": 7,
+    "skipped": false
+  },
+  {
+    "id": "c2bdf3ca66cb5d04a7b6951cac253dae",
+    "image": "QA_03_ocr_readability.png",
+    "runs": 10,
+    "skipped": false
+  },
+  {
+    "id": "7db555611a7657b983d1505da877b2f1",
+    "image": "QA_04_map_place.png",
+    "runs": 1,
+    "skipped": false
+  },
+  {
+    "id": "5ca25173c0375e5c8a1b938c51801e4a",
+    "image": "QA_05_chart_numbers.png",
+    "runs": 1,
+    "skipped": false
+  },
+  {
+    "id": "6a78d8ada3f35951ae068ff53f8303a0",
+    "image": "QA_06_privacy_signs.png",
+    "runs": 1,
+    "skipped": false
+  },
+  {
+    "id": "669c13189e175549b49155338913cd4a",
+    "image": "QA_07_culture_food.png",
+    "runs": 5,
+    "skipped": false
+  },
+  {
+    "id": "0131feac05915ce09e2d4d6344a15991",
+    "image": "QA_08_all_pass.png",
+    "runs": 4,
+    "skipped": false
+  },
+  {
+    "id": "dae5a0ed1da656f4b5b91c9dff8c8756",
+    "image": "QA_09_history.png",
+    "runs": 1,
+    "skipped": false
+  },
+  {
+    "id": "5383a27877085a62b3ac4e6ae3591968",
+    "image": "QA_10_emblem.png",
+    "runs": 5,
+    "skipped": false
+  },
+  {
+    "id": "9b1df2192b73575ca8d7ab8297ae8e5b",
+    "image": "QA_11_inclusive_positive.png",
+    "runs": 1,
+    "skipped": false
+  },
+  {
+    "id": "e62456e930a25a26987b6ed11e2b7208",
+    "image": "QA_12_animal_disaster_positive.png",
+    "runs": 1,
+    "skipped": false
+  },
+  {
+    "id": "a5460463025f55409225eae1372bed29",
+    "image": "QA_13_neutral_communications.png",
+    "runs": 1,
+    "skipped": false
+  },
+  {
+    "id": "f5dd05e491d15480b625d13011daebaf",
+    "image": "QA_14_reference_evidence.png",
+    "runs": 1,
+    "skipped": false
+  }
+]

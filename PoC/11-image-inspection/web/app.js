@@ -1,3 +1,84 @@
+/* Image, SVG and pins share one transform. Pins counter-scale to stay legible. */
+function zoomAt(view, scale, point, center) {
+  const next = Math.max(.5, Math.min(8, scale));
+  const ratio = next / view.scale;
+  return {scale: next, x: view.x + (point.x - center.x) * (1 - ratio), y: view.y + (point.y - center.y) * (1 - ratio)};
+}
+
+class ImageViewport {
+  constructor(stage, wrap, image) {
+    this.stage = stage; this.wrap = wrap; this.image = image;
+    this.view = {scale: 1, x: 0, y: 0}; this.ignoreClickUntil = 0;
+    const controls = document.createElement('div'); controls.className = 'image-zoom-controls';
+    controls.setAttribute('role', 'group'); controls.setAttribute('aria-label', '이미지 확대 축소');
+    controls.innerHTML = '<button type="button" data-zoom="out" aria-label="이미지 축소" title="축소">−</button><button type="button" data-zoom="reset" aria-label="이미지 화면 맞춤" title="화면 맞춤">100%</button><button type="button" data-zoom="in" aria-label="이미지 확대" title="확대">+</button>';
+    stage.append(controls); this.controls = controls;
+    controls.addEventListener('click', event => {
+      const action = event.target.closest('[data-zoom]')?.dataset.zoom;
+      if (action === 'reset') this.reset();
+      else if (action) this.zoom(this.view.scale * (action === 'in' ? 1.25 : .8));
+    });
+    stage.addEventListener('wheel', event => {
+      if (!this.ready() || event.ctrlKey || event.metaKey || !event.deltaY) return;
+      event.preventDefault();
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? stage.clientHeight : 1);
+      this.zoom(this.view.scale * Math.exp(-Math.max(-120, Math.min(120, delta)) * .002), {x: event.clientX, y: event.clientY});
+    }, {passive: false});
+    stage.addEventListener('pointerdown', event => {
+      if (!this.ready() || this.view.scale <= 1 || event.button !== 0 || event.target.closest('button')) return;
+      this.drag = {id: event.pointerId, x: event.clientX, y: event.clientY, start: {...this.view}, moved: false};
+    });
+    stage.addEventListener('pointermove', event => {
+      const drag = this.drag; if (!drag || drag.id !== event.pointerId) return;
+      const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < 5) return;
+      drag.moved = true; stage.setPointerCapture(event.pointerId);
+      this.view = {...drag.start, x: drag.start.x + dx, y: drag.start.y + dy}; this.apply();
+      event.preventDefault();
+    });
+    const stop = event => {
+      if (!this.drag || this.drag.id !== event.pointerId) return;
+      if (this.drag.moved) this.ignoreClickUntil = performance.now() + 250;
+      this.drag = null;
+      if (stage.hasPointerCapture(event.pointerId)) stage.releasePointerCapture(event.pointerId);
+    };
+    stage.addEventListener('pointerup', stop); stage.addEventListener('pointercancel', stop);
+    stage.addEventListener('lostpointercapture', stop);
+    stage.addEventListener('click', event => {
+      if (performance.now() < this.ignoreClickUntil && !event.target.closest('.image-zoom-controls')) {event.preventDefault(); event.stopPropagation();}
+    }, true);
+    image.draggable = false;
+    new ResizeObserver(() => this.apply()).observe(stage);
+    this.apply();
+  }
+  ready() { return !this.image.hidden && this.image.naturalWidth > 0; }
+  reset() { this.view = {scale: 1, x: 0, y: 0}; this.apply(); }
+  zoom(scale, point) {
+    if (!this.ready()) return;
+    const box = this.wrap.getBoundingClientRect(), viewport = this.stage.getBoundingClientRect();
+    const center = {x: box.left + box.width / 2, y: box.top + box.height / 2};
+    this.view = zoomAt(this.view, scale, point || {x: viewport.left + viewport.width / 2, y: viewport.top + viewport.height / 2}, center);
+    this.apply();
+  }
+  apply() {
+    const pad = getComputedStyle(this.stage);
+    const width = this.stage.clientWidth - parseFloat(pad.paddingLeft) - parseFloat(pad.paddingRight);
+    const height = this.stage.clientHeight - parseFloat(pad.paddingTop) - parseFloat(pad.paddingBottom);
+    const maxX = Math.max(0, (this.wrap.offsetWidth * this.view.scale - width) / 2);
+    const maxY = Math.max(0, (this.wrap.offsetHeight * this.view.scale - height) / 2);
+    this.view.x = Math.max(-maxX, Math.min(maxX, this.view.x));
+    this.view.y = Math.max(-maxY, Math.min(maxY, this.view.y));
+    this.wrap.style.transform = `translate(${this.view.x}px, ${this.view.y}px) scale(${this.view.scale})`;
+    this.wrap.style.setProperty('--pin-scale', 1 / this.view.scale);
+    this.stage.classList.toggle('image-can-pan', this.view.scale > 1);
+    const reset = this.controls.querySelector('[data-zoom="reset"]');
+    reset.textContent = Math.round(this.view.scale * 100) + '%';
+    reset.setAttribute('aria-label', `현재 ${Math.round(this.view.scale * 100)}%, 누르면 화면 맞춤`);
+    this.controls.querySelector('[data-zoom="out"]').disabled = !this.ready() || this.view.scale <= .5;
+    this.controls.querySelector('[data-zoom="in"]').disabled = !this.ready() || this.view.scale >= 8;
+  }
+}
+
 'use strict';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const BASE=location.pathname.startsWith('/poc/image-inspection')?'/poc/image-inspection':'';
@@ -10,20 +91,35 @@ async function api(path,opts={}){const r=await fetch(BASE+'/api'+path,{...opts,h
 const post=(path,data={})=>api(path,{method:'POST',body:JSON.stringify(data)});
 const guard=fn=>async e=>{try{await fn(e)}catch(err){toast(err.message)}};
 function tab(name){$$('.tab').forEach(x=>x.classList.toggle('active',x.id===name));$$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.tab===name))}
-async function refreshConfig(){config=await api('/config');$('#rules-nav').hidden=config.role!=='admin';if(config.role!=='admin'&&$('#rules-admin').classList.contains('active'))tab('workspace');$('#login-button').textContent=config.role?`${config.role==='admin'?'관리자':'검토자'} · 로그아웃`:'로그인';$('#key-status').textContent=`OpenAI ${config.openai_configured?'연결 설정됨':'키 미설정'} · Solar ${config.upstage_configured?'연결 설정됨':'키 미설정'} · OpenRouter ${config.openrouter_configured?'연결 설정됨':'키 미설정'} · 규칙 ${config.rule_pack_version}`;void refreshRemaining()}
+function requireAnalysisPermission(){
+ if(config.role!=='admin')throw Error('분석 실행은 관리자만 가능합니다. 검토자는 기존 결과를 확인하고 검토 의견을 기록할 수 있습니다.');
+}
+function applyExecutionPermissions(){
+ const allowed=config.role==='admin';
+ document.body.classList.toggle('can-run-analysis',allowed);
+ for(const id of ['vision-model','analysis-model','text-sensitivity'])$('#'+id).disabled=!allowed;
+ $('#reviewer-permission-note').hidden=config.role!=='reviewer';
+ $('#empty-state p').textContent=config.role==='reviewer'?'검수 이력에서 결과를 열어 검토해 주세요.':'이미지를 첨부한 후 그림 + 분석 실행을 눌러주세요.';
+}
+async function refreshConfig(){config=await api('/config');applyExecutionPermissions();$('#rules-nav').hidden=config.role!=='admin';if(config.role!=='admin'&&$('#rules-admin').classList.contains('active'))tab('workspace');$('#login-button').textContent=config.role?`${config.role==='admin'?'관리자':'검토자'} · 로그아웃`:'로그인';$('#key-status').textContent=`OpenAI ${config.openai_configured?'연결 설정됨':'키 미설정'} · Solar ${config.upstage_configured?'연결 설정됨':'키 미설정'} · OpenRouter ${config.openrouter_configured?'연결 설정됨':'키 미설정'} · 규칙 ${config.rule_pack_version}`;void refreshRemaining()}
 let remainingLoading=false;
 function renderRemaining(payload, fallback='잔여량 미확인'){
  const models=payload?.models||[{id:'gpt-5.4',label:'GPT 5.4'},{id:'gpt-5.4-mini',label:'GPT 5.4 mini'},{id:'openai-shared',label:'GPT 6.0·6.1'},{id:'solar-pro4',label:'Solar Pro 4'},{id:'openrouter-free',label:'Nemotron 3.5 Super VL'}];
- $('#model-remaining').innerHTML=models.map(m=>{
+ const rendered=new Map(models.map(m=>{
+  if(m.status==='UNLIMITED')return [m.id,`<button type="button" class="model-quota" data-tab="usage" data-quota-model="${esc(m.id)}"><span class="quota-name">Solar 4</span><b>무제한</b><small>사용 ${Number((m.input_tokens||0)+(m.output_tokens||0)).toLocaleString()} 토큰</small><small>유료 단가 환산 $${Number(m.used||0).toFixed(4)} · 실제 청구액 아님</small><small>PoC7·10·11 사용량 기록</small></button>`];
   const known=m.remaining!=null&&m.limit!=null&&Number.isFinite(Number(m.remaining))&&Number.isFinite(Number(m.limit))&&Number(m.limit)>0;
   const left=known?Math.max(0,Number(m.remaining)):null,percent=known?Math.min(100,left/Number(m.limit)*100):null;
   const requests=m.unit==='requests',tokens=m.unit==='tokens';
-  const value=known?(left===0?'소진':tokens?`${left.toLocaleString()} 토큰`:requests?`${left.toLocaleString()}회`:`$${left.toFixed(3)}`):(m.display||fallback);
+  const value=known?(left===0?'소진':tokens?(left>=10000?(Math.floor(left/1000)/10).toLocaleString()+'만':left.toLocaleString()):requests?`${left.toLocaleString()}회`:`$${left.toFixed(2)}`):(m.display||fallback);
   const note=m.note||fallback;
-  const expiry=m.expires_at?' · 기간 종료 '+new Date(m.expires_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'';
-  const title=known?`${m.label}: ${value} / ${tokens?Number(m.limit).toLocaleString()+' 토큰':requests?m.limit+'회':'$'+Number(m.limit).toFixed(2)} 남음. ${note}${expiry}`:`${m.label}: ${note}`;
-  return `<button type="button" class="model-quota ${known&&percent<10?'is-low':''}" data-tab="usage" data-quota-model="${esc(m.id)}" title="${esc(title)}" aria-label="${esc(title)}"><span class="quota-name">${esc(m.label)}</span><b>${esc(value)}</b><span class="quota-percent">${known?percent.toFixed(1)+'%':'—'}</span><span class="quota-meter ${known?'':'is-unknown'}" role="${known?'progressbar':'img'}" aria-label="${esc(m.label)} 잔여 예산${known?'':' 미확인'}" ${known?`aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(percent)}"`:''}><i style="width:${known?percent:0}%"></i></span><small>${known?(tokens?`일 ${Number(m.limit).toLocaleString()} 토큰 · PoC7 공용`:requests?(m.id==='naver-ocr'?`월 ${m.limit}회 · 앱 한도`:m.scope==='POC7_SHARED_OPENROUTER_REQUESTS'?`PoC7 공용 · 공식 잔여 ${m.official_remaining}회`:`일 ${m.limit}회 · 계정 공용`):`월 $${Number(m.limit).toFixed(0)} · PoC7 공용`):(m.id==='solar-pro4'&&payload?'사용량만 집계':'공용 예산 확인 필요')}</small></button>`;
- }).join('');
+  const expiry=m.expires_at?(m.id==='openai-shared'?' · 갱신 ':' · 기간 종료 ')+new Date(m.expires_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}):'';
+  const title=known?`${m.label}: ${tokens?left.toLocaleString()+' 토큰':requests?left.toLocaleString()+'회':'$'+left.toFixed(3)} / ${tokens?Number(m.limit).toLocaleString()+' 토큰':requests?m.limit+'회':'$'+Number(m.limit).toFixed(2)} 남음. ${note}${expiry}`:`${m.label}: ${note}`;
+  const shortName=({'gpt-5.4-mini':'5.4 mini','gpt-5.4':'5.4','openai-shared':'6계열','solar-pro4':'Solar 4','openrouter-free':'Nemotron','naver-ocr':'CLOVA'})[m.id]||m.label;
+  const period=tokens||m.id==='openrouter-free'?'일':m.id==='solar-pro4'?'누적':['naver-ocr','openai-shared'].includes(m.id)?'월':'주기';
+  return [m.id,`<button type="button" class="model-quota ${known&&percent<10?'is-low':''}" data-tab="usage" data-quota-model="${esc(m.id)}" title="${esc(title)}" aria-label="${esc(title)}"><span class="quota-name">${esc(shortName)}</span><b>${known?'('+period+') ':''}${esc(value)}</b><span class="quota-percent">${known?percent.toFixed(1)+'%':'—'}</span><span class="quota-meter ${known?'':'is-unknown'}" role="${known?'progressbar':'img'}" aria-label="${esc(m.label)} 잔여 예산${known?'':' 미확인'}" ${known?`aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.floor(percent)}"`:''}><i style="width:${known?percent:0}%"></i></span><small>${known?(tokens?`일 ${Number(m.limit).toLocaleString()} 토큰 · 공용 · 09시 초기화`:requests?(m.id==='naver-ocr'?`월 ${m.limit}회 · 앱 한도`:m.scope==='POC7_SHARED_OPENROUTER_REQUESTS'?`PoC7 공용 · 공식 잔여 ${m.official_remaining}회`:`일 ${m.limit}회 · 계정 공용`):`${m.id==='solar-pro4'?'누적':'월'} $${Number(m.limit).toFixed(0)} · PoC7·10·11 공용`):'공용 예산 확인 필요'}</small>${m.expires_at?`<small class="quota-reset">${esc(new Date(m.expires_at).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'}))} ${tokens?'초기화':m.id==='openai-shared'?'갱신':'기간 종료'}</small>`:m.id==='solar-pro4'?'<small class="quota-reset">누적 한도 · 자동 초기화 없음</small>':''}</button>`];
+ }));
+ const groups=[['OpenAI · 일일',['gpt-5.4-mini','gpt-5.4']],['공용 크레딧',['openai-shared','solar-pro4']],['기타 · 요청량',['openrouter-free','naver-ocr']]];
+ $('#model-remaining').innerHTML=groups.map(([name,ids])=>`<section class="quota-compact-group"><h3>${esc(name)}</h3>${ids.map(id=>rendered.get(id)||'').join('')}</section>`).join('');
  $('#remaining-updated').textContent=payload?.checked_at?new Date(payload.checked_at).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'})+' 확인 · 30초 갱신':fallback;
 }
 async function refreshRemaining(){
@@ -72,6 +168,13 @@ function evidenceAnchor(rects){
  const mean=[0,1].map(i=>centers.reduce((n,c)=>n+c[i],0)/centers.length);
  return centers.reduce((best,c)=>Math.hypot(c[0]-mean[0],c[1]-mean[1])<Math.hypot(best[0]-mean[0],best[1]-mean[1])?c:best);
 }
+function isVisualReview(row,run){
+ const basis=row.review_basis;
+ const objects=(run?.analysis_observation||run?.observation)?.objects||[];
+ const text=objects.some(o=>row.evidence_ids?.includes(o.id)&&(!!o.text||['CLEAR','DEGRADED','UNREADABLE'].includes(o.text_legibility)||(o.text_legibility!=='NOT_TEXT'&&/문구|문자|텍스트|표지|안내판|간판/.test(o.label||''))));
+ if(basis&&basis!=='UNASSESSED')return ['OBSERVED_ANOMALY','CONTEXT_CONFLICT'].includes(basis)||(basis==='READING_LIMIT'&&text&&['OCR_UNREADABLE','OCR_MISMATCH'].includes(row.error_type));
+ return !!row.visual_issue||(text&&['TYPO_CONFIRMED','VISUAL_TEXT_DEFECT','OCR_UNREADABLE','OCR_MISMATCH'].includes(row.error_type))||(run?.verification?.results||[]).some(v=>row.evidence_ids?.includes(v.object_id)&&v.comparisons?.some(c=>c.rule_ids.includes(row.rule_id)&&['UNCERTAIN','MISMATCH'].includes(c.status)));
+}
 function issueGroups(){
  const groups=new Map(),run=activeRun(),objects=new Map(((run?.analysis_observation||run?.observation)?.objects||[]).map(o=>[o.id,o]));
  const structuralRows=findings().filter(r=>['H-04-h','H-04-i','H-04-m'].includes(r.rule_id)&&r.id&&!['NOT_RUN','ERROR','NOT_APPLICABLE'].includes(effective(r)));
@@ -79,7 +182,7 @@ function issueGroups(){
  for(const r of findings()){
   if(structuralFlags.some(f=>flagObjectRows(f,findings().filter(r=>r.id&&!['NOT_RUN','ERROR','NOT_APPLICABLE'].includes(effective(r))),run).includes(r)))continue;
   const status=effective(r);if(['NOT_APPLICABLE','NOT_RUN'].includes(status)||(status==='PASS'&&!$('#pass-toggle').checked&&r.id!==selected))continue;
-  const visualReview=r.visual_issue||(['TYPO_CONFIRMED','VISUAL_TEXT_DEFECT','OCR_UNREADABLE','OCR_MISMATCH'].includes(r.error_type)&&r.evidence_ids?.length)||(run?.verification?.results||[]).some(v=>r.evidence_ids?.includes(v.object_id)&&v.comparisons?.some(c=>c.rule_ids.includes(r.rule_id)&&['UNCERTAIN','MISMATCH'].includes(c.status)));
+  const visualReview=isVisualReview(r,run);
   const document=(status==='REVIEW'&&!visualReview)||r.document_review||!r.rects?.length||r.reason.includes('승인된 기준자료 미확보')||r.parent_id==='D-03';
   const ids=document?['document:'+r.parent_id+':'+status]:(r.evidence_ids?.length&&activeRun()?.scope!=='CROP'?r.evidence_ids:['legacy:'+r.rects.map(a=>a.join(',')).sort().join('|')]);
   for(const id of ids){
@@ -98,7 +201,7 @@ function issueGroups(){
   g.locationAmbiguous=!g.technical&&g.locationRegions.length>1;
   if(!g.locationAmbiguous)g.anchor=evidenceAnchor(g.rects);
  }
- const box=$('#image-wrap').getBoundingClientRect(),w=box.width||500,h=box.height||600;
+ const wrap=$('#image-wrap'),box=wrap.getBoundingClientRect(),w=wrap.clientWidth||box.width||500,h=wrap.clientHeight||box.height||600;
  // Cluster nearby markers into one selectable group instead of shifting them away from evidence.
  let merged=true;while(merged){merged=false;outer:for(let i=0;i<rows.length;i++)for(let j=i+1;j<rows.length;j++){
   const a=rows[i],b=rows[j];if(!a.anchor||!b.anchor||a.technical||b.technical)continue;
@@ -177,8 +280,10 @@ $('#area-dialog').addEventListener('click',e=>{if(e.target!==e.currentTarget)ret
 
 function renderTokens(){
  const run=activeRun(),totals=new Map();
- for(const call of run?.calls||[]){const model=call.model||'알 수 없음',r=totals.get(model)||{input:0,output:0,calls:0,unknown:0};r.input+=call.usage?.input_tokens||0;r.output+=call.usage?.output_tokens||0;r.calls++;if(call.usage_unknown)r.unknown++;totals.set(model,r)}
- $('#run-tokens').innerHTML=run?`<strong>이번 검사 모델별 사용량</strong>${run.observation_reused_from?'<span class="badge">이미지 읽기 재사용 · 이미지 호출 0회</span>':''}<div class="token-rows">${[...totals].map(([m,r])=>`<span><b>${esc(m)}</b> 입력 ${r.input.toLocaleString()} · 출력 ${r.output.toLocaleString()} · 합계 ${(r.input+r.output).toLocaleString()} 토큰 / ${r.calls}회${r.unknown?' · 미확정 '+r.unknown+'회':''}</span>`).join('')||'<span>아직 완료된 API 호출이 없습니다.</span>'}</div><small>호출 응답을 받은 뒤 갱신됩니다. 생성 중 토큰은 공급자 응답 전까지 미확정입니다.</small>`:'';
+ for(const call of run?.calls||[]){const model=call.model||'알 수 없음',r=totals.get(model)||{input:0,output:0,calls:0,unknown:0,unit:call.unit};r.input+=call.usage?.input_tokens||0;r.output+=call.usage?.output_tokens||0;r.calls++;if(call.usage_unknown)r.unknown++;totals.set(model,r)}
+ $('#run-tokens').innerHTML=run?`<strong>이번 검사 모델별 사용량</strong>${run.observation_reused_from?`<span class="badge">${run.options.recheck_object_ids?.length?'전체 이미지 관찰 재사용 · 선택 영역 새로 판독':'이미지 읽기 재사용 · 이미지 호출 0회'}</span>`:''}<div class="token-rows">${[...totals].map(([m,r])=>`<span><b>${esc(m)}</b> ${r.unit==='api_call'?`API ${r.calls}회`:`입력 ${r.input.toLocaleString()} · 출력 ${r.output.toLocaleString()} · 합계 ${(r.input+r.output).toLocaleString()} 토큰 / ${r.calls}회`}${r.unknown?' · 미확정 '+r.unknown+'회':''}</span>`).join('')||'<span>아직 완료된 API 호출이 없습니다.</span>'}</div><small>호출 응답을 받은 뒤 갱신됩니다. 생성 중 토큰은 공급자 응답 전까지 미확정입니다.</small>`:'';
+ if(run?.local_revision)$('#run-tokens').innerHTML+=`<p>${esc(run.local_revision.note)}</p>`;
+ if(run?.evidence_revision)$('#run-tokens').innerHTML+=`<p>${esc(run.evidence_revision.note)}</p>`;
  const observation=run?.observation;
  const cv=run?.text_coverage,v=run?.verification;
  if(cv)$('#run-tokens').innerHTML+=`<p>탐지 문자 ${cv.detected_text_regions} · 전사 ${cv.transcribed_regions} · 판독 어려움 ${cv.unreadable_regions} · 재검사 ${cv.rechecked_text_regions} · 판독 차이 ${cv.ocr_disagreement_regions}</p><small>${esc(cv.note)}</small>`;
@@ -188,16 +293,50 @@ function renderTokens(){
  $('#observation-summary').hidden=!observation;
  if(observation)$('#observation-summary').innerHTML=`<summary>저장된 이미지 인식 · ${esc(run.observation_model||run.options.vision_model)} · ${observation.objects.length}개 객체</summary><p>${esc(observation.summary)}</p><p>${esc(observation.context)}</p><p>${esc(observation.limitations)}</p>${observation.location_warnings?.length?`<p>위치 정보 ${observation.location_warnings.length}개 객체 확인 필요: 범위를 벗어난 셀만 제외하고 관찰 내용은 분석에 사용했습니다.</p>`:''}`;
 }
+function reusableObservation(run){return run?.options?.mode==='live'&&run.scope!=='CROP'&&(Array.isArray(run.observation?.objects)||(run.results||[]).some(r=>!['ERROR','NOT_RUN','NOT_APPLICABLE'].includes(r.status)&&r.observation&&!['none','mock-fixture'].includes(r.model)))}
+function inspectionFailure(run){
+ if(!run)return null;
+ const errors=(run.analysis||[]).filter(x=>x.error);
+ const failed=[...(run.calls||[])].reverse().find(c=>c.status==='FAILED');
+ if(!errors.length&&!run.stopped_reason)return null;
+ const phase=run.failed_phase||errors.at(-1)?.phase||(!run.observation&&failed?.workload==='image-observation'?'READING':'ANALYZING');
+ const reading=phase==='READING',workloads=({READING:['image-observation'],VERIFYING:['image-verification'],TEXT_OCR:['text-ocr','text-ocr-recheck'],ANALYZING:['checklist-analysis']})[phase]||[];
+ const failedHere=[...(run.calls||[])].reverse().find(c=>c.status==='FAILED'&&workloads.includes(c.workload));
+ return {reading,model:failedHere?.model||(reading?run.options.vision_model:errors.at(-1)?.model)||run.options.analysis_model,
+  stage:({READING:'그림 읽기',VERIFYING:'확대 판독',TEXT_OCR:'문자 품질 검사',ANALYZING:'규칙 분석'})[phase]||'검사',
+  reason:run.stopped_reason||errors.map(x=>x.error).join(' / ')};
+}
+function renderFailure(running){
+ let banner=$('#inspection-failure');
+ if(!banner){banner=document.createElement('section');banner.id='inspection-failure';banner.className='inspection-failure';banner.setAttribute('role','alert');$('#progress-panel').before(banner)}
+ const run=activeRun(),failure=inspectionFailure(run);banner.hidden=running||!failure;
+ if(banner.hidden){banner.replaceChildren();return}
+ const previous=[...job.runs].reverse().find(r=>r.id!==run.id&&reusableObservation(r));
+ banner.innerHTML=`<strong>${esc(failure.stage)} 실패 · ${esc(failure.model||'')}</strong><p>${failure.reading?'이미지 판독 결과를 받지 못해 분석 모델은 실행되지 않았습니다. 발견 0건이나 정상 판정이 아닙니다.':'검사가 끝나지 않았습니다. 완료된 결과만 표시하며, 미완료 항목은 정상 판정이 아닙니다.'}</p><p class="micro">${esc(failure.reason)}</p><div class="row"><button class="secondary" id="retry-failed-inspection">같은 모델로 그림 + 분석 재시도</button>${previous?`<button class="quiet" data-source-run="${esc(previous.id)}">이전 ${esc(previous.observation_model||previous.options.vision_model)} 판독으로 재분석</button>`:''}</div>${previous?`<p class="micro">이전 판독: ${esc(new Date(previous.created_at).toLocaleString('ko-KR'))} · ${previous.observation?.objects?previous.observation.objects.length+'개 관찰':'이전 관찰 기록'}. 이전 기록을 재사용하며, 이번에 선택한 모델로 이미지를 새로 읽지 않습니다.</p>`:''}`;
+ $('#retry-failed-inspection').onclick=guard(async()=>{$('#vision-model').value=run.options.vision_model;$('#analysis-model').value=run.options.analysis_model;$('#text-sensitivity').value=run.options.text_sensitivity||'strict';await startRun([],null,true)});
+}
+function runModelSummary(run){
+ if(!run)return '';
+ const names={'gpt-5.4':'GPT-5.4','gpt-5.4-mini':'GPT-5.4 mini','gpt-6.1-sol':'GPT-6.1 Sol','gpt-6-astra':'GPT-6 Astra','solar-pro4':'Solar Pro 4','nvidia/nemotron-3.5-super-vl:free':'Nemotron 3.5 Super VL'};
+ const label=m=>names[m]||m||'확인 불가';
+ if(run.options?.mode==='mock')return '샘플 시연 · 실제 모델 호출 없음';
+ const calls=run.calls||[],read=run.observation_model||calls.find(c=>c.workload==='image-observation'&&c.status!=='FAILED')?.model;
+ const analyses=[...new Set((run.results||[]).filter(r=>!['ERROR','NOT_RUN'].includes(r.status)&&r.model&&!r.model.startsWith('system/')).map(r=>r.model))];
+ if(!analyses.length)for(const c of calls)if(c.workload==='checklist-analysis'&&c.status!=='FAILED'&&!analyses.includes(c.model))analyses.push(c.model);
+ return `그림 읽기: ${read?label(read)+(run.observation_reused_from?' (재사용)':''):'미완료'} · 분석: ${analyses.length?analyses.map(label).join(', '):'미실행'}`;
+}
 function renderJob(){
  $('#work-area').hidden=false;$('#empty-state').hidden=true;$('#job-title').textContent=job.metadata.title;$('#demo-badge').hidden=activeRun()?.options.mode!=='mock';$('#preview-empty').hidden=true;$('#drop-zone').hidden=true;$('.image-stage').hidden=false;$('#inspection-image').hidden=false;$('#image-click-hint').hidden=!activeRun();
  const running=['RUNNING','QUEUED'].includes(job.state);const run=activeRun();
+ let models=$('#job-models');if(!models){models=document.createElement('span');models.id='job-models';models.className='micro';$('#job-state').after(models)}
+ models.textContent=running?'':runModelSummary(run);models.hidden=running||!run;
  $('#job-state').textContent=({READY:'검사 준비',RUNNING:'분석 중',QUEUED:'대기 중',COMPLETED:'검사 종료',COMPLETED_WITH_ERRORS:'오류 확인 필요',INTERRUPTED:'중단됨'})[job.state]||job.state;
- $('#run').disabled=running||submitting;$('#text-sensitivity').disabled=running;$('#file').disabled=running;$('#rerun').disabled=running;$('#reanalyze').disabled=running||!run||run.options.mode!=='live'||run.scope==='CROP';$('#progress-panel').hidden=!running;$('#scanner').hidden=!running;
- if(run){$('#scanner span').textContent=run.phase==='STRUCTURE'?'원본 획 구조 비교 중':run.phase==='TEXT_OCR'?'문자 탐지 · 독립 OCR · 원본 획 비교 중':run.phase==='VERIFYING'?'확대 판독 · 공식 도안 비교 중':run.phase==='ANALYZING'?'저장된 관찰로 규칙 분석 중':'이미지 읽는 중';const errors=run.analysis.filter(x=>x.error);$('#notice').textContent=errors.length?'2차 분석 중 오류가 발생했습니다: '+errors.map(x=>x.error).join(' / '):'자동 검수는 최종 공개 승인이 아닙니다. 오류 의심·검토 필요 항목은 담당자가 근거를 확인하세요.';$('#progress-text').textContent=run.phase==='READING'?'1 / 3 · 전체 이미지 관찰 중':run.phase==='TEXT_OCR'?'2 / 3 · 문자 탐지·원본 획 독립 검사':run.phase==='VERIFYING'?'2 / 3 · 필요한 영역 묶음 재검사':`3 / 3 · 저장된 관찰로 규칙 분석 ${run.progress} / ${run.total}`;
+ $('#run').disabled=running||submitting;$('#text-sensitivity').disabled=running||config.role!=='admin';$('#file').disabled=running;$('#rerun').disabled=running;$('#reanalyze').disabled=running||!reusableObservation(run);$('#progress-panel').hidden=!running;$('#scanner').hidden=!running;
+ if(run){$('#scanner span').textContent=run.phase==='STRUCTURE'?'원본 획 구조 비교 중':run.phase==='TEXT_OCR'?'문자 탐지 · 독립 OCR · 원본 획 비교 중':run.phase==='VERIFYING'?'확대 판독 · 공식 도안 비교 중':run.phase==='ANALYZING'?'저장된 관찰로 규칙 분석 중':'이미지 읽는 중';const failure=inspectionFailure(run);$('#notice').textContent=failure?failure.stage+' 중 오류가 발생했습니다: '+failure.reason:'자동 검수는 최종 공개 승인이 아닙니다. 오류 의심·검토 필요 항목은 담당자가 근거를 확인하세요.';$('#progress-text').textContent=run.phase==='READING'?(run.reading_retry?'1 / 3 · 공급자 오류 후 그림 읽기 1회 재시도 중':'1 / 3 · 전체 이미지 관찰 중'):run.phase==='TEXT_OCR'?'2 / 3 · 문자 탐지·원본 획 독립 검사':run.phase==='VERIFYING'?'2 / 3 · 필요한 영역 묶음 재검사':`3 / 3 · 저장된 관찰로 규칙 분석 ${run.progress} / ${run.total}`;
  $('#progress-bar').style.width=(run.total?run.progress/run.total*100:0)+'%';$('#elapsed').textContent=`${running?Math.max(0,Math.floor((Date.now()-new Date(run.created_at).getTime())/1000)):run.elapsed_seconds||0}초 · API ${run.calls.length}회`;
- if(run.reused_from)$('#job-state').textContent='동일 조건 결과 재사용 · API 0회';}
+ if(run.reused_from)$('#job-state').textContent='동일 조건 결과 재사용 · API 0회';if(run.local_revision)$('#job-state').textContent=run.local_revision.kind==='user-feedback'?'사용자 지적 반영 · 자동 검출과 별도':'기존 검사 결과 · 누락 의견 보완 · API 0회';if(run.evidence_revision)$('#job-state').textContent='추가 독립 검증 반영 · 기존 규칙 분석 유지';}
  const imageURL=BASE+`/api/jobs/${job.id}/image`;if($('#inspection-image').getAttribute('src')!==imageURL)$('#inspection-image').src=imageURL;
- renderIssues();renderChecklist();renderOverlay();renderDetail();renderTokens();renderOriginalReport();
+ renderFailure(running);renderIssues();renderChecklist();renderOverlay();renderDetail();renderTokens();renderOriginalReport();
  if(running&&!timer)timer=setTimeout(poll,1700);
 }
 async function poll(){timer=null;if(!job)return;try{job=await api(`/jobs/${job.id}`);renderJob();if(!['RUNNING','QUEUED'].includes(job.state))void refreshRemaining()}catch(e){toast(e.message);timer=setTimeout(poll,5000)}}
@@ -224,19 +363,29 @@ function renderOverlay(){
  $('#overlays').innerHTML=svg;
  $('#pins').innerHTML=pins.map(g=>`<button class="pin ${g.technical?'technical':''} ${g.calloutAnchor?'location-callout':''} status-${g.status} ${g.id===group?.id?'selected':''}" data-group="${esc(g.id)}" data-finding="${g.rows[0].id}" style="left:${(g.anchor||g.calloutAnchor)[0]*100}%;top:${(g.anchor||g.calloutAnchor)[1]*100}%;--pin-color:${colors[g.status]||'#a873b5'};border-color:${colors[g.status]||'#a873b5'}" title="${esc(g.label+' · '+g.rows.length+'개 검토 의견'+(g.calloutAnchor?' · 문구 위치 확인 필요':''))}" aria-label="${g.number} ${esc(g.label)} ${g.rows.length}개 항목">${g.number}</button>`).join('');
 }
+function sourceChecksHTML(row){
+ let html='';const name=row.official_term_check,geometry=row.symbol_geometry;
+ if(row.reported_issues)html+=`<div class="detail-label">사용자 지적 · 자동 판정과 별도</div><p class="micro">${esc(row.reported_issues.note)}</p>${row.reported_issues.parts.map(p=>`<p><b>${esc(p.part)}</b><br>${esc(p.reason)}</p>`).join('')}<p class="micro">직전 모델 판정: ${esc(labels[row.reported_issues.prior_model_status]||row.reported_issues.prior_model_status)} · ${esc(row.reported_issues.prior_model_reason)}</p>`;
+ if(name)html+=`<div class="detail-label">공식 명칭 문자 대조</div><p>원문: <b>${esc(name.literal)}</b> · 공식 표기: <b>${esc(name.canonical)}</b></p><p class="micro">${name.independent_reading_agrees?'원본 관찰과 독립 재판독 일치':'전사 미확정 · 원본 확인 필요'} · ${(name.sources||[]).filter(url=>/^https:\/\/((www\.)?mois\.go\.kr|news\.koreanair\.com|www\.airportal\.go\.kr)\//.test(url)).map(url=>`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">공식 출처 ↗</a>`).join(' · ')}</p>`;
+ if(row.glyph_evidence)html+=`<div class="detail-label">문구 판독과 별개인 획 품질</div>${row.glyph_evidence.checks.map(g=>`<p><b>${esc(g.literal||'문자 영역')}</b> · ${g.quality==='DEFECT'?'획 결함 관찰':'판독 불확실'}<br>${esc(g.evidence)}</p>`).join('')}`;
+ if(geometry)html+=`<div class="detail-label">중앙 태극 원본 색상 영역 비교</div><p class="micro">정면 도안 일치율 ${(geometry.normal_score*100).toFixed(1)}% · 좌우 반전 도안 일치율 ${(geometry.mirrored_score*100).toFixed(1)}%. 색상 영역 비교값이며 오류 확률이 아닙니다. 깃면 뒷면·4괘 배치는 별도로 확인합니다.</p>`;
+ return html;
+}
 function renderDetail(){
  const r=findings().find(x=>x.id===selected),run=activeRun(),target=$('#finding-detail');
  if(!r){target.className='detail-empty';target.textContent='미리보기의 번호 또는 결과 항목을 선택하면 근거와 검토 의견을 볼 수 있습니다.';return}
  target.className='';const group=selectedAnalysisGroup();const groupHTML=group?`<div class="group-opinions"><h2>${group.number?'번호 '+group.number+' · ':''}${esc(group.label)}</h2>${group.technical?`<p class="measurement-verdict status-${group.status}">측정 결과 · ${esc(group.measurement)}</p><p class="micro">빨강은 원본과 기준의 구조 불일치입니다. 아래 원문 의견의 ‘검토 필요’는 퀴즈 등 제작 의도에 대한 판단입니다.</p>`:''}${group.locationAmbiguous?`<p class="location-warning">위치 미확정 · 서로 떨어진 ${group.locationRegions.length}개 영역이 한 객체로 인식됐습니다. 이미지 가장자리의 번호는 의견을 여는 버튼입니다. 정확한 글자 경계를 확인하지 못해 사각형은 표시하지 않습니다.</p>`:''}${group.rows.map(x=>`<button data-group="${esc(group.id)}" data-finding="${x.id}" class="opinion ${x.id===r.id?'selected':''}"><b>${esc(x.rule_id)} · ${labels[effective(x)]}</b><span>${esc(x.reason)}</span><small>조치: ${esc(x.recommended_action)}</small></button>`).join('')}</div>`:'';const step=(run.rule_pack||pack).steps.find(s=>s.rule_id===r.rule_id);const running=['QUEUED','RUNNING'].includes(job.state);
- target.innerHTML=groupHTML+(group?.comparison?comparisonHTML(group.comparison):r.comparison?comparisonHTML(r.comparison):'')+`<div class="panel-title"><h2>${esc(r.rule_id)} · ${labels[effective(r)]}</h2><span class="badge">${esc(r.instance_id)}</span></div><p>${esc(step.objective)}</p><div class="detail-label">직접 관찰</div><div>${esc(r.observation||'관찰 기록 없음')}</div>${textQualityHTML(r)}${verificationHTML(r)}<div class="detail-label">판정 이유</div><div>${esc(r.reason)}</div><div class="detail-label">근거와 위치</div><div class="micro">${esc(r.model)} · 규칙 ${esc(r.rule_version)} · ${esc(r.evidence_quality)}<br>${r.comparison?'원본 픽셀의 괘 구조 비교 · 객체 영역':(r.crop_id?'확대 격자 '+esc(r.crop_id.slice(0,13)):'전체 이미지 · 대략적 위치')+' / '+esc(r.cell_ids.join(', ')||'위치 없음')}<br>${r.reference_ids.map(id=>esc(run.reference_snapshot.find(x=>x.id===id)?.name||id)).join(', ')||(r.technical_reference?'내장 기술 기준: '+esc(r.technical_reference.name):'인용한 승인 자료 없음')}</div>${run.analysis.filter(a=>a.finding_id===r.id).map(a=>`<div class="detail-label">${esc(a.model)} 분석 의견 · ${labels[a.opinion]}</div><div>${esc(a.reason)}</div>`).join('')}<div class="finding-actions"><button id="retry-step" class="secondary" ${running?'disabled':''}>이 행동만 재검사</button>${r.cell_ids.length&&!r.crop_id?`<button id="crop-step" class="secondary" ${running?'disabled':''}>주변 포함 확대 재검사</button>`:''}</div><form id="review-form" class="review-form"><select name="status" aria-label="사람 검토 판정"><option value="REVIEW">검토 보류</option><option value="PASS">정상으로 수정</option><option value="FAIL">오류 의심 확인</option><option value="NOT_APPLICABLE">해당 없음</option></select><button class="primary" ${running?'disabled':''}>검토 기록 저장</button><textarea name="reason" required minlength="5" maxlength="2000" placeholder="판단 근거와 수정 사유를 입력하세요. 최종 공개 승인을 대신하지 않습니다."></textarea></form>${run.reviews.filter(x=>x.finding_id===r.id).map(x=>`<div class="audit-entry"><strong>${labels[x.previous_status]} → ${labels[x.status]}</strong> · ${esc(x.reviewer)} · ${new Date(x.at).toLocaleString('ko-KR')}<br>${esc(x.reason)}</div>`).join('')}`;
+ target.innerHTML=groupHTML+(group?.comparison?comparisonHTML(group.comparison):r.comparison?comparisonHTML(r.comparison):'')+`<div class="panel-title"><h2>${esc(r.rule_id)} · ${labels[effective(r)]}</h2><span class="badge">${esc(r.instance_id)}</span></div><p>${esc(step.objective)}</p><div class="detail-label">직접 관찰</div><div>${esc(r.observation||'관찰 기록 없음')}</div>${textQualityHTML(r)}${verificationHTML(r)}${sourceChecksHTML(r)}<div class="detail-label">판정 이유</div><div>${esc(r.reason)}</div><div class="detail-label">근거와 위치</div><div class="micro">${esc(r.model)} · 규칙 ${esc(r.rule_version)} · ${esc(r.evidence_quality)}<br>${r.comparison?'원본 픽셀의 괘 구조 비교 · 객체 영역':(r.crop_id?'확대 격자 '+esc(r.crop_id.slice(0,13)):'전체 이미지 · 대략적 위치')+' / '+esc(r.cell_ids.join(', ')||'위치 없음')}<br>${r.reference_ids.map(id=>esc(run.reference_snapshot.find(x=>x.id===id)?.name||id)).join(', ')||(r.technical_reference?'내장 기술 기준: '+esc(r.technical_reference.name):'인용한 승인 자료 없음')}</div>${run.analysis.filter(a=>a.finding_id===r.id).map(a=>`<div class="detail-label">${esc(a.model)} 분석 의견 · ${labels[a.opinion]}</div><div>${esc(a.reason)}</div>`).join('')}<div class="finding-actions"><button id="retry-step" class="secondary" ${running?'disabled':''}>이 행동만 재검사</button>${r.cell_ids.length&&!r.crop_id?`<button id="crop-step" class="secondary" ${running?'disabled':''}>주변 포함 확대 재검사</button>`:''}</div><form id="review-form" class="review-form"><select name="status" aria-label="사람 검토 판정"><option value="REVIEW">검토 보류</option><option value="PASS">정상으로 수정</option><option value="FAIL">오류 의심 확인</option><option value="NOT_APPLICABLE">해당 없음</option></select><button class="primary" ${running?'disabled':''}>검토 기록 저장</button><textarea name="reason" required minlength="5" maxlength="2000" placeholder="판단 근거와 수정 사유를 입력하세요. 최종 공개 승인을 대신하지 않습니다."></textarea></form>${run.reviews.filter(x=>x.finding_id===r.id).map(x=>`<div class="audit-entry"><strong>${labels[x.previous_status]} → ${labels[x.status]}</strong> · ${esc(x.reviewer)} · ${new Date(x.at).toLocaleString('ko-KR')}<br>${esc(x.reason)}</div>`).join('')}`;
  $('#retry-step').onclick=guard(()=>startRun([r.rule_id],null,true));
  if($('#crop-step'))$('#crop-step').onclick=guard(async()=>{const c=await post(`/jobs/${job.id}/crops`,{cell_ids:r.cell_ids});cropPending={crop:c,rule_ids:[r.rule_id]};$('#crop-image').src=BASE+`/api/jobs/${job.id}/crops/${c.id}`;$('#crop-dialog').showModal()});
  $('#review-form').onsubmit=guard(async e=>{e.preventDefault();const f=new FormData(e.target);job=await post(`/jobs/${job.id}/reviews`,{finding_id:r.id,status:f.get('status'),reason:f.get('reason')});renderJob();toast('검토 이력을 저장했습니다.')});
 }
-async function startRun(ids=[],cropID=null,force=false,mode='live'){if(!job)return;const consent=mode==='live'?await requestTransmission(false):false;if(mode==='live'&&!consent)return;job=await post(`/jobs/${job.id}/runs`,{mode,vision_model:$('#vision-model').value,analysis_model:$('#analysis-model').value,consent,text_sensitivity:$('#text-sensitivity').value,rule_ids:ids,crop_id:cropID,force});selected=null;selectedGroup=null;renderJob()}
+async function startRun(ids=[],cropID=null,force=false,mode='live'){requireAnalysisPermission();if(!job)return;const consent=mode==='live'?await requestTransmission(false):false;if(mode==='live'&&!consent)return;job=await post(`/jobs/${job.id}/runs`,{mode,vision_model:$('#vision-model').value,analysis_model:$('#analysis-model').value,consent,text_sensitivity:$('#text-sensitivity').value,rule_ids:ids,crop_id:cropID,force});selected=null;selectedGroup=null;renderJob()}
 async function reanalyze(sourceRunID){
+ requireAnalysisPermission();
  if(!job)return;
  const source=job.runs.find(r=>r.id===sourceRunID)||activeRun();
+ if(!reusableObservation(source)){toast('재사용할 그림 판독이 없습니다. 그림 + 분석 실행으로 다시 시도하세요.');return}
  const consent=await requestTransmission(true);if(!consent)return;
  job=await post(`/jobs/${job.id}/runs`,{mode:'live',vision_model:source.options.vision_model,analysis_model:$('#analysis-model').value||'gpt-5.4-mini',consent,text_sensitivity:source.options.text_sensitivity||'standard',rule_ids:[],force:true,reuse_observation_run_id:source.id});
  selected=null;selectedGroup=null;renderJob();toast('저장된 이미지 관찰로 원문 25개 항목 전체를 재분석합니다.');
@@ -248,6 +397,7 @@ async function usage(){const u=await api('/usage');let shared=u.shared?.external
 function clearPreviewURL(){if(previewURL){URL.revokeObjectURL(previewURL);previewURL=null}}
 function fillMetadata(){for(const el of $('#upload-form').elements){if(el.name&&el.name!=='file'){el.value=job.metadata[el.name]||'';el.disabled=true}}$('#file-label').textContent=job.metadata.title;}
 async function runImageAnalysis(){
+ requireAnalysisPermission();
  if(submitting)return;
  if(!pendingFile&&!job)throw Error('먼저 이미지를 첨부하세요.');
  submitting=true;$('#run').disabled=true;
@@ -271,7 +421,7 @@ $('#file').onchange=guard(async()=>{
  $('#overlays').innerHTML='';$('#pins').innerHTML='';$('#unlocated-findings').innerHTML='';$('#unlocated-findings').hidden=true;$('#scanner').hidden=true;$('#work-area').hidden=true;$('#empty-state').hidden=false;
  $('#run').disabled=false;$('#reanalyze').disabled=true;$('#rerun').disabled=true;
 });
-$('#demo').onclick=guard(async()=>{job=await post('/demo');pendingFile=null;$('#file').value='';clearPreviewURL();fillMetadata();selected=null;selectedGroup=null;renderJob();await startRun([],null,false,'mock');resultView('original')});
+$('#demo').onclick=guard(async()=>{requireAnalysisPermission();job=await post('/demo');pendingFile=null;$('#file').value='';clearPreviewURL();fillMetadata();selected=null;selectedGroup=null;renderJob();await startRun([],null,false,'mock');resultView('original')});
 $('#run').onclick=guard(runImageAnalysis);
 $('#reanalyze').onclick=guard(()=>reanalyze());
 $('#rerun').onclick=guard(()=>{const p=$$('.parent-select:checked').map(x=>x.value);if(!p.length)throw Error('오른쪽에서 재검사할 항목을 선택하십시오.');return startRun(pack.steps.filter(s=>p.includes(s.parent_id)).map(s=>s.rule_id),null,true)});
@@ -284,14 +434,26 @@ $('#export').onclick=guard(async()=>{
  finally{button.disabled=false}
 });$('#print').onclick=()=>window.print();
 $('#grid-toggle').onchange=renderOverlay;$('#pass-toggle').onchange=()=>{renderIssues();renderOverlay()};$('#clear-selection').onclick=()=>{selected=null;selectedGroup=null;renderIssues();renderOverlay();renderDetail()};
-$('#login-button').onclick=guard(async()=>{if(config.role){await post('/logout');await refreshConfig();toast('독립 로그인 세션을 종료했습니다. MinsLab 관리자 세션은 별도로 로그아웃하십시오.')}else $('#login-dialog').showModal()});
+async function logoutSession(){
+ const button=$('#login-button');button.disabled=true;
+ try{
+  await post('/logout');
+  const current=await api('/config');
+  if(current.role)throw Error('로그인 세션이 아직 남아 있습니다. 다시 로그아웃해 주세요.');
+  clearTimeout(timer);timer=null;
+  // Discard private results, editor contents and pending requests with the page.
+  location.reload();
+ }finally{button.disabled=false}
+}
+$('#login-button').onclick=guard(async()=>{if(config.role)await logoutSession();else $('#login-dialog').showModal()});
 $('#close-login').onclick=()=>$('#login-dialog').close();$('#login-form').onsubmit=guard(async e=>{e.preventDefault();const f=new FormData(e.target);await post('/login',Object.fromEntries(f));$('#login-dialog').close();e.target.reset();await refreshConfig();toast('로그인했습니다.')});
 $('#reference-form').onsubmit=guard(async e=>{e.preventDefault();const f=new FormData(e.target),image=f.get('reference_image');f.delete('reference_image');const d=Object.fromEntries(f);d.parent_ids=d.parent_ids.split(',').map(x=>x.trim());const r=await post('/references',d);if(image?.size){const fd=new FormData();fd.set('file',image);await api(`/references/${r.id}/image`,{method:'POST',body:fd})}e.target.reset();await references();toast('기준자료 초안을 등록했습니다.')});
 $('#sync-usage').onclick=guard(async()=>{await post('/usage/sync');await usage()});
-document.addEventListener('click',guard(async e=>{const f=e.target.closest('[data-finding]');if(f){openFinding(f.dataset.finding,f.dataset.group);return}const nav=e.target.closest('[data-tab]');if(nav){tab(nav.dataset.tab);if(nav.dataset.tab==='history')await history();if(nav.dataset.tab==='references')await references();if(nav.dataset.tab==='usage')await usage();if(nav.dataset.tab==='rules-admin'&&!rulesState)await loadRuleEditor();return}const filterButton=e.target.closest('[data-filter]');if(filterButton){filter=filterButton.dataset.filter;$$('.filter').forEach(x=>x.classList.toggle('active',x===filterButton));renderIssues();return}const reanalysis=e.target.closest('[data-reanalysis-job]');if(reanalysis){await openJob(reanalysis.dataset.reanalysisJob);$('#analysis-model').focus();toast('분석 모델을 선택하고 ‘이미지 재사용 · 재분석’을 누르세요.');return}const source=e.target.closest('[data-source-run]');if(source){tab('workspace');await reanalyze(source.dataset.sourceRun);return}const open=e.target.closest('[data-open-job]');if(open)return openJob(open.dataset.openJob);const del=e.target.closest('[data-delete-job]');if(del&&confirm('이미지와 검토 내용을 영구 삭제하시겠습니까? 사용량 기록은 유지됩니다.')){await api('/jobs/'+del.dataset.deleteJob,{method:'DELETE'});return history()}const approve=e.target.closest('[data-approve]');if(approve){await post('/references/'+approve.dataset.approve+'/approve');return references()}const versions=e.target.closest('[data-versions]');if(versions){const j=await api('/jobs/'+versions.dataset.versions);$('#versions-'+j.id).innerHTML=j.runs.map((r,i)=>`<p class="micro">검사 ${i+1} · ${new Date(r.created_at).toLocaleString('ko-KR')} · ${esc(r.options.vision_model)} / ${esc(r.options.analysis_model)} · ${r.results.length}개 결과 · 검토 ${r.reviews.length}건 ${r.options.mode==='live'&&r.scope!=='CROP'?`<button class="quiet" data-source-run="${r.id}">이 버전의 관찰로 재분석</button>`:''}</p>`).join('')+'<p class="micro">전체 버전의 상세 결과·기준자료·검토 기록은 JSON 보고서에 포함됩니다.</p>'}}));
+document.addEventListener('click',guard(async e=>{const f=e.target.closest('[data-finding]');if(f){openFinding(f.dataset.finding,f.dataset.group);return}const nav=e.target.closest('[data-tab]');if(nav){tab(nav.dataset.tab);if(nav.dataset.tab==='history')await history();if(nav.dataset.tab==='references')await references();if(nav.dataset.tab==='usage')await usage();if(nav.dataset.tab==='rules-admin'&&!rulesState)await loadRuleEditor();return}const filterButton=e.target.closest('[data-filter]');if(filterButton){filter=filterButton.dataset.filter;$$('.filter').forEach(x=>x.classList.toggle('active',x===filterButton));renderIssues();return}const reanalysis=e.target.closest('[data-reanalysis-job]');if(reanalysis){await openJob(reanalysis.dataset.reanalysisJob);$('#analysis-model').focus();toast('분석 모델을 선택하고 ‘이미지 재사용 · 재분석’을 누르세요.');return}const source=e.target.closest('[data-source-run]');if(source){tab('workspace');await reanalyze(source.dataset.sourceRun);return}const open=e.target.closest('[data-open-job]');if(open)return openJob(open.dataset.openJob);const del=e.target.closest('[data-delete-job]');if(del&&confirm('이미지와 검토 내용을 영구 삭제하시겠습니까? 사용량 기록은 유지됩니다.')){await api('/jobs/'+del.dataset.deleteJob,{method:'DELETE'});return history()}const approve=e.target.closest('[data-approve]');if(approve){await post('/references/'+approve.dataset.approve+'/approve');return references()}const versions=e.target.closest('[data-versions]');if(versions){const j=await api('/jobs/'+versions.dataset.versions);$('#versions-'+j.id).innerHTML=j.runs.map((r,i)=>`<p class="micro">검사 ${i+1} · ${new Date(r.created_at).toLocaleString('ko-KR')} · ${esc(r.options.vision_model)} / ${esc(r.options.analysis_model)} · ${r.results.length}개 결과 · 검토 ${r.reviews.length}건 ${reusableObservation(r)?`<button class="quiet" data-source-run="${r.id}">이 버전의 관찰로 재분석</button>`:''}</p>`).join('')+'<p class="micro">전체 버전의 상세 결과·기준자료·검토 기록은 JSON 보고서에 포함됩니다.</p>'}}));
 (async()=>{try{await refreshConfig();pack=await api('/rules')}catch(e){toast(e.message)}})();
 
-$('#inspection-image').onload=()=>{if(job){renderIssues();renderOverlay()}};
+const imageViewport=new ImageViewport($('.image-stage'),$('#image-wrap'),$('#inspection-image'));
+$('#inspection-image').onload=()=>{imageViewport.reset();if(job){renderIssues();renderOverlay()}};
 new ResizeObserver(()=>{if(job){renderIssues();renderOverlay()}}).observe($('#image-wrap'));
 
 $('#vision-model').addEventListener('change',()=>{$('#openrouter-note').hidden=!$('#vision-model').value.endsWith(':free')});
@@ -386,7 +548,7 @@ $('#rules-copy-close').onclick=()=>$('#rules-copy-dialog').close();
 function textQualityHTML(row){
  const objects=((activeRun()?.analysis_observation||activeRun()?.observation)?.objects||[]).filter(o=>row.evidence_ids?.includes(o.id)&&o.text_legibility&&o.text_legibility!=='NOT_TEXT'&&o.text_legibility!=='UNASSESSED');
  const names={CLEAR:'획·외형 정상',DEGRADED:'획 손상·뭉개짐 관찰',UNREADABLE:'문자 식별 어려움'};
- return objects.length?`<div class="text-quality-evidence"><b>문자 인식과 외형 품질</b>${objects.map(o=>`<p><strong>${esc(o.label)} · ${names[o.text_legibility]}</strong><br>읽은 내용: ${esc(o.text||'[판독불가]')}${o.transcription_inferred?' · 문맥 추정 포함':''}<br>외형 근거: ${esc(o.legibility_evidence||'별도 외형 근거 없음')}</p>`).join('')}</div>`:'';
+ return objects.length?`<div class="text-quality-evidence"><b>문자 인식과 외형 품질</b>${objects.map(o=>`<p><strong>${esc(o.label)} · ${o.text_disagreement?'판독 불일치 · 원본 확인 필요':names[o.text_legibility]}</strong><br>읽은 내용: ${esc(o.text||'[판독불가]')}${o.transcription_inferred?' · 문맥 추정 포함':''}<br>외형 근거: ${esc(o.legibility_evidence||'별도 외형 근거 없음')}</p>`).join('')}</div>`:'';
 }
 
 function verificationHTML(row){
@@ -401,9 +563,18 @@ function verificationHTML(row){
   const [x,y,z,w]=r.crop_rect;
   const picture=$('#inspection-image'),height=1000*(picture.naturalHeight||job.image.height)/(picture.naturalWidth||job.image.width);
   const original=`<svg viewBox="${x*1000} ${y*height} ${(z-x)*1000} ${(w-y)*height}" role="img" aria-label="주변 포함 확대 원본"><image href="${esc(picture.src)}" width="1000" height="${height}"/></svg>`;
-  return `<div class="recheck-card"><strong>확대 재검사 · ${esc(r.object_id)}${r.coverage==='COMPLETE'?' · 전체 확인':' · 부분 확인'}</strong><p>1차 전사: ${esc(r.first_text||'문자 없음')}<br>독립 재판독: ${esc(r.text||'문자 없음')}${r.transcription_disagreement?' · 판독 차이 있음':''}</p><p>${esc(r.legibility_evidence||r.description)}</p>${comparisons.map(c=>`<p><b>${esc(c.status)}</b> · ${esc(c.evidence)}</p><div class="verification-images"><figure>${original}<figcaption>확대 원본</figcaption></figure><figure><img loading="lazy" src="${BASE}/api/references/${esc(c.reference_id)}/image" alt="공식 비교 도안"><figcaption>${esc(run.reference_snapshot.find(ref=>ref.id===c.reference_id)?.name||c.reference_id)}</figcaption></figure></div>`).join('')}</div>`;
+  return `<div class="recheck-card"><strong>확대 재검사 · ${esc(r.object_id)}${r.coverage==='COMPLETE'?' · 전체 확인':' · 부분 확인'}</strong><p>1차 전사: ${esc(r.first_text||'문자 없음')}<br>독립 재판독: ${esc(r.text||'문자 없음')}${r.transcription_disagreement?' · 판독 차이 있음':''}</p><p>${esc(r.legibility_evidence||r.description)}</p>${r.emblem_parts?`<p><b>부위별 관찰</b><br>${esc(r.emblem_parts)}</p>`:''}${comparisons.map(c=>`<p><b>${esc(c.status)}</b> · ${esc(c.evidence)}</p><div class="verification-images"><figure>${original}<figcaption>확대 원본</figcaption></figure><figure><img loading="lazy" src="${BASE}/api/jobs/${esc(job.id)}/runs/${esc(run.id)}/references/${esc(c.reference_id)}/image" alt="공식 비교 도안"><figcaption>${esc(run.reference_snapshot.find(ref=>ref.id===c.reference_id)?.name||c.reference_id)}</figcaption></figure></div>`).join('')}</div>`;
  }).join('');
- return status+ocrEvidenceHTML(row)+cards+deferred.map(r=>`<p class="location-warning">${esc(r.reason)}</p>`).join('')+(v?.reused_without_verification?'<p class="location-warning">이전 인식 기록에는 확대·직접 비교 기록이 없습니다. 새 그림+분석으로 확인하세요.</p>':'');
+ return status+supplementalEvidenceHTML(row)+ocrEvidenceHTML(row)+cards+deferred.map(r=>`<p class="location-warning">${esc(r.reason)}</p>`).join('')+(v?.reused_without_verification?'<p class="location-warning">이전 인식 기록에는 확대·직접 비교 기록이 없습니다. 새 그림+분석으로 확인하세요.</p>':'');
+}
+
+function supplementalEvidenceHTML(row){
+ return (row.supplemental_evidence||[]).map(d=>{
+  const [x,y,z,b]=d.rect,picture=$('#inspection-image'),height=1000*(picture.naturalHeight||job.image.height)/(picture.naturalWidth||job.image.width);
+  const original=`<svg viewBox="${x*1000} ${y*height} ${(z-x)*1000} ${(b-y)*height}" role="img" aria-label="추가 검증 원본"><image href="${esc(picture.src)}" width="1000" height="${height}"/></svg>`;
+  const content=d.kind==='glyph'?`<p>전문 OCR 문구: ${esc(d.word_text)}<br>독립 음절: ${d.characters.map(c=>esc(c.literal_text)).join(' / ')}</p><table><thead><tr><th>음절</th><th>읽은 글자</th><th>원본 획 판독 근거</th></tr></thead><tbody>${d.characters.map((c,i)=>`<tr><td>${i+1}</td><td>${esc(c.literal_text)}</td><td>${esc(c.glyph_evidence)}</td></tr>`).join('')}</tbody></table><small>문구와 음절의 판독 차이를 표시합니다. 음절 분리 과정의 영향과 인식 오류가 남아 있어 위 전사를 정답으로 확정하지 않습니다.</small>`:`<p>${esc(d.description)}</p><p>${esc(d.visual_concerns)}</p><small>검출하지 못했다는 사실은 이미지가 정상이라는 증거가 아닙니다.</small>`;
+  return `<div class="recheck-card"><strong>추가 독립 검증 · ${esc(d.model)}</strong><div class="verification-images"><figure>${original}<figcaption>검증 대상 원본 영역</figcaption></figure></div>${content}</div>`;
+ }).join('');
 }
 
 function ocrEvidenceHTML(row){

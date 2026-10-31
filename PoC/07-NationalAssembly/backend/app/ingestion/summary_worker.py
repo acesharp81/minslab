@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import time
 from datetime import UTC, datetime
 from typing import Any
@@ -157,39 +158,63 @@ def process_available(
     return totals
 
 
+OPENROUTER_HEAD_START_SECONDS = 1.0
+
+
+def next_pool_tick(origin: float, interval: float, phase: float, now: float) -> float:
+    """Next shared poll slot; skip missed slots rather than issuing catch-up calls."""
+    first = origin + phase
+    if now < first:
+        return first
+    return first + (math.floor((now - first) / interval) + 1) * interval
+
+
+def run_pool_lane(settings, args, client, *, origin: float, phase: float) -> None:
+    next_run = origin + phase
+    while True:
+        delay = next_run - time.monotonic()
+        if delay > 0:
+            time.sleep(delay)
+        failed = False
+        try:
+            result = process_available(settings.database_url, client,
+                daily_limit=settings.openrouter_daily_limit, shared_pool=True)
+            if result['api_requests'] or result['failed']:
+                print(json.dumps({'event':'summary.pool','provider':client.provider,**result}),flush=True)
+        except Exception as exc:
+            failed = True
+            print(json.dumps({'event':'summary.pool_deferred','provider':client.provider,
+                              'error':type(exc).__name__}),flush=True)
+        if args.once:
+            return
+        # A slow or unavailable provider never holds the other lane behind a barrier.
+        # Keep the existing error cooldown and align the next poll to the shared grid.
+        earliest = time.monotonic() + (60.0 if failed else 0.0)
+        next_run = next_pool_tick(origin, args.interval, phase, earliest)
+
+
 def run_grouped_pool(settings, args):
-    """Two independent bounded lanes. Each lane yields after one batch per meeting."""
+    """Independent lanes with OpenRouter one second ahead on every shared poll cycle."""
     from concurrent.futures import ThreadPoolExecutor
     from ..db.migrate import apply_migrations
     from ..services.openai_summary import OpenAISummaryClient
     from ..services.openrouter_summary import OpenRouterSummaryClient
     apply_migrations(settings.database_url)
     lanes = []
-    if settings.openai_api_key:
-        lanes.append(OpenAISummaryClient(settings))
     if settings.openrouter_api_key:
-        lanes.append(OpenRouterSummaryClient(settings.openrouter_api_key,
-            model=settings.llm_model, base_url=settings.openrouter_base_url))
+        lanes.append((OpenRouterSummaryClient(settings.openrouter_api_key,
+            model=settings.llm_model, base_url=settings.openrouter_base_url), 0.0))
+    if settings.openai_api_key:
+        phase = OPENROUTER_HEAD_START_SECONDS if settings.openrouter_api_key else 0.0
+        lanes.append((OpenAISummaryClient(settings), phase))
     if not lanes:
         raise RuntimeError('No realtime model configured')
-
-    def lane(client):
-        while True:
-            try:
-                result = process_available(settings.database_url, client,
-                    daily_limit=settings.openrouter_daily_limit, shared_pool=True)
-                if result['api_requests'] or result['failed']:
-                    print(json.dumps({'event':'summary.pool','provider':client.provider,**result}),flush=True)
-            except Exception as exc:
-                print(json.dumps({'event':'summary.pool_deferred','provider':client.provider,
-                                  'error':type(exc).__name__}),flush=True)
-                if not args.once:
-                    time.sleep(60)
-            if args.once:
-                return
-            time.sleep(args.interval)
+    origin = time.monotonic()
+    print(json.dumps({'event':'summary.pool_schedule','interval_seconds':args.interval,
+        'lanes':[{'provider':c.provider,'phase_seconds':p} for c,p in lanes]}),flush=True)
     with ThreadPoolExecutor(max_workers=len(lanes)) as executor:
-        futures = [executor.submit(lane, c) for c in lanes]
+        futures = [executor.submit(run_pool_lane, settings, args, c, origin=origin, phase=p)
+                   for c,p in lanes]
         for future in futures:
             future.result()
 

@@ -60,7 +60,8 @@ def test_bounded_visual_recheck_and_analysis_only_reuse(tmp_path):
         j=c.post('/api/demo').json();url='/api/jobs/'+j['id']
         assert c.post(url+'/runs',json={'mode':'live','consent':True,'vision_model':'gpt-5.4','analysis_model':'solar-pro4'}).status_code==200
         j=poll(c,j['id']);r=j['runs'][-1]
-        assert j['state']=='COMPLETED' and len(r['results'])==156
+        assert j['state']=='COMPLETED' and {x['rule_id'] for x in r['results']}==set(STEPS)
+        assert any(x.get('coverage_fallback') for x in r['results'])
         assert r['observation']['location_warnings'][0]['discarded_count']==1
         assert len(calls)==2+BATCHES and calls[0]==('gpt-5.4','image-observation',2)
         assert calls[1]==('gpt-5.4','image-verification',2)
@@ -76,6 +77,15 @@ def test_bounded_visual_recheck_and_analysis_only_reuse(tmp_path):
         report=c.get(url+'/report');assert report.status_code==200
         assert 'attachment' in report.headers['content-disposition'] and len(report.json()['runs'])==2
         assert 'gpt-5.4' in c.get('/api/config').json()['analysis_models']
+        calls.clear()
+        assert c.post(url+'/runs',json={'mode':'live','consent':True,'vision_model':'gpt-5.4','analysis_model':'gpt-5.4-mini','reuse_observation_run_id':r['id'],'recheck_object_ids':['unknown'],'force':True}).status_code==409
+        assert c.post(url+'/runs',json={'mode':'live','consent':True,'vision_model':'gpt-5.4','analysis_model':'gpt-5.4-mini','reuse_observation_run_id':r['id'],'recheck_object_ids':['flag1'],'force':True}).status_code==200
+        j=poll(c,j['id']);updated=j['runs'][-1]
+        assert j['state']=='COMPLETED' and updated['observation']==r['observation']
+        assert len(calls)==1+BATCHES and calls[0][1]=='image-verification'
+        assert all(call[1]!='image-observation' for call in calls)
+        assert j['runs'][0]==r
+
 
 
 def test_legacy_inventory_keeps_observations_not_old_verdicts():
@@ -174,3 +184,111 @@ def test_readable_but_degraded_text_survives_inventory_and_analysis():
         data={'results':[{'target_presence':'PRESENT','rule_ids':['D-02-l'],'status':'FAIL','evidence_ids':['flag1'],'reference_ids':[],'reason':'글자는 읽히나 획이 붙어 가독성 결함','recommended_action':'원본 글자 재입력'}]}
         assert engine.decisions(run,None,'gpt-5.4',['D-02-l'],data)[0]['status']=='FAIL'
         engine.pool.shutdown()
+
+
+@pytest.mark.parametrize('recover,status,expected_calls',[(True,520,2),(False,520,2),(False,401,1)])
+def test_vision_failure_retry_is_bounded_and_attributed(tmp_path,monkeypatch,recover,status,expected_calls):
+    from app.providers import ProviderError
+    monkeypatch.setattr('app.engine.time.sleep',lambda seconds:None)
+    s=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'test','EXTERNAL_API_ENABLED':'true','OPENAI_API_KEY':'test','OCR_ENABLED':'false'})
+    with TestClient(create_app(s)) as c:
+        c.post('/api/login',json={'role':'admin','password':'test'})
+        calls=[]
+        def fake(model,prompt,images=(),workload='image-inspection'):
+            calls.append(workload)
+            meta={'event_id':str(len(calls)),'model':model,'workload':workload,'usage':{'input_tokens':10,'output_tokens':10}}
+            if workload=='image-observation':
+                if not recover or calls.count(workload)==1:
+                    exc=ProviderError(f'공급자 HTTP {status}')
+                    exc.call_meta={**meta,'status':'FAILED','http_status':status,'retryable':status==520,'usage_unknown':True}
+                    raise exc
+                return inventory(),meta
+            if workload=='image-verification':
+                from test_verification import recheck
+                return {'results':[recheck(t['object_id']) for t in json.loads(prompt)['tasks']]},meta
+            return {'results':[{'target_presence':'ABSENT','rule_ids':['D-02-e'],'status':'NOT_APPLICABLE','evidence_ids':[],'reference_ids':[],'reason':'손 없음','recommended_action':'없음'}]},meta
+        c.app.state.engine.provider.call=fake
+        job=c.post('/api/demo').json();url='/api/jobs/'+job['id']
+        assert c.post(url+'/runs',json={'mode':'live','consent':True,'vision_model':'gpt-6.1-sol','analysis_model':'gpt-5.4-mini','rule_ids':['D-02-e'],'force':True}).status_code==200
+        job=poll(c,job['id']);run=job['runs'][-1]
+        assert calls.count('image-observation')==expected_calls
+        assert len([m for m in run['calls'] if m['workload']=='image-observation'])==expected_calls
+        if recover:
+            assert job['state']=='COMPLETED' and run['observation']['objects']
+            assert 'checklist-analysis' in calls and not run['analysis']
+        else:
+            assert job['state']=='COMPLETED_WITH_ERRORS' and run['failed_phase']=='READING'
+            assert run['analysis'][0]['model']=='gpt-6.1-sol'
+            assert all(r['status']=='ERROR' for r in run['results'] if r['rule_id']=='D-02-e')
+            assert 'checklist-analysis' not in calls
+
+
+def test_observed_context_conflict_is_not_lost_when_analysis_checks_only_another_object(tmp_path):
+    from app.engine import Engine
+    from app.storage import Store
+    import copy
+    from app.rules import PACK
+    s=Settings({'DATA_DIR':str(tmp_path)});engine=Engine(s,Store(tmp_path/'test.sqlite3'))
+    obs=inventory();obs['objects']=[dict(id='tail',label='운송수단 꼬리 표식',description='본체와 별개 표식',text='',quality='CLEAR',cell_ids=['R01C11'],text_legibility='NOT_TEXT',visual_concerns='공식 도안 비교 불가',first_visual_concerns='명시된 국가 설명과 국기 유사 표식이 충돌함'),dict(id='building',label='건물',description='일반 건물',text='',quality='CLEAR',cell_ids=['R05C05'])]
+    pack=copy.deepcopy(PACK);next(r for r in pack['steps'] if r['rule_id']=='H-05-c')['objective']='배경 시각 단서와 주장된 국가/장소가 충돌하는지 점검한다.'
+    run={'observation':obs,'reference_snapshot':[],'observation_model':'gpt-6.1-sol','rule_pack':pack}
+    group={'target_presence':'PRESENT','rule_ids':['H-05-c'],'status':'PASS','evidence_ids':['building'],'reference_ids':[],'reason':'건물은 충돌 없음','recommended_action':'없음'}
+    found=engine.decisions(run,None,'gpt-5.4-mini',['H-05-c'],{'results':[group]})
+    tail=next(r for r in found if r['evidence_ids']==['tail'])
+    assert tail['status']=='REVIEW' and tail['review_basis']=='CONTEXT_CONFLICT'
+    assert tail['visual_issue'] and tail['model']=='system/observation-coverage'
+    assert tail['coverage_fallback'] and '누락' in tail['reason']
+    engine.pool.shutdown()
+
+
+def test_fail_with_explicit_no_defect_fields_is_not_a_red_error(tmp_path):
+    from app.engine import Engine
+    from app.storage import Store
+    engine=Engine(Settings({'DATA_DIR':str(tmp_path)}),Store(tmp_path/'test.db'))
+    run=dict(observation=inventory(),reference_snapshot=[],observation_model='reader')
+    group=dict(target_presence='PRESENT',rule_ids=['D-02-l'],status='FAIL',evidence_ids=['flag1'],reference_ids=[],reason='문구가 선명해 결함이 보이지 않는다.',recommended_action='수정 불필요',error_type='NONE',review_basis='NONE')
+    row=engine.decisions(run,None,'analysis',['D-02-l'],{'results':[group]})[0]
+    assert row['status']=='REVIEW' and row['decision_conflict'] and not row['visual_issue']
+    engine.pool.shutdown()
+
+
+def test_truncated_analysis_splits_only_failed_batch_and_accounts_for_attempt(tmp_path):
+    from app.engine import Engine
+    from app.storage import Store
+    from app.rules import PACK,placeholder
+    from app.providers import ProviderError
+    import copy,io
+    from PIL import Image
+    s=Settings({'DATA_DIR':str(tmp_path),'OCR_ENABLED':'false'})
+    engine=Engine(s,Store(tmp_path/'test.db'));jid='job';(tmp_path/jid).mkdir()
+    Image.new('RGB',(100,100),'white').save(tmp_path/jid/'image.png')
+    ids=list(STEPS);seen=[]
+    run=dict(id='run',options={'vision_model':'gpt-5.4','analysis_model':'solar-pro4'},rule_pack=copy.deepcopy(PACK),selected=ids,
+        observation=inventory(),observation_reused_from={'run_id':'old'},observation_model='gpt-5.4',reference_snapshot=[],calls=[],analysis=[],results=[placeholder(r) for r in ids],progress=0)
+    def fake(model,prompt,images=(),workload=''):
+        request=json.loads(prompt);rules=[r['rule_id'] for r in request['rules']];seen.append(rules)
+        if len(seen)==1:
+            exc=ProviderError('output truncated');exc.output_truncated=True;exc.call_meta={'event_id':'paid-truncated','usage':{'input_tokens':100,'output_tokens':10000}};raise exc
+        return {'results':[dict(rule_ids=[r],target_presence='ABSENT',status='NOT_APPLICABLE',evidence_ids=[],reference_ids=[],reason='대상 없음',recommended_action='없음') for r in rules]}, {'event_id':str(len(seen))}
+    engine.provider.call=fake;engine.checkpoint=lambda *a:None
+    engine.inspect(dict(id=jid,metadata={}),run,None,time.monotonic())
+    assert run['progress']==len(ids) and not run['analysis']
+    assert len(run['analysis_retries'])==1 and len(seen)==BATCHES+2
+    assert any(c['event_id']=='paid-truncated' for c in run['calls'])
+    assert not any(r['status'] in ('ERROR','NOT_RUN') for r in run['results'])
+    engine.pool.shutdown()
+
+
+def test_omitted_observed_text_stays_review_without_fabricated_visual_defect(tmp_path):
+    from app.engine import Engine
+    from app.storage import Store
+    from copy import deepcopy
+    engine=Engine(Settings({'DATA_DIR':str(tmp_path)}),Store(tmp_path/'test.db'))
+    observed=inventory();other=deepcopy(observed['objects'][0]);other.update(id='text2',label='안내문',text='방문 신청',description='안내 문구');observed['objects'].append(other)
+    run=dict(observation=observed,reference_snapshot=[],observation_model='reader')
+    group=dict(target_presence='PRESENT',rule_ids=['D-02-l'],status='PASS',evidence_ids=['flag1'],reference_ids=[],reason='확인한 문구 정상',recommended_action='없음',error_type='NONE',review_basis='NONE')
+    rows=engine.decisions(run,None,'model',['D-02-l'],{'results':[group]})
+    missing=next(r for r in rows if r['evidence_ids']==['text2'])
+    assert missing['status']=='REVIEW' and missing['coverage_fallback'] and not missing['visual_issue']
+    assert missing['rects'] and '누락' in missing['reason']
+    engine.pool.shutdown()

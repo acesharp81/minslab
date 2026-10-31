@@ -1,0 +1,23 @@
+{
+  "requests": 10,
+  "api_failures": 0,
+  "validation_rejections": 0,
+  "mean_seconds": 3.0797,
+  "median_seconds": 2.4725,
+  "min_seconds": 1.622,
+  "max_seconds": 9.84,
+  "under_3_seconds": 9,
+  "total_tokens": 31627,
+  "reported_cost_usd": 0,
+  "reasoning_tokens": 0,
+  "mini_mean_quality": 9.3,
+  "nemo_mean_quality": 9.2,
+  "mini_material_correction_samples": [
+    1,
+    8
+  ],
+  "nemo_material_correction_samples": [
+    1
+  ],
+  "mini_replayed": false
+}

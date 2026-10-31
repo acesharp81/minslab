@@ -1,0 +1,15 @@
+{
+  "collection": {
+    "done": 19,
+    "held": 78,
+    "response_seconds": 0.187
+  },
+  "officer": {
+    "done": 31,
+    "held": 25,
+    "response_seconds": 0.09
+  },
+  "all_csv_rows": 103,
+  "collection_csv_rows": 78,
+  "officer_csv_rows": 25
+}

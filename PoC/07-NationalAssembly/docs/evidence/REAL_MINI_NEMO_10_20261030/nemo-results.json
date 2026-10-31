@@ -1,0 +1,1083 @@
+[
+  {
+    "sample": 1,
+    "content_hash": "0834dafdaf3e5f0e7f6c2f902b9e23773bf99d4e82afe3f0f9447eff75913e7f",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:36:55.118002+00:00",
+    "seconds": 2.647,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "0834dafdaf3e5f0e7f6c2f902b9e23773bf99d4e82afe3f0f9447eff75913e7f",
+        "summary": "미래대응기금이 예산총계주의와 기금 특별 목적 원칙을 무너뜨려 행정부가 자의적으로 지출할 수 있다며 비판하고, 두 전문가에게 1분씩 마무리 설명을 요청한다.",
+        "live_insight": {
+          "topic": "미래대응기금 예산 원칙 위반 지적 및 마무리 설명 요청",
+          "topic_key": "미래대응기금 예산총계주의 특별목적 원칙 설명",
+          "role": "REQUEST",
+          "task": "두 전문가 1분씩 마무리 설명",
+          "owners": [
+            "화자 0 · 이름 미확인"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "FOLLOW_UP_REQUEST",
+          "task_evidence_quote": "한 1분씩 마무리해서 설명해 주시는 게 좋겠습니다",
+          "task_validation": "direct-follow-up/1",
+          "task_evidence_start": 643,
+          "task_evidence_end": 670
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360215-T0xyu6xe3gcDc61xoN1h",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"0834dafdaf3e5f0e7f6c2f902b9e23773bf99d4e82afe3f0f9447eff75913e7f\", \"summary\": \"미래대응기금이 예산총계주의와 기금 특별 목적 원칙을 무너뜨려 행정부가 자의적으로 지출할 수 있다며 비판하고, 두 전문가에게 1분씩 마무리 설명을 요청한다.\", \"topic\": \"미래대응기금 예산 원칙 위반 지적 및 마무리 설명 요청\", \"topic_key\": \"미래대응기금 예산총계주의 특별목적 원칙 설명\", \"role\": \"REQUEST\", \"task\": \"두 전문가 1분씩 마무리 설명\", \"task_kind\": \"FOLLOW_UP_REQUEST\", \"task_evidence_quote\": \"한 1분씩 마무리해서 설명해 주시는 게 좋겠습니다\", \"owners\": [\"화자 0 · 이름 미확인\"]}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 2888,
+        "completion_tokens": 240,
+        "total_tokens": 3128,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360215-T0xyu6xe3gcDc61xoN1h",
+      "object": "chat.completion",
+      "created": 1793360215,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"0834dafdaf3e5f0e7f6c2f902b9e23773bf99d4e82afe3f0f9447eff75913e7f\", \"summary\": \"미래대응기금이 예산총계주의와 기금 특별 목적 원칙을 무너뜨려 행정부가 자의적으로 지출할 수 있다며 비판하고, 두 전문가에게 1분씩 마무리 설명을 요청한다.\", \"topic\": \"미래대응기금 예산 원칙 위반 지적 및 마무리 설명 요청\", \"topic_key\": \"미래대응기금 예산총계주의 특별목적 원칙 설명\", \"role\": \"REQUEST\", \"task\": \"두 전문가 1분씩 마무리 설명\", \"task_kind\": \"FOLLOW_UP_REQUEST\", \"task_evidence_quote\": \"한 1분씩 마무리해서 설명해 주시는 게 좋겠습니다\", \"owners\": [\"화자 0 · 이름 미확인\"]}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2888,
+        "completion_tokens": 240,
+        "total_tokens": 3128,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  },
+  {
+    "sample": 2,
+    "content_hash": "351d9a6f647b0dceddf67a4cdff83f6df26ed31a3f0064b1903a483949f8a52c",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:37:06.118093+00:00",
+    "seconds": 9.84,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "351d9a6f647b0dceddf67a4cdff83f6df26ed31a3f0064b1903a483949f8a52c",
+        "summary": "3대 메가 프로젝트와 7대 시드 관련 사업에도 최근 해킹 이슈를 적용해야 한다고 보이며, 해당 부분에 대한 소견을 요청한다.",
+        "live_insight": {
+          "topic": "3대 메가 프로젝트와 7대 시드 해킹 이슈 적용 여부",
+          "topic_key": "3대 메가 프로젝트 7대 시드 해킹",
+          "role": "REQUEST",
+          "task": null,
+          "owners": [
+            "화자 1 · 이름 미확인"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "FOLLOW_UP_REQUEST",
+          "task_evidence_quote": "한번 그 부분에 대한",
+          "task_validation": "INVALID_TARGET_EVIDENCE",
+          "task_candidate": "해킹 이슈 적용에 대한 소견 제출"
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360226-8dy3TW98kK6K77rrpXpx",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"351d9a6f647b0dceddf67a4cdff83f6df26ed31a3f0064b1903a483949f8a52c\", \"summary\": \"3대 메가 프로젝트와 7대 시드 관련 사업에도 최근 해킹 이슈를 적용해야 한다고 보이며, 해당 부분에 대한 소견을 요청한다.\", \"topic\": \"3대 메가 프로젝트와 7대 시드 해킹 이슈 적용 여부\", \"topic_key\": \"3대 메가 프로젝트 7대 시드 해킹\", \"role\": \"REQUEST\", \"task\": \"해킹 이슈 적용에 대한 소견 제출\", \"task_kind\": \"FOLLOW_UP_REQUEST\", \"task_evidence_quote\": \"한번 그 부분에 대한\", \"owners\": [\"화자 1 · 이름 미확인\"]}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 1837,
+        "completion_tokens": 223,
+        "total_tokens": 2060,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360226-8dy3TW98kK6K77rrpXpx",
+      "object": "chat.completion",
+      "created": 1793360226,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"351d9a6f647b0dceddf67a4cdff83f6df26ed31a3f0064b1903a483949f8a52c\", \"summary\": \"3대 메가 프로젝트와 7대 시드 관련 사업에도 최근 해킹 이슈를 적용해야 한다고 보이며, 해당 부분에 대한 소견을 요청한다.\", \"topic\": \"3대 메가 프로젝트와 7대 시드 해킹 이슈 적용 여부\", \"topic_key\": \"3대 메가 프로젝트 7대 시드 해킹\", \"role\": \"REQUEST\", \"task\": \"해킹 이슈 적용에 대한 소견 제출\", \"task_kind\": \"FOLLOW_UP_REQUEST\", \"task_evidence_quote\": \"한번 그 부분에 대한\", \"owners\": [\"화자 1 · 이름 미확인\"]}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 1837,
+        "completion_tokens": 223,
+        "total_tokens": 2060,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  },
+  {
+    "sample": 3,
+    "content_hash": "e3449ee8f3734b0f612e0181fd10961cca2d97a0972724a8378c853e18ace151",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:37:17.118178+00:00",
+    "seconds": 2.502,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "e3449ee8f3734b0f612e0181fd10961cca2d97a0972724a8378c853e18ace151",
+        "summary": "정태호 위원은 윤석열 정부 재정건전성 논쟁과 늘어난 세수 사용 방향을 지적하며, 국채 상환에 어느 정도 세수를 투입할지 양준모 교수 의견을 묻고 책자 56페이지를 참고하라고 했다.",
+        "live_insight": {
+          "topic": "윤석열 정부 재정건전성과 늘어난 세수 사용 방향",
+          "topic_key": "재정건전성 세수 국채 상환",
+          "role": "QUESTION",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360237-Nmoz7Uq5V7M4iPvhsFBQ",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"e3449ee8f3734b0f612e0181fd10961cca2d97a0972724a8378c853e18ace151\", \"summary\": \"정태호 위원은 윤석열 정부 재정건전성 논쟁과 늘어난 세수 사용 방향을 지적하며, 국채 상환에 어느 정도 세수를 투입할지 양준모 교수 의견을 묻고 책자 56페이지를 참고하라고 했다.\", \"topic\": \"윤석열 정부 재정건전성과 늘어난 세수 사용 방향\", \"topic_key\": \"재정건전성 세수 국채 상환\", \"role\": \"QUESTION\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 3717,
+        "completion_tokens": 208,
+        "total_tokens": 3925,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360237-Nmoz7Uq5V7M4iPvhsFBQ",
+      "object": "chat.completion",
+      "created": 1793360237,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"e3449ee8f3734b0f612e0181fd10961cca2d97a0972724a8378c853e18ace151\", \"summary\": \"정태호 위원은 윤석열 정부 재정건전성 논쟁과 늘어난 세수 사용 방향을 지적하며, 국채 상환에 어느 정도 세수를 투입할지 양준모 교수 의견을 묻고 책자 56페이지를 참고하라고 했다.\", \"topic\": \"윤석열 정부 재정건전성과 늘어난 세수 사용 방향\", \"topic_key\": \"재정건전성 세수 국채 상환\", \"role\": \"QUESTION\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 3717,
+        "completion_tokens": 208,
+        "total_tokens": 3925,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  },
+  {
+    "sample": 4,
+    "content_hash": "b7048ab17445e45cbad37cbf98c98b53d1c9f34987ada8dbd4899c25dbcefdb7",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:37:28.118273+00:00",
+    "seconds": 1.957,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "b7048ab17445e45cbad37cbf98c98b53d1c9f34987ada8dbd4899c25dbcefdb7",
+        "summary": "온누리상품권과 지역사랑상품권을 합치면 전체 규모는 소폭 늘었다고 설명하며, 소상공인 주택 관련 예산은 예산안 심사 과정에서 위원님 의견을 더 검토하겠다고 답변했다.",
+        "live_insight": {
+          "topic": "소상공인 주택 예산 검토",
+          "topic_key": "소상공인 주택 예산 검토",
+          "role": "ANSWER",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360248-QsNyhBpZB3VI4aga6dL9",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"b7048ab17445e45cbad37cbf98c98b53d1c9f34987ada8dbd4899c25dbcefdb7\", \"summary\": \"온누리상품권과 지역사랑상품권을 합치면 전체 규모는 소폭 늘었다고 설명하며, 소상공인 주택 관련 예산은 예산안 심사 과정에서 위원님 의견을 더 검토하겠다고 답변했다.\", \"topic\": \"소상공인 주택 예산 검토\", \"topic_key\": \"소상공인 주택 예산 검토\", \"role\": \"ANSWER\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 1980,
+        "completion_tokens": 193,
+        "total_tokens": 2173,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360248-QsNyhBpZB3VI4aga6dL9",
+      "object": "chat.completion",
+      "created": 1793360248,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"b7048ab17445e45cbad37cbf98c98b53d1c9f34987ada8dbd4899c25dbcefdb7\", \"summary\": \"온누리상품권과 지역사랑상품권을 합치면 전체 규모는 소폭 늘었다고 설명하며, 소상공인 주택 관련 예산은 예산안 심사 과정에서 위원님 의견을 더 검토하겠다고 답변했다.\", \"topic\": \"소상공인 주택 예산 검토\", \"topic_key\": \"소상공인 주택 예산 검토\", \"role\": \"ANSWER\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 1980,
+        "completion_tokens": 193,
+        "total_tokens": 2173,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  },
+  {
+    "sample": 5,
+    "content_hash": "5863b4183f4cafc459d4c1004312e1ef393a407b6b28120045683c673f4e5233",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:37:39.118362+00:00",
+    "seconds": 2.482,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "5863b4183f4cafc459d4c1004312e1ef393a407b6b28120045683c673f4e5233",
+        "summary": "반도체 기업 호황과 세제 혜택이 민생과 동떨어져 국민 의문이 크다며, 정부가 적극적인 재분배 정책을 펴야 한다고 주장한다. 기준 중위소득 6.7% 인상 등 복지 제도를 통해 소득 재분배를 강화해야 한다고 강조한다.",
+        "live_insight": {
+          "topic": "반도체 세수 재분배와 기준 중위소득 인상",
+          "topic_key": "반도체 세수 재분배 기준 중위소득",
+          "role": "STATEMENT",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360259-MeHy9PGtVMMoG7kPfaTK",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"5863b4183f4cafc459d4c1004312e1ef393a407b6b28120045683c673f4e5233\", \"summary\": \"반도체 기업 호황과 세제 혜택이 민생과 동떨어져 국민 의문이 크다며, 정부가 적극적인 재분배 정책을 펴야 한다고 주장한다. 기준 중위소득 6.7% 인상 등 복지 제도를 통해 소득 재분배를 강화해야 한다고 강조한다.\", \"topic\": \"반도체 세수 재분배와 기준 중위소득 인상\", \"topic_key\": \"반도체 세수 재분배 기준 중위소득\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 2546,
+        "completion_tokens": 226,
+        "total_tokens": 2772,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360259-MeHy9PGtVMMoG7kPfaTK",
+      "object": "chat.completion",
+      "created": 1793360259,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"5863b4183f4cafc459d4c1004312e1ef393a407b6b28120045683c673f4e5233\", \"summary\": \"반도체 기업 호황과 세제 혜택이 민생과 동떨어져 국민 의문이 크다며, 정부가 적극적인 재분배 정책을 펴야 한다고 주장한다. 기준 중위소득 6.7% 인상 등 복지 제도를 통해 소득 재분배를 강화해야 한다고 강조한다.\", \"topic\": \"반도체 세수 재분배와 기준 중위소득 인상\", \"topic_key\": \"반도체 세수 재분배 기준 중위소득\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2546,
+        "completion_tokens": 226,
+        "total_tokens": 2772,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  },
+  {
+    "sample": 6,
+    "content_hash": "7fcf5d6f5e0652a391e44e0e6e080b5fbc1ab0eea7abedd9a39ea7dd5bb670c9",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:37:50.118499+00:00",
+    "seconds": 1.622,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "7fcf5d6f5e0652a391e44e0e6e080b5fbc1ab0eea7abedd9a39ea7dd5bb670c9",
+        "summary": "노르웨이 미래대응기금이 유가 폭락 시 안정적 펀드 운용으로 국가 재정을 방어한 성공 사례라고 설명한다.",
+        "live_insight": {
+          "topic": "노르웨이 미래대응기금 성공 사례",
+          "topic_key": "노르웨이 미래대응기금 펀드",
+          "role": "STATEMENT",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360270-XknONSbNkkDS91NwTrHW",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"7fcf5d6f5e0652a391e44e0e6e080b5fbc1ab0eea7abedd9a39ea7dd5bb670c9\", \"summary\": \"노르웨이 미래대응기금이 유가 폭락 시 안정적 펀드 운용으로 국가 재정을 방어한 성공 사례라고 설명한다.\", \"topic\": \"노르웨이 미래대응기금 성공 사례\", \"topic_key\": \"노르웨이 미래대응기금 펀드\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 2009,
+        "completion_tokens": 174,
+        "total_tokens": 2183,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360270-XknONSbNkkDS91NwTrHW",
+      "object": "chat.completion",
+      "created": 1793360270,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"7fcf5d6f5e0652a391e44e0e6e080b5fbc1ab0eea7abedd9a39ea7dd5bb670c9\", \"summary\": \"노르웨이 미래대응기금이 유가 폭락 시 안정적 펀드 운용으로 국가 재정을 방어한 성공 사례라고 설명한다.\", \"topic\": \"노르웨이 미래대응기금 성공 사례\", \"topic_key\": \"노르웨이 미래대응기금 펀드\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2009,
+        "completion_tokens": 174,
+        "total_tokens": 2183,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  },
+  {
+    "sample": 7,
+    "content_hash": "2728736cd4896e1bd99ccc423d971676a5b42d0ea35f4bbb12270a848c40c197",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:38:01.118562+00:00",
+    "seconds": 2.132,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "2728736cd4896e1bd99ccc423d971676a5b42d0ea35f4bbb12270a848c40c197",
+        "summary": "45조원 규모 기금에서 생산능력과 세대, 3대 메가 프로젝트가 포함될 것이라며 국회가 더 살펴봐야 한다고 밝혔고, 중국 생산 과잉과 제조업 우세에 대응하지 못하면 우리 경쟁력에 우려가 있다고 말했다.",
+        "live_insight": {
+          "topic": "45조원 기금 생산능력 배분과 중국 제조업 대응",
+          "topic_key": "45조원 생산능력 3대 메가 프로젝트 중국 제조업",
+          "role": "STATEMENT",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360281-dpEO8X7BHH5cLc8cvbRj",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"2728736cd4896e1bd99ccc423d971676a5b42d0ea35f4bbb12270a848c40c197\", \"summary\": \"45조원 규모 기금에서 생산능력과 세대, 3대 메가 프로젝트가 포함될 것이라며 국회가 더 살펴봐야 한다고 밝혔고, 중국 생산 과잉과 제조업 우세에 대응하지 못하면 우리 경쟁력에 우려가 있다고 말했다.\", \"topic\": \"45조원 기금 생산능력 배분과 중국 제조업 대응\", \"topic_key\": \"45조원 생산능력 3대 메가 프로젝트 중국 제조업\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 2339,
+        "completion_tokens": 221,
+        "total_tokens": 2560,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360281-dpEO8X7BHH5cLc8cvbRj",
+      "object": "chat.completion",
+      "created": 1793360281,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"2728736cd4896e1bd99ccc423d971676a5b42d0ea35f4bbb12270a848c40c197\", \"summary\": \"45조원 규모 기금에서 생산능력과 세대, 3대 메가 프로젝트가 포함될 것이라며 국회가 더 살펴봐야 한다고 밝혔고, 중국 생산 과잉과 제조업 우세에 대응하지 못하면 우리 경쟁력에 우려가 있다고 말했다.\", \"topic\": \"45조원 기금 생산능력 배분과 중국 제조업 대응\", \"topic_key\": \"45조원 생산능력 3대 메가 프로젝트 중국 제조업\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2339,
+        "completion_tokens": 221,
+        "total_tokens": 2560,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  },
+  {
+    "sample": 8,
+    "content_hash": "b9c3447b3c083c8a37c0c1c74001ec6d11db62535d2c0ebc07c6b848e17f1a5e",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:38:12.118647+00:00",
+    "seconds": 2.348,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "b9c3447b3c083c8a37c0c1c74001ec6d11db62535d2c0ebc07c6b848e17f1a5e",
+        "summary": "정부 예산과 재정이 빚잔치라며 지속가능성을 우려하고, 반도체 세수와 미래대응기금을 마음대로 쌓고 쓰는 구조라고 비판하며 항구적 급여 성격 수당 지급이 포함된 점도 문제라고 지적한다.",
+        "live_insight": {
+          "topic": "정부 예산과 미래대응기금 운용 비판",
+          "topic_key": "예산 재정 미래대응기금 지속가능성",
+          "role": "STATEMENT",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360292-PCauMIqtBpnB0OG1OPLu",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"b9c3447b3c083c8a37c0c1c74001ec6d11db62535d2c0ebc07c6b848e17f1a5e\", \"summary\": \"정부 예산과 재정이 빚잔치라며 지속가능성을 우려하고, 반도체 세수와 미래대응기금을 마음대로 쌓고 쓰는 구조라고 비판하며 항구적 급여 성격 수당 지급이 포함된 점도 문제라고 지적한다.\", \"topic\": \"정부 예산과 미래대응기금 운용 비판\", \"topic_key\": \"예산 재정 미래대응기금 지속가능성\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 2111,
+        "completion_tokens": 211,
+        "total_tokens": 2322,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360292-PCauMIqtBpnB0OG1OPLu",
+      "object": "chat.completion",
+      "created": 1793360292,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"b9c3447b3c083c8a37c0c1c74001ec6d11db62535d2c0ebc07c6b848e17f1a5e\", \"summary\": \"정부 예산과 재정이 빚잔치라며 지속가능성을 우려하고, 반도체 세수와 미래대응기금을 마음대로 쌓고 쓰는 구조라고 비판하며 항구적 급여 성격 수당 지급이 포함된 점도 문제라고 지적한다.\", \"topic\": \"정부 예산과 미래대응기금 운용 비판\", \"topic_key\": \"예산 재정 미래대응기금 지속가능성\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2111,
+        "completion_tokens": 211,
+        "total_tokens": 2322,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  },
+  {
+    "sample": 9,
+    "content_hash": "c9a9fa3418d496bb458a5ec210298ce5f6e27b8ab7f51f3affeed40de48db665",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:38:23.119064+00:00",
+    "seconds": 2.804,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "c9a9fa3418d496bb458a5ec210298ce5f6e27b8ab7f51f3affeed40de48db665",
+        "summary": "위원은 양정모 교수의 입장에 유감을 표하며, 양준모 교수에게 알래스카 LNG 투자 타당성, 사회 양극화와 수도권·지방 불균형 해소 방안, 반도체·AI 등 첨단산업 집중 투자 의견을 묻는다.",
+        "live_insight": {
+          "topic": "양준모 교수에 대한 알래스카 LNG 투자 및 경제 현안 질의",
+          "topic_key": "알래스카 LNG 투자 사회 양극화 수도권 지방 불균형 첨단산업 집중 투자",
+          "role": "QUESTION",
+          "task": null,
+          "owners": [],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360303-RH34vrfbhbA02orxj4RH",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"c9a9fa3418d496bb458a5ec210298ce5f6e27b8ab7f51f3affeed40de48db665\", \"summary\": \"위원은 양정모 교수의 입장에 유감을 표하며, 양준모 교수에게 알래스카 LNG 투자 타당성, 사회 양극화와 수도권·지방 불균형 해소 방안, 반도체·AI 등 첨단산업 집중 투자 의견을 묻는다.\", \"topic\": \"양준모 교수에 대한 알래스카 LNG 투자 및 경제 현안 질의\", \"topic_key\": \"알래스카 LNG 투자 사회 양극화 수도권 지방 불균형 첨단산업 집중 투자\", \"role\": \"QUESTION\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 2529,
+        "completion_tokens": 224,
+        "total_tokens": 2753,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360303-RH34vrfbhbA02orxj4RH",
+      "object": "chat.completion",
+      "created": 1793360303,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"c9a9fa3418d496bb458a5ec210298ce5f6e27b8ab7f51f3affeed40de48db665\", \"summary\": \"위원은 양정모 교수의 입장에 유감을 표하며, 양준모 교수에게 알래스카 LNG 투자 타당성, 사회 양극화와 수도권·지방 불균형 해소 방안, 반도체·AI 등 첨단산업 집중 투자 의견을 묻는다.\", \"topic\": \"양준모 교수에 대한 알래스카 LNG 투자 및 경제 현안 질의\", \"topic_key\": \"알래스카 LNG 투자 사회 양극화 수도권 지방 불균형 첨단산업 집중 투자\", \"role\": \"QUESTION\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": []}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 2529,
+        "completion_tokens": 224,
+        "total_tokens": 2753,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  },
+  {
+    "sample": 10,
+    "content_hash": "a0b80867fdbdadcc932bee8be360a494031577282cd274508e29c3b62839ce47",
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "started_at": "2026-10-30T11:38:34.119155+00:00",
+    "seconds": 2.463,
+    "completed": true,
+    "accepted": 1,
+    "output": [
+      {
+        "content_hash": "a0b80867fdbdadcc932bee8be360a494031577282cd274508e29c3b62839ce47",
+        "summary": "KDI 선임연구위원은 2027년 예산안과 기금운용계획안에 대해 첨단산업 경쟁력 강화를 위한 공통 기반 재정 선행 투자, 다년도 투자계획 추진, 미래대응기금 재원 배분과 사용 원칙 명확화 등을 강조하며 재정투자 실효성 제고 방안을 제시했다.",
+        "live_insight": {
+          "topic": "2027년 예산안 및 기금운용계획안에 대한 KDI 의견",
+          "topic_key": "예산안 기금운용계획 첨단산업 재정투자 미래대응기금",
+          "role": "STATEMENT",
+          "task": null,
+          "owners": [
+            "KDI"
+          ],
+          "status": "PROVISIONAL",
+          "task_kind": "NONE",
+          "task_evidence_quote": ""
+        }
+      }
+    ],
+    "metadata": {
+      "request_id": "gen-1793360314-0bw7sEbjimag9mxFArRh",
+      "upstream_provider": "Nvidia",
+      "response_model": "nvidia/nemotron-3.5-super-vl:free",
+      "raw_response": "{\"summaries\": [{\"id\": \"a0b80867fdbdadcc932bee8be360a494031577282cd274508e29c3b62839ce47\", \"summary\": \"KDI 선임연구위원은 2027년 예산안과 기금운용계획안에 대해 첨단산업 경쟁력 강화를 위한 공통 기반 재정 선행 투자, 다년도 투자계획 추진, 미래대응기금 재원 배분과 사용 원칙 명확화 등을 강조하며 재정투자 실효성 제고 방안을 제시했다.\", \"topic\": \"2027년 예산안 및 기금운용계획안에 대한 KDI 의견\", \"topic_key\": \"예산안 기금운용계획 첨단산업 재정투자 미래대응기금\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": [\"KDI\"]}]}",
+      "quality_rejections": {},
+      "rejected_ids": [],
+      "usage": {
+        "prompt_tokens": 7501,
+        "completion_tokens": 250,
+        "total_tokens": 7751,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "privacy": {
+        "data_collection": "allow",
+        "zdr": false,
+        "public_evidence_only": true
+      }
+    },
+    "http_status": 200,
+    "payload": {
+      "id": "gen-1793360314-0bw7sEbjimag9mxFArRh",
+      "object": "chat.completion",
+      "created": 1793360314,
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "provider": "Nvidia",
+      "system_fingerprint": null,
+      "service_tier": null,
+      "choices": [
+        {
+          "index": 0,
+          "logprobs": null,
+          "finish_reason": "stop",
+          "native_finish_reason": "stop",
+          "message": {
+            "role": "assistant",
+            "content": "{\"summaries\": [{\"id\": \"a0b80867fdbdadcc932bee8be360a494031577282cd274508e29c3b62839ce47\", \"summary\": \"KDI 선임연구위원은 2027년 예산안과 기금운용계획안에 대해 첨단산업 경쟁력 강화를 위한 공통 기반 재정 선행 투자, 다년도 투자계획 추진, 미래대응기금 재원 배분과 사용 원칙 명확화 등을 강조하며 재정투자 실효성 제고 방안을 제시했다.\", \"topic\": \"2027년 예산안 및 기금운용계획안에 대한 KDI 의견\", \"topic_key\": \"예산안 기금운용계획 첨단산업 재정투자 미래대응기금\", \"role\": \"STATEMENT\", \"task\": \"\", \"task_kind\": \"NONE\", \"task_evidence_quote\": \"\", \"owners\": [\"KDI\"]}]}",
+            "refusal": null
+          }
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 7501,
+        "completion_tokens": 250,
+        "total_tokens": 7751,
+        "cost": 0,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0,
+          "upstream_inference_prompt_cost": 0,
+          "upstream_inference_completions_cost": 0
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  }
+]

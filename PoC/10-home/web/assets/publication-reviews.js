@@ -12,6 +12,7 @@ const PublicationReviews=(()=>{
  }
  function render(){
   host().innerHTML='<header class="pr-head"><div><p class="pr-eyebrow">자료 발견 → 담당자 검토 → 사업 연결</p><h2>신규 자료 검토</h2><p>새로 수집한 자료가 어느 주택사업의 근거인지 판단하는 화면입니다. 왼쪽에서 자료를 고르면 오른쪽에 확인할 질문과 처리 방법이 나옵니다.</p></div><button type="button" class="button secondary" data-pr-refresh>새로고침</button></header>'+
+   '<div id="ai-collection-root"></div>'+
    '<div class="pr-counts">'+[['REVIEW','검토 대기'],['HOLD','보류'],['REGISTRATION_REQUIRED','사업 등록 대기'],['APPROVED','자료 연결 승인'],['EXCLUDED','제외']].map(([k,l])=>'<button type="button" data-pr-status="'+k+'" aria-pressed="'+(filter===k)+'"><span>'+l+'</span><strong>'+num(data.counts[k]||0)+'</strong></button>').join('')+'</div>'+
    '<div class="pr-toolbar"><label>검토 상태<select id="pr-status"><option value="OPEN">미완료 전체</option><option value="ALL">전체</option>'+Object.entries(data.status_labels).map(([v,t])=>'<option value="'+v+'">'+e(t)+'</option>').join('')+'</select></label><label>우선순위<select id="pr-priority"><option value="">전체</option><option value="1">1 · 계획 누락 확인</option><option value="2">2 · 귀속·단계 확인</option><option value="3">3 · 범위·중복 확인</option><option value="4">참고·관련성 분류</option></select></label><label class="pr-search">자료 검색<input id="pr-search" type="search" maxlength="500" placeholder="제목·출처·검토 내용"></label></div><p id="pr-result" role="status"></p>'+
    '<div class="pr-export"><div><strong>외부 검증용 CSV</strong><p>상태별 목록·원문 URL·검토 사유·사업 정보·판단 이력을 받습니다. 저장된 결과 기준이며, 현재 목록에는 검색·우선순위 조건도 적용됩니다.</p></div><div class="pr-export-actions"><button type="button" class="button secondary" id="pr-export-current">현재 목록 CSV</button><button type="button" class="button secondary" id="pr-export-all">전체 상태 CSV</button></div></div><p id="pr-export-result" role="status" aria-live="polite"></p>'+
@@ -21,7 +22,7 @@ const PublicationReviews=(()=>{
   host().querySelector('[data-pr-refresh]').onclick=()=>{if(canLeave())load();};
   host().querySelectorAll('[data-pr-status]').forEach(b=>b.onclick=()=>{filter=b.dataset.prStatus;$('pr-status').value=filter;renderList();});
   $('pr-export-current').onclick=()=>downloadCsv(false);$('pr-export-all').onclick=()=>downloadCsv(true);
-  renderList();renderDetail();
+  renderList();renderDetail();AICollection.mount($('ai-collection-root'));
  }
  function renderList(){
   const open=new Set(['REVIEW','HOLD','REGISTRATION_REQUIRED']);
@@ -59,6 +60,7 @@ const PublicationReviews=(()=>{
   const mappingLabels={CONFIRMED:'확정',REVIEW:'검토 중',UNASSIGNED:'미지정',EXCLUDED:'제외',REJECTED:'반려'};
   root.innerHTML=`<div class="pr-detail-top"><span class="pr-priority p${r.priority}">${r.priority<4?'우선순위 '+r.priority:'참고 분류'}</span><span>${e(r.status_label)}</span></div>
    <h3 tabindex="-1">${e(r.title)}</h3><p class="pr-meta">${e(r.source_name)} · 게시일 ${e(r.source_date)} · 원문 판본 ${r.source_revision_no}</p>
+   ${AICollection.analysis(r.ai_analysis)}
    <section class="pr-question"><span class="pr-kicker">이번 자료에서 결정할 한 가지</span><h4>${e(g.decision)}</h4><p>${e(g.why)}</p><small>${e(g.basis)}</small>
     ${r.link_changed?'<p><strong>다른 화면에서 연결이 변경됐습니다.</strong> 현재 연결 상태를 다시 확인하세요.</p>':''}
     ${r.source_changed?'<p><strong>새 원문 판본이 수집됐습니다.</strong> 이전 결정은 보존되며 현재 자료는 재검토 대기입니다.</p>':''}</section>

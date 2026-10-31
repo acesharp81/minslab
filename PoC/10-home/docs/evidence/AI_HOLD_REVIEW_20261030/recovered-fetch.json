@@ -1,0 +1,100 @@
+[
+  {
+    "id": "DOC_1a6ca43e629b43f161ea2d4f",
+    "url": "https://www.seoul.go.kr/news/news_report.do#view/468917",
+    "sha256": "175d4f4d0b51c295d003623b532aa8a946a322b8317ebadc118a833571f32d51",
+    "bytes": 105147,
+    "recovered": true
+  },
+  {
+    "id": "DOC_179b0bf6be074456396107d9",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092528",
+    "sha256": "0eb966e84f654a744a244e782cafb96cbc30fa2f46e3cfaa0e4b759b3354c1a3",
+    "bytes": 61669,
+    "recovered": true
+  },
+  {
+    "id": "DOC_207a370134382e19914be4a7",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092519",
+    "sha256": "4e53d1755ee37ef8db0e023025e4e47aa1de3bcf1193a57bcd004ab8130ecf8a",
+    "bytes": 61753,
+    "recovered": true
+  },
+  {
+    "id": "DOC_528c011f03ec6fac320df953",
+    "url": "https://www.seoul.go.kr/news/news_report.do#view/468710",
+    "sha256": "2d68755a6f47762bb8dfae8d6fe3452fdf380a3119bc1afa9528dc883f32747e",
+    "bytes": 93065,
+    "recovered": true
+  },
+  {
+    "id": "DOC_c45f9c890c1f952db73a95a6",
+    "url": "https://www.seoul.go.kr/news/news_report.do#view/468633",
+    "sha256": "7f677f6b97c7572c4e8e58e209b42a0037200fdeb2e96515239d8b44bc3a4890",
+    "bytes": 100253,
+    "recovered": true
+  },
+  {
+    "id": "DOC_7a1ec6af9f12b62cd9a679c8",
+    "url": "https://www.seoul.go.kr/news/news_report.do#view/468636",
+    "sha256": "da1ad5b17d790c18dd4c15eca933fb18861b9d18f744bb10dd8e81b0acb8072f",
+    "bytes": 115550,
+    "recovered": true
+  },
+  {
+    "id": "DOC_fda929b8bcd161e45adeb2ea",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092507",
+    "sha256": "dd9fca919529360ae6ac3b89c6a0a2ad346877f92a48e59ffd3eff16c7d9c8f2",
+    "bytes": 62122,
+    "recovered": true
+  },
+  {
+    "id": "DOC_dc15b5e37f06ac93bec858d7",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092505",
+    "sha256": "9d356de075e1791862097d4ed570c794f6ad1125749624a87b7fa99d55999567",
+    "bytes": 61929,
+    "recovered": true
+  },
+  {
+    "id": "DOC_a06a527d2c3e07f6efb823f2",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092499",
+    "sha256": "fe88ee539c21fefa1d1f114db29ad6224566379768a19a9d8450f7c2526fbfb8",
+    "bytes": 64043,
+    "recovered": true
+  },
+  {
+    "id": "DOC_49fc7e60ca9bf26ccd86d8f0",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092536",
+    "sha256": "355d783799b935c5da39ad335c22de1df4c74ed78fd12bbe2f9bca9f154872f6",
+    "bytes": 61875,
+    "recovered": true
+  },
+  {
+    "id": "DOC_137367d418ef26ae939530b4",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092535",
+    "sha256": "667f029cbe85cd3bfb6ee41eb2d5ee58ef6e05e37401a5814375bf1176c3fa3a",
+    "bytes": 62195,
+    "recovered": true
+  },
+  {
+    "id": "DOC_28c9b02a51a12b5d94a48e8b",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092544",
+    "sha256": "cc053d84f913caf9af6bc8b17273858f56a85498023951f4166b8db572938f8f",
+    "bytes": 62067,
+    "recovered": true
+  },
+  {
+    "id": "DOC_0cd6152b0910c823259d2f5f",
+    "url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092539",
+    "sha256": "cd404dff23b0d78c2da645a1ed68ff832940a9252819ac807909ab1cbdcd446a",
+    "bytes": 60585,
+    "recovered": true
+  },
+  {
+    "id": "DOC_aab8e8046c141970effcd06c",
+    "url": "https://www.seoul.go.kr/news/news_report.do#view/469091",
+    "sha256": "f6b54ae05f1f083c600a1d85c0e611e9244670439b1099485b469df27c836f1b",
+    "bytes": 92016,
+    "recovered": true
+  }
+]

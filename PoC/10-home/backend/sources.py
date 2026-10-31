@@ -1,5 +1,9 @@
 """Explicit official source registry; no runtime dependency on other PoCs."""
 SOURCES = [
+    dict(id='ai_publication',name='AI 공개 자료 탐색 후보',org='공식기관·언론 공개 원문',
+         url='https://www.bing.com/news',type='NEWS',data_type='DOCUMENT',
+         collection_mode='AI_DISCOVERY',key_env=None,implemented=True,
+         manual_only=True,refresh_days=1,discovery_only=True),
     dict(id='molit_press_watch',name='국토교통부 주택 보도자료 신규 탐색',org='국토교통부',
          url='https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp',
          feed_urls=['https://www.molit.go.kr/USR/NEWS/m_71/lst.jsp?lcmspage='+str(n) for n in range(1,4)],

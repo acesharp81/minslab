@@ -1,0 +1,18 @@
+{
+  "home_desktop": {
+    "x": 278,
+    "y": 327.765625,
+    "width": 440,
+    "height": 76
+  },
+  "poc11_desktop": {
+    "x": 976,
+    "y": 80,
+    "width": 440,
+    "height": 76
+  },
+  "home_details_work": true,
+  "poc11_usage_link_works": true,
+  "mobile_overflow": false,
+  "page_errors": []
+}

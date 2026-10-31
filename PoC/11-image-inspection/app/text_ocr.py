@@ -20,7 +20,7 @@ from .config import ROOT
 from .imaging import cell_rect
 from .rules import redact
 
-VERSION = 'independent-text-v1'
+VERSION = 'independent-text-v2'
 
 class TextReading(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
@@ -47,6 +47,12 @@ TEXT_SYSTEM = '''홍보 이미지의 글자 원형을 검사합니다. 각 이�
 4. 글자를 읽었어도 실제로 획이 뭉개져 있으면 DEFECT와 구체적인 위치/획 증거를 남깁니다. 글자가 낯설거나 잘 안 읽힌다는 이유만으로 DEFECT라 하지 않습니다. 숫자·부호·외국어·장식 서체도 오류로 단정하지 않습니다.
 5. 위 전사를 끝낸 다음 spelling에서 일반 철자 오류를 별도로 검사합니다. 명백한 오타만 ERROR, 불명확한 고유명사/지명/사실관계는 UNCERTAIN. 제안 교정은 suggested_text에만 넣습니다. 읽기 성공과 맞춤법 정상은 다릅니다.
 6. 완전한 문구가 crop 밖으로 잘렸다면 추측 보충하지 않고 UNCERTAIN입니다. 개인정보 값은 [마스킹]. 출력은 간결한 한국어. 모든 region_id를 정확히 한 번 반환합니다.'''
+
+TEXT_SYSTEM += '''
+검사 영역은 tasks.target_rect_in_crop에 지정됩니다. 주변 여백에 우연히 포함된 다른 줄은 전사에 합치지 않습니다.
+원본에서 문자 줄 전체가 실제로 번져 획 경계가 사라진 것이 보이면, 전사를 못하더라도 glyph_quality=DEFECT입니다. 이때 글자 이름을 맞히지 말고 '대상 줄 전체의 획 경계가 번짐'처럼 보이는 품질 결함을 기록합니다. OCR 엔진이 실패했다는 사실만으로 이 판단을 하지 않습니다. 단순히 낯선 글꼴, 작은 글자, 일부 가림, crop 잘림인지 구별할 수 없으면 UNCERTAIN입니다.
+짧은 단어도 익숙한 단어 단위로 읽지 말고 각 음절의 초성·중성·종성을 차례대로 확인하십시오. 마지막 받침을 특히 생략하지 않습니다. 기관명·고유명사는 읽힌 철자가 선명하다는 이유만으로 spelling=NORMAL로 확정하지 말고 기준 대조가 필요하면 UNCERTAIN으로 남기십시오.
+'''
 
 
 def normalized(text):
@@ -159,7 +165,9 @@ def run_text_ocr(engine,job,run,raw):
         for r in batch:
             data,rect,size=native_crop(raw,r['rect']);images.append(data)
             r['crop_rect']=rect;r['sent_pixels']=size
-            tasks.append({'region_id':r['id'],'image_index':len(images)-1})
+            tasks.append({'region_id':r['id'],'image_index':len(images)-1,
+                'target_rect_in_crop':[(r['rect'][0]-rect[0])/(rect[2]-rect[0]),(r['rect'][1]-rect[1])/(rect[3]-rect[1]),
+                                       (r['rect'][2]-rect[0])/(rect[2]-rect[0]),(r['rect'][3]-rect[1])/(rect[3]-rect[1])]})
         # No OCR transcript, label, previous model answer, or answer key enters this prompt.
         payload={'tasks':tasks,'sensitivity':run['options'].get('text_sensitivity','strict'),
                  'instruction':'각 crop은 격자 없는 원본 픽셀입니다. 전사·획 품질·철자를 별도로 기록하십시오.'}
@@ -237,6 +245,13 @@ def compact_evidence(run):
         'recognition_score':r['recognition_score'],'vision':r.get('vision'),'verdict':r.get('verdict')} for r in audit.get('regions',[])]}
 
 
+def analysis_observation(run, ids):
+    """OCR IDs must be legal evidence IDs for text rules, not just prompt footnotes."""
+    observation=run['analysis_observation']
+    text_rules=bool(set(ids).intersection({'D-02-l','H-06-b'}))
+    return {**observation,'objects':[o for o in observation['objects'] if not o.get('ocr_region') or text_rules]}
+
+
 def protect_rows(run,rows,ids,model):
     """Deterministic text safety gate. Existing non-text checklist rules are untouched."""
     audit=run.get('text_ocr')
@@ -247,7 +262,9 @@ def protect_rows(run,rows,ids,model):
         matches=[by_id[e] for e in row.get('evidence_ids',[]) if e in by_id]
         if not matches:
             matches=[r for r in regions if any(overlap(r['rect'],a)>.6 for a in row.get('rects',[]))]
-        uncertain=any(r['verdict']['status']=='REVIEW' for r in matches)
+        # Reference/meaning uncertainty is not the same as uncertain transcription.
+        # A clear agreed institution name can still fail a later reference check.
+        uncertain=any(r['verdict']['status']=='REVIEW' and not source_transcription_confirmed(r) for r in matches)
         if row['status'] in ('PASS','FAIL') and (uncertain or audit['status']=='UNAVAILABLE'):
             row.update(status='REVIEW',error_type='OCR_UNCERTAIN',visual_issue=True,document_review=False,
                        reason=row['reason']+' · 독립 OCR/획 검사 근거 미확정')
@@ -273,6 +290,27 @@ def protect_rows(run,rows,ids,model):
     return rows
 
 
+def source_transcription_confirmed(region):
+    v=region.get('vision') or {}
+    return bool(v.get('text_present') and v.get('glyph_quality')=='CLEAR' and not v.get('inferred')
+        and not v.get('uncertain_characters') and v.get('glyph_evidence')
+        and normalized(v.get('literal_text'))==normalized(region.get('text')) and normalized(region.get('text'))
+        and region.get('recognition_score',0)>=.9
+        and not ('OCR_ENGINE_DISAGREEMENT' in region.get('verdict',{}).get('flags',[])))
+
+
+def reading_order(matches):
+    """Cluster by vertical overlap, not fixed y bins that reorder descenders."""
+    lines=[]
+    for pair in sorted(matches,key=lambda pair:(pair[1]['rect'][1]+pair[1]['rect'][3])/2):
+        rect=pair[1]['rect'];line=next((line for line in lines if any(
+            max(0,min(rect[3],other[1]['rect'][3])-max(rect[1],other[1]['rect'][1])) /
+            max(1e-9,min(rect[3]-rect[1],other[1]['rect'][3]-other[1]['rect'][1]))>.5 for other in line)),None)
+        if line is None:lines.append([pair])
+        else:line.append(pair)
+    return [pair for line in lines for pair in sorted(line,key=lambda pair:pair[1]['rect'][0])]
+
+
 def apply_naver(audit,supplemental):
     """Retain detector-only candidates and all engine transcripts, including blanks."""
     w,h=audit['image_size'];fields=[]
@@ -286,10 +324,11 @@ def apply_naver(audit,supplemental):
         if not matches:
             r['naver_text']='';r['naver_omission']=True
             continue
-        matches.sort(key=lambda item:(round(item[1]['rect'][1]*h/20),item[1]['rect'][0]))
-        text=' '.join(f['text'] for _,f in matches);score=min(f['score'] for _,f in matches)
+        matches=reading_order(matches)
+        text=' '.join(f['text'] for _,f in matches)
+        score=sum(f['score']*max(1,len(f['text'])) for _,f in matches)/sum(max(1,len(f['text'])) for _,f in matches)
         claimed.update(i for i,_ in matches)
-        r.update(naver_text=text,naver_recognition_score=score,recognition_engine='NAVER CLOVA OCR',text=text,recognition_score=score)
+        r.update(naver_text=text,naver_recognition_score=score,naver_fields=[f for _,f in matches],recognition_engine='NAVER CLOVA OCR',text=text,recognition_score=score)
     # NAVER-only discoveries stay visible even when the GPT crop budget is exhausted.
     for i,f in enumerate(fields):
         if i in claimed or any(overlap(f['rect'],r['rect'])>.7 for r in audit['regions']):continue

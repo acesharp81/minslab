@@ -26,7 +26,7 @@ awk -F= '$1 == "OPENROUTER_METER_TOKEN" { print }' "${PROJECT_ENV}" >> "${ENV_FI
   echo 'OPENROUTER_OPERATIONAL_DAILY_LIMIT=950'
   echo 'OPENROUTER_RPM_LIMIT=18'
   echo 'OPENROUTER_MAX_INFLIGHT=4'
-  echo 'OPENROUTER_FREE_MODELS=nvidia/nemotron-3-super-120b-a12b:free,liquid/lfm-2.5-2.6b:free,dots-studio/dots-3-note-preview:free'
+  echo 'OPENROUTER_FREE_MODELS=nvidia/nemotron-3.5-super-vl:free,nvidia/nemotron-3-super-120b-a12b:free,liquid/lfm-2.5-2.6b:free'
 } >> "${ENV_FILE}"
 chmod 600 "${ENV_FILE}"
 

@@ -1,0 +1,147 @@
+{
+  "period_start_kst": "2026-10-30T00:00:00+09:00",
+  "period_end_kst": "2026-10-30T21:44:17+09:00",
+  "scope": "PoC7 only; other projects excluded",
+  "unit": "API requests (deduplicated), not utterances or reports",
+  "service": [
+    {
+      "model": "GPT-5.4 mini",
+      "requests": 434,
+      "success": 427,
+      "partial": 0,
+      "failure": 5,
+      "unknown": 2,
+      "tokens": 1590380,
+      "saved_utterances": 366
+    },
+    {
+      "model": "Dots3 Note",
+      "requests": 259,
+      "success": 107,
+      "partial": 3,
+      "failure": 149,
+      "unknown": 0,
+      "tokens": 760785,
+      "saved_utterances": 120
+    },
+    {
+      "model": "GPT-5.4",
+      "requests": 9,
+      "success": 7,
+      "partial": 0,
+      "failure": 0,
+      "unknown": 2,
+      "tokens": 157772
+    },
+    {
+      "model": "GPT-6.1 Terra",
+      "requests": 1,
+      "success": 1,
+      "partial": 0,
+      "failure": 0,
+      "unknown": 0,
+      "tokens": 32584
+    },
+    {
+      "model": "Nemo 3.5 VL",
+      "requests": 0,
+      "success": 0,
+      "partial": 0,
+      "failure": 0,
+      "unknown": 0,
+      "tokens": 0
+    },
+    {
+      "model": "Mistral Voxtral mini",
+      "requests": 5,
+      "success": 5,
+      "partial": 0,
+      "failure": 0,
+      "unknown": 0,
+      "tokens": null,
+      "audio_seconds": 232.2
+    }
+  ],
+  "evaluation": [
+    {
+      "model": "GPT-5.4 mini",
+      "requests": 7,
+      "success": 7,
+      "failure": 0,
+      "tokens": 11675,
+      "failure_reason": null
+    },
+    {
+      "model": "Nemo 3.5 VL",
+      "requests": 37,
+      "success": 31,
+      "failure": 6,
+      "tokens": 88749,
+      "failure_http": {
+        "401": 6
+      }
+    },
+    {
+      "model": "Gemma 4 26B",
+      "requests": 3,
+      "success": 0,
+      "failure": 3,
+      "tokens": 0,
+      "failure_http": {
+        "429": 2,
+        "401": 1
+      }
+    },
+    {
+      "model": "Gemma 4 31B",
+      "requests": 3,
+      "success": 0,
+      "failure": 3,
+      "tokens": 0,
+      "failure_http": {
+        "429": 2,
+        "401": 1
+      }
+    },
+    {
+      "model": "Xing 4",
+      "requests": 1,
+      "success": 0,
+      "failure": 1,
+      "tokens": 0,
+      "failure_http": {
+        "429": 1
+      }
+    },
+    {
+      "model": "Flint",
+      "requests": 1,
+      "success": 0,
+      "failure": 1,
+      "tokens": 0,
+      "failure_http": {
+        "503": 1
+      }
+    }
+  ],
+  "reconciliation": {
+    "mini_utc_shared_total_requests": 491,
+    "mini_utc_shared_total_tokens": 2158293,
+    "other_projects_mini_requests": 50,
+    "other_projects_mini_tokens": 556238,
+    "mini_test_requests": 7,
+    "mini_test_tokens": 11675,
+    "mini_detailed_service_requests": 432,
+    "mini_detailed_service_tokens": 1581087,
+    "mini_unmatched_requests": 2,
+    "mini_unmatched_tokens": 9293,
+    "main_utc_shared_total_requests": 43,
+    "main_utc_shared_total_tokens": 372921,
+    "other_projects_main_requests": 34,
+    "other_projects_main_tokens": 215149,
+    "main_detailed_service_requests": 7,
+    "main_detailed_service_tokens": 106352,
+    "main_unmatched_requests": 2,
+    "main_unmatched_tokens": 51420
+  }
+}

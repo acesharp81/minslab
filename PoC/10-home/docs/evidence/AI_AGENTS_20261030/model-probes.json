@@ -1,0 +1,13 @@
+{
+  "method": "가상 문장 1건 구조화 추출, 공통 원장 정산. 품질 벤치마크 아님",
+  "approved_candidates": [
+    {"model":"solar-pro4","ok":true,"input_tokens":207,"output_tokens":21,"estimated_usd":0.0000873},
+    {"model":"gpt-5.4-mini","ok":true,"input_tokens":124,"output_tokens":26,"estimated_usd":0.00021},
+    {"model":"gpt-5.4","ok":true,"input_tokens":124,"output_tokens":26,"estimated_usd":0.0007},
+    {"model":"gpt-6.1-terra","ok":true,"input_tokens":124,"output_tokens":26,"estimated_usd":0.000505},
+    {"model":"nvidia/nemotron-3.5-super-vl:free","ok":true,"input_tokens":86,"output_tokens":324,"estimated_usd":0.0}
+  ],
+  "removed_candidate":{"model":"nvidia/nemotron-3-super-120b-a12b:free","status":404,"reason":"This model is unavailable for free. The paid version is available now"},
+  "paid_fallback_used":false,
+  "note":"비용은 공개 단가 환산이며 무료/무제한 적용 후 실제 청구액이 아니다. 진단 실패 요청도 OpenRouter 일일 요청 원장에 남는다."
+}

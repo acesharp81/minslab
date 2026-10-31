@@ -1,0 +1,42 @@
+[
+  {
+    "path": "ai-agents",
+    "ms": 38,
+    "bytes": 45407
+  },
+  {
+    "path": "ai-agents/collection/items",
+    "ms": 104,
+    "bytes": 1162930
+  },
+  {
+    "path": "ai-agents/officer/items",
+    "ms": 28,
+    "bytes": 19951
+  },
+  {
+    "path": "policy-delivery/view?as_of_date=2026-10-30&group=policy&scope=policy",
+    "ms": 5338,
+    "bytes": 5726738
+  },
+  {
+    "path": "ai-agents",
+    "ms": 11,
+    "bytes": 45407
+  },
+  {
+    "path": "ai-agents/collection/items",
+    "ms": 112,
+    "bytes": 1162930
+  },
+  {
+    "path": "ai-agents/officer/items",
+    "ms": 23,
+    "bytes": 19951
+  },
+  {
+    "path": "policy-delivery/view?as_of_date=2026-10-30&group=policy&scope=policy",
+    "ms": 76,
+    "bytes": 5726738
+  }
+]
