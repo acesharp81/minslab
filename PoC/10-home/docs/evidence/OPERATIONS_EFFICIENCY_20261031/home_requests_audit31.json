@@ -1,0 +1,11 @@
+{
+  "window_minutes": 30,
+  "requests": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status": "200",
+      "count": 90
+    }
+  ]
+}

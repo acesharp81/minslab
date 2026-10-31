@@ -1,0 +1,11 @@
+{
+  "backups": {
+    "poc10-home-api": "poc10-home-api-before-shared-1793416586"
+  },
+  "containers": {
+    "poc10-home-api": {
+      "image": "poc10-home:delivery-performance-20261031-v2",
+      "image_id": "sha256:988f38dbf113728b841f5210b03ba3a5e281befac8a8b42f30e5cfb900c9ce0e"
+    }
+  }
+}

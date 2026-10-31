@@ -402,7 +402,7 @@ async function pollCollectionStatus(){
   }catch(_){}finally{sourcePolling=false;}
 }
 $('view-update-notice').addEventListener('click',()=>{if($('view-update-notice').dataset.view===state.view)load();});
-setInterval(pollCollectionStatus,10000);
+setInterval(pollCollectionStatus,60000);
 let viewPolling=false;
 setInterval(async()=>{
   const view=state.view;
@@ -412,5 +412,5 @@ setInterval(async()=>{
     const observed=await request('/view-version?view='+view);
     if(view===state.view&&observed.version!==state.viewVersion)notifyViewUpdate(view);
   }catch(_){}finally{viewPolling=false;}
-},20000);
+},60000);
 start();

@@ -1,26 +1,25 @@
 # MinsLab
 
-오늘의 기록으로 내일의 가능성을 실험하는 곳. Python ASGI 기반의 Local AI chat, portfolio archive, and hands-on RAG/chunking comparison labs.
+오늘의 기록으로 내일의 가능성을 실험하는 곳. Python ASGI 기반 AI 채팅과 독립 서비스 포트폴리오.
 
 ## 저장소 한눈에 보기
 
-MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채팅, 포트폴리오 실습 4개, 등록된 PoC와 관리자 통계를 함께 제공하는 실험 저장소입니다. 공통 `main.py`가 HTML, 정적 빌드 결과, JSON/NDJSON API를 라우팅하고 독립 서비스는 같은 출처로 프록시합니다. PoC 10 HOME은 전용 FastAPI·PostgreSQL/PostGIS에서 정부 주택공급 정책과 서울·경기 사업 후보를 수집·조회하며 `/poc/home/*`로 연결합니다.
+MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채팅, 포트폴리오 7·8·10·12번, 등록된 PoC와 관리자 통계를 함께 제공하는 실험 저장소입니다. 공통 `main.py`가 HTML, 정적 빌드 결과, JSON/NDJSON API를 라우팅하고 독립 서비스는 같은 출처로 프록시합니다. PoC 10 HOME은 전용 FastAPI·PostgreSQL/PostGIS에서 정부 주택공급 정책과 서울·경기 사업 후보를 수집·조회하며 `/poc/home/*`로 연결합니다.
 
 | 구분 | 프로젝트 | 실행 화면 | 상세 문서 |
 | --- | --- | --- | --- |
 | Home | Local AI Chat | `/` | 이 문서의 Local AI Chat 섹션 |
-| Portfolio 01 | 청킹 실습 | `/portfolio?project=chunking-lab` | [projects/01-chunking-lab](projects/01-chunking-lab/README.md) |
-| Portfolio 02 | 청킹·임베딩·RAG 과제 | `/portfolio?project=chunking-rag-lab` | [projects/02-chunking-rag-lab](projects/02-chunking-rag-lab/README.md) |
-| Portfolio 03 | 계층형 멀티에이전트 하네스 | `/portfolio?project=multiagent-harness` | [projects/03-multiagent-harness](projects/03-multiagent-harness/README.md) |
-| Portfolio 04 | 행정 회신 초안 생성 | `/portfolio?project=report-draft` | [projects/04-report-draft](projects/04-report-draft/README.md) |
 | PoC 01 | AI Safe Agent / AI 안전비서 | `/poc?project=ai-safe-agent` | [PoC/01-AISafeAgent](PoC/01-AISafeAgent/README.md) |
 | PoC 02 | 현장점검플랫폼 | `/poc?project=field-inspection-platform` | [PoC/02-field-inspection-platform](PoC/02-field-inspection-platform/README.md) |
-| PoC 03 | 통합 업무관리시스템 | `/poc?project=mois-kms` | [PoC/03-mois-kms](PoC/03-mois-kms/README.md) |
 | PoC 04 | AI 언론동향 비서 | `/poc?project=master-press` | [PoC/04-master-press](PoC/04-master-press/README.md) |
-| PoC 05 | 북한 야간조명 3D 지도 | `/poc?project=north-korea-night-lights` | [PoC/05-north-korea-night-lights](PoC/05-north-korea-night-lights/README.md) |
 | PoC 06 | AI Work Hub | `/poc?project=aiworks` | [PoC/06-AIWorks](PoC/06-AIWorks/README.md) |
-| PoC 07 | 지금 우리 국회에선 | `/poc?project=national-assembly` | [PoC/07-NationalAssembly](PoC/07-NationalAssembly/README.md) |
-| PoC 10 | HOME · 주택정책의 실행·모니터링 | `/poc/home` · `/home` | [PoC/10-home](PoC/10-home/README.md) |
+| Portfolio 07 | 지금 우리 국회에선 | `/portfolio?project=national-assembly` | [PoC/07-NationalAssembly](PoC/07-NationalAssembly/README.md) |
+| Portfolio 08 | 조달췤! | `/portfolio?project=ai-common-platform-radar` | [PoC/08-AICommonPlatformRadar](PoC/08-AICommonPlatformRadar/README.md) |
+| Portfolio 10 | HOME · 주택정책의 실행·모니터링 | `/poc/home` · `/home` | [PoC/10-home](PoC/10-home/README.md) |
+| PoC 11 | 췤미! 이미지 검사 | `/poc?project=image-inspection` | [PoC/11-image-inspection](PoC/11-image-inspection/README.md) |
+| Portfolio 12 | 책자리 · EPUB · PDF 리더 | `/portfolio?project=epub-reader` · `/epub` | [PoC/12-epub-reader](PoC/12-epub-reader/README.md) |
+
+현재 1·2·4·6·11번은 PoC, 7·8·10·12번은 포트폴리오입니다. 최초 번호·폴더·서비스 URL은 유지합니다. 3·5·9번과 이전 포트폴리오 4개는 삭제했습니다. 4번은 코드·파이프라인·DB 스키마를 보존하고 데이터·백업만 비운 중지 상태입니다. 8번의 신규 수집은 설정에서 비활성화되어 있습니다.
 
 포트폴리오 등록 규칙은 [projects/README.md](projects/README.md), PoC 등록·배포 규칙은 [PoC/README.md](PoC/README.md)에 정리되어 있습니다.
 
@@ -29,8 +28,7 @@ MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채�
 ```text
 Browser
   ├─ Home / Portfolio / PoC HTML
-  ├─ React SPA: Field Inspection, MoIS KMS
-  ├─ deck.gl player: North Korea Night Lights
+  ├─ React SPA: Field Inspection
   ├─ static workspace: AI Work Hub
   ├─ proxied independent app: National Assembly
   ├─ proxied independent app: HOME (localhost:18100)
@@ -76,8 +74,8 @@ systemd minslab-monitor.timer
 ├── monitor_probe.py           # 독립 공개 HTTPS 가용성 프로브
 ├── deploy/systemd/            # 1분 주기 모니터 서비스·타이머 유닛
 ├── supabase_schema.sql        # 채팅/청킹 공통 참고 스키마
-├── projects/                  # 포트폴리오 01~04
-├── PoC/                       # 실행형 PoC 01~12
+├── projects/                  # 과거 포트폴리오 경로; 현재 메뉴는 metadata로 분류
+├── PoC/                       # 최초 번호를 유지하는 프로젝트 폴더
 ├── static/                    # 루트 페이지 공개 정적 파일
 ├── data/                      # 루트 공통 SQLite·채팅 fallback
 ├── analysis/                  # 로컬 분석 산출물, Git 제외
@@ -99,18 +97,17 @@ systemd minslab-monitor.timer
 - Local AI chat UI backed by Ollama and optional Upstage Solar modes, with conversation history support through Supabase.
 - Portfolio and PoC archive pages for Python, ASGI, data analysis, RAG, and disaster-safety experiments.
 - Responsive desktop, tablet, and mobile layout with drawer menus for chat history and project navigation.
-- `02. 청킹실습(과제)` lab for document upload, chunking, embedding, and RAG answer comparison.
 - `.hwpx` text extraction from `Contents/section*.xml` files.
 - Naive RAG vs Advanced RAG comparison with sequential answer generation, live progress cards, citations, and an evaluation summary card.
 - `01. AI Safe Agent` PoC for GPS-based disaster risk lookup, KMA rainfall trends, nearby shelters, and LLM safety reports.
 - `02. 현장점검플랫폼` PoC for Supabase-backed inspection tasks, assets, field results, administration, CSV export, and statistics.
-- `03. 통합 업무관리시스템` PoC for Supabase Auth, organization-scoped workflows, approval, administration, and Local/Hugging Face/OpenRouter reports.
 - `04. 마스터언론` PoC for NAVER News/RSS collection, hybrid relevance scoring, encrypted Kakao OAuth tokens, and per-recipient delivery.
-- `05. 북한 야간조명 3D 지도` PoC for monthly VIIRS collection, compact time-series data, and deck.gl visualization.
 - `06. AI Work Hub` PoC for approval-based document automation, MCP creation/distribution, and auditable execution.
 - `07. 지금 우리 국회에선` PoC for provenance-first Cabinet/National Assembly meetings, bills, votes, and policy-flow exploration.
 
 ## Local AI Chat
+
+2026-10-31부터 로컬 Ollama 모델을 제거하고 `LOCAL_LLM_ENABLED=false`를 기본값으로 사용합니다. 홈 채팅은 Upstage 원격 모델을 제공하며, 로컬 LLM 중지는 장애로 표시하지 않습니다. 과거 로컬 실행 설명은 재설치할 때의 참고 자료입니다.
 
 홈 채팅은 `/api/models`에서 사용 가능한 모델을 하나의 목록으로 제공합니다. `UPSTAGE_API_KEY`가
 있으면 Solar Pro 4, Solar Pro 3, Solar Pro 3 Fast가 Ollama 모델보다 먼저 표시되고 Solar Pro 4가
@@ -160,19 +157,9 @@ The second PoC imports the Lovable-based `acesharp81/ndmsinsptest` application a
 - Before production use, add Supabase Auth and user/organization/role-based RLS.
 - Source and build notes: `PoC/02-field-inspection-platform/README.md`
 
-## PoC 03: Integrated Work Management System
-
-The third PoC imports `acesharp81/moiskms` as a static Vite/React SPA served by the existing ASGI process. It adds isolated KMS tables to the existing MinsLab Supabase project, preserving Supabase Auth and RLS, while the original fixed Lovable AI Gateway call is replaced with selectable Local LLM, Hugging Face, and OpenRouter providers.
-
-- Archive entry: `/poc?project=mois-kms`
-- Direct application: `/poc/mois-kms/`
-- User and workflow data: Supabase Auth, `profiles`, `user_roles`, `divisions`, `teams`, `tasks`
-- Shared database: existing `SUPABASE2_URL` with KMS tables added by `20260710000000_minslab_kms.sql`
-- AI options: model, temperature, max output tokens, and editable system prompt
-- No additional Node server or public port
-- Source and security notes: `PoC/03-mois-kms/README.md`
-
 ## PoC 04: AI 언론동향 비서
+
+현재 중지 상태입니다. 아래 코드·파이프라인과 테이블 구조는 보존하고 운영 데이터·백업은 초기화했습니다. 재가동은 별도 운영 전환으로 진행합니다.
 
 The fourth PoC is an AI-assisted Korean press-monitoring service. It collects institution-level NAVER News/RSS articles, runs one shared common analysis per article, creates local embeddings, evaluates only candidate cases with hybrid vector/LLM scoring, connects MOIS press releases through RAG-style matching, sends qualifying items through KakaoTalk `Send to me`, and publishes scheduled CaseON magazine editions.
 
@@ -187,16 +174,6 @@ Current user-facing modules include period-aware dashboard monitoring, explicit 
 - Shared homepage administrator session; no separate web service or port
 - SQLite operational queue/cache with optional Supabase metadata mirror; the main pipeline and GPT shadow evaluator run in isolated low-priority systemd services, short-retention cleanup runs only after successful Supabase history verification, and magazine publication performs a fresh edition-scoped grouping pass before snapshotting results
 - Detailed user manual, reproducible read-aloud architecture, lifecycle rules, test commands, and background-audio migration design: [PoC/04-master-press/README.md](PoC/04-master-press/README.md)
-
-## PoC 05: 북한 야간조명 3D 지도
-
-The fifth PoC collects monthly VIIRS night-light observations inside the North Korean boundary and serves compact gzip datasets through a shared deck.gl player.
-
-- Archive entry: `/poc?project=north-korea-night-lights`
-- Direct map: `/poc/north-korea-night-lights/map`
-- Data APIs: `/api/poc/north-korea-night-lights/maps`, `/api/poc/north-korea-night-lights/data/YYYY-MM`
-- Collection: Google Earth Engine `NOAA/VIIRS/DNB/MONTHLY_V1/VCMCFG`
-- Reproducible collection, observation-quality rules, and map controls: [PoC/05-north-korea-night-lights/README.md](PoC/05-north-korea-night-lights/README.md)
 
 ## PoC 06: AI Work Hub
 
@@ -220,42 +197,6 @@ The seventh PoC is an independent FastAPI/PostgreSQL service that connects offic
 - Scope: 행정안전위원회, 예산결산특별위원회, 법제사법위원회 and the latest verified Cabinet records
 - Provenance policy: raw-first ingestion, SHA-256 versions, source spans, and explicit `OFFICIAL` / `PROVISIONAL` / `SIMULATION` labels
 - Development, ingestion, LIVE workers, and operations: [PoC/07-NationalAssembly/README.md](PoC/07-NationalAssembly/README.md)
-
-## Portfolio 02: Chunking / Embedding / RAG Lab
-
-The second portfolio project is the main RAG experiment page.
-
-Workflow:
-
-1. Paste text or upload a supported document, including `.hwpx`.
-2. Select one to three chunking strategies.
-3. Run chunking to preview chunks and strategy pros/cons.
-4. Run embedding to store selected chunks in Supabase tables.
-5. Ask a question and compare RAG answers.
-
-Supported chunking strategies:
-
-- Fixed length chunking
-- Paragraph-first recursive chunking
-- Sentence-window semantic chunking
-
-RAG modes:
-
-- `Naive RAG`: single query embedding, vector search, Top-K context, LLM answer.
-- `Advanced RAG`: query variants, expanded candidate retrieval, best-effort Cohere reranking, context compression, LLM answer.
-- `Naive + Advanced`: runs both modes sequentially for each embedded chunking strategy.
-
-Comparison output includes:
-
-- Retrieval scores and searched chunks
-- Rerank scores when available
-- Query variants for Advanced RAG
-- Context compression badge
-- Citation labels such as `[검색 조각 1]`
-- Answer length, elapsed time, and cited evidence count
-- Naive vs Advanced evaluation card using a lightweight heuristic score
-
-The evaluation card is only a lab aid. Final quality should still be judged by reading the answer and its source chunks.
 
 ## Local Setup
 
@@ -323,7 +264,7 @@ MINSLAB_MONITOR_URL=https://YOUR_DOMAIN/health
 # 시스템 지표 수집 주기는 현재 main.py의 SYSTEM_METRICS_INTERVAL_SECONDS(60초)를 사용합니다.
 ```
 
-When `MINSLAB_ADMIN_PASSWORD` is exactly `MULTI_AGENT_LIVE_ENABLED_key`, the administrator uses the value stored under that environment variable. Optional outer quotes in `.env` are removed and are not part of the password entered in the browser.
+The administrator password is configured through `MINSLAB_ADMIN_PASSWORD`. Keep its value in the private `.env` file. Optional outer quotes are removed and are not part of the password entered in the browser. Never include the configured value in documentation.
 
 Open `/admin` to inspect today's IP addresses, visited pages, referrers, and user agents. The password is never included in browser code. Authentication uses a signed, expiring `HttpOnly`, `Secure`, `SameSite=Strict` cookie. `Total` means cumulative page views, while `Today` uses the `Asia/Seoul` calendar date.
 
@@ -372,8 +313,6 @@ Important local API routes:
 - `POST /api/chunking-plan`: create chunking plans
 - `POST /api/chunking-embed`: embed a selected plan into Supabase
 - `POST /api/chunking-compare`: run Naive or Advanced RAG comparison
-- `GET /api/portfolio/report-draft/models`: list installed local Ollama models and report options
-- `POST /api/portfolio/report-draft/generate`: generate a report draft with the selected local model
 - `GET /api/poc/ai-safe-agent/kb/status`: inspect AI Safe Agent knowledge-base status
 - `POST /api/poc/ai-safe-agent/kb/build`: build AI Safe Agent public-data knowledge base
 - `GET /api/poc/ai-safe-agent/models`: list AI Safe Agent model options

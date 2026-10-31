@@ -231,6 +231,9 @@ def consolidation_prompt(items: list[dict[str, Any]]) -> str:
             '행위·답변 형식만 다른 경우, 자료 현황과 같은 사안의 개선 요구를 지나치게 세분하지 마라. '
             '단, 인물·사건·지역·제도가 다르면 독립 issue로 보존하고 상위 parent만 공유하라. '
             'parent는 대상을 설명하는 6~15개 정도의 범주를 지향하되 획일적인 상한은 없다. '
+            'parent에는 정책·사업·제도 이름을 쓰고, 재원 배분·운용 기준·국회 통제·찬반 등 세부 논점은 issue에만 써라. '
+            '예를 들어 미래대응기금의 재원 배분, 예산총계주의, 적립·인출 기준은 모두 parent=미래대응기금으로 묶되 각각의 issue와 근거는 보존하라. '
+            '대표 issue 통합이 불가능해도 같은 정책의 parent는 공유할 수 있다. '
             '사법부 신뢰도, 제도 개선처럼 모든 것을 담는 범주 대신 법관 인사·독립, 형사절차·영장, '
             '피해자 보호, 개인회생, 법원 안전 등 구체적인 대상으로 묶어라. '
             '제목은 자료가 뒷받침하는 쟁점 범위만 표현하며 인명·사건명을 추측하여 교정하지 마라. '
@@ -559,7 +562,8 @@ def materialize(brief: dict[str, Any], snapshot: dict[str, Any], facets: list[di
         'missing_evidence_ids': snapshot['missing_evidence_ids'],
         'original_lineage': {k: v for k, v in (brief.get('live_topic_lineage') or {}).items() if k != 'clusters'},
     }
-    return result
+    from .report_parent_groups import compact_report_parents
+    return compact_report_parents(result)
 
 
 def preserve_unmergeable_issues(facets: list[dict[str, Any]], response: dict[str, Any]) -> dict[str, Any]:

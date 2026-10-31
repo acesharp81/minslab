@@ -1,0 +1,11 @@
+04-master-press/  (코드·파이프라인 보존, 서비스 중지)
+  PoC/
+  deploy/
+  docs/
+  master_press/
+  scripts/
+  tests/
+  web/
+  data/  (운영 DB·캐시·백업 삭제)
+
+코드·스키마와 함께 project.json, STRUCTURE.txt를 보존합니다.

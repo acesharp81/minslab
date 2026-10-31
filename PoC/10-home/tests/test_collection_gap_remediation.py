@@ -69,9 +69,10 @@ def test_construction_candidate_idempotence_and_approved_alias_preservation(serv
 def test_partial_backfill_interval_and_complete_daily_interval(service):
     from backend.collection_jobs import enqueue
     with service.sessions.begin() as db:
-        b=Batch(source_id='building_general_permit',status='SUCCESS',finished_at=now()-timedelta(minutes=20),
+        b=Batch(source_id='building_general_permit',status='SUCCESS',finished_at=now()-timedelta(minutes=70),
             stats={'scope_remaining_dongs':1});db.add(b)
-    assert enqueue(service,'building_general_permit')
+    with patch('backend.collection_jobs.backfill_window_open',return_value=True):
+        assert enqueue(service,'building_general_permit')
     # Different source with completed scope retains the normal daily schedule.
     with service.sessions.begin() as db:
         db.add(Batch(source_id='building_hub_incheon',status='SUCCESS',finished_at=now()-timedelta(minutes=20),

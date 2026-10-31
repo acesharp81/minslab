@@ -298,6 +298,8 @@ class HomeService:
             else:
                 records, stats = (collect_sample(source, fetcher, self) if source.get("collection_mode") == "TEST_SAMPLE"
                                   else collect(source, fetcher))
+            from .operations_window import check_window
+            check_window()
             with self.sessions.begin() as session:
                 counts = Counter()
                 entity_ids = []
@@ -369,6 +371,15 @@ class HomeService:
                 logging.getLogger(__name__).warning("수집 조치 이력 기록 실패: 배치 이력에서 확인 필요")
             return {"source_id": source["id"], "status": "SUCCESS", "records": len(records), **counts}
         except Exception as error:
+            from .operations_window import NightWindowClosed, check_window
+            try:check_window()
+            except NightWindowClosed as boundary:error=boundary
+            if isinstance(error,NightWindowClosed):
+                with self.sessions.begin() as session:
+                    batch=session.get(Batch,batch_id)
+                    batch.finished_at,batch.status=now(),'PAUSED'
+                    batch.error=str(error);batch.manifest=fetcher.manifest
+                return {'source_id':source['id'],'status':'PAUSED','error':str(error)}
             # No request URLs, credentials or traceback are persisted in public errors.
             message = str(error) if isinstance(error, ValueError) else "수집/적재 실패: 마지막 정상 데이터 유지"
             # Fetcher constructs these credential-free diagnostics itself.

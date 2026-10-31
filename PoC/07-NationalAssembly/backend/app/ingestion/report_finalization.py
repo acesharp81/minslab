@@ -68,8 +68,7 @@ def _save(broadcast_id: Any, state: dict[str, Any], expected_id: Any = None) -> 
             if key in prior and key not in state:state[key]=prior[key]
         if 'stages' not in state:
             state['stages'] = stage_progress({**prior, **state})
-        brief['finalization'] = state
-        repo.update_brief(item['brief_id'], brief)
+        repo.save_finalization(item['brief_id'], state)
     return {'broadcast_id': str(broadcast_id), **state}
 
 
@@ -151,11 +150,11 @@ def process_available(limit: int = 1) -> list[dict[str, Any]]:
         rows = c.execute("""SELECT b.broadcast_id FROM meeting_briefs b
             JOIN live_broadcasts live ON live.id=b.broadcast_id
             WHERE live.lifecycle_status='ENDED'
-              AND b.brief ? 'finalization'
-              AND b.brief->'finalization'->>'status' <> 'COMPLETED'
+              AND meeting_brief_payload(b.id,b.brief) ? 'finalization'
+              AND meeting_brief_payload(b.id,b.brief)->'finalization'->>'status' <> 'COMPLETED'
               AND NOT EXISTS(SELECT 1 FROM meeting_briefs newer WHERE newer.broadcast_id=b.broadcast_id
                   AND newer.provider <> 'deterministic' AND (newer.generated_at,newer.id)>(b.generated_at,b.id))
-              AND COALESCE((b.brief->'finalization'->>'retry_after')::timestamptz,'-infinity')<=now()
-            ORDER BY COALESCE((b.brief->'finalization'->>'updated_at')::timestamptz,b.generated_at),
+              AND COALESCE((meeting_brief_payload(b.id,b.brief)->'finalization'->>'retry_after')::timestamptz,'-infinity')<=now()
+            ORDER BY COALESCE((meeting_brief_payload(b.id,b.brief)->'finalization'->>'updated_at')::timestamptz,b.generated_at),
                      b.generated_at DESC LIMIT %s""", (limit,)).fetchall()
     return [process_one(row[0]) for row in rows]

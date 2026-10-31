@@ -36,7 +36,7 @@ def test_success_supersedes_failed_attempts():
 
 def test_completed_consolidation_does_not_hide_failed_source_batches():
     c = MagicMock()
-    c.execute.return_value.fetchone.side_effect = [('READY', 6, 1, 0), ('sid',)]
+    c.execute.return_value.fetchone.side_effect = [('sid', 'version', 7, 'last-batch'), ('READY', 6, 1, 0), ('sid',)]
     with patch.object(TopicStructureRepository, 'batches', return_value=history()):
         result = TopicStructureRepository(c).progress({'brief_id': 'b', 'brief': {}})
     assert result['status'] == 'RETRY_PENDING'
@@ -136,7 +136,7 @@ def test_old_consolidation_cannot_mark_repaired_sources_complete():
         {'index': 100002, 'attempt': 1, 'status': 'READY', 'request': {'issues': [], 'request_profile': 'compact-20k/1'}, 'response': {}},
     ]
     c = MagicMock()
-    c.execute.return_value.fetchone.side_effect = [('READY', 1, 1, 0), ('sid',)]
+    c.execute.return_value.fetchone.side_effect = [('sid', 'version', 2, 'last-batch'), ('READY', 1, 1, 0), ('sid',)]
     with patch.object(TopicStructureRepository, 'batches', return_value=history_rows):
         result = TopicStructureRepository(c).progress({'brief_id': 'b', 'brief': original})
     assert result['status'] == 'PROCESSING'

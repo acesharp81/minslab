@@ -1,0 +1,12 @@
+{
+  "health": 200,
+  "topics": 349,
+  "tasks": 66,
+  "agency_groups": [
+    {
+      "id": "structured-policy-parent-81bdd95538ba771d",
+      "title": "중대범죄수사청(중수청)",
+      "child_count": 81
+    }
+  ]
+}

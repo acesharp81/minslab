@@ -426,6 +426,23 @@ class AnalyticsStore:
                 (cutoff,),
             )
 
+    def get_latest_system_metrics(self) -> dict:
+        """Return only the latest public resource values from the admin samples."""
+        self.initialize()
+        now = _utc_now()
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT sampled_at, cpu_percent, memory_percent, disk_used_percent
+                FROM system_metric_samples
+                WHERE sampled_at BETWEEN ? AND ?
+                ORDER BY sampled_at DESC LIMIT 1
+                """,
+                ((now - timedelta(hours=48)).isoformat(timespec="microseconds"),
+                 now.isoformat(timespec="microseconds")),
+            ).fetchone()
+        return dict(row) if row else {}
+
     def get_system_metrics(
         self,
         hours: int = 72,
@@ -934,6 +951,10 @@ def record_system_metrics(
 
 def get_system_metric_history(hours: int = 72) -> dict:
     return DEFAULT_STORE.get_system_metrics(hours)
+
+
+def get_latest_system_metrics() -> dict:
+    return DEFAULT_STORE.get_latest_system_metrics()
 
 
 def record_service_probe(**kwargs) -> None:

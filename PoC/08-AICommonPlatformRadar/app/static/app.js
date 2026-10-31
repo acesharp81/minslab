@@ -356,3 +356,22 @@ window.addEventListener('message', async (event) => {
     }
   }
 });
+
+
+const collectionPanel = document.querySelector('[data-collection-settings]');
+if (collectionPanel) {
+  const buttons = [...collectionPanel.querySelectorAll('[data-collection-toggle]')];
+  buttons.forEach(button => button.addEventListener('click', async () => {
+    const enabled = button.dataset.collectionToggle === 'true';
+    buttons.forEach(item => item.disabled = true);
+    try {
+      const values = await request(appUrl('/api/settings/collection'), {method: 'PUT', body: JSON.stringify({enabled})});
+      collectionPanel.querySelector('[data-collection-status]').textContent = values.enabled ? '수집 활성화 상태' : '수집 비활성화 상태';
+      buttons.forEach(item => item.disabled = (item.dataset.collectionToggle === 'true') === values.enabled);
+      toast(values.enabled ? '수집을 활성화했습니다.' : '수집을 비활성화했습니다.');
+    } catch (error) {
+      buttons.forEach(item => item.disabled = false);
+      toast(error.message, true);
+    }
+  }));
+}

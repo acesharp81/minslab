@@ -1,0 +1,46 @@
+{
+  "id": "epub-reader",
+  "order": 12,
+  "display_no": "12",
+  "title": "책자리 · EPUB · PDF 리더",
+  "date": "2026.10.31",
+  "entry_file": "web/app.js",
+  "menu_group": "portfolio",
+  "lifecycle": "live",
+  "summary": "EPUB과 PDF를 두 쪽씩 펼쳐 읽는 나만의 로컬 서재.",
+  "description": "EPUB과 PDF 파일을 브라우저 서재에 저장하고 두 페이지씩 읽습니다. 목차·페이지 이동·책갈피·이어 읽기·PDF 확대를 지원합니다.",
+  "tags": [
+    "EPUB",
+    "PDF",
+    "로컬 서재",
+    "책갈피",
+    "두 쪽 보기"
+  ],
+  "features": [
+    [
+      "EPUB·PDF 파일 등록과 표지 서재",
+      ""
+    ],
+    [
+      "책과 읽던 위치의 브라우저 저장",
+      ""
+    ],
+    [
+      "책갈피 추가·이동·삭제",
+      ""
+    ],
+    [
+      "두 쪽 펼침·페이지 넘김·컴팩트 읽기 화면",
+      ""
+    ]
+  ],
+  "usage": [
+    "책 추가 → EPUB·PDF 선택 → 두 쪽 읽기 → 책갈피 저장 → 이어 읽기"
+  ],
+  "note": "같은 주소·브라우저에 저장됩니다. 브라우저 데이터를 지우면 책과 독서 기록도 삭제됩니다. DRM 없는 EPUB과 암호가 해제된 PDF를 지원합니다.",
+  "app_path": "/poc/epub-reader/",
+  "app_caption": "책과 책갈피를 내 브라우저에 보관하고 마지막 읽던 자리부터 이어 읽습니다.",
+  "app_policy": "파일과 독서 기록은 서버로 전송하지 않습니다 · EPUB·PDF · 파일당 최대 50 MB",
+  "demo_url": "/epub",
+  "service_url": "/epub"
+}

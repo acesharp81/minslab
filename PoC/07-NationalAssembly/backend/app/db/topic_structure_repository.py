@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
+from .read_projection_cache import projection_cache
 from typing import Any
 
 from psycopg.types.json import Jsonb
 
 from ..services.topic_structure import STRUCTURE_VERSION, source_hash, materialize, validate_response, apply_consolidation
-from ..services.topic_structure import CONSOLIDATION_BATCH, CONSOLIDATION_PROFILE
+from ..services.topic_structure import CONSOLIDATION_BATCH, CONSOLIDATION_PROFILE, digest
 
 
 class TopicStructureRepository:
@@ -17,7 +19,35 @@ class TopicStructureRepository:
         result = self.current(item)
         return result if result and result['topic_structure'].get('consolidation_status') == 'COMPLETED' else None
 
+    def _projection_key(self, item: dict[str, Any]):
+        # Only small version metadata crosses the DB connection on a cache hit.
+        row = self.connection.execute(
+            "SELECT s.id,s.updated_at,count(b.id),max(b.created_at) "
+            "FROM meeting_topic_structures s LEFT JOIN meeting_topic_structure_batches b ON b.structure_id=s.id "
+            "WHERE s.meeting_brief_id=%s AND s.source_hash=%s AND s.version=%s "
+            "GROUP BY s.id", (item['brief_id'],source_hash(item['brief']),STRUCTURE_VERSION),
+        ).fetchone()
+        if not row:
+            return None
+        info=getattr(self.connection,'info',None)
+        namespace=tuple(str(getattr(info,k,'')) for k in ('host','port','dbname','user'))
+        # The full brief hash also invalidates display/finalization metadata;
+        # UTC day keeps daily review state current without retaining stale dates.
+        return (namespace,tuple(row),digest(item['brief']),datetime.now(timezone.utc).date())
+
     def progress(self, item: dict[str, Any]) -> dict[str, Any]:
+        version=self._projection_key(item)
+        key=('progress',version)
+        saved=projection_cache.get(key) if version else None
+        if saved is not None:
+            return saved
+        result=self._build_progress(item)
+        # Pending/retry decisions depend on the clock and must always be fresh.
+        if version and result['status']=='COMPLETED':
+            projection_cache.put(key,result)
+        return result
+
+    def _build_progress(self, item: dict[str, Any]) -> dict[str, Any]:
         row = self.connection.execute(
             "SELECT s.status, count(b.id) FILTER (WHERE b.batch_index<100000 AND b.status='READY'), "
             "count(b.id) FILTER (WHERE b.batch_index=%s AND b.status='READY'), "
@@ -72,6 +102,19 @@ class TopicStructureRepository:
                 'completed_batches': batches, 'consolidation_attempts': failed + final}
 
     def current(self, item: dict[str, Any]) -> dict[str, Any] | None:
+        version=self._projection_key(item)
+        if version is None:
+            return None
+        key=('current',version)
+        saved=projection_cache.get(key)
+        if saved is not None:
+            return saved
+        result=self._build_current(item)
+        if result is not None:
+            projection_cache.put(key,result)
+        return result
+
+    def _build_current(self, item: dict[str, Any]) -> dict[str, Any] | None:
         row = self.connection.execute(
             "SELECT id,source_snapshot,result FROM meeting_topic_structures WHERE meeting_brief_id=%s "
             "AND source_hash=%s AND version=%s AND status='READY'",
@@ -140,11 +183,11 @@ class TopicStructureRepository:
 
     def batches(self, structure_id: Any) -> list[dict[str, Any]]:
         rows = self.connection.execute(
-            "SELECT batch_index,attempt,status,response,error_code,request_snapshot,created_at FROM "
+            "SELECT batch_index,attempt,status,response,error_code,request_snapshot,created_at,usage_metadata FROM "
             "meeting_topic_structure_batches WHERE structure_id=%s ORDER BY batch_index,attempt",
             (structure_id,),
         ).fetchall()
-        return [dict(zip(('index','attempt','status','response','error','request','created_at'), r, strict=True)) for r in rows]
+        return [dict(zip(('index','attempt','status','response','error','request','created_at','usage'), r, strict=True)) for r in rows]
 
     def record(self, structure_id: Any, index: int, attempt: int, request: dict[str, Any],
                response: dict[str, Any], metadata: dict[str, Any], error: str | None) -> None:

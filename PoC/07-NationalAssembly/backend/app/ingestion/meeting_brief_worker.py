@@ -851,7 +851,7 @@ def recent_openai_mapping_candidate() -> UUID | None:
             """
             WITH latest AS (
                 SELECT DISTINCT ON (broadcast_id)
-                       broadcast_id, provider, brief
+                       broadcast_id, provider, meeting_brief_payload(id,brief) AS brief
                 FROM meeting_briefs
                 WHERE provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')
                 ORDER BY broadcast_id, generated_at DESC, id DESC

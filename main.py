@@ -8,6 +8,7 @@ import json
 import os
 import re
 import socket
+import sqlite3
 import sys
 import threading
 import time
@@ -18,12 +19,11 @@ from urllib import error as url_error
 from urllib import parse as url_parse
 from urllib import request as url_request
 
-from poc09_proxy import proxy_poc09
 from poc10_proxy import proxy_home
 from poc11_proxy import proxy_inspection
 from admin_auth import ADMIN_AUTH, SESSION_COOKIE
 from admin_page import ADMIN_HTML
-from analytics_store import analytics_status, get_analytics_summary, get_system_metric_history, increment_local_llm_calls, list_analytics_visits, purge_old_analytics_events, record_system_metrics, record_visit
+from analytics_store import analytics_status, get_analytics_summary, get_latest_system_metrics, get_system_metric_history, increment_local_llm_calls, list_analytics_visits, purge_old_analytics_events, record_system_metrics, record_visit
 from chunking_compare import DEFAULT_CHAT_MODEL, chunk_document, compare_legacy_tables, compare_tables, embed_plan, extract_hwpx_payload
 from env_utils import env_first, load_project_env
 from portfolio_loader import poc_projects_as_json, projects_as_json
@@ -56,90 +56,13 @@ STATIC_DIR = Path(__file__).parent / "static"
 PRESENTATION_BASE_PATH = "/presentations/view"
 AI_SAFE_AGENT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "RiskInspection_v1.py"
 AI_SAFE_IMPORT_PATH = Path(__file__).parent / "PoC" / "01-AISafeAgent" / "import.py"
-REPORT_DRAFT_SERVICE_PATH = Path(__file__).parent / "projects" / "04-report-draft" / "portfolio_service.py"
-MULTIAGENT_HARNESS_BASE_PATH = "/portfolio/multiagent-harness"
-MULTIAGENT_HARNESS_API_BASE = "/api/portfolio/multiagent-harness"
-MULTIAGENT_HARNESS_APP = Path(__file__).parent / "projects" / "03-multiagent-harness" / "app"
-MULTIAGENT_HARNESS_SERVICE_PATH = Path(__file__).parent / "projects" / "03-multiagent-harness" / "service.py"
 FIELD_INSPECTION_BASE_PATH = "/poc/field-inspection-platform"
 FIELD_INSPECTION_DIST = Path(__file__).parent / "PoC" / "02-field-inspection-platform" / "dist"
-MOIS_KMS_BASE_PATH = "/poc/mois-kms"
-MOIS_KMS_API_BASE = "/api/poc/mois-kms"
-MOIS_KMS_DIST = Path(__file__).parent / "PoC" / "03-mois-kms" / "dist"
-MOIS_KMS_SERVICE_PATH = Path(__file__).parent / "PoC" / "03-mois-kms" / "backend.py"
-MOIS_KMS_MODULE = None
-MOIS_KMS_MTIME = None
-REPORT_DRAFT_MODULE = None
 REVERSE_GEOCODE_CACHE = {}
-MASTER_PRESS_BASE_PATH = "/poc/master-press"
-MASTER_PRESS_API_BASE = "/api/poc/master-press"
-MASTER_PRESS_WEB = Path(__file__).parent / "PoC" / "04-master-press" / "web"
-MASTER_PRESS_MANUAL_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "master_press" / "manual.pdf"
-MASTER_PRESS_SERVICE_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "backend.py"
-MASTER_PRESS_PAUSE_FILE = MASTER_PRESS_SERVICE_PATH.parent / "data" / "PAUSED"
-MASTER_PRESS_MODULE = None
-MASTER_PRESS_MTIME = None
-MASTER_PRESS_PAUSED = env_first("MASTER_PRESS_PAUSED", default="0").strip().lower() in {
-    "1", "true", "yes", "on",
-}
-MASTER_PRESS_PAUSED_PAGE = """<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <title>AI 언론동향 비서 · 일시정지</title>
-  <style>
-    :root { color-scheme: light; font-family: Pretendard, "Noto Sans KR", sans-serif; }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; overflow: hidden; background: #e9e7df; color: #171916; }
-    .closed-background { min-height: 100vh; padding: 32px; opacity: .42; filter: blur(2px); }
-    .closed-brand { font-weight: 900; letter-spacing: -.04em; font-size: clamp(28px, 5vw, 56px); }
-    .closed-line { width: min(720px, 90vw); height: 16px; margin-top: 28px; border-radius: 99px; background: #c9c6bb; }
-    .closed-line.short { width: min(440px, 65vw); }
-    .closed-overlay { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(17, 20, 17, .68); }
-    .closed-dialog { width: min(520px, 100%); padding: 34px; border: 1px solid rgba(255,255,255,.7); border-radius: 24px; background: #fffdf6; box-shadow: 0 26px 80px rgba(0,0,0,.34); text-align: center; }
-    .closed-badge { display: inline-flex; padding: 7px 12px; border-radius: 99px; background: #171916; color: #dfff56; font: 700 11px/1 ui-monospace, monospace; letter-spacing: .08em; }
-    h1 { margin: 22px 0 12px; font-size: clamp(29px, 6vw, 42px); letter-spacing: -.055em; }
-    p { margin: 0; color: #656a62; font-size: 15px; line-height: 1.75; word-break: keep-all; }
-    .closed-note { margin-top: 20px; padding: 14px; border-radius: 14px; background: #f0eee6; color: #4f554c; font-size: 13px; }
-    a { display: inline-flex; margin-top: 24px; padding: 12px 18px; border-radius: 12px; background: #7054ef; color: white; font-weight: 800; text-decoration: none; }
-    a:focus-visible { outline: 3px solid #dfff56; outline-offset: 3px; }
-  </style>
-</head>
-<body>
-  <main class="closed-background" aria-hidden="true">
-    <div class="closed-brand">AI 언론동향 비서</div>
-    <div class="closed-line"></div><div class="closed-line short"></div>
-  </main>
-  <div class="closed-overlay">
-    <section class="closed-dialog" role="dialog" aria-modal="true" aria-labelledby="closed-title" aria-describedby="closed-description">
-      <span class="closed-badge">TEMPORARILY CLOSED</span>
-      <h1 id="closed-title">당분간 영업 종료 중입니다</h1>
-      <p id="closed-description">PoC 7과 PoC 8에 집중하기 위해 AI 언론동향 비서의 수집·분석·알림 서비스를 잠시 쉬어갑니다.</p>
-      <p class="closed-note">기존 데이터는 안전하게 보존하고 있습니다.</p>
-      <a href="/poc">다른 프로젝트 보기</a>
-    </section>
-  </div>
-</body>
-</html>""".encode("utf-8")
 
 
-def master_press_is_paused() -> bool:
-    """Keep the operational pause effective even if service env loading drifts."""
-    return MASTER_PRESS_PAUSED or MASTER_PRESS_PAUSE_FILE.is_file()
 
 
-NORTH_KOREA_LIGHTS_BASE_PATH = "/poc/north-korea-night-lights/map"
-NORTH_KOREA_LIGHTS_OUTPUT = (
-    Path(__file__).parent
-    / "PoC"
-    / "05-north-korea-night-lights"
-    / "output"
-)
-NORTH_KOREA_LIGHTS_DATA = NORTH_KOREA_LIGHTS_OUTPUT / "data"
-NORTH_KOREA_LIGHTS_PLAYER = Path(__file__).parent / "PoC" / "05-north-korea-night-lights" / "player.html"
-NORTH_KOREA_LIGHTS_TOP3 = NORTH_KOREA_LIGHTS_OUTPUT / "top3_locations.json"
 AIWORKS_BASE_PATH = "/poc/aiworks"
 AIWORKS_WEB = Path(__file__).parent / "PoC" / "06-AIWorks" / "web"
 AIWORKS_API_BASE = "/api/poc/aiworks"
@@ -154,19 +77,20 @@ AI_COMMON_RADAR_BASE_PATH = "/poc/ai-common-platform-radar"
 AI_COMMON_RADAR_UPSTREAM = env_first(
     "AI_COMMON_RADAR_UPSTREAM", default="http://127.0.0.1:18080"
 ).rstrip("/")
-MMJ_BASE_PATH = "/poc/mwomeokji"
-MMJ_UPSTREAM = env_first("POC09_UPSTREAM", default="http://127.0.0.1:18090").rstrip("/")
 HOME_BASE_PATH = "/poc/home"
 HOME_UPSTREAM = env_first("POC10_UPSTREAM", default="http://127.0.0.1:18100").rstrip("/")
 HOME_PAGE = Path(__file__).parent / "PoC" / "10-home" / "web" / "index.html"
 IMAGE_INSPECTION_BASE_PATH = "/poc/image-inspection"
 IMAGE_INSPECTION_UPSTREAM = env_first("POC11_UPSTREAM", default="http://127.0.0.1:18110").rstrip("/")
+EPUB_READER_BASE_PATH = "/poc/epub-reader"
+EPUB_READER_WEB = Path(__file__).parent / "PoC" / "12-epub-reader" / "web"
 POC_SHORTCUT_REDIRECTS = {
+    "/epub": f"{EPUB_READER_BASE_PATH}/",
     "/imgscan": f"{IMAGE_INSPECTION_BASE_PATH}/",
-    "/press": f"{MASTER_PRESS_BASE_PATH}/",
+    "/press": "/poc/master-press/",
     "/kjon": f"{NATIONAL_ASSEMBLY_BASE_PATH}/",
     "/airador": f"{AI_COMMON_RADAR_BASE_PATH}/",
-    "/mmj": f"{MMJ_BASE_PATH}/",
+    "/mmj": "/poc/mwomeokji/",
     "/home": f"{HOME_BASE_PATH}/",
 }
 AI_COMMON_RADAR_UPSTREAM_TIMEOUT_SECONDS = max(
@@ -221,24 +145,200 @@ AI_COMMON_RADAR_SECURITY_HEADERS = [
     (b"permissions-policy", b"camera=(), microphone=(), geolocation=(), payment=(), usb=()"),
 ]
 
-WORKER_LOCK_PATH = MASTER_PRESS_SERVICE_PATH.parent / "data" / "master_press_workers.lock"
-WORKER_LOCK_HANDLE = None
-MASTER_PRESS_BACKGROUND_ENABLED = env_first("MASTER_PRESS_BACKGROUND_ENABLED", "0") == "1"
 HEALTH_CACHE_TTL_SECONDS = max(5, int(env_first("HEALTH_CACHE_TTL_SECONDS", "20") or "20"))
 HEALTH_OLLAMA_TIMEOUT_SECONDS = max(1, int(env_first("HEALTH_OLLAMA_TIMEOUT_SECONDS", "2") or "2"))
-HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING = env_first("HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING", "0") == "1"
 HEALTH_CACHE_LOCK = threading.Lock()
 HEALTH_CACHE: dict[str, object] = {"expires_at": 0.0, "value": None}
 
 NOMINATIM_LOCK = threading.Lock()
 NOMINATIM_LAST_REQUEST = 0.0
-REPORT_DRAFT_MTIME = None
-MULTIAGENT_HARNESS_MODULE = None
-MULTIAGENT_HARNESS_MTIME = None
 
 AI_SAFE_BUILD_LOCK = threading.Lock()
 AI_SAFE_AGENT_MODULE = None
 AI_SAFE_AGENT_MTIME = None
+
+MASTER_PRESS_BASE_PATH = "/poc/master-press"
+
+MASTER_PRESS_API_BASE = "/api/poc/master-press"
+
+MASTER_PRESS_WEB = Path(__file__).parent / "PoC" / "04-master-press" / "web"
+
+MASTER_PRESS_MANUAL_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "master_press" / "manual.pdf"
+
+MASTER_PRESS_SERVICE_PATH = Path(__file__).parent / "PoC" / "04-master-press" / "backend.py"
+
+MASTER_PRESS_PAUSE_FILE = MASTER_PRESS_SERVICE_PATH.parent / "data" / "PAUSED"
+
+MASTER_PRESS_MODULE = None
+
+MASTER_PRESS_MTIME = None
+
+MASTER_PRESS_PAUSED = env_first("MASTER_PRESS_PAUSED", default="0").strip().lower() in {
+    "1", "true", "yes", "on",
+}
+
+MASTER_PRESS_PAUSED_PAGE = """<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>AI 언론동향 비서 · 일시정지</title>
+  <style>
+    :root { color-scheme: light; font-family: Pretendard, "Noto Sans KR", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; overflow: hidden; background: #e9e7df; color: #171916; }
+    .closed-background { min-height: 100vh; padding: 32px; opacity: .42; filter: blur(2px); }
+    .closed-brand { font-weight: 900; letter-spacing: -.04em; font-size: clamp(28px, 5vw, 56px); }
+    .closed-line { width: min(720px, 90vw); height: 16px; margin-top: 28px; border-radius: 99px; background: #c9c6bb; }
+    .closed-line.short { width: min(440px, 65vw); }
+    .closed-overlay { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(17, 20, 17, .68); }
+    .closed-dialog { width: min(520px, 100%); padding: 34px; border: 1px solid rgba(255,255,255,.7); border-radius: 24px; background: #fffdf6; box-shadow: 0 26px 80px rgba(0,0,0,.34); text-align: center; }
+    .closed-badge { display: inline-flex; padding: 7px 12px; border-radius: 99px; background: #171916; color: #dfff56; font: 700 11px/1 ui-monospace, monospace; letter-spacing: .08em; }
+    h1 { margin: 22px 0 12px; font-size: clamp(29px, 6vw, 42px); letter-spacing: -.055em; }
+    p { margin: 0; color: #656a62; font-size: 15px; line-height: 1.75; word-break: keep-all; }
+    .closed-note { margin-top: 20px; padding: 14px; border-radius: 14px; background: #f0eee6; color: #4f554c; font-size: 13px; }
+    a { display: inline-flex; margin-top: 24px; padding: 12px 18px; border-radius: 12px; background: #7054ef; color: white; font-weight: 800; text-decoration: none; }
+    a:focus-visible { outline: 3px solid #dfff56; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <main class="closed-background" aria-hidden="true">
+    <div class="closed-brand">AI 언론동향 비서</div>
+    <div class="closed-line"></div><div class="closed-line short"></div>
+  </main>
+  <div class="closed-overlay">
+    <section class="closed-dialog" role="dialog" aria-modal="true" aria-labelledby="closed-title" aria-describedby="closed-description">
+      <span class="closed-badge">TEMPORARILY CLOSED</span>
+      <h1 id="closed-title">당분간 영업 종료 중입니다</h1>
+      <p id="closed-description">PoC 7과 PoC 8에 집중하기 위해 AI 언론동향 비서의 수집·분석·알림 서비스를 잠시 쉬어갑니다.</p>
+      <p class="closed-note">코드와 테이블 구조는 보존합니다. 운영 데이터는 초기화하며, 재가동하면 새 자료부터 축적합니다.</p>
+      <a href="/poc">다른 프로젝트 보기</a>
+    </section>
+  </div>
+</body>
+</html>""".encode("utf-8")
+
+WORKER_LOCK_PATH = MASTER_PRESS_SERVICE_PATH.parent / "data" / "master_press_workers.lock"
+
+WORKER_LOCK_HANDLE = None
+
+MASTER_PRESS_BACKGROUND_ENABLED = env_first("MASTER_PRESS_BACKGROUND_ENABLED", "0") == "1"
+
+HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING = env_first("HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING", "0") == "1"
+
+def master_press_is_paused() -> bool:
+    """Keep the operational pause effective even if service env loading drifts."""
+    return MASTER_PRESS_PAUSED or MASTER_PRESS_PAUSE_FILE.is_file()
+
+def load_master_press_module():
+    """PoC 04 뉴스 모듈과 하위 Python 소스를 변경 시 다시 읽는다."""
+    global MASTER_PRESS_MODULE, MASTER_PRESS_MTIME
+    source_paths = [MASTER_PRESS_SERVICE_PATH, *MASTER_PRESS_SERVICE_PATH.parent.glob("master_press/*.py")]
+    mtime = max(path.stat().st_mtime_ns for path in source_paths if path.is_file())
+    if MASTER_PRESS_MODULE is None or MASTER_PRESS_MTIME != mtime:
+        if MASTER_PRESS_MODULE is not None:
+            for module_name in [name for name in sys.modules if name == "master_press" or name.startswith("master_press.")]:
+                sys.modules.pop(module_name, None)
+        MASTER_PRESS_MODULE = load_module_from_path("master_press_poc_backend", MASTER_PRESS_SERVICE_PATH)
+        MASTER_PRESS_MTIME = mtime
+    return MASTER_PRESS_MODULE
+
+def acquire_master_press_worker_lock() -> bool:
+    """Ensure only one process runs background master-press workers."""
+    global WORKER_LOCK_HANDLE
+    if WORKER_LOCK_HANDLE is not None:
+        return True
+    WORKER_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
+    handle = open(WORKER_LOCK_PATH, "a+", encoding="utf-8")
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        handle.close()
+        return False
+    handle.seek(0)
+    handle.truncate(0)
+    handle.write(f"pid={os.getpid()} started_at={datetime.now().isoformat(timespec='seconds')}\n")
+    handle.flush()
+    WORKER_LOCK_HANDLE = handle
+    return True
+
+def release_master_press_worker_lock() -> None:
+    global WORKER_LOCK_HANDLE
+    if WORKER_LOCK_HANDLE is None:
+        return
+    try:
+        fcntl.flock(WORKER_LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
+    except OSError:
+        pass
+    try:
+        WORKER_LOCK_HANDLE.close()
+    finally:
+        WORKER_LOCK_HANDLE = None
+
+async def collect_master_press():
+    """Run one bounded collection/analysis cycle at a time in the lock-owning process."""
+    while True:
+        progressed = False
+        try:
+            module = load_master_press_module()
+            cycle = await asyncio.to_thread(module.worker_tick)
+            progressed = bool((cycle or {}).get("organizations") or (cycle or {}).get("cases"))
+            progressed = bool(await asyncio.to_thread(module.common_worker_tick)) or progressed
+            progressed = bool(await asyncio.to_thread(module.embedding_worker_tick)) or progressed
+            progressed = bool(await asyncio.to_thread(module.case_worker_tick, False)) or progressed
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            print(f"Master Press orchestration worker failed: {error}", file=sys.stderr)
+            if "database is locked" in str(error).lower():
+                await asyncio.sleep(8)
+                continue
+        # Network collection and SQLite writes must yield long enough for dashboard requests.
+        await asyncio.sleep(12 if progressed else 30)
+
+async def warm_master_press_read_caches():
+    """Warm PoC 4 read paths after startup without delaying service readiness."""
+    await asyncio.sleep(0.5)
+    try:
+        module = await asyncio.to_thread(load_master_press_module)
+        result = await asyncio.to_thread(module.warm_read_caches)
+        print(f"Master Press read caches warmed: {result}", file=sys.stderr)
+    except asyncio.CancelledError:
+        raise
+    except Exception as error:
+        print(f"Master Press read-cache warmup failed: {error}", file=sys.stderr)
+
+async def supervise_master_press():
+    """Restart the orchestration coroutine if a non-standard exception ends it."""
+    while True:
+        try:
+            await collect_master_press()
+            print("Master Press orchestration worker exited unexpectedly; restarting.", file=sys.stderr)
+        except asyncio.CancelledError:
+            raise
+        except BaseException as error:
+            print(f"Master Press orchestration supervisor restarting after {type(error).__name__}: {error}", file=sys.stderr)
+        await asyncio.sleep(5)
+
+async def run_master_press_stage(function_name: str, idle_seconds: float = 2.0, burst: bool = False):
+    """Continuously drain one independent pipeline stage without blocking the other stages."""
+    while True:
+        result = None
+        next_sleep = idle_seconds
+        try:
+            module = load_master_press_module()
+            function = getattr(module, function_name)
+            result = await asyncio.to_thread(function, burst) if function_name == "case_worker_tick" else await asyncio.to_thread(function)
+            # Keep loops responsive but avoid hot spinning under sustained backlog.
+            next_sleep = max(1.5, idle_seconds * 0.75) if result else idle_seconds
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            print(f"Master Press {function_name} failed: {error}", file=sys.stderr)
+            if "database is locked" in str(error).lower():
+                next_sleep = max(5.0, idle_seconds)
+        await asyncio.sleep(next_sleep)
 
 HTML_PAGE = r"""
 <!DOCTYPE html>
@@ -446,6 +546,8 @@ HTML_PAGE = r"""
     .health-spark polyline{fill:none;stroke:#dfff56;stroke-width:2.2;vector-effect:non-scaling-stroke}
     .health-runtime{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border:1px solid #393d37;border-radius:8px;background:#252923}
     .health-runtime span{color:#8f978c;font-size:9px;font-weight:800}.health-runtime b{color:#f1f4ed;font:700 11px ui-monospace,monospace;white-space:nowrap}
+    .health-resources{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:4px;padding:7px 9px;border:1px solid #393d37;border-radius:8px;background:#252923;white-space:nowrap}
+    .health-resources span{color:#8f978c;font:800 9px ui-monospace,monospace}.health-resources b{color:#f1f4ed;font:700 11px ui-monospace,monospace}.health-resources em{color:#777e74;font-style:normal;font-size:10px}
     .health-popover .detail-row{padding:6px 0;font-size:11px}.health-popover .detail-row b{font-size:10px}.health-updated{margin-top:7px}
     .nav-links { display: flex; gap: 24px; font-size: 13px; }
     .nav-links a { color: #62675e; text-decoration: none; }
@@ -834,246 +936,6 @@ HTML_PAGE = r"""
     async function loadChunkingModels(selectEl){if(!selectEl)return;const previousValue=selectEl.value;try{const r=await fetch('/api/chunking-models',{cache:'no-store'});const data=await readJsonResponse(r);if(!r.ok)throw new Error(data.error||'모델 목록을 불러오지 못했습니다.');setChunkingModelOptions(selectEl,data,previousValue);selectEl.title=''}catch(e){setChunkingModelOptions(selectEl,fallbackChunkingModels(),previousValue);selectEl.title=`모델 목록 조회 실패: ${e.message}`}}
     function startChunkingModelAutoRefresh(selectEl){if(chunkingModelRefreshTimer)clearInterval(chunkingModelRefreshTimer);loadChunkingModels(selectEl);chunkingModelRefreshTimer=setInterval(()=>{if(!document.body.contains(selectEl)){clearInterval(chunkingModelRefreshTimer);chunkingModelRefreshTimer=null;return;}loadChunkingModels(selectEl)},15000)}
 
-    function renderLegacyChunkingLab(p){
-      projectDefaultView.classList.add('hidden');
-      projectLab.classList.add('active');
-      projectLab.innerHTML=`<section class="chunking-shell"><div class="compare-grid-head"><h3>청킹 비교 시뮬레이션</h3><p>같은 프롬프트를 두 테이블에 각각 적용해 검색 결과를 나란히 비교합니다.</p></div><div class="chunking-controls"><label>프롬프트 입력<textarea id="legacyChunkingPromptInput" placeholder="질문이나 비교할 요청을 입력하세요.">민원 처리 법에 대해 알려줘</textarea></label><label>모델 선택<select id="legacyChunkingModelSelect"><option value="openai/gpt-4o-mini" selected>openai/gpt-4o-mini</option><option value="llama3.2:1b">llama3.2:1b · local Ollama</option></select></label><button class="chunking-run" id="legacyChunkingRunButton" type="button">비교 실행</button></div><div class="chunking-note">RAG Supabase 비교 대상 · 왼쪽은 <b>documents</b>, 오른쪽은 <b>documents_test</b> 테이블을 사용합니다. 모델은 OpenRouter의 openai/gpt-4o-mini 또는 로컬 Ollama의 llama3.2:1b 중에서 선택할 수 있으며, 검색된 문맥을 바탕으로 실제 답변을 호출합니다.</div><div class="chunking-compare" id="legacyChunkingCompare"><article class="compare-panel" data-panel="documents"><div class="compare-head"><strong>일반 청킹</strong><small>documents</small><div class="compare-meta"><span class="compare-badge">대기 중</span></div></div><div class="compare-body"><div class="compare-empty">프롬프트를 입력하고 비교 실행을 눌러주세요.</div></div></article><article class="compare-panel" data-panel="documents_test"><div class="compare-head"><strong>전처리 청킹</strong><small>documents_test</small><div class="compare-meta"><span class="compare-badge">대기 중</span></div></div><div class="compare-body"><div class="compare-empty">프롬프트를 입력하고 비교 실행을 눌러주세요.</div></div></article></div></section>`;
-      projectLab.querySelector('.chunking-note').innerHTML='RAG Supabase 비교 대상 · 왼쪽은 <b>documents</b>, 오른쪽은 <b>documents_test</b> 테이블을 사용합니다. 로컬 Ollama 모델 목록은 자동 갱신되며, OpenRouter의 openai/gpt-4o-mini 옵션은 계속 사용할 수 있습니다.';
-      const compareEl=document.getElementById('legacyChunkingCompare');
-      const promptEl=document.getElementById('legacyChunkingPromptInput');
-      const modelEl=document.getElementById('legacyChunkingModelSelect');
-      const runButton=document.getElementById('legacyChunkingRunButton');
-      function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
-      function renderPanel(panel){
-        const card=compareEl.querySelector(`[data-panel="${panel.table}"]`);
-        if(!card)return;
-        card.classList.toggle('error',panel.status==='error');
-        card.classList.remove('compare-loading');
-        const badgeClass=panel.status==='ok'?'ok':panel.status==='error'?'error':'';
-        const meta=panel.meta||{};
-        card.querySelector('.compare-meta').innerHTML=`<span class="compare-badge ${badgeClass}">${panel.status==='ok'?'조회 완료':'오류'}</span><span class="compare-badge">테이블 ${escapeHtml(panel.table)}</span><span class="compare-badge">모델 ${escapeHtml(panel.model)}</span>`;
-        const stats=panel.status==='ok'?`<div class="compare-stats"><div class="compare-stat"><b>${meta.total_rows??0}</b><span>총 문서</span></div><div class="compare-stat"><b>${meta.top_count??0}</b><span>비교 조각</span></div><div class="compare-stat"><b>${meta.top_score??0}</b><span>최고 점수</span></div><div class="compare-stat"><b>${meta.avg_score??0}</b><span>평균 점수</span></div></div>`:'';
-        const items=panel.results?.length?`<div class="compare-list">${panel.results.map(item=>`<article class="compare-item"><div class="compare-item-head"><strong>${item.rank}. ${escapeHtml(item.title)}</strong><span class="compare-score">score ${item.score}</span></div><p>${escapeHtml(item.preview||'미리보기 없음')}</p></article>`).join('')}</div>`:'<div class="compare-empty">표시할 검색 결과가 없습니다.</div>';
-        card.querySelector('.compare-body').innerHTML=`<div class="compare-status">${escapeHtml(panel.summary||'')}</div>${stats}<div class="compare-answer"><span>OUTPUT</span><pre>${escapeHtml(panel.answer||'')}</pre></div>${items}`;
-      }
-      function setLoading(){
-        compareEl.querySelectorAll('.compare-panel').forEach(card=>{card.classList.remove('error');card.classList.add('compare-loading');card.querySelector('.compare-meta').innerHTML='<span class="compare-badge">조회 중</span>';card.querySelector('.compare-body').innerHTML='<div class="compare-stats"><div class="compare-stat"><b>...</b><span>총 문서</span></div><div class="compare-stat"><b>...</b><span>비교 조각</span></div><div class="compare-stat"><b>...</b><span>최고 점수</span></div><div class="compare-stat"><b>...</b><span>평균 점수</span></div></div><div class="compare-answer"><span>OUTPUT</span><pre>질문에 맞는 문서를 검색하고 있습니다...</pre></div><div class="compare-list"><article class="compare-item">검색 결과를 준비하는 중입니다.</article></div>'})
-      }
-      async function runCompare(){
-        const prompt=promptEl.value.trim();
-        if(!prompt){alert('질문을 입력하세요.');return;}
-        runButton.disabled=true;setLoading();
-        try{
-          const r=await fetch('/api/chunking-legacy-compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,model:modelEl.value})});
-          const data=await readJsonResponse(r);
-          if(!r.ok)throw new Error(data.error||'비교 결과를 가져오지 못했습니다.');
-          data.panels.forEach(renderPanel);
-        }catch(e){
-          compareEl.querySelectorAll('.compare-panel').forEach(card=>{card.classList.remove('compare-loading');card.classList.add('error');card.querySelector('.compare-meta').innerHTML='<span class="compare-badge error">오류</span>';card.querySelector('.compare-body').innerHTML=`<div class="compare-answer"><span>ERROR</span><pre>${escapeHtml(e.message)}</pre></div>`})
-        }finally{runButton.disabled=false}
-      }
-      runButton.onclick=runCompare;
-      startChunkingModelAutoRefresh(modelEl);
-    }
-
-    function renderChunkingRagLab(p){
-      projectDefaultView.classList.add('hidden');
-      projectLab.classList.add('active');
-      projectLab.innerHTML=`<section class="chunking-shell chunking-lab-v2"><div class="compare-grid-head"><h3>02. 청킹실습(과제)</h3><p>선택한 청킹 방식만 청킹, 임베딩, 질문 비교 대상으로 사용합니다.</p></div><div class="chunking-doc-grid"><label class="chunking-file">첨부 문서<input id="chunkingFileInput" type="file" accept=".hwpx,.txt,.md,.csv,.json,.html,.xml,.py,.js,.css,.log"><span id="chunkingFileName">텍스트 기반 문서 또는 .hwpx를 선택하세요.</span></label><div class="document-input"><label>문서 내용<textarea id="chunkingDocumentInput" placeholder="문서를 붙여넣거나 왼쪽에서 파일을 첨부하세요."></textarea></label></div></div><div class="strategy-picker"><div class="compare-grid-head"><h3>청킹 알고리즘 선택</h3><p>최대 3개까지 선택할 수 있습니다.</p></div><div class="strategy-grid"><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="fixed" checked><span><strong>고정 길이 청킹</strong><span>균일한 크기와 overlap으로 빠르게 분할</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="recursive" checked><span><strong>문단 우선 재귀 청킹</strong><span>문단과 문장 경계를 우선 보존</span></span></label><label class="strategy-option"><input type="checkbox" name="chunkStrategy" value="semantic" checked><span><strong>문장 윈도우 의미 청킹</strong><span>겹치는 문장 묶음으로 주변 의미 보존</span></span></label></div><div class="plan-actions"><button id="chunkingBuildButton" type="button">1. 청킹 실행</button><button id="chunkingEmbedButton" type="button" disabled>2. 임베딩 실행</button><span class="embed-status" id="chunkingEmbedProgress">(0/0 완료)</span><span class="embed-status" id="chunkingPlanStatus">문서를 준비하세요.</span></div></div><div class="chunking-plans" id="chunkingPlans"><div class="compare-empty">청킹 실행 후 방식별 설명, 장단점, 실제 청크가 표시됩니다.</div></div><div class="rag-console"><h3>질문 비교</h3><div class="chunking-controls"><label class="prompt-control">질문 입력<textarea id="chunkingPromptInput" placeholder="임베딩된 문서에 질문하세요.">이 문서의 핵심 내용을 요약해줘</textarea></label><label>모델 선택<select id="chunkingModelSelect"><option value="openai/gpt-4o-mini" selected>OpenRouter · gpt-4o-mini</option><option value="llama3.2:1b">Ollama · llama3.2:1b</option></select></label><label>RAG 방식<select id="chunkingRagMode"><option value="both" selected>Naive + Advanced</option><option value="naive">Naive RAG</option><option value="advanced">Advanced RAG</option></select></label><label>Temperature<input id="chunkingTemperature" type="number" min="0" max="1.5" step="0.1" value="0.2"></label><label>Top-K<input id="chunkingTopK" type="number" min="1" max="10" step="1" value="5"></label><label class="rerank-option"><input id="chunkingRerankToggle" type="checkbox"><span>Reranking</span></label><button class="chunking-run" id="chunkingRunButton" type="button" disabled>3. 질문 실행</button></div><div class="chunking-note">진행 순서 · <b>1. 청킹 실행</b> 후 <b>2. 임베딩 실행</b>이 활성화되고, 임베딩 완료 후 <b>3. 질문 실행</b>이 활성화됩니다. 선택한 청킹 방식이 1개 또는 2개이면 해당 방식만 임베딩하고 검색합니다.</div><div class="chunking-compare vertical" id="chunkingCompare"><div class="compare-empty">청킹 실행 후 임베딩을 완료하면 질문을 실행할 수 있습니다.</div></div></div></section>`;
-      const sampleDoc=['인공지능 문서 검색 실습은 문서를 작은 조각으로 나누는 청킹 단계에서 시작합니다. 청킹 방식은 검색 정확도와 답변 품질에 직접적인 영향을 줍니다.','고정 길이 청킹은 구현이 쉽고 속도가 빠르지만 문장 경계를 끊을 수 있습니다. 문단 우선 재귀 청킹은 원문 구조를 더 잘 보존합니다. 문장 윈도우 의미 청킹은 주변 맥락을 겹쳐 담아 검색 누락을 줄이는 데 유리합니다.','각 청크는 임베딩 벡터로 변환되어 Supabase pgvector 테이블에 저장됩니다. 질문이 들어오면 질문도 벡터화한 뒤 유사도가 높은 청크를 검색하고, 선택한 LLM이 검색 문맥을 바탕으로 답변을 생성합니다.'].join('\n\n');
-      const fileInput=document.getElementById('chunkingFileInput');
-      const fileName=document.getElementById('chunkingFileName');
-      const documentEl=document.getElementById('chunkingDocumentInput');
-      const buildButton=document.getElementById('chunkingBuildButton');
-      const embedButton=document.getElementById('chunkingEmbedButton');
-      const embedProgress=document.getElementById('chunkingEmbedProgress');
-      const planStatus=document.getElementById('chunkingPlanStatus');
-      const plansEl=document.getElementById('chunkingPlans');
-      const compareEl=document.getElementById('chunkingCompare');
-      const promptEl=document.getElementById('chunkingPromptInput');
-      const modelEl=document.getElementById('chunkingModelSelect');
-      const ragModeEl=document.getElementById('chunkingRagMode');
-      const temperatureEl=document.getElementById('chunkingTemperature');
-      const topKEl=document.getElementById('chunkingTopK');
-      const rerankEl=document.getElementById('chunkingRerankToggle');
-      const runButton=document.getElementById('chunkingRunButton');
-      const stopAllButton=document.createElement('button');
-      stopAllButton.type='button';stopAllButton.className='chunking-stop-all';stopAllButton.textContent='전체 생성 중지';stopAllButton.disabled=true;
-      runButton.insertAdjacentElement('afterend',stopAllButton);
-      const compareControllers=new Map();
-      let lastCompareConfig=null;
-      const strategyInputs=[...document.querySelectorAll('input[name="chunkStrategy"]')];
-      let currentPlans=[],embeddedTables=[];
-      documentEl.value=sampleDoc;
-      function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
-      function selectedStrategies(){return strategyInputs.filter(input=>input.checked).map(input=>input.value)}
-      function resetExecution(message='청킹 실행 전입니다.'){embeddedTables=[];embedButton.disabled=true;runButton.disabled=true;embedProgress.textContent='(0/0 완료)';planStatus.textContent=message;compareEl.innerHTML='<div class="compare-empty">청킹 실행 후 임베딩을 완료하면 질문을 실행할 수 있습니다.</div>'}
-      function invalidatePlans(message='문서 또는 알고리즘이 바뀌었습니다. 청킹을 다시 실행하세요.'){currentPlans=[];plansEl.innerHTML='<div class="compare-empty">청킹 실행 후 방식별 설명, 장단점, 실제 청크가 표시됩니다.</div>';resetExecution(message)}
-      strategyInputs.forEach(input=>input.onchange=()=>{const checked=strategyInputs.filter(item=>item.checked);if(checked.length>3){input.checked=false;alert('청킹 알고리즘은 최대 3개까지 선택할 수 있습니다.');return;}if(!checked.length){input.checked=true;alert('하나 이상의 청킹 알고리즘을 선택하세요.');return;}invalidatePlans('청킹 알고리즘 선택이 바뀌었습니다. 청킹을 다시 실행하세요.')});
-      documentEl.oninput=()=>invalidatePlans('문서 내용이 바뀌었습니다. 청킹을 다시 실행하세요.');
-      function bytesToBase64(bytes){let binary='';const size=0x8000;for(let i=0;i<bytes.length;i+=size){binary+=String.fromCharCode(...bytes.subarray(i,i+size))}return btoa(binary)}
-      fileInput.onchange=async()=>{const file=fileInput.files?.[0];if(!file)return;if(file.size>30*1024*1024){alert('30MB 이하의 문서를 선택하세요.');fileInput.value='';return;}fileName.textContent=`${file.name} 읽는 중...`;try{if(file.name.toLowerCase().endsWith('.hwpx')){const bytes=new Uint8Array(await file.arrayBuffer());const r=await fetch('/api/hwpx-extract',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({filename:file.name,data_base64:bytesToBase64(bytes)})});const data=await r.json();if(!r.ok)throw new Error(data.error||'hwpx 본문 추출에 실패했습니다.');documentEl.oninput=null;documentEl.value=data.text;documentEl.oninput=()=>invalidatePlans('문서 내용이 바뀌었습니다. 청킹을 다시 실행하세요.');fileName.textContent=`${file.name} · 본문 ${data.char_count}자 · 문단 ${data.paragraph_count}개`}else{documentEl.oninput=null;documentEl.value=await file.text();documentEl.oninput=()=>invalidatePlans('문서 내용이 바뀌었습니다. 청킹을 다시 실행하세요.');fileName.textContent=file.name}invalidatePlans('파일을 읽었습니다. 청킹을 실행하세요.')}catch(e){fileName.textContent='파일 읽기 실패';alert(e.message)}};
-      function strategySettings(plan){const settings={fixed:'size 900 · overlap 120',recursive:'max 1100자 · 문단/문장 경계',semantic:'window 5문장 · stride 3'};return settings[plan.strategy]||'기본 설정'}
-      function renderPlans(data){
-        currentPlans=data.plans||[];embeddedTables=[];
-        if(!currentPlans.length){plansEl.innerHTML='<div class="compare-empty">생성된 청크가 없습니다.</div>';resetExecution('생성된 청크가 없습니다.');return;}
-        embedProgress.textContent=`(0/${currentPlans.length} 완료)`;
-        planStatus.textContent=`문서 ${data.document.char_count}자 · ${currentPlans.length}개 방식 생성 · 임베딩 실행 가능`;
-        embedButton.disabled=false;runButton.disabled=true;
-        compareEl.innerHTML='<div class="compare-empty">임베딩 실행 후 질문을 실행할 수 있습니다.</div>';
-        plansEl.innerHTML=currentPlans.map(plan=>`<article class="plan-card" data-slot="${plan.slot}"><div class="plan-head"><div><strong>청킹 방식 ${plan.slot}: ${escapeHtml(plan.label)}</strong><small>${escapeHtml(plan.summary)}</small></div><small>${escapeHtml(plan.table)}</small></div><div class="plan-body"><p class="plan-desc">${escapeHtml(plan.description)}</p><div class="compare-meta"><span class="compare-badge">설정 ${escapeHtml(strategySettings(plan))}</span><span class="compare-badge">${plan.chunks.length} chunks</span><span class="compare-badge">${escapeHtml(plan.table)}</span></div><div class="pros-cons"><div><b>장점</b><ul>${plan.pros.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></div><div><b>단점</b><ul>${plan.cons.map(item=>`<li>${escapeHtml(item)}</li>`).join('')}</ul></div></div><div class="embed-row"><span class="embed-status" data-embed-status="${plan.slot}">임베딩 대기 중</span></div><div class="chunk-list">${plan.chunks.map(chunk=>`<details class="chunk-detail" ${chunk.rank===1?'open':''}><summary>Chunk ${chunk.rank} · ${chunk.char_count}자 · token ${chunk.token_count}</summary><pre>${escapeHtml(chunk.content)}</pre></details>`).join('')}</div></div></article>`).join('')
-      }
-      async function buildChunks(){const text=documentEl.value.trim();if(!text){alert('문서를 입력하거나 첨부하세요.');return;}buildButton.disabled=true;embedButton.disabled=true;runButton.disabled=true;embeddedTables=[];embedProgress.textContent='(0/0 완료)';planStatus.textContent='청킹 중...';plansEl.innerHTML='<div class="compare-empty">문서를 청킹하고 있습니다.</div>';compareEl.innerHTML='<div class="compare-empty">청킹 결과를 기다리고 있습니다.</div>';try{const r=await fetch('/api/chunking-plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,strategies:selectedStrategies()})});const data=await r.json();if(!r.ok)throw new Error(data.error||'청킹에 실패했습니다.');renderPlans(data)}catch(e){currentPlans=[];planStatus.textContent='청킹 실패';plansEl.innerHTML=`<div class="compare-empty">${escapeHtml(e.message)}</div>`;embedButton.disabled=true;runButton.disabled=true}finally{buildButton.disabled=false}}
-      async function embedAllPlans(){
-        if(!currentPlans.length){alert('먼저 청킹을 실행하세요.');return;}
-        embedButton.disabled=true;runButton.disabled=true;embeddedTables=[];
-        let completed=0;
-        embedProgress.textContent=`(${completed}/${currentPlans.length} 완료)`;
-        planStatus.textContent=`${currentPlans.length}개 청킹 방식 임베딩 중...`;
-        currentPlans.forEach(plan=>{const status=plansEl.querySelector(`[data-embed-status="${plan.slot}"]`);const card=plansEl.querySelector(`[data-slot="${plan.slot}"]`);if(card)delete card.dataset.embedded;if(status)status.textContent='임베딩 대기 중'});
-        try{
-          for(const plan of currentPlans){
-            const status=plansEl.querySelector(`[data-embed-status="${plan.slot}"]`);
-            if(status)status.textContent='임베딩 중...';
-            const r=await fetch('/api/chunking-embed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan})});
-            const item=await r.json();
-            if(!r.ok)throw new Error(item.error||'임베딩에 실패했습니다.');
-            completed+=1;embedProgress.textContent=`(${completed}/${currentPlans.length} 완료)`;
-            if(item.table)embeddedTables.push(item.table);
-            const card=plansEl.querySelector(`[data-slot="${item.slot}"]`),doneStatus=plansEl.querySelector(`[data-embed-status="${item.slot}"]`);
-            if(card)card.dataset.embedded='true';
-            if(doneStatus){const actual=item.actual_table&&item.actual_table!==item.table?` · 실제 ${item.actual_table}`:'';doneStatus.textContent=`${item.embedded_count}개 저장 · ${item.embedding_provider}${actual}${item.warning?' · fallback':''}`}
-          }
-          if(!embeddedTables.length)throw new Error('임베딩된 청킹 방식이 없습니다.');
-          planStatus.textContent=`${embeddedTables.length}개 청킹 방식 임베딩 완료 · 질문 실행 가능`;
-          runButton.disabled=false;
-        }catch(e){
-          planStatus.textContent=`임베딩 실패: ${e.message}`;embeddedTables=[];runButton.disabled=true;
-        }finally{
-          embedButton.disabled=!currentPlans.length;
-        }
-      }
-      function snippetsFor(panel){return (panel.results||[]).map(item=>{const rerank=item.rerank_score!=null?` · rerank ${item.rerank_score}`:'';const queries=item.matched_queries?.length?` · query ${item.matched_queries.length}`:'';const citation=item.citation?`${item.citation} · `:'';return `${item.rank}. ${citation}score ${item.score}${rerank}${queries} · ${item.preview||''}`}).join('\n')||'검색 결과가 없습니다.'}
-      function renderComparePanel(panel){
-        const meta=panel.meta||{},badgeClass=panel.status==='ok'?'ok':'error';
-        const detailId=`chunk-detail-${panel.table}-${panel.rag_mode||'naive'}`;
-        const elapsed=meta.elapsed_ms!=null?`${(meta.elapsed_ms/1000).toFixed(1)}s`:'';
-        const optionBadges=`<span class="compare-badge">RAG ${escapeHtml(panel.rag_label||panel.rag_mode||'Naive')}</span><span class="compare-badge">T ${panel.temperature??0.2}</span><span class="compare-badge">Top-K ${panel.top_k??5}</span>${meta.query_count?`<span class="compare-badge">Query ${meta.query_count}</span>`:''}${meta.context_compression?'<span class="compare-badge">Context 압축</span>':''}${meta.answer_chars?`<span class="compare-badge">답변 ${meta.answer_chars}자</span>`:''}${elapsed?`<span class="compare-badge">${elapsed}</span>`:''}${meta.citation_count!=null?`<span class="compare-badge">근거 ${meta.citation_count}개</span>`:''}${panel.reranking?`<span class="compare-badge">Cohere ${escapeHtml(panel.rerank_model||'rerank')}</span>`:''}`;
-        const queryInfo=panel.query_variants?.length?`<div class="compare-status">질의 변형 · ${escapeHtml(panel.query_variants.join(' / '))}</div>`:'';
-        const citationInfo=panel.citations?.length?`<div class="compare-status">답변 인용 · ${escapeHtml(panel.citations.join(', '))}</div>`:'';
-        return `<article class="compare-panel ${panel.status==='error'?'error':''}" data-panel="${escapeHtml(panel.table)}-${escapeHtml(panel.rag_mode||'naive')}"><div class="compare-head"><strong>청킹 방식 ${panel.slot}: ${escapeHtml(panel.label)}</strong><small>${escapeHtml(panel.table)} · ${escapeHtml(panel.rag_label||panel.rag_mode||'Naive RAG')}</small><div class="compare-meta"><span class="compare-badge ${badgeClass}">${panel.status==='ok'?'조회 완료':'오류'}</span><span class="compare-badge">${escapeHtml(panel.model)}</span>${optionBadges}${panel.embedding_provider?`<span class="compare-badge">${escapeHtml(panel.embedding_provider)}</span>`:''}${panel.actual_table&&panel.actual_table!==panel.table?`<span class="compare-badge">실제 ${escapeHtml(panel.actual_table)}</span>`:''}</div><div class="compare-stats"><div class="compare-stat"><b>${meta.total_rows??0}</b><span>총문서</span></div><div class="compare-stat"><b>${meta.top_count??0}</b><span>비교조각</span></div><div class="compare-stat"><b>${meta.top_score??0}</b><span>최고점수</span></div><div class="compare-stat"><b>${meta.avg_score??0}</b><span>평균점수</span></div></div></div><div class="compare-body"><div class="compare-status">${escapeHtml(panel.summary||'')}${panel.warning?' · '+escapeHtml(panel.warning):''}</div>${queryInfo}${citationInfo}<label class="compare-status">검색 결과<textarea class="result-snippets" rows="5" readonly>${escapeHtml(snippetsFor(panel))}</textarea></label><div class="compare-answer"><span>LLM ANSWER</span><pre>${escapeHtml(panel.answer||'')}</pre></div><button class="compare-chunk-button" data-detail-panel="${detailId}" type="button">비교 청크 내용 보기</button><div class="compare-chunk-detail" id="${detailId}" hidden>${(panel.results||[]).map(item=>`<article class="compare-chunk"><strong>${item.rank}. ${escapeHtml(item.citation||'검색 조각 '+item.rank)} · ${escapeHtml(item.title)} · score ${item.score}${item.rerank_score!=null?` · rerank ${item.rerank_score}`:''}</strong>${item.matched_queries?.length?`<small>matched · ${escapeHtml(item.matched_queries.join(' / '))}</small>`:''}<pre>${escapeHtml(item.content||item.preview||'')}</pre></article>`).join('')||'<div class="compare-empty">표시할 청크가 없습니다.</div>'}</div></div></article>`
-      }
-      function ragScore(panel){
-        if(panel.status!=='ok')return -999;
-        const meta=panel.meta||{};
-        const top=Number(meta.top_score||0),avg=Number(meta.avg_score||0),citations=Number(meta.citation_count||0),chars=Number(meta.answer_chars||0),elapsed=Number(meta.elapsed_ms||0);
-        const citationBonus=Math.min(citations,Number(meta.top_count||0)||citations)*0.18;
-        const answerBonus=Math.min(chars/1200,1)*0.16;
-        const advancedBonus=panel.rag_mode==='advanced'?0.12:0;
-        const rerankBonus=panel.reranking?0.05:0;
-        const speedPenalty=Math.min(elapsed/60000,1)*0.12;
-        return top+avg+citationBonus+answerBonus+advancedBonus+rerankBonus-speedPenalty;
-      }
-      function renderEvaluationSummary(panels){
-        const okPanels=panels.filter(panel=>panel.status==='ok');
-        if(!okPanels.length)return '';
-        const groups=new Map();
-        okPanels.forEach(panel=>{const key=panel.table||`slot-${panel.slot}`;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(panel)});
-        const rows=[];
-        groups.forEach(items=>{
-          const naive=items.find(panel=>panel.rag_mode==='naive');
-          const advanced=items.find(panel=>panel.rag_mode==='advanced');
-          const base=advanced||naive||items[0];
-          const naiveScore=naive?ragScore(naive):null,advancedScore=advanced?ragScore(advanced):null;
-          let winner='비교 대상 부족', reason='선택한 RAG 방식만 실행됨';
-          if(naive&&advanced){
-            const diff=Math.abs(advancedScore-naiveScore);
-            if(diff<0.08){winner='비슷함';reason='검색 점수와 근거 수 차이가 작음'}
-            else if(advancedScore>naiveScore){winner='Advanced RAG';reason='다중 질의, rerank, 근거 활용 점수가 높음'}
-            else{winner='Naive RAG';reason='단일 검색이 더 높은 유사도/속도를 보임'}
-          }
-          const metric=panel=>panel?`score ${ragScore(panel).toFixed(2)} · ${((panel.meta?.elapsed_ms||0)/1000).toFixed(1)}s · 근거 ${panel.meta?.citation_count??0}개`:'실행 안 됨';
-          rows.push(`<div class="evaluation-row"><b>청킹 방식 ${base.slot}: ${escapeHtml(base.label)}</b><span>Naive · ${escapeHtml(metric(naive))}</span><span>Advanced · ${escapeHtml(metric(advanced))}</span><span class="evaluation-winner">${escapeHtml(winner)}<br><small>${escapeHtml(reason)}</small></span></div>`);
-        });
-        return `<article class="compare-evaluation"><div class="compare-head"><strong>Naive vs Advanced 평가 카드</strong><small>검색 점수, 인용 근거, 답변 길이, 처리 시간을 종합한 휴리스틱 추천입니다.</small></div><div class="evaluation-grid">${rows.join('')}</div><div class="evaluation-note">평가 점수는 실험용 지표입니다. 최종 품질 판단은 답변 내용과 실제 근거 청크를 함께 확인하세요.</div></article>`;
-      }
-      function renderProgressPanel(plan,state='pending',message='이전 청킹 방식 답변이 끝나면 시작합니다.'){
-        const badge=state==='active'?'생성 중':state==='done'?'완료':'대기 중';
-        const body=state==='active'?'임시 출력':'진행 상태';
-        return `<article class="compare-panel compare-loading" data-panel="${escapeHtml(plan.table)}-${escapeHtml(plan.ragMode||'naive')}"><div class="compare-head"><strong>청킹 방식 ${plan.slot}: ${escapeHtml(plan.label)}</strong><small>${escapeHtml(plan.table)} · ${escapeHtml(plan.ragLabel||plan.ragMode||'Naive RAG')}</small><div class="compare-meta"><span class="compare-badge">${badge}</span><span class="compare-badge">${escapeHtml(plan.ragLabel||plan.ragMode||'Naive RAG')}</span><span class="compare-badge">순차 실행</span></div></div><div class="compare-body"><div class="compare-answer"><span>${body}</span><pre>${escapeHtml(message)}</pre></div></div></article>`
-      }
-      function renderCompareErrorPanel(plan,message){
-        return `<article class="compare-panel error" data-panel="${escapeHtml(plan.table)}-${escapeHtml(plan.ragMode||'naive')}"><div class="compare-head"><strong>청킹 방식 ${plan.slot}: ${escapeHtml(plan.label)}</strong><small>${escapeHtml(plan.table)} · ${escapeHtml(plan.ragLabel||plan.ragMode||'Naive RAG')}</small><div class="compare-meta"><span class="compare-badge error">오류</span></div></div><div class="compare-body"><div class="compare-answer"><span>ERROR</span><pre>${escapeHtml(message)}</pre></div></div></article>`
-      }
-      function compareKey(plan){return `${plan.table}-${plan.ragMode||'naive'}`}
-      function selectedRagModes(){return ragModeEl.value==='both'?['naive','advanced']:[ragModeEl.value]}
-      function compareJobs(){return currentPlans.filter(plan=>embeddedTables.includes(plan.table)).flatMap(plan=>selectedRagModes().map(mode=>({...plan,ragMode:mode,ragLabel:mode==='advanced'?'Advanced RAG':'Naive RAG'})))}
-      function replaceComparePanel(key,html){
-        const current=compareEl.querySelector(`[data-panel="${key}"]`);
-        if(current)current.outerHTML=html;else compareEl.insertAdjacentHTML('beforeend',html);
-      }
-      function setCompareLoading(){const panels=compareJobs();compareEl.innerHTML=panels.map((plan,index)=>renderProgressPanel(plan,index===0?'active':'pending',index===0?'Supabase에서 유사 청크를 검색하고 LLM 답변 생성을 시작합니다.':'앞선 비교 답변이 완료되면 자동으로 시작합니다.')).join('')}
-      async function runCompare(){
-        const prompt=promptEl.value.trim();
-        if(!prompt){alert('질문을 입력하세요.');return;}
-        if(!embeddedTables.length){alert('먼저 임베딩을 실행하세요.');return;}
-        const panels=compareJobs();
-        if(!panels.length){alert('질문을 실행할 청킹 방식이 없습니다.');return;}
-        const rawTemperature=Number(temperatureEl.value||0.2);
-        const rawTopK=parseInt(topKEl.value||'5',10);
-        const temperature=Number.isFinite(rawTemperature)?Math.max(0,Math.min(1.5,rawTemperature)):0.2;
-        const topK=Number.isFinite(rawTopK)?Math.max(1,Math.min(10,rawTopK)):5;
-        temperatureEl.value=String(temperature);topKEl.value=String(topK);
-        runButton.disabled=true;setCompareLoading();
-        let completed=0;
-        const completedPanels=[];
-        try{
-          for(const plan of panels){
-            planStatus.textContent=`질문 실행 중... ${completed+1}/${panels.length} · ${plan.label} · ${plan.ragLabel}`;
-            const progressMessages=['Supabase에서 유사 청크를 검색하는 중입니다.','검색된 청크를 질문 문맥으로 정리하고 있습니다.','LLM 답변을 생성하는 중입니다.','응답이 길어질 수 있어 조금만 더 기다려주세요.'];
-            let progressIndex=0;
-            replaceComparePanel(compareKey(plan),renderProgressPanel(plan,'active',progressMessages[progressIndex]));
-            const progressTimer=setInterval(()=>{
-              progressIndex=Math.min(progressIndex+1,progressMessages.length-1);
-              replaceComparePanel(compareKey(plan),renderProgressPanel(plan,'active',progressMessages[progressIndex]));
-            },2500);
-            try{
-              const r=await fetch('/api/chunking-compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,model:modelEl.value,tables:[plan.table],rag_mode:plan.ragMode,temperature,top_k:topK,reranking:rerankEl.checked,rerank_model:'rerank-v4.0-fast'})});
-              const data=await readJsonResponse(r);
-              if(!r.ok)throw new Error(data.error||'비교 결과를 가져오지 못했습니다.');
-              const panel=data.panels?.[0];
-              if(!panel)throw new Error('응답 패널이 비어 있습니다.');
-              replaceComparePanel(compareKey(plan),renderComparePanel(panel));
-              completedPanels.push(panel);
-            }catch(e){
-              replaceComparePanel(compareKey(plan),renderCompareErrorPanel(plan,e.message));
-            }finally{
-              clearInterval(progressTimer);
-              completed+=1;
-            }
-          }
-          compareEl.querySelector('.compare-evaluation')?.remove();
-          const evaluationHtml=renderEvaluationSummary(completedPanels);
-          if(evaluationHtml)compareEl.insertAdjacentHTML('afterbegin',evaluationHtml);
-          planStatus.textContent=`질문 실행 완료 · ${completed}/${panels.length}`;
-        }finally{runButton.disabled=false}
-      }
-      const comparePlanMap=new Map();
-      function renderStreamMarkdown(text){const lines=escapeHtml(text).split('\n');let html=[],inCode=false,list='';const closeList=()=>{if(list){html.push(`</${list}>`);list=''}};for(const raw of lines){if(raw.startsWith('```')){closeList();if(inCode){html.push('</code></pre>');inCode=false}else{html.push('<pre><code>');inCode=true}continue}if(inCode){html.push(raw+'\n');continue}let line=raw.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');const heading=line.match(/^(#{1,3})\s+(.+)/);if(heading){closeList();const level=heading[1].length;html.push(`<h${level}>${heading[2]}</h${level}>`);continue}const bullet=line.match(/^[-*]\s+(.+)/);const numbered=line.match(/^\d+\.\s+(.+)/);if(bullet||numbered){const wanted=bullet?'ul':'ol';if(list!==wanted){closeList();list=wanted;html.push(`<${list}>`)}html.push(`<li>${(bullet||numbered)[1]}</li>`);continue}closeList();if(line.startsWith('&gt; '))html.push(`<blockquote>${line.slice(5)}</blockquote>`);else if(line.trim())html.push(`<p>${line}</p>`);else html.push('<br>')}closeList();if(inCode)html.push('</code></pre>');return html.join('')}
-      function renderStreamShell(plan){const key=compareKey(plan);return `<article class="compare-panel stream-panel is-streaming" data-panel="${escapeHtml(key)}"><div class="compare-head"><strong>청킹 방식 ${plan.slot}: ${escapeHtml(plan.label)}</strong><small>${escapeHtml(plan.table)} · ${escapeHtml(plan.ragLabel)}</small><div class="compare-meta"><span class="compare-badge ok" data-stream-badge>연결 중</span><span class="compare-badge">${escapeHtml(modelEl.value)}</span><span class="compare-badge">병렬 스트리밍</span></div></div><div class="compare-body"><div class="compare-answer stream-answer is-streaming is-following"><span>LLM ANSWER · LIVE</span><div class="stream-answer-output"></div><button class="stream-answer-paused" type="button">↓ 실시간 출력으로 이동</button></div><div class="stream-live-meta"><span class="compare-badge" data-first-token>첫 응답 대기</span><span class="compare-badge" data-live-chars>0자</span><span class="compare-badge" data-live-time>0.0s</span></div><div class="stream-process"><div class="stream-process-head"><span data-process-title>생성 준비 중</span><span>상세 진행</span></div><div class="stream-process-log"><div class="stream-step active">요청을 준비하고 있습니다.</div></div></div><details class="stream-sources"><summary>검색 근거 · 준비 중</summary><div class="stream-sources-list"><div class="stream-source">검색 결과가 도착하면 답변보다 먼저 표시됩니다.</div></div></details><div class="stream-error-note" hidden></div><div class="stream-actions"><button class="compare-stop" type="button">이 패널 중지</button><button class="compare-retry" type="button" hidden>이 패널 다시 생성</button></div></div></article>`}
-      function streamPanelNodes(key){const panel=compareEl.querySelector(`[data-panel="${key}"]`);return panel&&{panel,answer:panel.querySelector('.stream-answer'),output:panel.querySelector('.stream-answer-output'),badge:panel.querySelector('[data-stream-badge]'),title:panel.querySelector('[data-process-title]'),log:panel.querySelector('.stream-process-log'),sources:panel.querySelector('.stream-sources'),sourceList:panel.querySelector('.stream-sources-list'),first:panel.querySelector('[data-first-token]'),chars:panel.querySelector('[data-live-chars]'),clock:panel.querySelector('[data-live-time]'),error:panel.querySelector('.stream-error-note'),stop:panel.querySelector('.compare-stop'),retry:panel.querySelector('.compare-retry'),paused:panel.querySelector('.stream-answer-paused')}}
-      function setStreamStage(nodes,stage,message,state='active'){nodes.log.querySelectorAll('.stream-step.active').forEach(item=>item.classList.replace('active','done'));const row=document.createElement('div');row.className=`stream-step ${state}`;row.dataset.stage=stage;row.textContent=message;nodes.log.append(row);nodes.title.textContent=message;nodes.badge.textContent=state==='error'?'오류':stage==='done'?'완료':stage==='stopped'?'중지됨':'생성 중'}
-      function renderStreamSources(nodes,results){const items=results||[];nodes.sources.open=true;nodes.sources.querySelector('summary').textContent=`검색 근거 · ${items.length}개`;nodes.sourceList.innerHTML=items.length?items.map(item=>`<article class="stream-source"><b>${escapeHtml(item.citation||'검색 조각')} · score ${item.score}${item.rerank_score!=null?` · rerank ${item.rerank_score}`:''}</b><p>${escapeHtml(item.preview||item.content||'')}</p></article>`).join(''):'<div class="stream-source">검색된 근거가 없습니다.</div>'}
-      function setupStreamScroll(nodes){let userPaused=false;const follow=()=>{if(!userPaused)nodes.answer.scrollTop=nodes.answer.scrollHeight};nodes.answer.addEventListener('wheel',e=>{if(e.deltaY<0){userPaused=true;nodes.answer.classList.add('user-paused')}});nodes.answer.addEventListener('scroll',()=>{const away=nodes.answer.scrollHeight-nodes.answer.scrollTop-nodes.answer.clientHeight>55;if(away){userPaused=true;nodes.answer.classList.add('user-paused')}else{userPaused=false;nodes.answer.classList.remove('user-paused')}});nodes.paused.onclick=()=>{userPaused=false;nodes.answer.classList.remove('user-paused');follow()};return follow}
-      function updateLiveMetrics(nodes,start,firstAt,text){nodes.clock.textContent=`${((performance.now()-start)/1000).toFixed(1)}s`;nodes.chars.textContent=`${text.length}자`;if(firstAt)nodes.first.textContent=`첫 응답 ${((firstAt-start)/1000).toFixed(1)}s`}
-      function stopCompareJob(key){const controller=compareControllers.get(key);if(controller)controller.abort()}
-      async function runCompareJob(plan,config){const key=compareKey(plan);comparePlanMap.set(key,plan);replaceComparePanel(key,renderStreamShell(plan));const nodes=streamPanelNodes(key),controller=new AbortController();compareControllers.set(key,controller);nodes.stop.onclick=()=>stopCompareJob(key);nodes.retry.onclick=()=>runCompareJob(plan,config);const follow=setupStreamScroll(nodes),started=performance.now();let firstAt=0,received='',visible='',queueChars=[],finalPanel=null;const timer=setInterval(()=>{if(queueChars.length){const take=Math.max(1,Math.ceil(queueChars.length/16));visible+=queueChars.splice(0,take).join('');nodes.output.textContent=visible;updateLiveMetrics(nodes,started,firstAt,visible);follow()}else updateLiveMetrics(nodes,started,firstAt,visible)},18);try{const r=await fetch('/api/chunking-compare-stream',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,body:JSON.stringify({...config,tables:[plan.table],rag_mode:plan.ragMode})});if(!r.ok||!r.body){const data=await readJsonResponse(r);throw new Error(data.error||'스트리밍 연결에 실패했습니다.')}const reader=r.body.getReader(),decoder=new TextDecoder();let buffer='';while(true){const chunk=await reader.read();if(chunk.done)break;buffer+=decoder.decode(chunk.value,{stream:true});const lines=buffer.split('\n');buffer=lines.pop()||'';for(const line of lines){if(!line.trim())continue;const event=JSON.parse(line);if(event.type==='stage')setStreamStage(nodes,event.stage,event.message);else if(event.type==='context'){setStreamStage(nodes,'context',event.message);renderStreamSources(nodes,event.results)}else if(event.type==='token'){if(!firstAt){firstAt=performance.now();setStreamStage(nodes,'stream','첫 응답이 도착해 실시간으로 표시하고 있습니다.')}received+=event.content||'';queueChars.push(...Array.from(event.content||''))}else if(event.type==='done')finalPanel=event.result?.panels?.[0];else if(event.type==='error')throw new Error(event.error||'답변 생성에 실패했습니다.')}}if(!finalPanel)throw new Error('완료된 응답 패널이 없습니다.');clearInterval(timer);visible=received||finalPanel.answer||'';nodes.output.textContent=visible;const elapsed=(performance.now()-started)/1000,approxTokens=Math.max(1,Math.ceil(visible.length/3)),tps=(approxTokens/Math.max(elapsed,0.1)).toFixed(1);finalPanel.meta={...(finalPanel.meta||{}),first_token_ms:firstAt?Math.round(firstAt-started):null,approx_output_tokens:approxTokens,tokens_per_second:Number(tps)};replaceComparePanel(key,renderComparePanel(finalPanel));const done=compareEl.querySelector(`[data-panel="${key}"]`);done.classList.add('stream-panel','is-done');const answerPre=done.querySelector('.compare-answer pre');answerPre.classList.add('stream-markdown');answerPre.style.whiteSpace='normal';answerPre.innerHTML=renderStreamMarkdown(finalPanel.answer||'');done.querySelector('.compare-meta').insertAdjacentHTML('beforeend',`<span class="compare-badge">첫 응답 ${firstAt?((firstAt-started)/1000).toFixed(1):'-'}s</span><span class="compare-badge">약 ${approxTokens} tok</span><span class="compare-badge">${tps} tok/s</span>`);done.querySelector('.compare-body').insertAdjacentHTML('afterbegin',`<div class="stream-process"><div class="stream-process-head"><span>생성 완료 · ${elapsed.toFixed(1)}초</span><span>진행 과정 접힘</span></div></div>`);return finalPanel}catch(e){clearInterval(timer);nodes.answer.classList.remove('is-streaming');nodes.stop.hidden=true;nodes.retry.hidden=false;if(e.name==='AbortError'){nodes.panel.classList.remove('is-streaming');nodes.panel.classList.add('is-stopped');setStreamStage(nodes,'stopped','사용자 요청으로 생성을 중지했습니다.','done');nodes.error.hidden=false;nodes.error.textContent='중지 전까지 생성된 답변은 유지됩니다.'}else{nodes.panel.classList.remove('is-streaming');nodes.panel.classList.add('error');setStreamStage(nodes,'error',e.message,'error');nodes.error.hidden=false;nodes.error.textContent=`오류: ${e.message} · 이 패널만 다시 생성할 수 있습니다.`}return null}finally{clearInterval(timer);compareControllers.delete(key)}}
-      async function runCompareStreaming(){const prompt=promptEl.value.trim();if(!prompt){alert('질문을 입력하세요.');return}if(!embeddedTables.length){alert('먼저 임베딩을 실행하세요.');return}const panels=compareJobs();if(!panels.length){alert('질문을 실행할 청킹 방식이 없습니다.');return}const temperature=Math.max(0,Math.min(1.5,Number(temperatureEl.value)||0.2)),topK=Math.max(1,Math.min(10,parseInt(topKEl.value||'5',10)));lastCompareConfig={prompt,model:modelEl.value,temperature,top_k:topK,reranking:rerankEl.checked,rerank_model:'rerank-v4.0-fast'};compareEl.innerHTML=panels.map(renderStreamShell).join('');runButton.disabled=true;stopAllButton.disabled=false;planStatus.textContent=`${panels.length}개 패널 병렬 스트리밍 중...`;const results=(await Promise.all(panels.map(plan=>runCompareJob(plan,lastCompareConfig)))).filter(Boolean);compareEl.querySelector('.compare-evaluation')?.remove();const evaluationHtml=renderEvaluationSummary(results);if(evaluationHtml)compareEl.insertAdjacentHTML('afterbegin',evaluationHtml);planStatus.textContent=`질문 실행 완료 · ${results.length}/${panels.length}`;runButton.disabled=false;stopAllButton.disabled=true}
-      stopAllButton.onclick=()=>{[...compareControllers.keys()].forEach(stopCompareJob);stopAllButton.disabled=true;planStatus.textContent='실행 중인 모든 패널의 생성을 중지했습니다.'};
-      compareEl.addEventListener('click',e=>{const button=e.target.closest('[data-detail-panel]');if(!button)return;const detail=document.getElementById(button.dataset.detailPanel);if(!detail)return;detail.hidden=!detail.hidden;button.textContent=detail.hidden?'비교 청크 내용 보기':'비교 청크 내용 닫기'});
-      buildButton.onclick=buildChunks;embedButton.onclick=embedAllPlans;runButton.onclick=runCompareStreaming;resetExecution('청킹 실행 전입니다.');startChunkingModelAutoRefresh(modelEl);
-    }
-
     function renderAISafeAgent(p){
       projectDefaultView.classList.add('hidden');
       projectLab.classList.add('active');
@@ -1156,45 +1018,6 @@ HTML_PAGE = r"""
       dataHeadEl.addEventListener('click',event=>{if(event.target.closest('button'))return;toggleDataLog()});dataHeadEl.addEventListener('keydown',event=>{if((event.key==='Enter'||event.key===' ')&&!event.target.closest('button')){event.preventDefault();toggleDataLog()}});dataLogToggle.onclick=event=>{event.stopPropagation();toggleDataLog()};latEl.oninput=updateMap;lngEl.oninput=updateMap;runButton.onclick=runAnalysis;gpsButton.onclick=useGpsLocation;buildDataButton.onclick=buildKnowledgeBase;refreshKbButton.onclick=refreshKnowledgeBase;initMap();renderPresets();updateMap();addEventListener('resize',scheduleMapResize);loadAiSafeModels();loadKbStatus().catch(e=>appendDataLog(`PKL 상태 확인 실패: ${e.message}`,true));useGpsLocation({auto:true});
     }
 
-    function renderMoisKmsLab(p){
-      projectDefaultView.classList.add("hidden");
-      projectLab.classList.add("active");
-      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>MoIS KMS · 통합 업무관리시스템</strong><span id="moisKmsStatus">Supabase 인증과 업무 데이터를 연결하는 중입니다.</span></div><a class="field-inspection-open" href="/poc/mois-kms/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">사용자 로그인·조직별 RLS·결재 흐름 적용 · AI 보고서는 Local LLM, Hugging Face, OpenRouter 중 선택할 수 있습니다.</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="moisKmsFrame" src="/poc/mois-kms/" title="통합 업무관리시스템" loading="eager"></iframe></div></section>`;
-      const frame=document.getElementById("moisKmsFrame"),status=document.getElementById("moisKmsStatus");
-      frame.addEventListener("load",()=>{status.textContent="통합 업무관리시스템 연결 완료 · 로그인 후 업무와 AI 보고서를 이용하세요."},{once:true});
-    }
-
-    function renderMasterPressLab(p){
-      projectDefaultView.classList.add("hidden");
-      projectLab.classList.add("active");
-      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>04 - AI 언론동향 비서</strong><span id="masterPressStatus">뉴스 모니터링 대시보드를 연결하는 중입니다.</span></div><a class="field-inspection-open" href="/poc/master-press/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">공식 검색 API·RSS 우선 · 키워드/임베딩/LLM 복합 관련도 · 개인별 카카오 나에게 보내기</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="masterPressFrame" src="/poc/master-press/" title="AI 언론동향 비서" loading="eager"></iframe></div></section>`;
-      const frame=document.getElementById("masterPressFrame"),status=document.getElementById("masterPressStatus");
-      frame.addEventListener("load",()=>{status.textContent="AI 언론동향 비서 연결 완료 · 공개 대시보드와 관리자 설정을 이용할 수 있습니다."},{once:true});
-    }
-
-    let northKoreaPlaybackTimer=null;
-    function renderNorthKoreaNightLightsLab(p){
-      projectDefaultView.classList.add("hidden");
-      projectLab.classList.add("active");
-      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>05 · 북한 VIIRS 야간조명 3D 지도</strong><span id="northKoreaLightsStatus">사용 가능한 북한 월별 데이터를 확인하는 중입니다.</span></div><a class="field-inspection-open" id="northKoreaLightsOpen" href="/poc/north-korea-night-lights/map" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="night-lights-timeline"><button class="night-lights-play" id="northKoreaLightsPlay" type="button">▶ 재생</button><label class="night-lights-city-toggle"><input id="northKoreaLightsCityLabels" type="checkbox">도시 이름 표시</label><div class="night-lights-list" id="northKoreaLightsList" aria-label="월별 야간조명 지도"></div><div class="night-lights-current"><b id="northKoreaLightsCurrent">--</b><span>1.5초 / 장 · 무한 반복</span></div></div><div class="field-inspection-policy">북한 경계만 · 약 463.83m 격자 · cf_cvg &gt; 0 · 막대 높이 log1p(avg_rad) · 회전·확대·격자별 툴팁 지원</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="northKoreaLightsFrame" src="/poc/north-korea-night-lights/map?embed=1" title="북한 VIIRS 야간조명 3D 지도" loading="eager"></iframe></div></section>`;
-      const frame=document.getElementById("northKoreaLightsFrame"),status=document.getElementById("northKoreaLightsStatus"),play=document.getElementById("northKoreaLightsPlay"),cityLabels=document.getElementById("northKoreaLightsCityLabels"),list=document.getElementById("northKoreaLightsList"),current=document.getElementById("northKoreaLightsCurrent");
-      let maps=[],activeIndex=0,playing=false;
-      function selectMap(index){if(!maps.length)return;activeIndex=(index+maps.length)%maps.length;const item=maps[activeIndex];list.querySelectorAll("button").forEach((button,i)=>button.classList.toggle("active",i===activeIndex));list.querySelector(".active")?.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});current.textContent=item.month;frame.contentWindow?.postMessage({type:"north-korea-lights-month",month:item.month},location.origin);status.textContent=`${item.month} 북한 지도를 선택했습니다.`}
-      function stopPlayback(){playing=false;play.classList.remove("is-playing");play.textContent="▶ 재생";if(northKoreaPlaybackTimer){clearInterval(northKoreaPlaybackTimer);northKoreaPlaybackTimer=null}}
-      play.onclick=()=>{if(playing){stopPlayback();return}if(!maps.length)return;playing=true;play.classList.add("is-playing");play.textContent="■ 정지";northKoreaPlaybackTimer=setInterval(()=>selectMap(activeIndex+1),1500)};
-      cityLabels.onchange=()=>frame.contentWindow?.postMessage({type:"north-korea-lights-city-labels",visible:cityLabels.checked},location.origin);
-      frame.addEventListener("load",()=>{frame.contentWindow?.postMessage({type:"north-korea-lights-city-labels",visible:cityLabels.checked},location.origin);if(maps.length)selectMap(activeIndex)});
-      fetch("/api/poc/north-korea-night-lights/maps",{cache:"no-store"}).then(response=>response.json()).then(data=>{maps=data.maps||[];if(!maps.length)throw new Error("생성된 북한 월별 데이터가 없습니다.");list.innerHTML=maps.map((item,index)=>`<button class="night-lights-month ${item.coverage_status||''}" type="button" data-index="${index}" title="유효 관측 격자 ${Number(item.count||0).toLocaleString()}개 · 기준 대비 ${item.coverage_pct}%">${escapeProjectHtml(item.month)}${item.coverage_status==='full'?'':' ◐'}</button>`).join("");list.onclick=event=>{const button=event.target.closest("[data-index]");if(button){stopPlayback();selectMap(Number(button.dataset.index))}};selectMap(Math.max(0,maps.findIndex(item=>item.month===data.default_month)));status.textContent=`북한 한정 ${maps.length}개월 · ◐ 표시는 관측 범위가 좁은 월입니다.`}).catch(error=>{stopPlayback();status.textContent=`시계열 목록 조회 실패: ${error.message}`;play.disabled=true});
-    }
-
-    function renderMultiAgentHarnessLab(p){
-      projectDefaultView.classList.add("hidden");
-      projectLab.classList.add("active");
-      projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>03 · 계층형 멀티에이전트 상황실</strong><span id="multiagentHarnessStatus">하네스 이벤트와 픽셀 오피스를 연결하는 중입니다.</span></div><a class="field-inspection-open" href="/portfolio/multiagent-harness/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">계층형 Coordinator · 공용 Agent Pool · Local LLM/Hugging Face/OpenRouter 슬롯 제어 · 대면 문서 전달 시각화</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" id="multiagentHarnessFrame" src="/portfolio/multiagent-harness/" title="계층형 멀티에이전트 하네스" loading="eager"></iframe></div></section>`;
-      const frame=document.getElementById("multiagentHarnessFrame"),status=document.getElementById("multiagentHarnessStatus");
-      frame.addEventListener("load",()=>{status.textContent="픽셀 오피스 연결 완료 · 계층형 데모를 실행할 수 있습니다."},{once:true});
-    }
-
     function renderFieldInspectionLab(p){
       projectDefaultView.classList.add("hidden");
       projectLab.classList.add("active");
@@ -1202,27 +1025,6 @@ HTML_PAGE = r"""
       const frame=document.getElementById("fieldInspectionFrame"),status=document.getElementById("fieldInspectionStatus");
       frame.addEventListener("load",()=>{status.textContent="현장점검 플랫폼 연결 완료 · Supabase 기존 데이터를 사용합니다."},{once:true});
     }
-
-    function renderReportDraftLab(p){
-      projectDefaultView.classList.add('hidden');
-      projectLab.classList.add('active');
-      projectLab.innerHTML=`<section class="report-draft-lab"><div class="report-draft-head"><div><h3>민원 회신 초안 생성</h3><p>XML 민원자료를 선택한 뒤 서버의 로컬 Ollama 모델로 검토 전 초안을 만듭니다.</p></div><span class="report-draft-health" id="reportDraftHealth">모델 확인 중</span></div><div class="report-draft-grid"><article class="report-draft-panel"><h4>요청</h4><div class="report-draft-presets"><button type="button" data-report-preset="공원 야간 소음 민원에 대해 순찰 강화와 안내문 부착 계획을 포함한 민원 회신 초안을 작성해 주세요.">공원 야간 소음 민원</button><button type="button" data-report-preset="7월 18일 10시부터 15시까지 상수도 공사로 일부 지역 단수가 예정된다는 주민 안내문 초안을 작성해 주세요.">상수도 공사 단수 안내</button></div><label>요청 내용<textarea id="reportDraftRequest" maxlength="8000">공원 야간 소음 민원에 대해 순찰 강화와 안내문 부착 계획을 포함한 민원 회신 초안을 작성해 주세요.</textarea></label><div class="report-draft-model-row"><label>로컬 LLM<select id="reportDraftModel"><option value="">설치 모델 불러오는 중...</option></select></label><button class="report-draft-option-button" id="reportDraftOpenOptions" type="button">모델 옵션</button></div><div class="report-draft-option-summary" id="reportDraftOptionSummary">옵션 확인 중...</div><div class="report-draft-actions"><button class="report-draft-generate" id="reportDraftGenerate" type="button" disabled>초안 생성</button><span class="report-draft-status" id="reportDraftStatus">Ollama 모델을 확인하고 있습니다.</span></div></article><article class="report-draft-panel"><h4>응답 결과</h4><div class="report-draft-meta"><div><span>선택 자료</span><b id="reportDraftCase">-</b></div><div><span>담당부서</span><b id="reportDraftDepartment">-</b></div><div><span>문의처</span><b id="reportDraftContact">-</b></div></div><pre class="report-draft-answer" id="reportDraftAnswer">생성된 초안이 이곳에 표시됩니다.</pre><div class="report-draft-review" id="reportDraftReview">담당자 검토 필요: 생성 결과의 사실관계와 법령 근거를 확인하세요.</div></article></div><dialog class="report-draft-dialog" id="reportDraftOptions"><div class="report-draft-dialog-box"><div class="report-draft-dialog-head"><div><h4>모델 생성 옵션</h4><p>현재 브라우저에 저장되며 보고서 생성 요청에만 적용됩니다.</p></div><button class="report-draft-dialog-close" id="reportDraftCloseOptions" type="button" aria-label="닫기">×</button></div><div class="report-draft-option-grid"><label>Temperature<input id="reportDraftTemperature" type="number" min="0" max="2" step="0.1"></label><label>최대 생성 토큰<input id="reportDraftNumPredict" type="number" min="500" max="4096" step="100"></label><label>Context 크기<input id="reportDraftNumCtx" type="number" min="512" max="32768" step="256"></label><label class="report-draft-system-prompt">시스템 프롬프트<textarea id="reportDraftSystemPrompt" maxlength="4000" spellcheck="false"></textarea><small>최대 4,000자 · 출력 JSON 규칙을 변경하면 초안 형식이 달라질 수 있습니다.</small></label></div><div class="report-draft-dialog-actions"><button class="report-draft-secondary" id="reportDraftResetOptions" type="button">기본값</button><button class="report-draft-secondary save" id="reportDraftSaveOptions" type="button">적용</button></div></div></dialog></section>`;
-      const requestEl=document.getElementById('reportDraftRequest'),modelEl=document.getElementById('reportDraftModel'),generateButton=document.getElementById('reportDraftGenerate'),statusEl=document.getElementById('reportDraftStatus'),healthEl=document.getElementById('reportDraftHealth'),answerEl=document.getElementById('reportDraftAnswer'),caseEl=document.getElementById('reportDraftCase'),departmentEl=document.getElementById('reportDraftDepartment'),contactEl=document.getElementById('reportDraftContact'),reviewEl=document.getElementById('reportDraftReview'),dialogEl=document.getElementById('reportDraftOptions'),temperatureEl=document.getElementById('reportDraftTemperature'),numPredictEl=document.getElementById('reportDraftNumPredict'),numCtxEl=document.getElementById('reportDraftNumCtx'),systemPromptEl=document.getElementById('reportDraftSystemPrompt'),summaryEl=document.getElementById('reportDraftOptionSummary');
-      const optionStorageKey='minslab.reportDraft.options';
-      let defaultOptions={temperature:0.3,num_predict:500,num_ctx:2048,system_prompt:''};
-      function currentOptions(){return {temperature:Number(temperatureEl.value),num_predict:Number(numPredictEl.value),num_ctx:Number(numCtxEl.value),system_prompt:systemPromptEl.value}}
-      function setOptions(options){temperatureEl.value=Number(options.temperature??defaultOptions.temperature);numPredictEl.value=Math.max(Number(numPredictEl.min||500),Number(options.num_predict??defaultOptions.num_predict));numCtxEl.value=Math.max(Number(numCtxEl.min||512),Number(options.num_ctx??defaultOptions.num_ctx));systemPromptEl.value=String(options.system_prompt||defaultOptions.system_prompt);updateOptionSummary()}
-      function updateOptionSummary(){const values=currentOptions(),prompt=values.system_prompt.trim(),isDefault=!prompt||prompt===defaultOptions.system_prompt.trim();summaryEl.textContent=`temperature ${values.temperature} · max tokens ${values.num_predict} · context ${values.num_ctx} · system prompt ${isDefault?'기본값':'수정됨'} (${prompt.length.toLocaleString()}자)`}
-      function savedOptions(){try{return JSON.parse(localStorage.getItem(optionStorageKey)||'null')}catch(e){return null}}
-      function openOptions(){if(typeof dialogEl.showModal==='function')dialogEl.showModal();else dialogEl.setAttribute('open','')}
-      function closeOptions(){if(typeof dialogEl.close==='function')dialogEl.close();else dialogEl.removeAttribute('open')}
-      function applyLimits(settings){const limits=settings?.limits||{};for(const [input,key] of [[temperatureEl,'temperature'],[numPredictEl,'num_predict'],[numCtxEl,'num_ctx']]){const rule=limits[key]||{};if(rule.min!=null)input.min=rule.min;if(rule.max!=null)input.max=rule.max;if(rule.step!=null)input.step=rule.step}}
-      async function loadModels(){generateButton.disabled=true;healthEl.className='report-draft-health';healthEl.textContent='모델 확인 중';try{const response=await fetch('/api/portfolio/report-draft/models',{cache:'no-store'});const data=await readJsonResponse(response);if(!response.ok)throw new Error(data.error||'모델 목록을 불러오지 못했습니다.');modelEl.innerHTML='';for(const item of data.models||[]){const option=document.createElement('option');option.value=item.value||item.name;const size=item.details?.parameter_size?` · ${item.details.parameter_size}`:'';option.textContent=`${item.label||item.name}${size}`;modelEl.appendChild(option)}if(data.default&&[...modelEl.options].some(option=>option.value===data.default))modelEl.value=data.default;defaultOptions={temperature:Number(data.settings?.temperature??0.3),num_predict:Number(data.settings?.num_predict??500),num_ctx:Number(data.settings?.num_ctx??2048),system_prompt:String(data.settings?.system_prompt||'')};applyLimits(data.settings);setOptions({...defaultOptions,...(savedOptions()||{})});generateButton.disabled=!modelEl.value;healthEl.classList.add(data.warning?'error':'ok');healthEl.textContent=data.warning?'Ollama 연결 확인 필요':`로컬 모델 ${data.models?.filter(item=>item.installed!==false).length||0}개`;statusEl.textContent=data.warning||`${modelEl.value} 모델을 사용할 수 있습니다.`}catch(error){modelEl.innerHTML='<option value="">모델 조회 실패</option>';healthEl.classList.add('error');healthEl.textContent='모델 조회 실패';statusEl.textContent=error.message}}
-      async function generateDraft(){const request=requestEl.value.trim();if(!request){statusEl.textContent='요청 내용을 입력하세요.';requestEl.focus();return}if(!modelEl.value){statusEl.textContent='사용할 로컬 모델을 선택하세요.';return}generateButton.disabled=true;answerEl.textContent='선택 민원자료를 찾고 로컬 LLM이 초안을 생성하고 있습니다...';statusEl.textContent=`${modelEl.value} 생성 중`;try{const response=await fetch('/api/portfolio/report-draft/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request,model:modelEl.value,options:currentOptions()})});const data=await readJsonResponse(response);if(!response.ok)throw new Error(data.error||'초안 생성에 실패했습니다.');answerEl.textContent=data.answer||'응답이 비어 있습니다.';caseEl.textContent=`${data.case?.id||'-'} · ${data.case?.title||'-'}`;departmentEl.textContent=data.case?.department||'-';contactEl.textContent=data.case?.contact||'-';reviewEl.textContent=`담당자 검토 필요: ${data.review_notice||''} ${data.case?.review_note||''}`.trim();statusEl.textContent=`생성 완료 · ${data.model} · system prompt ${data.system_prompt_customized?'수정됨':'기본값'} · ${Number(data.elapsed_seconds||0).toFixed(1)}초`}catch(error){answerEl.textContent=`오류: ${error.message}`;statusEl.textContent='초안 생성 실패'}finally{generateButton.disabled=!modelEl.value}}
-      projectLab.querySelectorAll('[data-report-preset]').forEach(button=>button.onclick=()=>{requestEl.value=button.dataset.reportPreset;requestEl.focus()});
-      document.getElementById('reportDraftOpenOptions').onclick=openOptions;document.getElementById('reportDraftCloseOptions').onclick=closeOptions;document.getElementById('reportDraftResetOptions').onclick=()=>setOptions(defaultOptions);document.getElementById('reportDraftSaveOptions').onclick=()=>{localStorage.setItem(optionStorageKey,JSON.stringify(currentOptions()));updateOptionSummary();closeOptions()};generateButton.onclick=generateDraft;modelEl.onchange=()=>{statusEl.textContent=`${modelEl.value} 모델을 선택했습니다.`};systemPromptEl.oninput=updateOptionSummary;dialogEl.addEventListener('click',event=>{if(event.target===dialogEl)closeOptions()});loadModels();
-    }
-
 
     const archiveKickerEl=document.getElementById('archiveKicker'),archiveTitleEl=document.getElementById('archiveTitle'),archiveDescriptionEl=document.getElementById('archiveDescription'),projectIndexTitleEl=document.getElementById('projectIndexTitle'),projectDrawerLabelEl=document.getElementById('projectDrawerLabel');
     function escapeProjectHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
@@ -1237,7 +1039,6 @@ HTML_PAGE = r"""
       projectList.innerHTML=c.projects.map(p=>`<button class="project-button" data-id="${escapeProjectHtml(p.id)}"><strong>${escapeProjectHtml(p.no)}. ${escapeProjectHtml(p.title)}</strong><small>${escapeProjectHtml(p.date)}</small></button>`).join('');
     }
     function renderProject(id,page=currentArchivePage){
-      if(northKoreaPlaybackTimer){clearInterval(northKoreaPlaybackTimer);northKoreaPlaybackTimer=null}
       const list=catalog(page).projects;
       if(!list.length){
         const isPresentation=page==='presentations';currentProjectIds[page]='';projectMeta.innerHTML='';projectTitle.textContent=isPresentation?'아직 등록된 설명자료가 없습니다.':'아직 등록된 프로젝트가 없습니다.';projectSummary.textContent=isPresentation?'관리자 메뉴에서 제목과 발표용 HTML을 등록하면 이곳에 자동으로 표시됩니다.':'이 컬렉션 폴더에 project.json을 추가하면 같은 형식으로 표시됩니다.';
@@ -1250,24 +1051,10 @@ HTML_PAGE = r"""
       projectMeta.innerHTML=(p.tags||[]).map(x=>`<span>${escapeProjectHtml(x)}</span>`).join(''); projectTitle.textContent=p.title; projectSummary.textContent=p.summary;
       if(page==='presentations'){
         renderPresentation(p);
-      }else if(p.id==='chunking-lab'){
-        renderLegacyChunkingLab(p);
-      }else if(p.id==='chunking-rag-lab'){
-        renderChunkingRagLab(p);
-      }else if(p.id==='multiagent-harness'||p.id==='api-multi-agent'){
-        renderMultiAgentHarnessLab(p);
-      }else if(p.id==='report-draft'){
-        renderReportDraftLab(p);
       }else if(p.id==='field-inspection-platform'){
         renderFieldInspectionLab(p);
-      }else if(p.id==='master-press'){
-        renderMasterPressLab(p);
-      }else if(p.id==='north-korea-night-lights'){
-        renderNorthKoreaNightLightsLab(p);
       }else if(p.id==='aiworks'){
         projectLab.innerHTML=`<section class="field-inspection-lab"><div class="field-inspection-toolbar"><div><strong>06 · AI Work Hub</strong><span>문서·MCP·공통데이터를 하나의 승인 기반 작업공간에서 실행합니다.</span></div><a class="field-inspection-open" href="/poc/aiworks/" target="_blank" rel="noopener">새 창에서 크게 보기 ↗</a></div><div class="field-inspection-policy">로컬 샌드박스 초기 버전 · 외부 MCP 및 모델 전송 전 명시적 승인 · 실행별 감사 로그</div><div class="field-inspection-frame-wrap"><iframe class="field-inspection-frame" src="/poc/aiworks/" title="AI Work Hub" loading="eager"></iframe></div></section>`;projectDefaultView.classList.add('hidden');projectLab.classList.add('active');
-      }else if(p.id==='mois-kms'){
-        renderMoisKmsLab(p);
       }else if(p.id==='ai-safe-agent'){
         renderAISafeAgent(p);
       }else if(p.app_path){
@@ -1350,8 +1137,9 @@ HTML_PAGE = r"""
     async function persistHistory(){if(!conversation.length)return;const title=conversation.find(m=>m.role==='user')?.content.slice(0,40)||'새로운 대화';try{const r=await fetch('/api/history',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:currentChatId,client_id:deviceId,account_id:accountId||null,scope_type:historyScope,title,model:modelSelectEl.value,messages:conversation})});const data=await r.json();if(!r.ok||!data.saved)throw new Error(data.error||'대화 이력을 저장하지 못했습니다.');loadHistory()}catch(e){console.warn('History save failed',e);historyList.insertAdjacentHTML('afterbegin',`<div class="history-db-status">저장 실패: ${e.message}</div>`)}}
     async function loadModels(){try{const r=await fetch('/api/models'),data=await r.json();if(!r.ok)throw new Error(data.error);modelSelectEl.innerHTML=data.models.map(m=>`<option value="${m.name}" data-provider="${m.provider||'ollama'}">${m.label||m.name}${m.details?.parameter_size?' · '+m.details.parameter_size:''}</option>`).join('');if(!data.models.length)throw new Error('사용 가능한 모델이 없습니다.');if(data.default&&[...modelSelectEl.options].some(option=>option.value===data.default))modelSelectEl.value=data.default;const hasUpstage=data.models.some(model=>model.provider==='upstage'),hasOllama=data.models.some(model=>model.provider==='ollama'),status=hasUpstage&&hasOllama?'UPSTAGE + OLLAMA':hasUpstage?'UPSTAGE CONNECTED':'OLLAMA CONNECTED';document.getElementById('ollamaStatus').innerHTML=`<i></i><span>${status}</span>`}catch(e){modelSelectEl.innerHTML='<option>모델 연결 실패</option>';document.getElementById('ollamaStatus').innerHTML='<i style="background:#ff704d"></i><span>MODEL OFFLINE</span>';}}
     function healthUptime(seconds){seconds=Math.max(0,Number(seconds||0));const days=Math.floor(seconds/86400),hours=Math.floor(seconds%86400/3600),minutes=Math.floor(seconds%3600/60);return days?`${days}d ${hours}h`:hours?`${hours}h ${minutes}m`:minutes?`${minutes}m`:`${Math.floor(seconds)}s`}
+    function healthPercent(value){return value==null||!Number.isFinite(Number(value))?'-':`${Number(value).toFixed(1)}%`}
     function healthSparkline(values){const nums=(Array.isArray(values)?values:[]).slice(-7).map(value=>Math.max(0,Number(value)||0));if(nums.length<2)return'';const max=Math.max(...nums),min=Math.min(...nums),range=Math.max(1,max-min),step=100/(nums.length-1),points=nums.map((value,index)=>`${(index*step).toFixed(1)},${(29-((value-min)/range)*23).toFixed(1)}`).join(' ');return`<svg class="health-spark" viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true"><polyline points="${points}"/></svg>`}
-    async function loadHealth(){const wrap=document.getElementById('healthWrap');try{const r=await fetch('/api/health',{cache:'no-store'}),data=await r.json(),stats=data.stats||{},webTime=healthUptime(stats.web_uptime_seconds??stats.uptime_seconds),serverTime=stats.host_uptime_seconds==null?'-':healthUptime(stats.host_uptime_seconds),totalSpark=healthSparkline(stats.trend?.cumulative_views),todaySpark=healthSparkline(stats.trend?.page_views),visitorSpark=healthSparkline(stats.trend?.visitors);wrap.classList.toggle('healthy',data.ok);wrap.classList.toggle('unhealthy',!data.ok);healthLabel.textContent=data.ok?'서버 정상':'서버 이상';document.getElementById('healthStats').innerHTML=`<div class="health-stat">${totalSpark}<span>Total</span><b>${Number(stats.total_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${todaySpark}<span>Today</span><b>${Number(stats.today_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${visitorSpark}<span>Visitors</span><b>${Number(stats.today_visitors||0).toLocaleString('ko-KR')}</b></div><div class="health-stat"><span>LLM+Embed</span><b>${Number(stats.local_llm_calls||0).toLocaleString('ko-KR')}</b></div><div class="health-runtime"><span>가동 시간</span><b>WEB ${webTime} · SERVER ${serverTime}</b></div>`;healthDetails.innerHTML=Object.values(data.services).map(s=>`<div class="detail-row ${s.ok?'ok':'fail'}"><span><i></i>${s.label}</span><b>${s.detail}</b></div>`).join('');healthUpdated.textContent=`마지막 확인 ${new Date(data.checked_at*1000).toLocaleTimeString()}`}catch(e){wrap.className='health-wrap unhealthy';healthLabel.textContent='상태 확인 실패';document.getElementById('healthStats').innerHTML='';healthDetails.innerHTML='<div class="detail-row fail"><span><i></i>헬스 API</span><b>연결 실패</b></div>'}}
+    async function loadHealth(){const wrap=document.getElementById('healthWrap');try{const r=await fetch('/api/health',{cache:'no-store'}),data=await r.json(),stats=data.stats||{},webTime=healthUptime(stats.web_uptime_seconds??stats.uptime_seconds),serverTime=stats.host_uptime_seconds==null?'-':healthUptime(stats.host_uptime_seconds),totalSpark=healthSparkline(stats.trend?.cumulative_views),todaySpark=healthSparkline(stats.trend?.page_views),visitorSpark=healthSparkline(stats.trend?.visitors);wrap.classList.toggle('healthy',data.ok);wrap.classList.toggle('unhealthy',!data.ok);healthLabel.textContent=data.ok?'서버 정상':'서버 이상';document.getElementById('healthStats').innerHTML=`<div class="health-stat">${totalSpark}<span>Total</span><b>${Number(stats.total_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${todaySpark}<span>Today</span><b>${Number(stats.today_views||0).toLocaleString('ko-KR')}</b></div><div class="health-stat">${visitorSpark}<span>Visitors</span><b>${Number(stats.today_visitors||0).toLocaleString('ko-KR')}</b></div><div class="health-stat"><span>LLM+Embed</span><b>${Number(stats.local_llm_calls||0).toLocaleString('ko-KR')}</b></div><div class="health-runtime"><span>가동 시간</span><b>WEB ${webTime} · SERVER ${serverTime}</b></div><div class="health-resources" aria-label="서버 자원 사용률"><span>CPU <b>${healthPercent(stats.resources?.cpu_percent)}</b></span><em aria-hidden="true">·</em><span>MEM <b>${healthPercent(stats.resources?.memory_percent)}</b></span><em aria-hidden="true">·</em><span>DISK <b>${healthPercent(stats.resources?.disk_used_percent)}</b></span></div>`;healthDetails.innerHTML=Object.values(data.services).map(s=>`<div class="detail-row ${s.ok?'ok':'fail'}"><span><i></i>${s.label}</span><b>${s.detail}</b></div>`).join('');healthUpdated.textContent=`마지막 확인 ${new Date(data.checked_at*1000).toLocaleTimeString()}`}catch(e){wrap.className='health-wrap unhealthy';healthLabel.textContent='상태 확인 실패';document.getElementById('healthStats').innerHTML='';healthDetails.innerHTML='<div class="detail-row fail"><span><i></i>헬스 API</span><b>연결 실패</b></div>'}}
     function processPanel(item,start){const box=document.createElement('details');box.className='process-box live';box.open=true;const requestCount=conversation.length;const attachmentCount=attachedData.length;box.innerHTML='<summary><span class="process-summary">생성 중 · 준비 단계</span><span class="process-toggle">자세히 보는 중</span><span class="process-meta">0.0s</span></summary><div class="process-inner"><div class="process-log"></div><div class="references">참고 자료 확인 중...</div></div>';const log=box.querySelector('.process-log');const summaryEl=box.querySelector('.process-summary');const toggleEl=box.querySelector('.process-toggle');const metaEl=box.querySelector('.process-meta');const refs=box.querySelector('.references');const timers=[];let finished=false,firstChunkSeen=false,expansionNoted=false;box.addEventListener('toggle',()=>{if(finished)return;toggleEl.textContent=box.open?'자세히 보는 중':'간단히 보는 중'});function addStep(text,state='done'){const row=document.createElement('div');row.className=`process-step ${state}`.trim();row.innerHTML=`<i></i><span>${text}</span>`;log.append(row);log.parentElement.scrollTop=log.parentElement.scrollHeight;messagesEl.scrollTop=messagesEl.scrollHeight;return row}const intro='요청 수신 · '+requestCount+'개 메시지 맥락 정리 완료'+(attachmentCount?` · 첨부 ${attachmentCount}개 포함`:'');addStep(intro,'done');const stages=[['프롬프트와 모델 설정을 적용하고 있어요.','done','생성 중 · 입력 구성'],['로컬 모델에 요청을 전달했어요.','done','생성 중 · 모델 호출'],['응답 초안을 계산하고 있어요.','active','생성 중 · 초안 생성'],['문장 흐름과 길이를 정리하고 있어요.','active','생성 중 · 답변 다듬기']];stages.forEach(([text,state,summary],index)=>{timers.push(setTimeout(()=>{if(finished)return;addStep(text,state);summaryEl.textContent=summary},450+(index*900)))});const tick=setInterval(()=>{if(finished)return;metaEl.textContent=`${((performance.now()-start)/1000).toFixed(1)}s`},120);item.children[1].append(box);return{stream(answer){if(finished)return;if(!firstChunkSeen&&answer.trim()){firstChunkSeen=true;summaryEl.textContent='생성 중 · 실시간 출력';addStep('첫 응답 조각이 도착해 화면에 바로 표시하고 있어요.','active')}if(!expansionNoted&&answer.length>180){expansionNoted=true;addStep('답변 분량이 늘어나고 있어요. 문단 단위로 이어 붙이는 중입니다.','muted')}},finish(answer,metrics,ok=true){finished=true;timers.forEach(clearTimeout);clearInterval(tick);const seconds=metrics?.total_duration?metrics.total_duration/1e9:(performance.now()-start)/1000;const evalCount=metrics?.eval_count;const urls=[...new Set(answer.match(/https?:\/\/[^\s)\]]+/g)||[])];const statusText=ok?`${modelSelectEl.value} 응답 생성 완료`:'응답 생성 중 오류 발생';addStep(statusText+(evalCount?` · ${evalCount} tokens`:''),ok?'done':'error');refs.textContent=urls.length?'참고 자료 · ':'참고 자료 · 외부 자료를 사용하지 않은 로컬 모델 응답';urls.forEach((url,i)=>{const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noreferrer';a.textContent=`[${i+1}] ${url}`;refs.append(document.createElement('br'),a)});summaryEl.textContent=ok?`생성 완료 · ${seconds.toFixed(1)}초`:`오류로 종료 · ${seconds.toFixed(1)}초`;toggleEl.textContent='요약만 표시';metaEl.textContent=ok?(evalCount?`${evalCount} tok · ${urls.length} refs`:`${urls.length} refs`):'retry needed';box.classList.remove('live');box.classList.add('compact');box.open=false}}}
     function addMessage(role,text,extra=''){document.getElementById('emptyChat')?.remove();const item=document.createElement('article');item.className=`message ${role} ${extra}`;const avatar=document.createElement('div');avatar.className='avatar';avatar.textContent=role==='user'?'YOU':'✦';const wrap=document.createElement('div');const label=document.createElement('div');label.className='message-role';label.textContent=role==='user'?'나':modelSelectEl.value;const body=document.createElement('div');body.className='message-body';body.textContent=text;wrap.append(label,body);item.append(avatar,wrap);messagesEl.append(item);messagesEl.scrollTop=messagesEl.scrollHeight;return item;}
     function renderChatMarkdown(text){const lines=escapeChatHtml(text).split('\n');let html=[],inCode=false,list='';const closeList=()=>{if(list){html.push(`</${list}>`);list=''}};for(const raw of lines){if(raw.startsWith('```')){closeList();html.push(inCode?'</code></pre>':'<pre><code>');inCode=!inCode;continue}if(inCode){html.push(raw+'\n');continue}let line=raw.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');const h=line.match(/^(#{1,3})\s+(.+)/),bullet=line.match(/^[-*]\s+(.+)/),numbered=line.match(/^\d+\.\s+(.+)/);if(h){closeList();html.push(`<h${h[1].length}>${h[2]}</h${h[1].length}>`)}else if(bullet||numbered){const wanted=bullet?'ul':'ol';if(list!==wanted){closeList();list=wanted;html.push(`<${list}>`)}html.push(`<li>${(bullet||numbered)[1]}</li>`)}else{closeList();if(line.startsWith('&gt; '))html.push(`<blockquote>${line.slice(5)}</blockquote>`);else html.push(line.trim()?`<p>${line}</p>`:'<br>')}}closeList();if(inCode)html.push('</code></pre>');return html.join('')}
@@ -1578,7 +1366,13 @@ def resolve_upstage_chat_model(model_name):
     )
 
 
+def local_llm_enabled():
+    return env_first("LOCAL_LLM_ENABLED", default="false").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def ollama_model_options():
+    if not local_llm_enabled():
+        return []
     try:
         base_url = env_first("OLLAMA_BASE_URL", default="http://127.0.0.1:11434")
         parsed = url_parse.urlparse(base_url)
@@ -1914,14 +1708,18 @@ def check_services():
         "label": "Nginx", "ok": nginx_port is not None,
         "detail": f"포트 {nginx_port} 응답 정상" if nginx_port else "포트 연결 실패",
     }
-    try:
-        models = call_ollama_quick("/api/tags", timeout_seconds=HEALTH_OLLAMA_TIMEOUT_SECONDS).get("models", [])
-        services["ollama"] = {
-            "label": "Ollama", "ok": True,
-            "detail": f"실행 중 · 모델 {len(models)}개",
-        }
-    except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError):
-        services["ollama"] = {"label": "Ollama", "ok": False, "detail": "API 연결 실패"}
+    if not local_llm_enabled():
+        services["ollama"] = {"label": "로컬 LLM", "ok": True, "enabled": False,
+                              "detail": "사용 중지 · 원격 모델 사용"}
+    else:
+        try:
+            models = call_ollama_quick("/api/tags", timeout_seconds=HEALTH_OLLAMA_TIMEOUT_SECONDS).get("models", [])
+            services["ollama"] = {
+                "label": "Ollama", "ok": True,
+                "detail": f"실행 중 · 모델 {len(models)}개",
+            }
+        except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError):
+            services["ollama"] = {"label": "Ollama", "ok": False, "detail": "API 연결 실패"}
     try:
         stats = get_analytics_summary()
         analytics_status()
@@ -1940,7 +1738,7 @@ def check_services():
     stats.setdefault("local_llm_chat_calls", int(stats.get("local_llm_calls") or 0))
     stats.setdefault("master_press_embedding_calls", 0)
     stats.setdefault("master_press_embedding_calls_today", 0)
-    if HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING and not master_press_is_paused():
+    if local_llm_enabled() and HEALTH_INCLUDE_MASTER_PRESS_EMBEDDING and not master_press_is_paused():
         try:
             master_press = load_master_press_module()
             embedding = master_press.get_service().ollama_embedding_status(False)
@@ -1963,13 +1761,17 @@ def check_services():
         services["ollama_embedding"] = {
             "label": "Ollama 임베딩",
             "ok": True,
-            "detail": "빠른 상태 점검 모드(기본 비활성)",
+            "detail": "사용 중지" if not local_llm_enabled() else "빠른 상태 점검 모드(기본 비활성)",
         }
     web_uptime = max(0, int(time.monotonic() - APP_STARTED_MONOTONIC))
     stats["uptime_seconds"] = web_uptime
     stats["web_uptime_seconds"] = web_uptime
     stats["host_uptime_seconds"] = host_uptime_seconds()
     stats["started_at"] = int(APP_STARTED_AT)
+    try:
+        stats["resources"] = get_latest_system_metrics()
+    except (OSError, ValueError, RuntimeError, sqlite3.Error):
+        stats["resources"] = {}
     return {
         "ok": all(item["ok"] for item in services.values()),
         "services": services,
@@ -2050,28 +1852,8 @@ def valid_analytics_date(value):
         raise ValueError("날짜는 YYYY-MM-DD 형식이어야 합니다.") from error
 
 
-def load_mois_kms_module():
-    """PoC 03 백엔드를 변경 시 자동으로 다시 읽는다."""
-    global MOIS_KMS_MODULE, MOIS_KMS_MTIME
-    mtime = MOIS_KMS_SERVICE_PATH.stat().st_mtime_ns
-    if MOIS_KMS_MODULE is None or MOIS_KMS_MTIME != mtime:
-        MOIS_KMS_MODULE = load_module_from_path("mois_kms_poc_backend", MOIS_KMS_SERVICE_PATH)
-        MOIS_KMS_MTIME = mtime
-    return MOIS_KMS_MODULE
 
 
-def load_master_press_module():
-    """PoC 04 뉴스 모듈과 하위 Python 소스를 변경 시 다시 읽는다."""
-    global MASTER_PRESS_MODULE, MASTER_PRESS_MTIME
-    source_paths = [MASTER_PRESS_SERVICE_PATH, *MASTER_PRESS_SERVICE_PATH.parent.glob("master_press/*.py")]
-    mtime = max(path.stat().st_mtime_ns for path in source_paths if path.is_file())
-    if MASTER_PRESS_MODULE is None or MASTER_PRESS_MTIME != mtime:
-        if MASTER_PRESS_MODULE is not None:
-            for module_name in [name for name in sys.modules if name == "master_press" or name.startswith("master_press.")]:
-                sys.modules.pop(module_name, None)
-        MASTER_PRESS_MODULE = load_module_from_path("master_press_poc_backend", MASTER_PRESS_SERVICE_PATH)
-        MASTER_PRESS_MTIME = mtime
-    return MASTER_PRESS_MODULE
 
 
 def load_aiworks_module():
@@ -2084,140 +1866,24 @@ def load_aiworks_module():
     return AIWORKS_MODULE
 
 
-def acquire_master_press_worker_lock() -> bool:
-    """Ensure only one process runs background master-press workers."""
-    global WORKER_LOCK_HANDLE
-    if WORKER_LOCK_HANDLE is not None:
-        return True
-    WORKER_LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    handle = open(WORKER_LOCK_PATH, "a+", encoding="utf-8")
-    try:
-        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except OSError:
-        handle.close()
-        return False
-    handle.seek(0)
-    handle.truncate(0)
-    handle.write(f"pid={os.getpid()} started_at={datetime.now().isoformat(timespec='seconds')}\n")
-    handle.flush()
-    WORKER_LOCK_HANDLE = handle
-    return True
 
 
-def release_master_press_worker_lock() -> None:
-    global WORKER_LOCK_HANDLE
-    if WORKER_LOCK_HANDLE is None:
-        return
-    try:
-        fcntl.flock(WORKER_LOCK_HANDLE.fileno(), fcntl.LOCK_UN)
-    except OSError:
-        pass
-    try:
-        WORKER_LOCK_HANDLE.close()
-    finally:
-        WORKER_LOCK_HANDLE = None
 
 
-async def collect_master_press():
-    """Run one bounded collection/analysis cycle at a time in the lock-owning process."""
-    while True:
-        progressed = False
-        try:
-            module = load_master_press_module()
-            cycle = await asyncio.to_thread(module.worker_tick)
-            progressed = bool((cycle or {}).get("organizations") or (cycle or {}).get("cases"))
-            progressed = bool(await asyncio.to_thread(module.common_worker_tick)) or progressed
-            progressed = bool(await asyncio.to_thread(module.embedding_worker_tick)) or progressed
-            progressed = bool(await asyncio.to_thread(module.case_worker_tick, False)) or progressed
-        except asyncio.CancelledError:
-            raise
-        except Exception as error:
-            print(f"Master Press orchestration worker failed: {error}", file=sys.stderr)
-            if "database is locked" in str(error).lower():
-                await asyncio.sleep(8)
-                continue
-        # Network collection and SQLite writes must yield long enough for dashboard requests.
-        await asyncio.sleep(12 if progressed else 30)
 
 
-async def warm_master_press_read_caches():
-    """Warm PoC 4 read paths after startup without delaying service readiness."""
-    await asyncio.sleep(0.5)
-    try:
-        module = await asyncio.to_thread(load_master_press_module)
-        result = await asyncio.to_thread(module.warm_read_caches)
-        print(f"Master Press read caches warmed: {result}", file=sys.stderr)
-    except asyncio.CancelledError:
-        raise
-    except Exception as error:
-        print(f"Master Press read-cache warmup failed: {error}", file=sys.stderr)
 
 
-async def supervise_master_press():
-    """Restart the orchestration coroutine if a non-standard exception ends it."""
-    while True:
-        try:
-            await collect_master_press()
-            print("Master Press orchestration worker exited unexpectedly; restarting.", file=sys.stderr)
-        except asyncio.CancelledError:
-            raise
-        except BaseException as error:
-            print(f"Master Press orchestration supervisor restarting after {type(error).__name__}: {error}", file=sys.stderr)
-        await asyncio.sleep(5)
 
 
-async def run_master_press_stage(function_name: str, idle_seconds: float = 2.0, burst: bool = False):
-    """Continuously drain one independent pipeline stage without blocking the other stages."""
-    while True:
-        result = None
-        next_sleep = idle_seconds
-        try:
-            module = load_master_press_module()
-            function = getattr(module, function_name)
-            result = await asyncio.to_thread(function, burst) if function_name == "case_worker_tick" else await asyncio.to_thread(function)
-            # Keep loops responsive but avoid hot spinning under sustained backlog.
-            next_sleep = max(1.5, idle_seconds * 0.75) if result else idle_seconds
-        except asyncio.CancelledError:
-            raise
-        except Exception as error:
-            print(f"Master Press {function_name} failed: {error}", file=sys.stderr)
-            if "database is locked" in str(error).lower():
-                next_sleep = max(5.0, idle_seconds)
-        await asyncio.sleep(next_sleep)
 
 
-def load_report_draft_module():
-    """04 보고서 초안 서비스를 변경 시 자동으로 다시 읽는다."""
-    global REPORT_DRAFT_MODULE, REPORT_DRAFT_MTIME
-    mtime = REPORT_DRAFT_SERVICE_PATH.stat().st_mtime_ns
-    if REPORT_DRAFT_MODULE is None or REPORT_DRAFT_MTIME != mtime:
-        REPORT_DRAFT_MODULE = load_module_from_path(
-            "report_draft_portfolio_service", REPORT_DRAFT_SERVICE_PATH
-        )
-        REPORT_DRAFT_MTIME = mtime
-    return REPORT_DRAFT_MODULE
 
 
-def load_multiagent_harness_module():
-    """03 계층형 멀티에이전트 하네스 서비스를 변경 시 다시 읽는다."""
-    global MULTIAGENT_HARNESS_MODULE, MULTIAGENT_HARNESS_MTIME
-    mtime = MULTIAGENT_HARNESS_SERVICE_PATH.stat().st_mtime_ns
-    if MULTIAGENT_HARNESS_MODULE is None or MULTIAGENT_HARNESS_MTIME != mtime:
-        MULTIAGENT_HARNESS_MODULE = load_module_from_path(
-            "multiagent_harness_portfolio_service", MULTIAGENT_HARNESS_SERVICE_PATH
-        )
-        MULTIAGENT_HARNESS_MTIME = mtime
-    return MULTIAGENT_HARNESS_MODULE
 
 
-def report_draft_model_options():
-    """04 프로젝트에서 선택할 로컬 Ollama 모델과 기본 옵션을 반환한다."""
-    return load_report_draft_module().model_options()
 
 
-def run_report_draft(payload):
-    """04 프로젝트의 XML 검색과 로컬 LLM 초안 생성을 실행한다."""
-    return load_report_draft_module().generate(payload)
 
 
 async def stream_html_file(send, file_path, method, cache_control=b"public, max-age=3600", extra_headers=None, missing_message=None):
@@ -2264,42 +1930,6 @@ async def stream_html_file(send, file_path, method, cache_control=b"public, max-
     await send({"type": "http.response.body", "body": b"", "more_body": False})
 
 
-def north_korea_light_maps():
-    """생성된 북한 한정 YYYY-MM 압축 데이터만 안전한 공개 목록으로 반환한다."""
-    maps = []
-    top3_by_month = {}
-    try:
-        top3_by_month = json.loads(NORTH_KOREA_LIGHTS_TOP3.read_text(encoding="utf-8")).get("months", {})
-    except (OSError, json.JSONDecodeError, AttributeError):
-        pass
-    for file_path in sorted(NORTH_KOREA_LIGHTS_DATA.glob("north_korea_viirs_????-??.json.gz")):
-        month = file_path.name.removeprefix("north_korea_viirs_").removesuffix(".json.gz")
-        try:
-            datetime.strptime(month, "%Y-%m")
-        except ValueError:
-            continue
-        count = 0
-        try:
-            with gzip.open(file_path, "rb") as stream:
-                header = stream.read(4096)
-            match = re.search(rb'"count":(\d+)', header)
-            count = int(match.group(1)) if match else 0
-        except (OSError, EOFError, ValueError):
-            continue
-        maps.append({
-            "month": month,
-            "data_url": f"/api/poc/north-korea-night-lights/data/{month}",
-            "size_bytes": file_path.stat().st_size,
-            "count": count,
-            "top3": top3_by_month.get(month, []),
-            "path": file_path,
-        })
-    maximum_count = max((item["count"] for item in maps), default=0)
-    for item in maps:
-        ratio = item["count"] / maximum_count if maximum_count else 0.0
-        item["coverage_pct"] = round(ratio * 100, 1)
-        item["coverage_status"] = "full" if ratio >= 0.9 else "partial" if ratio >= 0.5 else "sparse"
-    return maps
 
 
 async def app(scope, receive, send):
@@ -2409,6 +2039,38 @@ async def app(scope, receive, send):
         await send({"type": "http.response.body", "body": b""})
         return
 
+    if path == EPUB_READER_BASE_PATH or path.startswith(f"{EPUB_READER_BASE_PATH}/"):
+        if method not in {"GET", "HEAD"}:
+            body, status = b"Method Not Allowed", 405
+            headers = [(b"allow", b"GET, HEAD")]
+        elif path == EPUB_READER_BASE_PATH:
+            body, status = b"", 307
+            headers = [(b"location", f"{EPUB_READER_BASE_PATH}/".encode("ascii"))]
+        else:
+            relative = path[len(EPUB_READER_BASE_PATH):].lstrip("/") or "index.html"
+            target = (EPUB_READER_WEB / relative).resolve()
+            try:
+                target.relative_to(EPUB_READER_WEB.resolve())
+                if not target.is_file():
+                    raise FileNotFoundError
+                body = await asyncio.to_thread(target.read_bytes)
+                content_type = {".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
+                                ".mjs": "text/javascript; charset=utf-8", ".wasm": "application/wasm",
+                                ".bcmap": "application/octet-stream", ".pfb": "application/octet-stream",
+                                ".ttf": "font/ttf", ".icc": "application/octet-stream",
+                                ".css": "text/css; charset=utf-8"}.get(target.suffix.lower(), "text/plain; charset=utf-8")
+                status = 200
+                headers = [(b"content-type", content_type.encode("ascii"))]
+            except (ValueError, OSError):
+                body, status = b"Not Found", 404
+                headers = []
+        headers.extend([(b"content-length", str(len(body)).encode("ascii")),
+                        (b"cache-control", b"no-cache"), (b"x-content-type-options", b"nosniff"),
+                        (b"referrer-policy", b"no-referrer")])
+        await send({"type": "http.response.start", "status": status, "headers": headers})
+        await send({"type": "http.response.body", "body": b"" if method == "HEAD" else body})
+        return
+
     if path == IMAGE_INSPECTION_BASE_PATH or path.startswith(f"{IMAGE_INSPECTION_BASE_PATH}/"):
         if path == IMAGE_INSPECTION_BASE_PATH:
             await send({"type": "http.response.start", "status": 307, "headers": [(b"location", b"/poc/image-inspection/"), (b"content-length", b"0")]})
@@ -2419,10 +2081,6 @@ async def app(scope, receive, send):
 
     if path == HOME_BASE_PATH or path.startswith(f"{HOME_BASE_PATH}/"):
         await proxy_home(scope, receive, send, HOME_UPSTREAM, is_admin=bool(admin_session(scope)))
-        return
-
-    if path == MMJ_BASE_PATH or path.startswith(f"{MMJ_BASE_PATH}/"):
-        await proxy_poc09(scope, receive, send, MMJ_UPSTREAM)
         return
 
     master_press_request = (
@@ -2454,6 +2112,21 @@ async def app(scope, receive, send):
             (b"x-robots-tag", b"noindex, nofollow"),
         ]
         await send({"type": "http.response.start", "status": status, "headers": headers})
+        await send({"type": "http.response.body", "body": b"" if method == "HEAD" else body})
+        return
+
+    retired_paths = (
+        "/poc/mois-kms", "/api/poc/mois-kms", "/poc/north-korea-night-lights",
+        "/api/poc/north-korea-night-lights", "/poc/mwomeokji",
+        "/portfolio/multiagent-harness", "/api/portfolio/multiagent-harness",
+        "/api/portfolio/report-draft",
+    )
+    if any(path == prefix or path.startswith(prefix + "/") for prefix in retired_paths):
+        body = json.dumps({"error": "서비스가 종료된 프로젝트입니다.", "code": "project_retired"}, ensure_ascii=False).encode("utf-8")
+        await send({"type": "http.response.start", "status": 410, "headers": [
+            (b"content-type", b"application/json; charset=utf-8"),
+            (b"content-length", str(len(body)).encode("ascii")), (b"cache-control", b"no-store"),
+        ]})
         await send({"type": "http.response.body", "body": b"" if method == "HEAD" else body})
         return
 
@@ -2504,6 +2177,12 @@ async def app(scope, receive, send):
             return
 
         relative_path = path[len(AI_COMMON_RADAR_BASE_PATH):] or "/"
+        collection_marker = Path(__file__).parent / "PoC" / "08-AICommonPlatformRadar" / "data" / "collection.disabled"
+        if method == "POST" and relative_path.rstrip("/") in {"/api/collect/run", "/api/maintenance/reparse"} and collection_marker.is_file():
+            body = json.dumps({"detail": "공고·첨부 수집이 비활성화되어 있습니다. 설정에서 활성화하세요."}, ensure_ascii=False).encode("utf-8")
+            await send({"type": "http.response.start", "status": 409, "headers": [(b"content-type", b"application/json; charset=utf-8"), (b"content-length", str(len(body)).encode("ascii"))]})
+            await send({"type": "http.response.body", "body": body})
+            return
         query_string = scope.get("query_string", b"").decode("ascii", errors="ignore")
         upstream_url = f"{AI_COMMON_RADAR_UPSTREAM}{relative_path}"
         if query_string:
@@ -2754,55 +2433,6 @@ async def app(scope, receive, send):
             ],
             missing_message="설명자료를 찾을 수 없습니다.",
         )
-        return
-
-    data_base_path = "/api/poc/north-korea-night-lights/data/"
-    if path.startswith(data_base_path) and method in {"GET", "HEAD"}:
-        requested_month = path.removeprefix(data_base_path).rstrip("/")
-        selected = next((item for item in north_korea_light_maps() if item["month"] == requested_month), None)
-        if not selected:
-            await stream_html_file(send, NORTH_KOREA_LIGHTS_DATA / "missing.json.gz", method)
-            return
-        file_path = selected["path"]
-        file_size = file_path.stat().st_size
-        await send({"type": "http.response.start", "status": 200, "headers": [(b"content-type", b"application/json; charset=utf-8"), (b"content-encoding", b"gzip"), (b"content-length", str(file_size).encode("ascii")), (b"cache-control", b"public, max-age=31536000, immutable"), (b"x-content-type-options", b"nosniff")]})
-        if method == "HEAD":
-            await send({"type": "http.response.body", "body": b""})
-            return
-        with file_path.open("rb") as source:
-            while True:
-                chunk = await asyncio.to_thread(source.read, 1024 * 1024)
-                if not chunk:
-                    break
-                await send({"type": "http.response.body", "body": chunk, "more_body": True})
-        await send({"type": "http.response.body", "body": b"", "more_body": False})
-        return
-
-    if path == "/api/poc/north-korea-night-lights/maps" and method in {"GET", "HEAD"}:
-        maps = north_korea_light_maps()
-        payload = {
-            "maps": [{key: value for key, value in item.items() if key != "path"} for item in maps],
-            "default_month": maps[-1]["month"] if maps else None,
-            "interval_ms": 1500,
-            "loop": True,
-            "coverage_summary": {
-                status_name: sum(item["coverage_status"] == status_name for item in maps)
-                for status_name in ("full", "partial", "sparse")
-            },
-        }
-        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        await send({"type": "http.response.start", "status": 200, "headers": [(b"content-type", b"application/json; charset=utf-8"), (b"content-length", str(len(body)).encode("ascii")), (b"cache-control", b"no-store")]})
-        await send({"type": "http.response.body", "body": b"" if method == "HEAD" else body})
-        return
-
-    map_path = path.rstrip("/")
-    if map_path == NORTH_KOREA_LIGHTS_BASE_PATH and method in {"GET", "HEAD"}:
-        await stream_html_file(send, NORTH_KOREA_LIGHTS_PLAYER, method, cache_control=b"no-cache")
-        return
-    if map_path.startswith(f"{NORTH_KOREA_LIGHTS_BASE_PATH}/") and method in {"GET", "HEAD"}:
-        requested_month = map_path.removeprefix(f"{NORTH_KOREA_LIGHTS_BASE_PATH}/")
-        legacy_path = NORTH_KOREA_LIGHTS_OUTPUT / f"north_korea_viirs_{requested_month}.html"
-        await stream_html_file(send, legacy_path, method)
         return
 
     status = 200
@@ -3182,104 +2812,6 @@ async def app(scope, receive, send):
             body = b"Master Press application is not available."
             content_type = "text/plain; charset=utf-8"
 
-    elif (path == MULTIAGENT_HARNESS_API_BASE or path.startswith(f"{MULTIAGENT_HARNESS_API_BASE}/")) and method in {"GET", "POST"}:
-        try:
-            payload = {}
-            if method == "POST":
-                raw_body = await read_request_body(receive)
-                if len(raw_body) > 1_000_000:
-                    raise ValueError("요청 본문은 1MB를 넘을 수 없습니다.")
-                payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
-                if not isinstance(payload, dict):
-                    raise ValueError("JSON 객체 형식이 필요합니다.")
-            module = load_multiagent_harness_module()
-            subpath = path[len(MULTIAGENT_HARNESS_API_BASE):] or "/"
-            result = await asyncio.to_thread(module.dispatch, subpath, method, payload)
-            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
-        except (ValueError, json.JSONDecodeError) as error:
-            status = 400
-            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
-        except Exception as error:
-            status = int(getattr(error, "status", 500))
-            body = json.dumps({"error": str(error) or "하네스 요청을 처리하지 못했습니다."}, ensure_ascii=False).encode("utf-8")
-        content_type = "application/json; charset=utf-8"
-    elif (path == MULTIAGENT_HARNESS_BASE_PATH or path.startswith(f"{MULTIAGENT_HARNESS_BASE_PATH}/")) and method in {"GET", "HEAD"}:
-        relative_path = path[len(MULTIAGENT_HARNESS_BASE_PATH):].lstrip("/")
-        requested = (MULTIAGENT_HARNESS_APP / relative_path).resolve() if relative_path else MULTIAGENT_HARNESS_APP / "index.html"
-        try:
-            requested.relative_to(MULTIAGENT_HARNESS_APP.resolve())
-            if requested.is_file():
-                target = requested
-            elif not Path(relative_path).suffix:
-                target = MULTIAGENT_HARNESS_APP / "index.html"
-            else:
-                raise FileNotFoundError
-            if not target.is_file():
-                raise FileNotFoundError
-            body = await asyncio.to_thread(target.read_bytes)
-            content_type = {
-                ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
-                ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
-                ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
-                ".woff": "font/woff", ".woff2": "font/woff2",
-            }.get(target.suffix.lower(), "application/octet-stream")
-        except (ValueError, OSError, FileNotFoundError):
-            status = 404
-            body = b"Multi-agent harness application is not available."
-            content_type = "text/plain; charset=utf-8"
-    elif (path == MOIS_KMS_API_BASE or path.startswith(f"{MOIS_KMS_API_BASE}/")) and method in {"GET", "POST"}:
-        try:
-            payload = {}
-            if method == "POST":
-                raw_body = await read_request_body(receive)
-                if len(raw_body) > 1_000_000:
-                    raise ValueError("요청 본문은 1MB를 넘을 수 없습니다.")
-                payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
-                if not isinstance(payload, dict):
-                    raise ValueError("JSON 객체 형식이 필요합니다.")
-            request_headers = {
-                key.decode("latin-1").lower(): value.decode("latin-1")
-                for key, value in scope.get("headers", [])
-            }
-            authorization = request_headers.get("authorization", "")
-            token = authorization[7:].strip() if authorization.lower().startswith("bearer ") else ""
-            module = load_mois_kms_module()
-            subpath = path[len(MOIS_KMS_API_BASE):] or "/"
-            result = await asyncio.to_thread(module.dispatch, subpath, method, token, payload)
-            body = json.dumps(result, ensure_ascii=False).encode("utf-8")
-        except (ValueError, json.JSONDecodeError) as error:
-            status = 400
-            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
-        except Exception as error:
-            status = int(getattr(error, "status", 500))
-            message = str(error) if status < 500 or str(error) else "PoC 03 서버 요청을 처리하지 못했습니다."
-            body = json.dumps({"error": message}, ensure_ascii=False).encode("utf-8")
-        content_type = "application/json; charset=utf-8"
-    elif (path == MOIS_KMS_BASE_PATH or path.startswith(f"{MOIS_KMS_BASE_PATH}/")) and method in {"GET", "HEAD"}:
-        relative_path = path[len(MOIS_KMS_BASE_PATH):].lstrip("/")
-        requested = (MOIS_KMS_DIST / relative_path).resolve() if relative_path else MOIS_KMS_DIST / "index.html"
-        try:
-            requested.relative_to(MOIS_KMS_DIST.resolve())
-            if requested.is_file():
-                target = requested
-            elif not Path(relative_path).suffix:
-                target = MOIS_KMS_DIST / "index.html"
-            else:
-                raise FileNotFoundError
-            if not target.is_file():
-                raise FileNotFoundError
-            body = await asyncio.to_thread(target.read_bytes)
-            content_type = {
-                ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8",
-                ".js": "text/javascript; charset=utf-8", ".json": "application/json; charset=utf-8",
-                ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg",
-                ".jpeg": "image/jpeg", ".webp": "image/webp", ".ico": "image/x-icon",
-                ".woff": "font/woff", ".woff2": "font/woff2",
-            }.get(target.suffix.lower(), "application/octet-stream")
-        except (ValueError, OSError, FileNotFoundError):
-            status = 404
-            body = b"MoIS KMS application is not built."
-            content_type = "text/plain; charset=utf-8"
     elif (path == FIELD_INSPECTION_BASE_PATH or path.startswith(f"{FIELD_INSPECTION_BASE_PATH}/")) and method in {"GET", "HEAD"}:
         relative_path = path[len(FIELD_INSPECTION_BASE_PATH):].lstrip("/")
         requested = (FIELD_INSPECTION_DIST / relative_path).resolve() if relative_path else FIELD_INSPECTION_DIST / "index.html"
@@ -3329,24 +2861,26 @@ async def app(scope, receive, send):
     elif path == "/api/models" and method == "GET":
         try:
             remote_models = upstage_chat_model_options()
-            try:
-                result = await asyncio.to_thread(call_ollama, "/api/tags")
-                local_models = [
-                    {
-                        "name": model["name"],
-                        "label": model["name"],
-                        "provider": "ollama",
-                        "size": model.get("size", 0),
-                        "details": model.get("details", {}),
-                    }
-                    for model in result.get("models", [])
-                    if model.get("name") and _is_ollama_chat_model(model)
-                ]
-            except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError):
-                local_models = []
+            local_models = []
+            if local_llm_enabled():
+                try:
+                    result = await asyncio.to_thread(call_ollama, "/api/tags")
+                    local_models = [
+                        {
+                            "name": model["name"],
+                            "label": model["name"],
+                            "provider": "ollama",
+                            "size": model.get("size", 0),
+                            "details": model.get("details", {}),
+                        }
+                        for model in result.get("models", [])
+                        if model.get("name") and _is_ollama_chat_model(model)
+                    ]
+                except (OSError, url_error.URLError, json.JSONDecodeError, TimeoutError):
+                    local_models = []
             models = remote_models + local_models
             if not models:
-                raise RuntimeError("Upstage 키가 없고 Ollama에도 연결할 수 없습니다.")
+                raise RuntimeError("사용 가능한 채팅 모델이 없습니다. 원격 모델 설정을 확인하세요.")
             default_model = UPSTAGE_DEFAULT_CHAT_MODEL if remote_models else models[0]["name"]
             body = json.dumps({"models": models, "default": default_model}, ensure_ascii=False).encode("utf-8")
         except (OSError, RuntimeError, url_error.URLError, json.JSONDecodeError, TimeoutError) as error:
@@ -3551,31 +3085,6 @@ async def app(scope, receive, send):
             status = 502
             body = json.dumps({"error": f"AI Safe Agent 실행 실패: {error}"}, ensure_ascii=False).encode("utf-8")
         content_type = "application/json; charset=utf-8"
-    elif path == "/api/portfolio/report-draft/models" and method == "GET":
-        try:
-            result = await asyncio.to_thread(report_draft_model_options)
-            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
-        except Exception as error:
-            status = 503
-            body = json.dumps(
-                {"error": f"보고서 모델 목록 조회 실패: {error}"}, ensure_ascii=False
-            ).encode("utf-8")
-        content_type = "application/json; charset=utf-8"
-    elif path == "/api/portfolio/report-draft/generate" and method == "POST":
-        try:
-            payload = json.loads((await read_request_body(receive)).decode("utf-8"))
-            result = await asyncio.to_thread(run_report_draft, payload)
-            body = json.dumps(result, ensure_ascii=False, default=str).encode("utf-8")
-        except (ValueError, json.JSONDecodeError) as error:
-            status = 400
-            body = json.dumps({"error": str(error)}, ensure_ascii=False).encode("utf-8")
-        except Exception as error:
-            status = 502
-            body = json.dumps(
-                {"error": f"보고서 초안 생성 실패: {error}"}, ensure_ascii=False
-            ).encode("utf-8")
-        content_type = "application/json; charset=utf-8"
-
     elif path == "/api/chunking-models" and method == "GET":
         try:
             result = await asyncio.to_thread(chunking_model_options)
@@ -3688,6 +3197,8 @@ async def app(scope, receive, send):
             if not payload.get("model") or not payload.get("messages"):
                 raise ValueError("모델과 메시지가 필요합니다.")
             upstage_model = resolve_upstage_chat_model(payload["model"])
+            if not upstage_model and not local_llm_enabled():
+                raise ValueError("로컬 모델은 사용 중지되었습니다. 원격 모델을 선택하세요.")
             default_max_tokens = 16384 if upstage_model else 256
             max_token_limit = 65536 if upstage_model else 1024
             max_tokens = max(64, min(int(payload.get("max_tokens", default_max_tokens)), max_token_limit))

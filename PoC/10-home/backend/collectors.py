@@ -1,3 +1,6 @@
+import random
+from .raw_archive import preserve, ConditionalCache
+from .operations_window import check_window, scheduled_bulk
 import hashlib
 import io
 import json
@@ -75,6 +78,7 @@ def pace_api(host):
 class Fetcher:
     def __init__(self, source_id, raw_dir):
         self.source_id = source_id
+        self.scheduled_bulk = scheduled_bulk()
         self.raw_dir = Path(raw_dir)
         self.manifest = []
         self.client = httpx.Client(timeout=35, follow_redirects=False, headers={"User-Agent": "HOME-PoC/1.0 official-data-validation"})
@@ -93,21 +97,31 @@ class Fetcher:
         secrets = [value for key, value in request_url.params.multi_items() if key.lower() in SECRET_PARAMS and value]
         if secrets and request_url.scheme != "https":
             raise ValueError("API 인증 요청은 HTTPS만 허용")
+        cache=ConditionalCache(self.raw_dir,self.source_id,request_url,headers)
+        conditional=cache.headers();cached_body=None
         response = None
         attempts=max(3,min(10,int(os.environ.get('POC10_FETCH_ATTEMPTS','3'))))
         for attempt in range(attempts):
             try:
+                check_window(self.scheduled_bulk)
                 pace_api(request_url.host)
-                response = self.client.get(request_url, headers=headers)
+                response = self.client.get(request_url, headers={**(headers or {}),**conditional})
                 for _ in range(5):
-                    if not response.is_redirect:
+                    if response.status_code not in (301,302,303,307,308):
                         break
                     target = urljoin(str(response.url), response.headers.get("location", ""))
                     if urlparse(target).hostname not in ALLOWED_HOSTS:
                         raise ValueError("원천 redirect 호스트 변경")
                     if secrets and (urlparse(target).scheme != "https" or urlparse(target).hostname != request_url.host):
                         raise ValueError("인증 요청 redirect는 같은 HTTPS 호스트만 허용")
-                    response = self.client.get(target, headers=headers)
+                    check_window(self.scheduled_bulk)
+                    response = self.client.get(target, headers={**(headers or {}),**conditional})
+                if response.status_code==304:
+                    cached_body=cache.body()
+                    if cached_body is not None:break
+                    conditional={}
+                    if attempt<attempts-1:continue
+                    raise ValueError('원문 재검증 캐시 미확보 · 재수집 필요')
                 response.raise_for_status()
                 if len(response.content) < (2 if suffix == 'json' else 100):
                     # Official APIs intermittently return HTTP 200 with an empty
@@ -121,7 +135,8 @@ class Fetcher:
                 if attempt == attempts-1:
                     detail = "HTTP " + str(error.response.status_code) if isinstance(error, httpx.HTTPStatusError) else type(error).__name__
                     raise RuntimeError("공식 원천 연결 실패 (" + detail + ")") from None
-                delay=attempt+1
+                if isinstance(error,httpx.HTTPStatusError) and 400<=error.response.status_code<500 and error.response.status_code not in (408,429):raise RuntimeError("공식 원천 연결 실패 (HTTP "+str(error.response.status_code)+")") from None
+                delay=min(30,2**attempt)+random.uniform(0,.5)
                 if isinstance(error,httpx.HTTPStatusError) and error.response.status_code in (429,503):
                     # Honor the server's backoff; requests are never reinterpreted
                     # as empty pages when the upstream service is overloaded.
@@ -133,7 +148,7 @@ class Fetcher:
                         except (ValueError,TypeError,OverflowError):pass
                     if error.response.status_code==429:delay=max(delay,min(60,15*(attempt+1)))
                 time.sleep(delay)
-        data = response.content
+        data = cached_body if cached_body is not None else response.content
         # Preserve API data after removing credentials, including echoed errors.
         for secret in secrets:
             encoded = quote(secret, safe="")
@@ -141,10 +156,7 @@ class Fetcher:
             for value in sorted(variants, key=len, reverse=True):
                 data = data.replace(value.encode(), b"[REDACTED]")
         digest = hashlib.sha256(data).hexdigest()
-        path = self.raw_dir / self.source_id / f"{digest}.{suffix}"
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if not path.exists():
-            path.write_bytes(data)
+        path = preserve(self.raw_dir/self.source_id,digest,suffix,data)
         parts = urlsplit(str(response.url))
         safe_query = [(key, value) for key, value in parse_qsl(parts.query, keep_blank_values=True)
                       if key.lower() not in SECRET_PARAMS and not any(secret in value for secret in secrets)]
@@ -152,6 +164,7 @@ class Fetcher:
         entry = {"url": safe_url, "sha256": digest, "bytes": len(data), "file": f"{self.source_id}/{path.name}", "parser_version": PARSER_VERSION}
         if secrets:
             entry["credentials_removed"] = True
+        if response.status_code!=304:cache.save(response,entry)
         self.manifest.append(entry)
         return data
 

@@ -1,5 +1,7 @@
 """Explain configured collection behavior, without claiming complete discovery."""
 import os
+from datetime import datetime, timezone
+from .collection_policy import backfill_window_open
 
 
 def duration(seconds):
@@ -17,7 +19,7 @@ def operations(source, stats=None, scheduler_running=None):
     regular = FAST.get(sid, source.get('refresh_days', 1) * 86400)
     backfill = bool(source.get('backfill_seconds') and
                     (stats.get('scope_remaining_dongs', 0) > 0 or stats.get('backfill_pending')))
-    interval = source['backfill_seconds'] if backfill else regular
+    interval = max(3600,source['backfill_seconds']) if backfill and backfill_window_open(datetime.now(timezone.utc)) else regular
     keys = [source.get('key_env'), source.get('fallback_key_env')]
     key_ready = any(os.environ.get(k, '').strip() for k in keys if k)
     enabled = os.environ.get('POC10_AUTO_COLLECT', 'true').lower() == 'true'
@@ -109,7 +111,7 @@ def operations(source, stats=None, scheduler_running=None):
         tags.append(dict(label='PDF 텍스트 추출', kind='parser'))
     return dict(tags=tags, mode=state, frequency=frequency, interval_seconds=interval,
                 regular_interval_seconds=regular, backfill=backfill,
-                schedule_note=('미조회 보충 중 ' + duration(interval) + ', 통상 ' + duration(regular) + '. ' if backfill else '') +
+                schedule_note=('자동 대량 작업은 한국시간 01~05시에 처리하며 공고·보도 감시와 수동 실행은 유지합니다. ' if not manual else '') + ('미조회 보강 가속은 01~05시(한국시간), 소스당 하루 최대 3회·최소 1시간 간격. 통상 ' + duration(regular) + '. ' if backfill else '') +
                 '정상 수집 이후 재실행 기준 간격입니다. 예약 점검·대기열·호출 제한·실패 재시도로 실제 시각은 달라질 수 있습니다.',
                 discovery=discovery, parser=parser, pdf=pdf, manual=manual_note,
                 changes='원문 SHA-256과 레코드 식별키·내용 해시를 보존합니다. 동일 자료는 유지하고 변경 자료는 개정 이력을 남깁니다. 원문 다운로드와 항목 추출은 구분하며, 파일 확보만으로 전처리 완료로 판단하지 않습니다.')

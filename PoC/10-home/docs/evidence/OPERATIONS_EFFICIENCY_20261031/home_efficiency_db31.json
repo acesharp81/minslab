@@ -1,0 +1,243 @@
+{
+  "database": {
+    "rows": [
+      {
+        "name": "home",
+        "version": "16.9 (Debian 16.9-1.pgdg110+1)",
+        "bytes": 23205056995,
+        "autovacuum": "on"
+      }
+    ]
+  },
+  "relations": {
+    "rows": [
+      {
+        "relname": "home_revision",
+        "total_bytes": 16877674496,
+        "heap_bytes": 11842420736,
+        "n_live_tup": 6889695,
+        "n_dead_tup": 37876,
+        "n_tup_ins": 6949901,
+        "n_tup_upd": 2825638,
+        "n_tup_del": 0,
+        "seq_scan": 3964,
+        "idx_scan": 27649603,
+        "last_autovacuum": "2026-10-30 17:30:49.452697+00:00",
+        "last_autoanalyze": "2026-10-30 17:31:00.464155+00:00"
+      },
+      {
+        "relname": "home_metric_snapshot",
+        "total_bytes": 3601514496,
+        "heap_bytes": 5906432,
+        "n_live_tup": 4986,
+        "n_dead_tup": 0,
+        "n_tup_ins": 5036,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "seq_scan": 26,
+        "idx_scan": 5071,
+        "last_autovacuum": "2026-10-29 21:49:17.138882+00:00",
+        "last_autoanalyze": "2026-10-29 14:16:57.772899+00:00"
+      },
+      {
+        "relname": "home_audit",
+        "total_bytes": 2127183872,
+        "heap_bytes": 1303035904,
+        "n_live_tup": 949555,
+        "n_dead_tup": 153,
+        "n_tup_ins": 958030,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "seq_scan": 3677738,
+        "idx_scan": 1375143,
+        "last_autovacuum": "2026-10-30 04:15:29.684836+00:00",
+        "last_autoanalyze": "2026-10-30 14:33:37.404321+00:00"
+      },
+      {
+        "relname": "home_batch",
+        "total_bytes": 557981696,
+        "heap_bytes": 10985472,
+        "n_live_tup": 13626,
+        "n_dead_tup": 1666,
+        "n_tup_ins": 13626,
+        "n_tup_upd": 15637,
+        "n_tup_del": 0,
+        "seq_scan": 70765,
+        "idx_scan": 5489341,
+        "last_autovacuum": "2026-10-29 21:09:16.782581+00:00",
+        "last_autoanalyze": "2026-10-30 22:45:51.978955+00:00"
+      },
+      {
+        "relname": "spatial_ref_sys",
+        "total_bytes": 7315456,
+        "heap_bytes": 7061504,
+        "n_live_tup": 8500,
+        "n_dead_tup": 0,
+        "n_tup_ins": 8500,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "seq_scan": 3,
+        "idx_scan": 9176,
+        "last_autovacuum": "2026-10-02 08:54:38.810859+00:00",
+        "last_autoanalyze": "2026-10-02 08:54:38.905692+00:00"
+      },
+      {
+        "relname": "home_collection_job",
+        "total_bytes": 7159808,
+        "heap_bytes": 6144000,
+        "n_live_tup": 6250,
+        "n_dead_tup": 45,
+        "n_tup_ins": 6001,
+        "n_tup_upd": 42119,
+        "n_tup_del": 0,
+        "seq_scan": 23370,
+        "idx_scan": 2502330,
+        "last_autovacuum": "2026-10-31 02:37:09.635418+00:00",
+        "last_autoanalyze": "2026-10-31 01:33:08.993796+00:00"
+      },
+      {
+        "relname": "home_coverage",
+        "total_bytes": 6479872,
+        "heap_bytes": 5005312,
+        "n_live_tup": 10993,
+        "n_dead_tup": 0,
+        "n_tup_ins": 10993,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "seq_scan": 565,
+        "idx_scan": 1428,
+        "last_autovacuum": "2026-10-24 13:53:15.883994+00:00",
+        "last_autoanalyze": "2026-10-25 03:06:25.350655+00:00"
+      },
+      {
+        "relname": "home_identity_alias",
+        "total_bytes": 2949120,
+        "heap_bytes": 1982464,
+        "n_live_tup": 4361,
+        "n_dead_tup": 0,
+        "n_tup_ins": 4371,
+        "n_tup_upd": 116,
+        "n_tup_del": 0,
+        "seq_scan": 4096,
+        "idx_scan": 894,
+        "last_autovacuum": "2026-10-21 13:48:10.873384+00:00",
+        "last_autoanalyze": "2026-10-21 18:10:04.296315+00:00"
+      },
+      {
+        "relname": "home_project_evidence",
+        "total_bytes": 2121728,
+        "heap_bytes": 827392,
+        "n_live_tup": 4847,
+        "n_dead_tup": 0,
+        "n_tup_ins": 4847,
+        "n_tup_upd": 65,
+        "n_tup_del": 0,
+        "seq_scan": 2454,
+        "idx_scan": 181,
+        "last_autovacuum": "2026-10-21 13:41:00.861599+00:00",
+        "last_autoanalyze": "2026-10-21 18:21:04.365750+00:00"
+      },
+      {
+        "relname": "pagc_rules",
+        "total_bytes": 876544,
+        "heap_bytes": 614400,
+        "n_live_tup": 4354,
+        "n_dead_tup": 0,
+        "n_tup_ins": 4354,
+        "n_tup_upd": 4354,
+        "n_tup_del": 0,
+        "seq_scan": 23,
+        "idx_scan": 1,
+        "last_autovacuum": "2026-10-02 08:54:39.071825+00:00",
+        "last_autoanalyze": "2026-10-02 08:54:39.080781+00:00"
+      },
+      {
+        "relname": "home_project",
+        "total_bytes": 851968,
+        "heap_bytes": 507904,
+        "n_live_tup": 4189,
+        "n_dead_tup": 0,
+        "n_tup_ins": 4190,
+        "n_tup_upd": 58,
+        "n_tup_del": 0,
+        "seq_scan": 82476,
+        "idx_scan": 676459,
+        "last_autovacuum": "2026-10-21 13:56:01.088426+00:00",
+        "last_autoanalyze": "2026-10-21 18:29:04.539467+00:00"
+      },
+      {
+        "relname": "home_mapping",
+        "total_bytes": 385024,
+        "heap_bytes": 212992,
+        "n_live_tup": 455,
+        "n_dead_tup": 100,
+        "n_tup_ins": 456,
+        "n_tup_upd": 1224,
+        "n_tup_del": 0,
+        "seq_scan": 140129,
+        "idx_scan": 60498,
+        "last_autovacuum": "2026-10-14 07:01:30.598070+00:00",
+        "last_autoanalyze": "2026-10-19 12:47:38.088460+00:00"
+      },
+      {
+        "relname": "pagc_lex",
+        "total_bytes": 344064,
+        "heap_bytes": 188416,
+        "n_live_tup": 2938,
+        "n_dead_tup": 0,
+        "n_tup_ins": 2938,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "seq_scan": 23,
+        "idx_scan": 1,
+        "last_autovacuum": "2026-10-02 08:54:39.023774+00:00",
+        "last_autoanalyze": "2026-10-02 08:54:39.033823+00:00"
+      },
+      {
+        "relname": "home_integrity_round",
+        "total_bytes": 303104,
+        "heap_bytes": 8192,
+        "n_live_tup": 1,
+        "n_dead_tup": 16,
+        "n_tup_ins": 17,
+        "n_tup_upd": 0,
+        "n_tup_del": 16,
+        "seq_scan": 183,
+        "idx_scan": 275,
+        "last_autovacuum": null,
+        "last_autoanalyze": null
+      },
+      {
+        "relname": "pagc_gaz",
+        "total_bytes": 131072,
+        "heap_bytes": 57344,
+        "n_live_tup": 835,
+        "n_dead_tup": 0,
+        "n_tup_ins": 835,
+        "n_tup_upd": 0,
+        "n_tup_del": 0,
+        "seq_scan": 23,
+        "idx_scan": 1,
+        "last_autovacuum": null,
+        "last_autoanalyze": "2026-10-02 08:54:39.018383+00:00"
+      }
+    ]
+  },
+  "columns": {
+    "rows": []
+  },
+  "activity": {
+    "rows": [
+      {
+        "state": "active",
+        "wait_event_type": null,
+        "connections": 1
+      },
+      {
+        "state": "idle",
+        "wait_event_type": "Client",
+        "connections": 11
+      }
+    ]
+  }
+}

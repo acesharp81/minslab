@@ -48,7 +48,7 @@ def test_discovery_job_never_enters_link_or_snapshot(source_id):
         assert result['status']=='SUCCESS' and result['next_stage'] is None
         with s.sessions() as db:
             job=db.get(CollectionJob,jid)
-            assert set(job.result)=={'COLLECT'} and job.status=='SUCCESS'
+            assert set(job.result)=={'COLLECT','manual'} and job.result['manual'] is True and job.status=='SUCCESS'
     finally:e.dispose()
 
 

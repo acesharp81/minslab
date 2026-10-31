@@ -3,6 +3,33 @@ from datetime import date
 from .policy_delivery_comparison import comparison_index, REGIONS
 
 
+def trim_screen_details(model):
+    """Keep chart/map inputs; detailed provenance remains in reports and editors.
+
+    Never mutate the source ledger or remove event dates, units, statuses,
+    inference flags, source references or user-visible basis text.
+    """
+    if model.get('status') != 'READY':
+        return model
+    result={k:v for k,v in model.items() if k not in ('snapshots','current')}
+    for name in ('cohorts','portfolio_cohorts'):
+        result[name]=[]
+        for original in model[name]:
+            cohort={k:v for k,v in original.items() if k!='report_metadata'}
+            for field in ('events','schedules'):
+                cohort[field]=[{k:v for k,v in row.items() if k not in
+                    ('field_provenance','restoration_review','baseline')} for row in original[field]]
+            if original.get('construction_plan'):
+                cohort['construction_plan']={k:v for k,v in original['construction_plan'].items() if k!='monthly'}
+            result[name].append(cohort)
+    return result
+
+
+def screen_input(service, reference):
+    from .policy_delivery import build_delivery
+    return trim_screen_details(build_delivery(service,reference,comparison_scopes=(),include_snapshots=False))
+
+
 def screen_view(model, group='policy', selected=None, report=False):
     if model.get('status')!='READY':return model
     portfolio=model['portfolio_cohorts'];selected=selected or group

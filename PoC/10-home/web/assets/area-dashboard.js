@@ -143,7 +143,7 @@ const AreaDashboard=(()=>{
     if((places?.regions?.[region]||[]).includes(selected))$('area-municipality').value=selected;
   }
   function start(){
-    setInterval(()=>{if(state.view==='area')load();},60000);
+    setInterval(()=>{if(state.view==='area'&&!document.hidden)load();},300000);
     $('area-region').addEventListener('change',()=>{updateMunicipalities();load();});
     for(const id of ['area-municipality','area-year'])$(id).addEventListener('change',load);
     $('area-region-compare').addEventListener('click',event=>{const button=event.target.closest('[data-area-region]');if(button){$('area-region').value=button.dataset.areaRegion;updateMunicipalities();$('area-municipality').value='';load();}});

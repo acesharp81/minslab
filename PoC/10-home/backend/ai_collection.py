@@ -193,7 +193,7 @@ def process_run(service, store, run, fetcher=None, analyzer=evaluate, discover=d
                 if before.get('body_sha256') and before['body_sha256']!=digest:
                     analysis['checks'].append('이전 자동 수집 본문과 변경됨 · 기존 담당자 판단 재확인 필요')
                     analysis['source_text_changed']=True
-                if not store.alive(rid): raise InterruptedError()
+                if not store.alive(rid,allow_finish=True): raise InterruptedError()
                 store.checkpoint(rid,stage='SAVE',model=None)
                 saved=save_analysis(service,doc,body,fetcher.last,analysis,run)
                 store.event(rid,'ANALYZED' if not saved.get('failure') else 'ANALYSIS_ERROR',document_id=doc['id'],title=doc['name'],

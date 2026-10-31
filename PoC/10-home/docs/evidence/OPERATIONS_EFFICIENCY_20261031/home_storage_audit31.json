@@ -1,0 +1,628 @@
+{
+  "measured_at": 1793418751.4254353,
+  "raw_sources": [
+    {
+      "source": "lh_notice_detail",
+      "files": 62132,
+      "bytes": 12722235184,
+      "new_24h_files": 5871,
+      "new_24h_bytes": 1203375482
+    },
+    {
+      "source": "eum_housing_notices",
+      "files": 6808,
+      "bytes": 7526151923,
+      "new_24h_files": 346,
+      "new_24h_bytes": 164943382
+    },
+    {
+      "source": "building_register",
+      "files": 27628,
+      "bytes": 4044309073,
+      "new_24h_files": 411,
+      "new_24h_bytes": 62543598
+    },
+    {
+      "source": "lh_notice",
+      "files": 61912,
+      "bytes": 4021400368,
+      "new_24h_files": 4080,
+      "new_24h_bytes": 265462021
+    },
+    {
+      "source": "lh_progress",
+      "files": 16447,
+      "bytes": 2611976775,
+      "new_24h_files": 116,
+      "new_24h_bytes": 18475414
+    },
+    {
+      "source": "building_general_permit",
+      "files": 25762,
+      "bytes": 1932846398,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "ih_notice",
+      "files": 6804,
+      "bytes": 750797451,
+      "new_24h_files": 445,
+      "new_24h_bytes": 44668780
+    },
+    {
+      "source": "seoul_cleanup",
+      "files": 4597,
+      "bytes": 583894951,
+      "new_24h_files": 353,
+      "new_24h_bytes": 43856030
+    },
+    {
+      "source": "building_hub_details",
+      "files": 11406,
+      "bytes": 545928501,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "gh_notice",
+      "files": 8278,
+      "bytes": 439788446,
+      "new_24h_files": 501,
+      "new_24h_bytes": 31948741
+    },
+    {
+      "source": "vworld_building_context",
+      "files": 822,
+      "bytes": 421295048,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "building_register_recap",
+      "files": 3346,
+      "bytes": 213903762,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "lh_block_location",
+      "files": 171,
+      "bytes": 206562324,
+      "new_24h_files": 1,
+      "new_24h_bytes": 1208854
+    },
+    {
+      "source": "vworld_infrastructure",
+      "files": 2343,
+      "bytes": 193882784,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "policy_history",
+      "files": 990,
+      "bytes": 170418274,
+      "new_24h_files": 5,
+      "new_24h_bytes": 861803
+    },
+    {
+      "source": "building_hub",
+      "files": 3663,
+      "bytes": 161091752,
+      "new_24h_files": 102,
+      "new_24h_bytes": 5401417
+    },
+    {
+      "source": "lh_rent",
+      "files": 435,
+      "bytes": 124895416,
+      "new_24h_files": 2,
+      "new_24h_bytes": 540904
+    },
+    {
+      "source": "gh_completion_evidence",
+      "files": 3205,
+      "bytes": 93485882,
+      "new_24h_files": 30,
+      "new_24h_bytes": 1271096
+    },
+    {
+      "source": "lh_sale",
+      "files": 219,
+      "bytes": 78931340,
+      "new_24h_files": 1,
+      "new_24h_bytes": 361445
+    },
+    {
+      "source": "vworld_district",
+      "files": 156,
+      "bytes": 54734859,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "newsis_housing_watch",
+      "files": 189,
+      "bytes": 53444354,
+      "new_24h_files": 35,
+      "new_24h_bytes": 9467711
+    },
+    {
+      "source": "sh_notice_watch",
+      "files": 234,
+      "bytes": 51880022,
+      "new_24h_files": 72,
+      "new_24h_bytes": 15962822
+    },
+    {
+      "source": "policy_813",
+      "files": 220,
+      "bytes": 48996864,
+      "new_24h_files": 1,
+      "new_24h_bytes": 222536
+    },
+    {
+      "source": "policy_129",
+      "files": 223,
+      "bytes": 44499187,
+      "new_24h_files": 1,
+      "new_24h_bytes": 190003
+    },
+    {
+      "source": "urban_930",
+      "files": 221,
+      "bytes": 41623835,
+      "new_24h_files": 1,
+      "new_24h_bytes": 170439
+    },
+    {
+      "source": "complex_approval_reference",
+      "files": 4,
+      "bytes": 40715778,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "facility_details",
+      "files": 55,
+      "bytes": 35762636,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "sgis_area",
+      "files": 7480,
+      "bytes": 34885801,
+      "new_24h_files": 76,
+      "new_24h_bytes": 287472
+    },
+    {
+      "source": "officer_review",
+      "files": 307,
+      "bytes": 34257511,
+      "new_24h_files": 302,
+      "new_24h_bytes": 33960512
+    },
+    {
+      "source": "official_document",
+      "files": 52,
+      "bytes": 31306658,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "vworld_municipality",
+      "files": 2,
+      "bytes": 29817144,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "ai_publication",
+      "files": 186,
+      "bytes": 28922667,
+      "new_24h_files": 99,
+      "new_24h_bytes": 15038662
+    },
+    {
+      "source": "lh_history",
+      "files": 210,
+      "bytes": 21476933,
+      "new_24h_files": 1,
+      "new_24h_bytes": 93387
+    },
+    {
+      "source": "lh_construction",
+      "files": 221,
+      "bytes": 21020665,
+      "new_24h_files": 1,
+      "new_24h_bytes": 93387
+    },
+    {
+      "source": "kosis_living",
+      "files": 14,
+      "bytes": 20822601,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "cheongyak",
+      "files": 254,
+      "bytes": 20601547,
+      "new_24h_files": 29,
+      "new_24h_bytes": 2310074
+    },
+    {
+      "source": "opm_press_watch",
+      "files": 157,
+      "bytes": 19917576,
+      "new_24h_files": 68,
+      "new_24h_bytes": 8626131
+    },
+    {
+      "source": "lh_movein_history",
+      "files": 178,
+      "bytes": 15762781,
+      "new_24h_files": 1,
+      "new_24h_bytes": 88958
+    },
+    {
+      "source": "lh_supply_history",
+      "files": 175,
+      "bytes": 15147566,
+      "new_24h_files": 1,
+      "new_24h_bytes": 86740
+    },
+    {
+      "source": "seoul_plan_notice_pilot",
+      "files": 2,
+      "bytes": 14655598,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "molit_statistics",
+      "files": 170,
+      "bytes": 14101823,
+      "new_24h_files": 4,
+      "new_24h_bytes": 123060
+    },
+    {
+      "source": "incheon_statistics",
+      "files": 166,
+      "bytes": 13978763,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "kosis_housing",
+      "files": 8,
+      "bytes": 12769434,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "kosis_household_size",
+      "files": 8,
+      "bytes": 11832424,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "lh_press_watch",
+      "files": 126,
+      "bytes": 11410877,
+      "new_24h_files": 23,
+      "new_24h_bytes": 2081269
+    },
+    {
+      "source": "building_hub_incheon",
+      "files": 257,
+      "bytes": 10626805,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "lh_incheon_rent",
+      "files": 38,
+      "bytes": 10517412,
+      "new_24h_files": 2,
+      "new_24h_bytes": 540904
+    },
+    {
+      "source": "seoul_press_watch",
+      "files": 33,
+      "bytes": 10160258,
+      "new_24h_files": 3,
+      "new_24h_bytes": 1054931
+    },
+    {
+      "source": "molit_press_watch",
+      "files": 161,
+      "bytes": 9920168,
+      "new_24h_files": 69,
+      "new_24h_bytes": 4249075
+    },
+    {
+      "source": "policy_907",
+      "files": 221,
+      "bytes": 9328004,
+      "new_24h_files": 1,
+      "new_24h_bytes": 42209
+    },
+    {
+      "source": "lh_department_plans",
+      "files": 26,
+      "bytes": 8414957,
+      "new_24h_files": 1,
+      "new_24h_bytes": 98652
+    },
+    {
+      "source": "lh_policy_followup",
+      "files": 29,
+      "bytes": 7074885,
+      "new_24h_files": 2,
+      "new_24h_bytes": 505657
+    },
+    {
+      "source": "lh_incheon_sale",
+      "files": 19,
+      "bytes": 6864079,
+      "new_24h_files": 1,
+      "new_24h_bytes": 361445
+    },
+    {
+      "source": "ih_housing_inventory",
+      "files": 60,
+      "bytes": 5993678,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "manual_publication",
+      "files": 23,
+      "bytes": 5643470,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "kosis_age",
+      "files": 3,
+      "bytes": 5569869,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "policy_907_incheon_geometry",
+      "files": 3,
+      "bytes": 5415912,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "unsold_statistics",
+      "files": 30,
+      "bytes": 4955412,
+      "new_24h_files": 3,
+      "new_24h_bytes": 355116
+    },
+    {
+      "source": "kosis_employment",
+      "files": 3,
+      "bytes": 4053182,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "policy_907_plan",
+      "files": 1,
+      "bytes": 3858268,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "molit_renewal_inventory",
+      "files": 18,
+      "bytes": 3650376,
+      "new_24h_files": 1,
+      "new_24h_bytes": 208431
+    },
+    {
+      "source": "lh_stock",
+      "files": 9,
+      "bytes": 2726813,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "lh_incheon_construction",
+      "files": 21,
+      "bytes": 2580513,
+      "new_24h_files": 1,
+      "new_24h_bytes": 93387
+    },
+    {
+      "source": "molit_monthly_release",
+      "files": 3,
+      "bytes": 2031063,
+      "new_24h_files": 1,
+      "new_24h_bytes": 227994
+    },
+    {
+      "source": "reb_movein_plan_file",
+      "files": 10,
+      "bytes": 1936844,
+      "new_24h_files": 1,
+      "new_24h_bytes": 207511
+    },
+    {
+      "source": "gh_supply_plan",
+      "files": 7,
+      "bytes": 1457000,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "lh_reit_progress",
+      "files": 1,
+      "bytes": 1280738,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "gh_files",
+      "files": 6,
+      "bytes": 1041519,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "gyeonggi_plan_notice_pilot",
+      "files": 3,
+      "bytes": 1009723,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "lh_completion_plan",
+      "files": 5,
+      "bytes": 858916,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "ih_press_watch",
+      "files": 8,
+      "bytes": 835595,
+      "new_24h_files": 1,
+      "new_24h_bytes": 104484
+    },
+    {
+      "source": "sh_contract_file",
+      "files": 3,
+      "bytes": 497079,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "lh_happy_plan_file",
+      "files": 3,
+      "bytes": 441706,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "sh_jeonse_plan_file",
+      "files": 3,
+      "bytes": 436205,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "sh_national_plan_file",
+      "files": 3,
+      "bytes": 426130,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "sh_happy_plan_file",
+      "files": 3,
+      "bytes": 418351,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "incheon_legal_dongs",
+      "files": 1,
+      "bytes": 413481,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "legal_dongs",
+      "files": 1,
+      "bytes": 413481,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "sh_files",
+      "files": 4,
+      "bytes": 315310,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "molit_demolition",
+      "files": 8,
+      "bytes": 299545,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "vworld_infrastructure_mart_review",
+      "files": 17,
+      "bytes": 278653,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "area_national_benchmarks",
+      "files": 94,
+      "bytes": 230080,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "project_locations",
+      "files": 307,
+      "bytes": 192204,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "reb_apartment_price",
+      "files": 4,
+      "bytes": 124568,
+      "new_24h_files": 3,
+      "new_24h_bytes": 100910
+    },
+    {
+      "source": "vworld",
+      "files": 190,
+      "bytes": 121732,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "kosis_household_forecast",
+      "files": 1,
+      "bytes": 110672,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "sh_supply_plan",
+      "files": 5,
+      "bytes": 17400,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "sgis_area_scope_check",
+      "files": 3,
+      "bytes": 10240,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    },
+    {
+      "source": "sh_redevelopment",
+      "files": 2,
+      "bytes": 9813,
+      "new_24h_files": 0,
+      "new_24h_bytes": 0
+    }
+  ]
+}

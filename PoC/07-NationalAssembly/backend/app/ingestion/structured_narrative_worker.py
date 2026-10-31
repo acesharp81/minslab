@@ -1,6 +1,7 @@
 """Explicit, single-report narrative repair; never schedules other reports."""
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import argparse
 import json
 import time
@@ -16,6 +17,7 @@ from ..db.summary_repository import SummaryRepository
 from ..db.openai_daily_budget import DailyTokenLimitReached
 from ..services.structured_narrative import PROFILE, BATCH_START, inputs, saved, prompt, corrective_prompt, schema, validate, valid_subset, pending_batches, field_repair_prompt, merge_field_repair
 from ..services.structure_retry import retry_allowance
+from ..services.provider_retry_gate import blocked_provider
 from ..services.narrative_retry import transient_delay
 from .topic_structure_worker import clients, pace_nim
 
@@ -104,7 +106,6 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                 prior = [h for h in history if h['request'] == request]
                 allowed = retry_allowance(prior)
                 if not allowed:
-                    from datetime import datetime, timedelta, timezone
                     later_allowed = retry_allowance(prior, now=datetime.now(timezone.utc) + timedelta(days=1))
                     return {'status': 'RETRY_DEFERRED' if later_allowed else 'REVIEW_REQUIRED',
                             'broadcast_id': label, 'summarized': len(done)}
@@ -123,6 +124,10 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                     if reason:
                         return {'status': 'LIVE_DEFERRED', 'broadcast_id': label, 'reason': reason}
                     client = pool[retry % len(pool)]
+                    blocked = blocked_provider(client, prior)
+                    if blocked:
+                        error = blocked
+                        continue
                     response, usage, error = {}, {}, None
                     try:
                         response, usage = post_with_nim_retry(client, batch, bool(request.get('repair_round')),
@@ -132,6 +137,10 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                                 SummaryRepository(c).record_monthly_token_usage('nvidia', client.model, usage)
                         validate(batch, response)
                     except DailyTokenLimitReached:
+                        with connect(settings.database_url) as c:
+                            TopicStructureRepository(c).record(sid,index,attempt_base+retry+1,request,{},
+                                {'provider':client.provider,'model':client.model,'attempted_model':client.model,'additional_model_calls':0},'DAILY_TOKEN_LIMIT')
+                        prior.append({'usage':{'provider':client.provider,'attempted_model':client.model},'error':'DAILY_TOKEN_LIMIT','created_at':datetime.now(timezone.utc)})
                         if getattr(settings, "model_workload_groups_enabled", False) and retry + 1 < allowed:
                             continue
                         return {'status': 'BUDGET_DEFERRED', 'broadcast_id': label,
@@ -140,6 +149,9 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                         error = str(exc) if isinstance(exc, ValueError) else safe_brief_error_code(exc)
                         usage = usage or getattr(exc, 'usage_metadata', {})
                         retry_after_seconds = max(retry_after_seconds, getattr(exc, 'retry_after_seconds', 0))
+                    usage = {**usage,'provider':client.provider,'attempted_model':client.model,
+                             'retry_after_seconds':retry_after_seconds}
+                    usage.setdefault('model',client.model)
                     with connect(settings.database_url) as c:
                         TopicStructureRepository(c).record(sid, index, attempt_base + retry + 1,
                                                            request, response, usage, error)
@@ -150,6 +162,7 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                             TopicStructureRepository(c).record(sid, next(indices), 1, partial_request,
                                 {i['id']: response[i['id']] for i in subset},
                                 {'method': 'VALIDATED_SUBSET', 'additional_model_calls': 0}, None)
+                    prior.append({'usage':usage,'error':error,'created_at':datetime.now(timezone.utc)})
                     print(json.dumps({'event': 'structured_narrative.batch', 'broadcast_id': label,
                         'issues': len(batch), 'completed_before': len(done), 'total': len(issues),
                         'provider': client.provider, 'error': error}, ensure_ascii=False), flush=True)
@@ -162,7 +175,7 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                         break
                 transient = error in {'ReadTimeout', 'ConnectTimeout', 'ConnectionError', 'ConnectError',
                                       'HTTPError:HTTP_429', 'HTTPError:HTTP_500', 'HTTPError:HTTP_502',
-                                      'HTTPError:HTTP_503', 'HTTPError:HTTP_504'}
+                                      'HTTPError:HTTP_503', 'HTTPError:HTTP_504','DAILY_TOKEN_LIMIT','AUXILIARY_DAILY_LIMIT','AUXILIARY_RATE_WAIT','AUXILIARY_INPUT_TOO_LARGE'}
                 return {'status': ('RETRY_DEFERRED' if transient else 'PARTIAL') if error else 'READY',
                         'broadcast_id': label, 'error': error, 'retry_after_seconds': retry_after_seconds}
             # The report lock covers the whole pool. Batch IDs are allocated before

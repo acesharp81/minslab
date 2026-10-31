@@ -1,0 +1,20 @@
+{
+  "scope": "idle point-in-time sample after deployment; not a load test",
+  "cpu_percent": {
+    "api": 0.11,
+    "collection": 0.0,
+    "ai": 0.0,
+    "area": 0.0,
+    "database": 0.0
+  },
+  "memory_mib": {
+    "api": 228.9,
+    "collection": 58.93,
+    "ai": 63.14,
+    "area": 57.12,
+    "database": 276.6
+  },
+  "legacy_content_migrated_during_day": 0,
+  "running_collection_jobs": 0,
+  "regional_worker": "NIGHT_WAIT"
+}

@@ -325,11 +325,12 @@ def freeze(service, actor, reason, known_at=None, **filters):
                    independence_status='PROSPECTIVE_FREEZE', approval_scope='HOME_INTERNAL_VALIDATION')
     checksum = digest(dict(context=context, result=result))
     identity = 'SNP_' + checksum[:32]
+    from .snapshot_content import store_content
     with service.sessions.begin() as db:
         existing = db.get(MetricSnapshot, identity)
         if existing is None:
             db.add(MetricSnapshot(id=identity, known_at=known_at, actor=actor, reason=reason,
-                                  context=context, result=result, digest=checksum))
+                                  context=context, result=store_content(db,context,result), digest=checksum))
             db.add(Audit(entity_id=identity, action='INDEPENDENT_SNAPSHOT', before={},
                          after=dict(actor=actor, reason=reason, digest=checksum, context=context, counts=result['counts'])))
     return dict(id=identity, digest=checksum, context=context, result=result)
@@ -340,8 +341,10 @@ def get_snapshot(service, identity):
         row = db.get(MetricSnapshot, identity)
         if row is None:
             raise ValueError('산출 기준본이 없습니다')
-        expected = digest(dict(context=row.context, result=row.result))
+        from .snapshot_content import restore_content
+        result=restore_content(db,row.context,row.result)
+        expected = digest(dict(context=row.context, result=result))
         if expected != row.digest:
             raise ValueError('산출 기준본 무결성 확인 실패')
         return dict(id=row.id, known_at=as_utc(row.known_at).isoformat(), actor=row.actor, reason=row.reason,
-                    digest=row.digest, context=row.context, result=row.result)
+                    digest=row.digest, context=row.context, result=result)

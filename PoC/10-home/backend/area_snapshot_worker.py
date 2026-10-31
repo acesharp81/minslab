@@ -24,7 +24,7 @@ def main():
         try:
             while not stop.is_set():
                 try:
-                    changed=refresh(service,state,stop)
+                    changed=refresh(service,state,stop,scheduled=True)
                     print(json.dumps(dict(event='area_snapshot_refresh',years=changed,status=state['status'])),flush=True)
                 except Exception as error:
                     state.update(status='RETRYING',last_error=type(error).__name__)

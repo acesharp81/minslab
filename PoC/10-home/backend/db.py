@@ -203,6 +203,12 @@ class Audit(Base):
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
+class MetricSnapshotContent(Base):
+    __tablename__ = 'home_metric_snapshot_content'
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    payload: Mapped[dict] = mapped_column(JSON)
+
+
 class MetricSnapshot(Base):
     """Frozen inputs and results; new knowledge creates another snapshot."""
     __tablename__ = 'home_metric_snapshot'

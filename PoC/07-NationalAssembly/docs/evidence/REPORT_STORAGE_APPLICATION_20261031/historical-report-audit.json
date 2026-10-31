@@ -1,0 +1,483 @@
+{
+  "reports": 58,
+  "changed": 8,
+  "content_and_links_preserved": true,
+  "results": [
+    {
+      "id": "0399600b-b268-4268-8cf3-f14078453b0b",
+      "title": "행정안전위원회 국정감사(부산경찰청)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "07426947-2688-4272-9dd6-24e35605a0eb",
+      "title": "법제사법위원회 국정감사(법무부 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "title": "제439회 국회(정기회) 제08차 본회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "title": "제439회 국회(정기회) 제06차 본회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+      "title": "행정안전위원회 국정감사(경기남부경찰청 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+      "title": "제439회 국회(정기회) 제06차 법제사법위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+      "title": "제438회 국회(임시회) 제03차 법제사법위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+      "title": "제439회 국회(정기회) 제07차 법제사법위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+      "title": "법제사법위원회 국정감사(고위공직자범죄수사처)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "title": "제439회 국회(정기회) 제01차 법제사법위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+      "title": "제438회 국회(임시회) 제03차 예산결산특별위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "33fae667-d853-43be-9500-c7335df4771e",
+      "title": "제438회 국회(임시회) 제02차 예산결산특별위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+      "title": "행정안전위원회 국정감사(경찰청 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+      "title": "제44회 국무회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+      "title": "제439회 국회(정기회) 제04차 법제사법위원회",
+      "status": "PASS",
+      "changes": [
+        {
+          "view": "structured_brief",
+          "before": 13,
+          "after": 11
+        },
+        {
+          "view": "structured_brief.report_summary",
+          "before": 14,
+          "after": 12
+        }
+      ]
+    },
+    {
+      "id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "title": "제439회 국회(정기회) 제02차 법제사법위원회",
+      "status": "PASS",
+      "changes": [
+        {
+          "view": "structured_brief",
+          "before": 33,
+          "after": 31
+        },
+        {
+          "view": "structured_brief.report_summary",
+          "before": 34,
+          "after": 32
+        }
+      ]
+    },
+    {
+      "id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+      "title": "제38회 국무회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "50f589a8-2b1a-40b3-9a5f-c53081db48c9",
+      "title": "행정안전위원회 국정감사(광주경찰청 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "5436d394-affd-45d6-b528-f799fdab85dc",
+      "title": "제439회 국회(정기회) 제01차 국방위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+      "title": "제439회 국회(정기회) 제01차 행정안전위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "5c149dc0-88cd-43f2-9aec-dfa323e17daa",
+      "title": "행정안전위원회 국정감사(제주경찰청)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+      "title": "제438회 국회(임시회) 제01차 행정안전위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+      "title": "제439회 국회(정기회) 제03차 행정안전위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+      "title": "법제사법위원회 국정감사(군사법원)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+      "title": "법제사법위원회 국정감사(공소청)",
+      "status": "PASS",
+      "changes": [
+        {
+          "view": "brief",
+          "before": 30,
+          "after": 28
+        },
+        {
+          "view": "brief.report_summary",
+          "before": 31,
+          "after": 29
+        },
+        {
+          "view": "structured_brief",
+          "before": 30,
+          "after": 28
+        },
+        {
+          "view": "structured_brief.report_summary",
+          "before": 31,
+          "after": 29
+        }
+      ]
+    },
+    {
+      "id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+      "title": "제439회 국회(정기회) 제08차 법제사법위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "7128f3f4-fb05-45a6-8e72-021992157455",
+      "title": "행정안전위원회 국정감사(중앙선거관리위원회 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "title": "제439회 국회(정기회) 제05차 본회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "86948faa-40de-44b5-aa53-93dd81a56957",
+      "title": "제439회 국회(정기회) 제10차 본회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "8809d5e4-13bc-41dd-a9b4-291afca60c0c",
+      "title": "제439회 국회(정기회) 제02차 예산결산특별위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+      "title": "제439회 국회(정기회) 제05차 법제사법위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "8bd13bcf-3484-46de-857f-c511574be758",
+      "title": "제439회 국회(정기회) 제01차 예산결산특별위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+      "title": "제439회 국회(정기회) 제03차 법제사법위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+      "title": "법제사법위원회 국정감사(대법원 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "title": "제439회 국회(정기회) 제07차 행정안전위원회",
+      "status": "PASS",
+      "changes": [
+        {
+          "view": "structured_brief",
+          "before": 14,
+          "after": 10
+        },
+        {
+          "view": "structured_brief.report_summary",
+          "before": 15,
+          "after": 11
+        }
+      ]
+    },
+    {
+      "id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "status": "PASS",
+      "changes": [
+        {
+          "view": "brief",
+          "before": 53,
+          "after": 46
+        },
+        {
+          "view": "brief.report_summary",
+          "before": 54,
+          "after": 47
+        },
+        {
+          "view": "structured_brief",
+          "before": 53,
+          "after": 46
+        },
+        {
+          "view": "structured_brief.report_summary",
+          "before": 54,
+          "after": 47
+        }
+      ]
+    },
+    {
+      "id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+      "title": "법제사법위원회 국정감사(서울광역공소청 등)",
+      "status": "PASS",
+      "changes": [
+        {
+          "view": "brief",
+          "before": 57,
+          "after": 50
+        },
+        {
+          "view": "brief.report_summary",
+          "before": 58,
+          "after": 51
+        },
+        {
+          "view": "structured_brief",
+          "before": 57,
+          "after": 50
+        },
+        {
+          "view": "structured_brief.report_summary",
+          "before": 58,
+          "after": 51
+        }
+      ]
+    },
+    {
+      "id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+      "title": "제438회 국회(임시회) 제04차 예산결산특별위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+      "title": "법제사법위원회 국정감사(법무부 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "c316e30a-8922-4eef-92dc-6f5b774799b1",
+      "title": "제46회 국무회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "c391ad71-008d-4544-a2b6-81709e344703",
+      "title": "법제사법위원회 국정감사(대구고등법원 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+      "title": "제438회 국회(임시회) 제05차 예산결산특별위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "c6585423-5faf-4fad-8e25-4ef97b92b931",
+      "title": "법제사법위원회 국정감사(서울고등법원 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "title": "제438회 국회(임시회) 제02차 법제사법위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+      "title": "제42회 국무회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab",
+      "title": "행정안전위원회 국정감사(충청북도)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+      "title": "법제사법위원회 국정감사(감사원)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+      "title": "제438회 국회(임시회) 제01차 법제사법위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "e858014a-90c5-411c-a282-82e1ff8b094f",
+      "title": "법제사법위원회 국정감사(대전고등법원 등)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "ebf050d7-171f-466a-8e71-c85336417170",
+      "title": "행정안전위원회 국정감사(울산광역시)",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "ee8e077e-aace-45f0-811c-02d348423947",
+      "title": "제45회 국무회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+      "title": "행정안전위원회 국정감사(서울경찰청)",
+      "status": "PASS",
+      "changes": [
+        {
+          "view": "brief",
+          "before": 44,
+          "after": 43
+        },
+        {
+          "view": "brief.report_summary",
+          "before": 45,
+          "after": 44
+        },
+        {
+          "view": "structured_brief",
+          "before": 44,
+          "after": 43
+        },
+        {
+          "view": "structured_brief.report_summary",
+          "before": 45,
+          "after": 44
+        }
+      ]
+    },
+    {
+      "id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "title": "제439회 국회(정기회) 제07차 본회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+      "title": "제438회 국회(임시회) 제01차 예산결산특별위원회",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+      "title": "제43회 국무회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "title": "제439회 국회(정기회) 제09차 본회의",
+      "status": "PASS",
+      "changes": []
+    },
+    {
+      "id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+      "title": "제439회 국회(정기회) 제02차 행정안전위원회",
+      "status": "PASS",
+      "changes": [
+        {
+          "view": "structured_brief",
+          "before": 8,
+          "after": 7
+        },
+        {
+          "view": "structured_brief.report_summary",
+          "before": 9,
+          "after": 8
+        }
+      ]
+    }
+  ]
+}

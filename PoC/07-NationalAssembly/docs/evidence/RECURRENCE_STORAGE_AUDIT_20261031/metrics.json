@@ -1,0 +1,946 @@
+{
+  "checked_at": "2026-10-31T03:47:56.455986+00:00",
+  "scope": "PoC7 structure batches, rolling 7 days; storage all retained rows",
+  "storage": {
+    "db_size": 18209192983,
+    "tables": [
+      [
+        "official_transcript_utterances",
+        10646911,
+        3339,
+        8817721344,
+        5975891968
+      ],
+      [
+        "official_utterance_annotations",
+        10661416,
+        0,
+        6019825664,
+        4538900480
+      ],
+      [
+        "transcript_segment_revisions",
+        1089569,
+        125,
+        1214455808,
+        810795008
+      ],
+      [
+        "source_document_versions",
+        1201321,
+        3365,
+        806404096,
+        578969600
+      ],
+      [
+        "transcript_official_reconciliations",
+        1230789,
+        10571,
+        517775360,
+        188121088
+      ],
+      [
+        "meeting_topic_structure_batches",
+        5454,
+        0,
+        92733440,
+        4653056
+      ],
+      [
+        "meeting_official_integrations",
+        1914,
+        33,
+        92094464,
+        1581056
+      ],
+      [
+        "transcript_segments",
+        145473,
+        4887,
+        71024640,
+        33685504
+      ],
+      [
+        "watch_dispatches",
+        3648,
+        0,
+        70860800,
+        1736704
+      ],
+      [
+        "meeting_brief_revisions",
+        723,
+        0,
+        57884672,
+        73728
+      ],
+      [
+        "broadcast_review_evidence",
+        425107,
+        28,
+        57303040,
+        29024256
+      ],
+      [
+        "schedule_entries",
+        47531,
+        0,
+        53116928,
+        42426368
+      ],
+      [
+        "watch_matches",
+        3907,
+        0,
+        46907392,
+        32202752
+      ],
+      [
+        "meeting_topic_structures",
+        73,
+        34,
+        44441600,
+        32768
+      ],
+      [
+        "transcript_utterance_summaries",
+        18431,
+        0,
+        40968192,
+        25026560
+      ],
+      [
+        "transcript_summary_rejections",
+        7983,
+        0,
+        38641664,
+        11714560
+      ],
+      [
+        "official_utterance_agenda_links",
+        92115,
+        3454,
+        32555008,
+        12845056
+      ],
+      [
+        "bill_official_documents",
+        462,
+        4,
+        14270464,
+        147456
+      ],
+      [
+        "meeting_briefs",
+        307,
+        99,
+        13688832,
+        286720
+      ],
+      [
+        "watch_topic_episodes",
+        775,
+        182,
+        11689984,
+        204800
+      ]
+    ],
+    "meeting_briefs_columns": [
+      "id",
+      "broadcast_id",
+      "transcript_hash",
+      "source_last_event_cursor",
+      "provider",
+      "model",
+      "prompt_version",
+      "authority_status",
+      "review_status",
+      "brief",
+      "usage_metadata",
+      "generated_at"
+    ],
+    "meeting_topic_structures_columns": [
+      "id",
+      "meeting_brief_id",
+      "source_hash",
+      "version",
+      "status",
+      "source_snapshot",
+      "result",
+      "created_at",
+      "updated_at"
+    ],
+    "meeting_topic_structure_batches_columns": [
+      "id",
+      "structure_id",
+      "batch_index",
+      "attempt",
+      "status",
+      "request_snapshot",
+      "response",
+      "usage_metadata",
+      "error_code",
+      "created_at"
+    ],
+    "meeting_brief_chunk_cache_columns": [
+      "broadcast_id",
+      "chunk_hash",
+      "provider",
+      "model",
+      "prompt_version",
+      "chunk_index",
+      "analysis",
+      "usage_metadata",
+      "created_at"
+    ],
+    "transcript_utterance_summaries_columns": [
+      "id",
+      "broadcast_id",
+      "source_speaker_label",
+      "content_hash",
+      "summary",
+      "provider",
+      "model",
+      "prompt_version",
+      "original_char_count",
+      "segment_count",
+      "usage_metadata",
+      "created_at",
+      "updated_at",
+      "live_insight"
+    ],
+    "batch_counts": [
+      [
+        5454,
+        "2026-10-18 22:34:57.166870+00:00",
+        "2026-10-30 08:11:19.177695+00:00",
+        74838018,
+        9463834,
+        1349499
+      ]
+    ],
+    "recent_batches": [
+      [
+        "structured-narrative/1.2",
+        "READY",
+        null,
+        1700,
+        10013320,
+        3635537
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "NARRATIVE_UNSUPPORTED_NUMBER",
+        1018,
+        5647785,
+        2017229
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "AUXILIARY_INPUT_TOO_LARGE",
+        525,
+        1922939,
+        2625
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "AUXILIARY_DAILY_LIMIT",
+        466,
+        1751709,
+        2330
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "NARRATIVE_UNSUPPORTED_LANGUAGE",
+        184,
+        1367462,
+        444648
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "NARRATIVE_UNSUPPORTED_DATE",
+        98,
+        488602,
+        161153
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "AUXILIARY_RATE_WAIT",
+        90,
+        208726,
+        450
+      ],
+      [
+        "classification",
+        "READY",
+        null,
+        72,
+        2238682,
+        166462
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "NARRATIVE_INVALID_SUMMARY",
+        46,
+        318863,
+        116781
+      ],
+      [
+        "discussion-context-review/3",
+        "READY",
+        null,
+        33,
+        488877,
+        38734
+      ],
+      [
+        "ontology-semantic/1.3",
+        "READY",
+        null,
+        32,
+        1257903,
+        68501
+      ],
+      [
+        "ontology-semantic/1.3",
+        "FAILED",
+        "VERIFICATION_PENDING",
+        32,
+        1257903,
+        34906
+      ],
+      [
+        "indexed-partitions/3",
+        "READY",
+        null,
+        20,
+        1017817,
+        74225
+      ],
+      [
+        "discussion-request-context/2",
+        "READY",
+        null,
+        12,
+        219324,
+        7220
+      ],
+      [
+        "indexed-partitions/3",
+        "FAILED",
+        "DAILY_TOKEN_LIMIT",
+        10,
+        758642,
+        50
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "HTTPError:HTTP_404",
+        8,
+        88027,
+        40
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "LLM returned malformed meeting brief JSON",
+        5,
+        47263,
+        25
+      ],
+      [
+        "discussion-request-context/1",
+        "READY",
+        null,
+        5,
+        49239,
+        2488
+      ],
+      [
+        "discussion-placeholder-review/1",
+        "READY",
+        null,
+        5,
+        82912,
+        5455
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "HTTPError:HTTP_503",
+        5,
+        37737,
+        25
+      ],
+      [
+        "discussion-context-review/3",
+        "FAILED",
+        "REVIEW_TOPIC_SOURCE_MISMATCH",
+        5,
+        71146,
+        5830
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "NARRATIVE_SOURCE_QUOTE",
+        4,
+        27210,
+        8705
+      ],
+      [
+        "indexed-partitions/3",
+        "FAILED",
+        "AuxiliaryUnavailable",
+        4,
+        334084,
+        20
+      ],
+      [
+        "compact-20k/1",
+        "READY",
+        null,
+        4,
+        50525,
+        6388
+      ],
+      [
+        "structured-narrative/1",
+        "READY",
+        null,
+        3,
+        17542,
+        11637
+      ],
+      [
+        "structured-narrative/1.1",
+        "FAILED",
+        "NARRATIVE_POINT_COVERAGE",
+        2,
+        38088,
+        6471
+      ],
+      [
+        "compact-20k/1",
+        "FAILED",
+        "AuxiliaryUnavailable",
+        2,
+        166580,
+        10
+      ],
+      [
+        "indexed-partitions/3",
+        "FAILED",
+        "INCOMPLETE_PARTITION",
+        1,
+        83519,
+        1251
+      ],
+      [
+        "compact-20k/1",
+        "FAILED",
+        "ReadTimeout",
+        1,
+        83290,
+        5
+      ],
+      [
+        "classification",
+        "FAILED",
+        "ReadTimeout",
+        1,
+        34510,
+        5
+      ],
+      [
+        "structured-narrative/1.2",
+        "FAILED",
+        "ReadTimeout",
+        1,
+        8018,
+        5
+      ],
+      [
+        "discussion-request-context/2",
+        "FAILED",
+        "AUXILIARY_DAILY_LIMIT",
+        1,
+        17804,
+        5
+      ],
+      [
+        "structured-narrative/1",
+        "FAILED",
+        "NARRATIVE_POINT_COVERAGE",
+        1,
+        8149,
+        5065
+      ],
+      [
+        "structured-narrative/1.1",
+        "FAILED",
+        "NARRATIVE_UNSUPPORTED_LANGUAGE",
+        1,
+        19044,
+        2814
+      ],
+      [
+        "discussion-context-review/3",
+        "FAILED",
+        "AuxiliaryUnavailable",
+        1,
+        18273,
+        5
+      ],
+      [
+        "indexed-partitions/3",
+        "FAILED",
+        "INVALID_PARTITION_MEMBER",
+        1,
+        83523,
+        3182
+      ],
+      [
+        "discussion-request-context/2",
+        "FAILED",
+        "AUXILIARY_INPUT_TOO_LARGE",
+        1,
+        17804,
+        5
+      ],
+      [
+        "discussion-request-context/2",
+        "FAILED",
+        "ReadTimeout",
+        1,
+        17804,
+        5
+      ]
+    ],
+    "active": []
+  },
+  "duplicates": {
+    "source_document_versions_columns": [
+      "id",
+      "source_document_id",
+      "content_hash",
+      "source_url",
+      "raw_path",
+      "retrieved_at",
+      "published_at",
+      "parser_version",
+      "content_type",
+      "authority_status",
+      "metadata"
+    ],
+    "official_transcript_documents_columns": [
+      "id",
+      "publication_id",
+      "source_document_version_id",
+      "conference_id",
+      "publication_stage",
+      "authority_status",
+      "extraction_status",
+      "status_text",
+      "title",
+      "utterance_count",
+      "parser_version",
+      "retrieved_at",
+      "created_at",
+      "meeting_id"
+    ],
+    "official_transcript_utterances_columns": [
+      "id",
+      "document_id",
+      "sequence_number",
+      "source_speaker_id",
+      "source_span_id",
+      "agenda_item_ref",
+      "speaker_name",
+      "speaker_role",
+      "text",
+      "text_hash",
+      "source_locator",
+      "created_at"
+    ],
+    "meeting_brief_revisions_columns": [
+      "id",
+      "meeting_brief_id",
+      "brief",
+      "reason",
+      "created_at"
+    ],
+    "source_documents_columns": [
+      "id",
+      "source_system",
+      "source_type",
+      "external_id",
+      "canonical_url",
+      "first_seen_at"
+    ],
+    "batch_request_dup_storage": [
+      [
+        894,
+        "2054",
+        "24484735"
+      ]
+    ],
+    "summary_duplicate_keys": [
+      [
+        0,
+        null
+      ]
+    ],
+    "summary_cross_model": [
+      [
+        177,
+        "191"
+      ]
+    ],
+    "brief_duplicate_keys": [
+      [
+        0,
+        null
+      ]
+    ],
+    "revisions_payload": [
+      [
+        723,
+        54906687,
+        723,
+        6
+      ]
+    ],
+    "official_document_counts": 6141,
+    "source_version_counts": 1201190
+  },
+  "storage_detail": {
+    "official_distinct": [
+      [
+        6141,
+        60,
+        6141,
+        10662171
+      ]
+    ],
+    "official_exact_source_duplicates": [
+      [
+        0,
+        null,
+        null
+      ]
+    ],
+    "official_by_day": [
+      [
+        "2026-10-25 00:00:00+00:00",
+        1,
+        18
+      ],
+      [
+        "2026-10-27 00:00:00+00:00",
+        1,
+        818
+      ],
+      [
+        "2026-10-28 00:00:00+00:00",
+        3,
+        3286
+      ]
+    ],
+    "version_source_counts": [
+      [
+        "assembly.webcast.go.kr",
+        "assembly_caption_message",
+        1132313,
+        1132313,
+        1132313
+      ],
+      [
+        "assembly.webcast.go.kr",
+        "assembly_live_play",
+        29869,
+        29869,
+        29869
+      ],
+      [
+        "assembly.webcast.go.kr",
+        "assembly_live_list",
+        25726,
+        25726,
+        25726
+      ],
+      [
+        "record.assembly.go.kr",
+        "committee_minutes_body",
+        6131,
+        6131,
+        6131
+      ],
+      [
+        "open.assembly.go.kr",
+        "assembly_schedule",
+        2512,
+        2512,
+        2509
+      ],
+      [
+        "assembly.webcast.go.kr",
+        "ai_audio_transcription",
+        1343,
+        1343,
+        1343
+      ],
+      [
+        "ktv.go.kr",
+        "ktv_broadcast_schedule",
+        863,
+        863,
+        863
+      ],
+      [
+        "ktv.go.kr",
+        "ai_audio_transcription",
+        554,
+        554,
+        554
+      ],
+      [
+        "open.assembly.go.kr",
+        "bills",
+        548,
+        548,
+        547
+      ],
+      [
+        "open.assembly.go.kr",
+        "bill_official_pdf",
+        466,
+        466,
+        462
+      ],
+      [
+        "poc07.test",
+        "WATCH_TEST_BROADCAST",
+        286,
+        286,
+        286
+      ],
+      [
+        "open.assembly.go.kr",
+        "committee_minutes",
+        212,
+        212,
+        210
+      ],
+      [
+        "poc07.replay.kakao",
+        "WATCH_TEST_BROADCAST",
+        136,
+        136,
+        136
+      ],
+      [
+        "ktv.go.kr",
+        "ktv_audio_transcription",
+        62,
+        62,
+        62
+      ],
+      [
+        "poc07.test",
+        "test_caption",
+        48,
+        48,
+        48
+      ]
+    ],
+    "revisions_by_brief": [
+      [
+        "e6a0652e-034c-4eeb-add3-b53fd4f80be5",
+        450,
+        1,
+        42646084
+      ],
+      [
+        "f614d9bd-cc67-4348-8c58-86ce4e8db3b7",
+        154,
+        2,
+        7673484
+      ],
+      [
+        "48284c6c-df3f-4d45-b5c6-f4866a7fd53f",
+        65,
+        1,
+        3474497
+      ],
+      [
+        "6a9619a1-e498-4663-a866-bce9e36a0757",
+        47,
+        1,
+        958922
+      ],
+      [
+        "e807ffab-742f-492d-ac89-8e5b76a84d31",
+        7,
+        1,
+        153700
+      ]
+    ],
+    "official_indexes": [
+      [
+        "source_document_versions",
+        "CREATE UNIQUE INDEX source_document_versions_pkey ON public.source_document_versions USING btree (id)"
+      ],
+      [
+        "source_document_versions",
+        "CREATE UNIQUE INDEX source_document_versions_source_document_id_content_hash_key ON public.source_document_versions USING btree (source_document_id, content_hash)"
+      ],
+      [
+        "official_transcript_documents",
+        "CREATE UNIQUE INDEX official_transcript_documents_pkey ON public.official_transcript_documents USING btree (id)"
+      ],
+      [
+        "official_transcript_documents",
+        "CREATE UNIQUE INDEX official_transcript_documents_publication_id_source_documen_key ON public.official_transcript_documents USING btree (publication_id, source_document_version_id)"
+      ],
+      [
+        "official_transcript_documents",
+        "CREATE INDEX official_transcript_documents_publication_idx ON public.official_transcript_documents USING btree (publication_id, retrieved_at DESC)"
+      ],
+      [
+        "official_transcript_documents",
+        "CREATE UNIQUE INDEX official_transcript_documents_meeting_version_uidx ON public.official_transcript_documents USING btree (meeting_id, source_document_version_id)"
+      ],
+      [
+        "official_transcript_documents",
+        "CREATE INDEX official_transcript_documents_meeting_latest_idx ON public.official_transcript_documents USING btree (meeting_id, retrieved_at DESC)"
+      ]
+    ]
+  },
+  "official_sample": {
+    "largest_version_sets": [
+      [
+        "d4549ec1-4cf3-43e3-9277-4cccd9acee4e",
+        "TEMPORARY",
+        "official-minutes-html.v2",
+        844
+      ],
+      [
+        "26b8ca22-a1c7-4ee9-8dfc-276e9b576288",
+        "TEMPORARY",
+        "official-minutes-html.v1",
+        430
+      ],
+      [
+        "55ec47e8-5ef7-464b-a878-16290b0aa846",
+        "TEMPORARY",
+        "official-minutes-html.v2",
+        427
+      ]
+    ],
+    "samples": [
+      {
+        "meeting": "d4549ec1-4cf3-43e3-9277-4cccd9acee4e",
+        "stage": "TEMPORARY",
+        "versions": 844,
+        "sample_documents": 20,
+        "unique_semantic_documents": 1,
+        "utterances": 61020
+      },
+      {
+        "meeting": "26b8ca22-a1c7-4ee9-8dfc-276e9b576288",
+        "stage": "TEMPORARY",
+        "versions": 430,
+        "sample_documents": 20,
+        "unique_semantic_documents": 1,
+        "utterances": 1100
+      },
+      {
+        "meeting": "55ec47e8-5ef7-464b-a878-16290b0aa846",
+        "stage": "TEMPORARY",
+        "versions": 427,
+        "sample_documents": 20,
+        "unique_semantic_documents": 2,
+        "utterances": 37061
+      }
+    ]
+  },
+  "daily_batch_activity": {
+    "2026-10-26": {
+      "saved_records": 877,
+      "response_ids": 631,
+      "failed_validation": 296
+    },
+    "2026-10-27": {
+      "saved_records": 3148,
+      "response_ids": 1836,
+      "failed_validation": 981,
+      "preflight_block": 952
+    },
+    "2026-10-28": {
+      "saved_records": 332,
+      "response_ids": 150,
+      "failed_validation": 84,
+      "preflight_block": 141
+    },
+    "2026-10-30": {
+      "saved_records": 44,
+      "response_ids": 34,
+      "failed_validation": 5
+    }
+  },
+  "integration_trace": [
+    {
+      "batch": 110000,
+      "attempt": 1,
+      "status": "READY",
+      "error": null,
+      "input_issues": 122,
+      "parent_titles": 25,
+      "model": "gpt-5.4-2026-03-05",
+      "created_at": "2026-10-30 07:54:51.339160+00:00",
+      "additional_model_calls": null
+    },
+    {
+      "batch": 110001,
+      "attempt": 1,
+      "status": "READY",
+      "error": null,
+      "input_issues": 122,
+      "parent_titles": 18,
+      "model": "gpt-5.4-2026-03-05",
+      "created_at": "2026-10-30 07:56:22.289072+00:00",
+      "additional_model_calls": null
+    },
+    {
+      "batch": 110002,
+      "attempt": 1,
+      "status": "READY",
+      "error": null,
+      "input_issues": 122,
+      "parent_titles": 17,
+      "model": "gpt-5.4-2026-03-05",
+      "created_at": "2026-10-30 07:57:45.810046+00:00",
+      "additional_model_calls": null
+    },
+    {
+      "batch": 100002,
+      "attempt": 1,
+      "status": "READY",
+      "error": null,
+      "input_issues": 122,
+      "parent_titles": 47,
+      "model": null,
+      "created_at": "2026-10-30 07:57:45.894169+00:00",
+      "additional_model_calls": 0
+    }
+  ]
+}

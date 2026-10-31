@@ -1,5 +1,6 @@
 from backend.source_operations import operations
 from backend.sources import SOURCES
+from unittest.mock import patch
 
 
 def source(sid):
@@ -9,9 +10,10 @@ def source(sid):
 def test_schedule_matches_worker_fast_and_backfill(monkeypatch):
     monkeypatch.setenv('POC10_AUTO_COLLECT', 'true')
     monkeypatch.setenv('POC10_BUILDING_HUB_SERVICE_KEY', 'test')
-    assert operations(source('lh_notice'))['interval_seconds'] == 900
-    value = operations(source('building_general_permit'), {'scope_remaining_dongs': 5})
-    assert value['backfill'] and value['interval_seconds'] == 900
+    assert operations(source('lh_notice'))['interval_seconds'] == 7200
+    with patch('backend.source_operations.backfill_window_open',return_value=True):
+        value = operations(source('building_general_permit'), {'scope_remaining_dongs': 5})
+    assert value['backfill'] and value['interval_seconds'] == 3600
     assert operations(source('building_general_permit'), {'scope_remaining_dongs': 0})['interval_seconds'] == 86400
 
 
@@ -78,3 +80,9 @@ def test_api_copy_only_describes_applicable_processing():
         assert '정책 연결' not in text
         assert '수집 대상 수동 등록' not in text
         assert '추출 규칙 수동 작성' not in text
+
+def test_backfill_display_keeps_daytime_regular_schedule_and_explains_cap():
+    with patch('backend.source_operations.backfill_window_open',return_value=False):
+        value=operations(source('building_general_permit'),{'scope_remaining_dongs':5})
+    assert value['interval_seconds']==86400
+    assert '하루 최대 3회' in value['schedule_note']

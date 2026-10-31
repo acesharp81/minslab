@@ -19,7 +19,7 @@ def test_separate_worker_keeps_collect_link_snapshot_sequence_and_lease_recovery
         with s.sessions() as db:
             job=db.get(CollectionJob,jid)
             assert job.status=='SUCCESS' and job.finished_at is not None
-            assert set(job.result)=={'COLLECT','LINK','SNAPSHOT'}
+            assert set(job.result)=={'COLLECT','LINK','SNAPSHOT','manual'}
             assert job.lease_until is None
     finally:e.dispose()
 
@@ -32,4 +32,4 @@ def test_worker_retries_errors_and_keeps_lane_processing():
     stop=Stop()
     with patch('backend.collection_worker.run_next',side_effect=[RuntimeError('retry'),{'status':'ADVANCED'}]) as run:
         worker_loop(object(),'BACKFILL',stop)
-    assert run.call_count==2 and stop.waits==[10,1]
+    assert run.call_count==2 and stop.waits==[30,1]

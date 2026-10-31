@@ -1,5 +1,6 @@
 """Authenticated configuration/run controls; read-only execution visibility."""
 from typing import Literal
+from functools import lru_cache
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 from .ai_collection_store import Store
@@ -12,7 +13,7 @@ class Settings(BaseModel):
     model_config=ConfigDict(extra='forbid')
     enabled: bool=False
     profile: Literal['OPENAI','SOLAR']='OPENAI'
-    hour_kst: int=Field(default=7,ge=0,le=23)
+    hour_kst: int=Field(default=2,ge=1,le=4)
     max_documents: int=Field(default=20,ge=1,le=100)
     daily_usd: float=Field(default=2,gt=0,le=20,allow_inf_nan=False)
     monthly_usd: float=Field(default=30,gt=0,le=100,allow_inf_nan=False)
@@ -27,11 +28,12 @@ class Settings(BaseModel):
 
 
 def install(app,service,authenticated,prefix):
-    from .ai_agents_api import install as install_agents
+    from .ai_agents_api import install as install_agents, budget as display_budget
     install_agents(app,service,authenticated,prefix)
+    @lru_cache(maxsize=1)
     def store(): return Store(service.data_dir)
     @app.get(prefix+'/api/ai-collection')
-    def status(): return dict(store().status(),providers=availability(),shared_budget=shared_status())
+    def status(): return dict(store().status(include_events=False),providers=availability(),shared_budget=display_budget())
 
     @app.post(prefix+'/api/admin/ai-collection/settings')
     def settings(payload:Settings,request:Request):
@@ -49,7 +51,7 @@ def install(app,service,authenticated,prefix):
         if not authenticated(request): raise HTTPException(401,'관리자 로그인이 필요합니다')
         s=store()
         if not availability()[s.settings()['profile']]: raise HTTPException(422,'선택한 제공사의 API 키가 없습니다')
-        if not s.status()['worker_online']: raise HTTPException(409,'AI 수집 worker가 오프라인입니다. 유지관리자에게 실행을 요청하세요')
+        if not s.status(include_events=False)['worker_online']: raise HTTPException(409,'AI 수집 worker가 오프라인입니다. 유지관리자에게 실행을 요청하세요')
         return s.enqueue()
 
     @app.post(prefix+'/api/admin/ai-collection/runs/{rid}/stop')

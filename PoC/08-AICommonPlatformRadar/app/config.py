@@ -187,7 +187,7 @@ class Settings:
 
     @property
     def supabase_enabled(self) -> bool:
-        return bool(self.supabase_url and self.supabase_service_role_key)
+        return _bool("POC08_SUPABASE_SYNC_ENABLED", True) and bool(self.supabase_url and self.supabase_service_role_key)
 
     def ensure_directories(self) -> None:
         for path in (self.data_dir, self.raw_dir, self.parsed_dir, self.reports_dir, self.logs_dir):

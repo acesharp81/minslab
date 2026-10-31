@@ -1,0 +1,32 @@
+{
+  "backups": {
+    "poc10-home-api": "poc10-home-api-before-efficient-1793420882",
+    "poc10-home-worker": "poc10-home-worker-before-efficient-1793420898",
+    "poc10-home-ai-worker": "poc10-home-ai-worker-before-efficient-1793420909",
+    "poc10-home-area-worker": "poc10-home-area-worker-before-efficient-1793420911"
+  },
+  "containers": {
+    "poc10-home-api": {
+      "image": "poc10-home:efficient-night-20261031-v2",
+      "image_id": "sha256:77a13343adf5e2d536bc9b330799c0644772f6825373ac72d34d7a21c91b131b",
+      "log_rotation": "local 10m × 3"
+    },
+    "poc10-home-worker": {
+      "image": "poc10-home:efficient-night-20261031-v2",
+      "image_id": "sha256:77a13343adf5e2d536bc9b330799c0644772f6825373ac72d34d7a21c91b131b",
+      "log_rotation": "local 10m × 3"
+    },
+    "poc10-home-ai-worker": {
+      "image": "poc10-home:efficient-night-20261031-v2",
+      "image_id": "sha256:77a13343adf5e2d536bc9b330799c0644772f6825373ac72d34d7a21c91b131b",
+      "log_rotation": "local 10m × 3"
+    },
+    "poc10-home-area-worker": {
+      "image": "poc10-home:efficient-night-20261031-v2",
+      "image_id": "sha256:77a13343adf5e2d536bc9b330799c0644772f6825373ac72d34d7a21c91b131b",
+      "log_rotation": "local 10m × 3"
+    }
+  },
+  "schema": "0018_snapshot_content",
+  "window_kst": "01:00–05:00"
+}

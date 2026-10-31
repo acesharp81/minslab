@@ -1,0 +1,104 @@
+{
+  "chart_seconds": 1.4178617269499227,
+  "requests": [
+    {
+      "url": "admin/status",
+      "start": 322.60000002384186,
+      "duration": 9.600000023841858,
+      "bytes": 23,
+      "transfer": 323
+    },
+    {
+      "url": "policies",
+      "start": 322.7999999523163,
+      "duration": 25,
+      "bytes": 6006,
+      "transfer": 6306
+    },
+    {
+      "url": "sources?compact=true",
+      "start": 322.7999999523163,
+      "duration": 191.5,
+      "bytes": 156630,
+      "transfer": 16436
+    },
+    {
+      "url": "publication-reviews/summary",
+      "start": 519.7000000476837,
+      "duration": 61.799999952316284,
+      "bytes": 114,
+      "transfer": 414
+    },
+    {
+      "url": "policy-delivery/view?as_of_date=2026-10-31&group=policy&scope=policy",
+      "start": 525.3999999761581,
+      "duration": 226,
+      "bytes": 3645880,
+      "transfer": 416809
+    },
+    {
+      "url": "policy-monitor?as_of_date=2026-10-31&policy_id=POL_2025_0907",
+      "start": 525.6000000238419,
+      "duration": 121.10000002384186,
+      "bytes": 301810,
+      "transfer": 36190
+    },
+    {
+      "url": "mappings?as_of_date=2026-10-31&policy_id=POL_2025_0907&compact=true",
+      "start": 525.7000000476837,
+      "duration": 122.19999992847443,
+      "bytes": 1124579,
+      "transfer": 115975
+    },
+    {
+      "url": "view-version?view=policy-progress",
+      "start": 525.7999999523163,
+      "duration": 170.40000009536743,
+      "bytes": 78,
+      "transfer": 378
+    },
+    {
+      "url": "area-context?region=%EA%B2%BD%EA%B8%B0%EB%8F%84&year=2026",
+      "start": 981.5,
+      "duration": 38.299999952316284,
+      "bytes": 33381,
+      "transfer": 8327
+    },
+    {
+      "url": "area-context?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C&year=2026",
+      "start": 981.6000000238419,
+      "duration": 39.799999952316284,
+      "bytes": 32447,
+      "transfer": 8166
+    },
+    {
+      "url": "area-context?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C&year=2026",
+      "start": 981.7000000476837,
+      "duration": 39.89999997615814,
+      "bytes": 31994,
+      "transfer": 8021
+    },
+    {
+      "url": "area-outlook?region=%EA%B2%BD%EA%B8%B0%EB%8F%84",
+      "start": 982.7999999523163,
+      "duration": 39.10000002384186,
+      "bytes": 3641,
+      "transfer": 3941
+    },
+    {
+      "url": "area-outlook?region=%EC%84%9C%EC%9A%B8%ED%8A%B9%EB%B3%84%EC%8B%9C",
+      "start": 982.8999999761581,
+      "duration": 38.89999997615814,
+      "bytes": 3611,
+      "transfer": 3911
+    },
+    {
+      "url": "area-outlook?region=%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C",
+      "start": 983,
+      "duration": 38.700000047683716,
+      "bytes": 3609,
+      "transfer": 3909
+    }
+  ],
+  "errors": []
+}

@@ -11,19 +11,19 @@ from .ai_collection_store import Store
 
 
 def tick(service, store):
-    store.heartbeat()
     from .ai_collection_budget import flush, required
     if required(): flush(store)
     from .ai_agents_store import settings,enqueue
     from .ai_agent_catalog import ROLES
     from .ai_agent_workflows import process
+    from .operations_window import night_open
     current=datetime.now(ZoneInfo('Asia/Seoul'))
     for role,config in settings(store).items():
-        if config['enabled'] and current.hour>=config['hour_kst']:
+        if config['enabled'] and night_open(current) and current.hour>=config['hour_kst']:
             day=current.date().isoformat()
             try: enqueue(store,role,day if role=='collection' else role+':'+day)
             except ValueError: continue
-    run=store.claim()
+    run=store.claim(allow_scheduled=night_open(current))
     if run:
         if run['config'].get('agent_role','collection')=='collection':process_run(service,store,run)
         else:process(service,store,run)

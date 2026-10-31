@@ -1407,7 +1407,8 @@ def attach_meeting_topic_groups(
         "quality_status": "REVIEW_REQUIRED" if review_reasons else "PASS",
         "review_reasons": review_reasons,
     }
-    return source
+    from .report_parent_groups import compact_report_parents
+    return compact_report_parents(source)
 
 
 def build_meeting_topic_ontology(

@@ -2,6 +2,7 @@
 from __future__ import annotations
 import json
 from typing import Any
+from .report_parent_groups import PARENT_POLICY_INSTRUCTION, policy_parent_catalogue, parent_title_schema
 
 PROFILE='indexed-partitions/3'
 BATCH_START=110000
@@ -23,18 +24,18 @@ def prompt(items, indices):
             'canonical은 catalogue의 번호 중 해당 키의 번호 이하인 것만 선택한다. 같은 쟁점의 가장 앞 번호를 대표로 선택한다. '
             '일치가 불확실하면 각 번호 자신을 대표로 하여 독립 쟁점으로 보존한다. '
             'parent는 catalogue 전체를 보고 구체적 정책 대상별로 일관되게 선택한다. 보통 6~15개 범주이나 개수 제한은 없다. '
-            '인명·사건명·기관명을 추측하거나 교정하지 마라. JSON만 반환한다.\n'+
-            json.dumps({'catalogue':catalog,'sources':sources},ensure_ascii=False,separators=(',',':'))+
+            '인명·사건명·기관명을 추측하거나 교정하지 마라. JSON만 반환한다. '+PARENT_POLICY_INSTRUCTION+'\n'+
+            json.dumps({'policy_parent_catalogue':policy_parent_catalogue(items),'catalogue':catalog,'sources':sources},ensure_ascii=False,separators=(',',':'))+
             '\n반환 필수 키 전체(하나도 누락하지 말 것): '+json.dumps([str(i) for i in indices]))
 
 
 def schema(items, indices=None):
     indices = list(range(len(items))) if indices is None else indices
     properties = {str(n): {'type':'object','additionalProperties':False,'properties':{
-        'parent': {'type':'string','maxLength':80},
+        'parent': {'$ref':'#/$defs/policy_parent'},
         'canonical': {'type':'integer','minimum':0,'maximum':n}},
         'required':['parent','canonical']} for n in indices}
-    return {'type':'object','additionalProperties':False,'properties':{
+    return {'type':'object','additionalProperties':False,'$defs':{'policy_parent':parent_title_schema(items)},'properties':{
         'assignments': {'type':'object','additionalProperties':False,
                         'properties':properties,'required':list(properties)}},'required':['assignments']}
 

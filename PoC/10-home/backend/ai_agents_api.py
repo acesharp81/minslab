@@ -3,6 +3,7 @@ import os,time,threading
 from datetime import datetime,timedelta,timezone
 import httpx
 from fastapi import HTTPException,Request,Response
+from functools import lru_cache
 from pydantic import BaseModel,ConfigDict,Field
 from .ai_collection_store import Store
 from .ai_agent_catalog import ROLES,catalog
@@ -15,7 +16,7 @@ _budget=(0,{})
 def budget():
  global _budget
  with _lock:
-  if time.monotonic()-_budget[0]<15:return _budget[1]
+  if time.monotonic()-_budget[0]<60:return _budget[1]
   try:
    with httpx.Client(timeout=3,trust_env=False) as client:
     response=client.get(os.environ['USAGE_GATEWAY_URL'].rstrip('/')+'/internal/status',headers={'x-minslab-meter-token':os.environ['USAGE_METER_TOKEN']})
@@ -34,11 +35,12 @@ class AgentSettings(BaseModel):
  model:str=Field(max_length=100)
  review_model:str=Field(default='',max_length=100)
  enabled:bool=False
- hour_kst:int=Field(ge=0,le=23)
+ hour_kst:int=Field(ge=1,le=4)
  version:int=Field(ge=0)
 
 
 def install(app,service,authenticated,prefix):
+ @lru_cache(maxsize=1)
  def store():return Store(service.data_dir)
  def check(role):
   if role not in ROLES:raise HTTPException(404,'지원하지 않는 에이전트')
@@ -47,8 +49,10 @@ def install(app,service,authenticated,prefix):
  @app.get(prefix+'/api/ai-agents')
  def status():
   s=store()
-  return dict(s.status(),agents=settings(s),roles=ROLES,models=catalog(),shared_budget=budget(),economics=economics(s),
+  return dict(s.status(include_events=False),agents=settings(s),roles=ROLES,models=catalog(),shared_budget=budget(),economics=economics(s),
    solar_unlimited=os.environ.get('SHARED_SOLAR_UNLIMITED','false').lower()=='true')
+ @app.get(prefix+'/api/ai-agents/history')
+ def history():return dict(runs=store().status()['runs'])
  @app.get(prefix+'/api/ai-agents/holds.csv')
  def csv_export(role:str='all'):
   if role not in ('all','collection','officer'):raise HTTPException(422,'지원하지 않는 CSV 범위')
@@ -66,7 +70,7 @@ def install(app,service,authenticated,prefix):
  @app.post(prefix+'/api/admin/ai-agents/{role}/runs')
  def start(role:str,request:Request):
   auth(request);check(role);s=store()
-  if not s.status()['worker_online']:raise HTTPException(409,'작업자 연결 확인 필요')
+  if not s.status(include_events=False)['worker_online']:raise HTTPException(409,'작업자 연결 확인 필요')
   try:result=enqueue(s,role)
   except ValueError as error:raise HTTPException(422,str(error)) from None
   if result.get('already_running'):raise HTTPException(409,'다른 작업을 포함해 이미 실행 중입니다. 완료 후 실행하세요')

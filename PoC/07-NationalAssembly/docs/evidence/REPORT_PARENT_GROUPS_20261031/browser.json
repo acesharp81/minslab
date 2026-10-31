@@ -1,0 +1,18 @@
+[
+  {
+    "site": "https://kjon.aigov.go.kr/",
+    "summary_groups": 23,
+    "fund_groups": 1,
+    "fund_issues": 35,
+    "print_fund_headings": 1,
+    "js_errors": []
+  },
+  {
+    "site": "https://www.minslab.kr/poc/national-assembly/",
+    "summary_groups": 23,
+    "fund_groups": 1,
+    "fund_issues": 35,
+    "print_fund_headings": 1,
+    "js_errors": []
+  }
+]

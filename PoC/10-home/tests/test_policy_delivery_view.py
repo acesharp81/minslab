@@ -170,3 +170,34 @@ def test_unchanged_chart_survives_half_hour_but_officer_edit_invalidates_immedia
             changed=client.get(url)
             assert changed.headers['x-home-cache']=='MISS' and build.call_count==2
     finally:e.dispose()
+
+
+def test_screen_input_skips_unused_monthly_states_but_retains_exact_ledger():
+    from backend.policy_delivery_view import screen_input,trim_screen_details
+    source=Source();day=date(2026,10,12)
+    full=build_delivery(source,day,comparison_scopes=())
+    lean=screen_input(source,day)
+    expected=trim_screen_details(full)
+    assert lean==expected
+    assert 'snapshots' not in lean and 'current' not in lean
+    for group,scope in [('policy','policy'),('policy','project:old'),('program:P1','program:P1|project:new')]:
+        before=screen_view(full,group,scope);after=screen_view(lean,group,scope)
+        for key in ('yearly_comparisons','portfolio_comparisons','geometry','issues','settings','target_units','official_alignment','management_projects'):
+            assert before[key]==after[key]
+    assert full['snapshots']  # Full report/export contract is unchanged.
+
+
+def test_screen_projection_preserves_source_values_and_does_not_mutate_audit_data(pair):
+    from backend.policy_delivery_view import trim_screen_details
+    _,base=pair
+    c=base['portfolio_cohorts'][0]
+    c['report_metadata']={'original':'preserved in full report'}
+    event=c['events'][0];event.update(field_provenance={'large':'audit'},restoration_review={'review':'retained'},inferred=True,basis='수집값 보존',actor='담당자')
+    if c['schedules']:c['schedules'][0]['baseline']={'previous':'original'}
+    c['construction_plan']={'start_date':'2025-01-01','completion_date':'2027-12-31','monthly':[{'planned_pct':10}],'basis':'기간 비례 추정'}
+    before=deepcopy(base);lean=trim_screen_details(base);assert base==before
+    out=lean['portfolio_cohorts'][0]
+    assert out['events'][0]=={k:v for k,v in event.items() if k not in ('field_provenance','restoration_review')}
+    assert out['construction_plan']['start_date']==c['construction_plan']['start_date']
+    assert out['construction_plan']['completion_date']==c['construction_plan']['completion_date']
+    assert 'monthly' not in out['construction_plan'] and 'report_metadata' not in out

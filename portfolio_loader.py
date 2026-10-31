@@ -1,76 +1,62 @@
-"""파일 기반 프로젝트 컬렉션 로더."""
-
+"""프로젝트 경로·고유 번호와 별개로 메뉴를 분류하는 파일 기반 카탈로그."""
 from __future__ import annotations
-
 import json
 from pathlib import Path
 
-
 BASE_DIR = Path(__file__).parent
-PROJECTS_DIR = BASE_DIR / "projects"
-POC_DIR = BASE_DIR / "PoC"
+PROJECTS_DIR = BASE_DIR / 'projects'
+POC_DIR = BASE_DIR / 'PoC'
 
 
 def _load_collection(root_dir: Path, label: str) -> list[dict]:
-    """*/project.json을 읽어 화면에서 사용할 프로젝트 목록을 만든다."""
     projects = []
-
     if not root_dir.exists():
         return projects
-
-    for metadata_path in sorted(root_dir.glob("*/project.json")):
+    for metadata_path in sorted(root_dir.glob('*/project.json')):
         try:
-            metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+            metadata = json.loads(metadata_path.read_text(encoding='utf-8'))
+            if metadata.get('menu_group') == 'hidden':
+                continue
             project_dir = metadata_path.parent
-            entry_file = metadata.get("entry_file", "main.py")
+            entry_file = metadata.get('entry_file', 'main.py')
             source_path = project_dir / entry_file
-
-            metadata.setdefault("id", project_dir.name)
-            metadata.setdefault("title", project_dir.name)
-            metadata.setdefault("date", "Practice")
-            metadata.setdefault("summary", "")
-            metadata.setdefault("description", "")
-            metadata.setdefault("tags", [])
-            metadata.setdefault("features", [])
-            metadata.setdefault("usage", [])
-            metadata.setdefault("note", "")
-            metadata["file"] = entry_file
-            metadata["code"] = (
-                source_path.read_text(encoding="utf-8")
-                if source_path.is_file()
-                else "# 실행 파일을 찾을 수 없습니다."
-            )
+            for key, default in {'id': project_dir.name, 'title': project_dir.name,
+                                 'date': 'Practice', 'summary': '', 'description': '',
+                                 'tags': [], 'features': [], 'usage': [], 'note': ''}.items():
+                metadata.setdefault(key, default)
+            metadata['file'] = entry_file
+            metadata['code'] = ('' if metadata.get('app_path') and not metadata.get('definition_only') else
+                                source_path.read_text(encoding='utf-8') if source_path.is_file() else '# 실행 파일을 보존하지 않는 프로젝트입니다.')
+            # Folder prefix is an immutable original identifier, never list position.
+            original_no = metadata.get('display_no') or project_dir.name.split('-', 1)[0]
+            metadata['no'] = str(original_no)
+            metadata.setdefault('menu_group', 'poc' if root_dir == POC_DIR else 'portfolio')
             projects.append(metadata)
-        except (OSError, json.JSONDecodeError) as error:
-            print(f"Skipping invalid {label} project {metadata_path}: {error}")
-
-    projects.sort(key=lambda item: (item.get("order", 999), item["title"]))
-    for index, project in enumerate(projects, start=1):
-        project["no"] = str(project.get("display_no") or f"{index:02d}")
+        except (OSError, ValueError) as error:
+            print(f'Skipping invalid {label} project {metadata_path}: {error}')
     return projects
 
 
+def _catalog(group: str) -> list[dict]:
+    projects = _load_collection(PROJECTS_DIR, 'portfolio') + _load_collection(POC_DIR, 'PoC')
+    return sorted((p for p in projects if p['menu_group'] == group), key=lambda p: (p.get('order', 999), p['title']))
+
+
 def load_projects() -> list[dict]:
-    """projects/*/project.json을 읽어 포트폴리오 목록을 만든다."""
-    return _load_collection(PROJECTS_DIR, "portfolio")
+    return _catalog('portfolio')
 
 
 def load_poc_projects() -> list[dict]:
-    """PoC/*/project.json을 읽어 PoC 목록을 만든다."""
-    return _load_collection(POC_DIR, "PoC")
+    return _catalog('poc')
 
 
 def _as_json(projects: list[dict]) -> str:
-    """HTML script 안에 안전하게 삽입할 JSON을 반환한다."""
-    value = json.dumps(projects, ensure_ascii=False)
-    return value.replace("</", "<\\/")
+    return json.dumps(projects, ensure_ascii=False).replace('</', '<\\/')
 
 
 def projects_as_json() -> str:
-    """HTML script 안에 안전하게 삽입할 JSON을 반환한다."""
     return _as_json(load_projects())
 
 
 def poc_projects_as_json() -> str:
-    """HTML script 안에 안전하게 삽입할 PoC JSON을 반환한다."""
     return _as_json(load_poc_projects())

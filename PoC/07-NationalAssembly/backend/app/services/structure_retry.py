@@ -10,7 +10,7 @@ _TRANSIENT = {'ConnectionError', 'ConnectError', 'ReadTimeout', 'ConnectTimeout'
               'TimeoutError', 'RemoteProtocolError', 'HTTPError:HTTP_429',
               'HTTPError:HTTP_500', 'HTTPError:HTTP_502', 'HTTPError:HTTP_503',
               'HTTPError:HTTP_504', 'AuxiliaryUnavailable', 'DAILY_TOKEN_LIMIT',
-              'AUXILIARY_RATE_WAIT', 'AUXILIARY_DAILY_LIMIT', 'AUXILIARY_INPUT_TOO_LARGE',
+              'AUXILIARY_RATE_WAIT', 'AUXILIARY_DAILY_LIMIT',
               'REVIEW_TOPIC_SOURCE_MISMATCH'}
 
 
