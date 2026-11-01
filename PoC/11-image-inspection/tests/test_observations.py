@@ -35,7 +35,7 @@ def test_inventory_rejects_duplicate_but_preserves_observation_with_invalid_cell
 
 
 def test_bounded_visual_recheck_and_analysis_only_reuse(tmp_path):
-    s=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'test','EXTERNAL_API_ENABLED':'true','OPENAI_API_KEY':'test','UPSTAGE_API_KEY':'test'})
+    s=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'test','EXTERNAL_API_ENABLED':'true','PIXEL_TEXT_ENABLED':'false','OPENAI_API_KEY':'test','UPSTAGE_API_KEY':'test'})
     with TestClient(create_app(s)) as c:
         c.post('/api/login',json={'role':'admin','password':'test'})
         calls=[];policies=[]
@@ -190,7 +190,7 @@ def test_readable_but_degraded_text_survives_inventory_and_analysis():
 def test_vision_failure_retry_is_bounded_and_attributed(tmp_path,monkeypatch,recover,status,expected_calls):
     from app.providers import ProviderError
     monkeypatch.setattr('app.engine.time.sleep',lambda seconds:None)
-    s=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'test','EXTERNAL_API_ENABLED':'true','OPENAI_API_KEY':'test','OCR_ENABLED':'false'})
+    s=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'test','EXTERNAL_API_ENABLED':'true','PIXEL_TEXT_ENABLED':'false','OPENAI_API_KEY':'test','OCR_ENABLED':'false'})
     with TestClient(create_app(s)) as c:
         c.post('/api/login',json={'role':'admin','password':'test'})
         calls=[]

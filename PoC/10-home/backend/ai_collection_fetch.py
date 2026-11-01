@@ -121,7 +121,7 @@ def text_content(raw):
     for node in soup.select('script,style,noscript,nav,footer,header,form'): node.decompose()
     # Prefer article bodies over navigation, popular-news lists and social widgets.
     main=None
-    for selector in ('.board-view-txt', '.viewer', '.detailTable td.cont', '#scrabArea', '.bd_view_cont', 'article.board_view .contents', '.board_view_con'):
+    for selector in ('#articleText', '.board-view-txt', '.viewer', '.detailTable td.cont', '#scrabArea', '.bd_view_cont', 'article.board_view .contents', '.board_view_con'):
         candidate=soup.select_one(selector)
         if candidate is not None:
             main=candidate

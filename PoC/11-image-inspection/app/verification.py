@@ -11,6 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from .imaging import cell_rect, crop, labeled
 from .rules import redact
 from .usage import BudgetError
+from . import text_selection
 
 class Comparison(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True)
@@ -127,10 +128,13 @@ def reference_candidates(obj,refs,image_hash=None):
     return matched[:3]
 
 
-def candidates(observation,refs,steps,selected,strict=True,image_hash=None):
+def candidates(observation,refs,steps,selected,strict=True,image_hash=None,balanced=False):
     """Allocate a bounded pass across risk domains, rather than verbose normal captions."""
     selected_steps=[steps[r] for r in selected]
     active_parents={s['parent_id'] for s in selected_steps}
+    from .source_copy import bindings, normalized
+    source_matches,_=bindings({'observation':observation,'reference_snapshot':refs},image_hash)
+    differences={m['object']['id'] for m in source_matches if normalized(m['object'].get('text',''))!=m['expected']}
     out=[]
     for obj in observation['objects']:
         label=obj['label'];detail=label+' '+obj['description']
@@ -152,10 +156,12 @@ def candidates(observation,refs,steps,selected,strict=True,image_hash=None):
         rules=[r for r in rules if not r['rule_id'].startswith(('D-03','D-04','P-05'))]
         domain='context_symbol' if context_symbol else 'map' if map_target else 'symbol' if any(r['kind']=='official-symbols' for r in matching) else 'emblem' if emblem else 'anatomy' if hands else 'symbol' if matching else 'text' if textlike else 'other'
         specific_hand=hands and any(t in label for t in ('손','브이')) and not any(t in label for t in ('인형','캐릭터'))
-        out.append({'object':obj,'references':matching,'rules':rules,'domain':domain,'score':(350 if institution else 0)+(150 if textlike and any(t in label for t in ('행선판','광고')) else 0)+(100 if concerning else 0)+(50 if matching else 0)+(200 if small_text and len(obj.get('text','').strip())<=10 else 40 if small_text else 0)+(80 if specific_hand else 0)-len(obj.get('cell_ids',[]))})
+        out.append({'object':obj,'references':matching,'rules':rules,'domain':domain,'score':(400 if obj['id'] in differences else 0)+(350 if institution else 0)+(150 if textlike and any(t in label for t in ('행선판','광고')) else 0)+(100 if concerning else 0)+(50 if matching else 0)+(200 if small_text and len(obj.get('text','').strip())<=10 else 40 if small_text else 0)+(80 if specific_hand else 0)-len(obj.get('cell_ids',[]))})
     # First examine each domain; a poster with many labels must not starve hands/maps.
     buckets={}
-    for task in sorted(out,key=lambda x:-x['score']):buckets.setdefault(task['domain'],[]).append(task)
+    for task in sorted(out,key=lambda x:-(x['score']+(text_selection.prominence(x['object']) if balanced else 0))):buckets.setdefault(task['domain'],[]).append(task)
+    if balanced and buckets.get('text'):
+        buckets['text']=text_selection.balanced(buckets['text'],lambda t:text_selection.role(t['object']))
     ordered=[]
     while any(buckets.values()):
         for domain in ('text','text','map','emblem','context_symbol','symbol','anatomy'):
@@ -210,7 +216,8 @@ def expanded_crop(raw,cells,measured_rect=None,focus=None):
 def coverage(observation,verification):
     text=[o for o in observation['objects'] if is_text(o)]
     results={r['object_id']:r for r in verification.get('results',[]) if r.get('status')=='COMPLETED' and r.get('coverage')=='COMPLETE'}
-    return {'detected_text_regions':len(text),'transcribed_regions':sum(bool(o.get('text')) and '[판독불가]' not in o['text'] for o in text),
+    roles={r:{'label':text_selection.LABELS[r],'detected':sum(text_selection.role(o)==r for o in text),'rechecked':sum(text_selection.role(o)==r and o['id'] in results for o in text)} for r in text_selection.ROLES}
+    return {'roles':roles,'detected_text_regions':len(text),'transcribed_regions':sum(bool(o.get('text')) and '[판독불가]' not in o['text'] for o in text),
         'unreadable_regions':sum(o.get('text_legibility')=='UNREADABLE' or '[판독불가]' in o.get('text','') for o in text),
         'ocr_disagreement_regions':sum(bool(results.get(o['id'],{}).get('transcription_disagreement')) for o in text),
         'rechecked_text_regions':sum(o['id'] in results for o in text),'note':'탐지된 객체 기준 집계. 이미지의 모든 글자를 발견했다는 보장은 아닙니다. 독립 OCR 엔진 수가 아닌 시각 모델 재판독입니다.'}
@@ -240,11 +247,13 @@ def reconcile_comparison_aspects(result):
 
 def run_verification(engine,job,run,raw):
     pack=run['rule_pack'];steps={s['rule_id']:s for s in pack['steps']}
-    tasks=candidates(run['observation'],run['reference_snapshot'],steps,run['selected'],run['options'].get('text_sensitivity','strict')=='strict',hashlib.sha256(raw).hexdigest())
-    if run.get('text_ocr',{}).get('vision_checked',0)>0:
-        # Dedicated native text crops already provide a stricter independent pass.
-        tasks=[t for t in tasks if t['domain']!='text']
+    tasks=candidates(run['observation'],run['reference_snapshot'],steps,run['selected'],run['options'].get('text_sensitivity','strict')=='strict',hashlib.sha256(raw).hexdigest(),balanced=engine.s.flag('TEXT_BALANCED_SELECTION',False))
     requested=set(run['options'].get('recheck_object_ids') or [])
+    # A positive global OCR count says nothing about any particular object.
+    # Skip only an explicitly bound complete region, never every text task.
+    covered={r['object_id'] for r in run.get('text_ocr',{}).get('regions',[])
+             if r.get('object_id') and r.get('coverage')=='COMPLETE' and r.get('vision') and not r['vision'].get('inferred',True)}
+    tasks=[t for t in tasks if t['domain']!='text' or t['object']['id'] not in covered or t['object']['id'] in requested]
     previous=run.get('verification',{}) if requested else {}
     if requested:
         existing={t['object']['id'] for t in tasks}
@@ -252,7 +261,7 @@ def run_verification(engine,job,run,raw):
             if obj['id'] in requested and obj['id'] not in existing:
                 tasks.append({'object':obj,'references':[],'rules':[],'domain':'text' if obj.get('text') else 'anatomy' if '손' in obj['label'] else 'other','score':0})
         tasks=[t for t in tasks if t['object']['id'] in requested]
-    verification={'version':'visual-recheck-v7-crop-origin','results':[r for r in previous.get('results',[]) if r['object_id'] not in requested],'deferred':[r for r in previous.get('deferred',[]) if r['object_id'] not in requested],'max_calls':max(0,min(3,engine.s.integer('AUTO_VERIFY_MAX_CALLS',3)))}
+    verification={'version':'visual-recheck-v8-balanced-text','results':[r for r in previous.get('results',[]) if r['object_id'] not in requested],'deferred':[r for r in previous.get('deferred',[]) if r['object_id'] not in requested],'max_calls':max(0,min(3,engine.s.integer('AUTO_VERIFY_MAX_CALLS',3)))}
     run['verification']=verification
     limit=max(0,min(9,engine.s.integer('AUTO_VERIFY_MAX_OBJECTS',9)))
     pending=[]
@@ -383,6 +392,17 @@ def direct_comparisons(run,rule_id,object_ids,reference_ids):
         if incomplete and all(c['status']=='MATCH' for c in normalized):return []
         proof.extend(normalized)
     return proof
+
+
+def reconcile_verdict(decision, proof):
+    """A rule without reference requirements can still contradict paid evidence."""
+    contradiction=bool(proof) and ((decision['status']=='FAIL' and all(p['status']=='MATCH' for p in proof)) or
+                                   (decision['status']=='PASS' and all(p['status']=='MISMATCH' for p in proof)))
+    if contradiction:
+        decision.update(status='REVIEW',decision_conflict=True,review_basis='READING_LIMIT',
+                        reason='분석 판정과 같은 대상·행동의 원본 비교가 상충합니다. 분석: '+decision['reason']+' / 원본 비교: '+' / '.join(p['evidence'] for p in proof),
+                        recommended_action='상충하는 분석과 원본 비교를 확인하세요.')
+    return contradiction
 
 
 def effective_observation(run):

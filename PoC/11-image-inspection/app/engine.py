@@ -15,7 +15,7 @@ from .providers import Provider
 from .usage import Usage
 from .imaging import labeled
 from .observations import clean_inventory, legacy_inventory, Decisions, required_object_checks
-from . import taegeukgi, rule_editor, verification, text_ocr, symbol_geometry, evidence_guards
+from . import taegeukgi, rule_editor, verification, text_ocr, symbol_geometry, evidence_guards, emblem_geometry, glyph_audit, text_location, isolated_glyphs, source_copy, pixel_text, pixel_confirm, spelling_audit
 
 
 def resized(raw):
@@ -66,7 +66,7 @@ class Engine:
             refs=[r for r in self.store.references() if r['status']=='APPROVED' and (not r.get('effective_to') or r['effective_to']>=now()[:10]) and (not r.get('effective_from') or r['effective_from']<=now()[:10])]
             cache_data={'image':job['image']['normalized_sha256'],'metadata':job['metadata'],'rules':selected,'pack':pack,
                         'refs':refs,'options':{k:v for k,v in options.items() if k not in ('force','consent')},
-                        'effort':self.s.get('REASONING_EFFORT','low'),'detail':self.s.get('IMAGE_DETAIL','high'),'prompt_version':'original-checklist-v30-crop-origin','ocr_settings':{k:self.s.get(k) for k in ('OCR_ENABLED','OCR_MAX_REGIONS','OCR_VISION_MAX_REGIONS','VERIFICATION_REASONING_EFFORT','OCR_REASONING_EFFORT','OCR_HIGH_EFFORT_RECHECK','NAVER_OCR_ENABLED')}}
+                        'effort':self.s.get('REASONING_EFFORT','low'),'detail':self.s.get('IMAGE_DETAIL','high'),'prompt_version':'original-checklist-v39-spelling','ocr_settings':{k:self.s.get(k) for k in ('SPELLING_AUDIT_ENABLED','PIXEL_CONFIRM_ENABLED','PIXEL_TEXT_ENABLED','PIXEL_TEXT_MAX_REGIONS','TEXT_BALANCED_SELECTION','GLYPH_AUDIT_ENABLED','GLYPH_AUDIT_MODEL','GLYPH_AUDIT_MAX_REGIONS','ISOLATED_GLYPH_ENABLED','ISOLATED_GLYPH_SCALE','OCR_ENABLED','OCR_MAX_REGIONS','OCR_VISION_MAX_REGIONS','OCR_VISION_SCALE','VERIFICATION_REASONING_EFFORT','OCR_REASONING_EFFORT','OCR_HIGH_EFFORT_RECHECK','NAVER_OCR_ENABLED')}}
             cache_key=hashlib.sha256(json.dumps(cache_data,sort_keys=True).encode()).hexdigest()
             inherited=copy.deepcopy(job['runs'][-1]['results']) if job['runs'] else [placeholder(r) for r in steps]
             # Crops are supplementary: preserve the whole-image result and mark the scope.
@@ -84,6 +84,9 @@ class Engine:
                 run['observation_model']=source.get('observation_model',source['options']['vision_model'])
                 run['verification']=copy.deepcopy(source.get('verification',{'results':[],'deferred':[],'reused_without_verification':True}))
                 if source.get('text_ocr'):run['text_ocr']=copy.deepcopy(source['text_ocr'])
+                if source.get('glyph_audit'):run['glyph_audit']=copy.deepcopy(source['glyph_audit'])
+                if source.get('pixel_text'):run['pixel_text']=copy.deepcopy(source['pixel_text'])
+                if source.get('spelling_audit'):run['spelling_audit']=copy.deepcopy(source['spelling_audit'])
                 # A previous comparison only applies to the exact approved reference snapshot.
                 valid_hashes={r['id']:r.get('image_hash') for r in refs}
                 action_hashes={r['rule_id']:hashlib.sha256(r['objective'].encode()).hexdigest() for r in pack['steps']}
@@ -94,7 +97,7 @@ class Engine:
                 for old in self.store.jobs():
                     for prior in reversed(old.get('runs',[])):
                         if prior['cache_key']==cache_key and prior.get('finished_at') and not any(r['status'] in ('ERROR','NOT_RUN') for r in prior['results']):
-                            run.update(results=copy.deepcopy(prior['results']),analysis=copy.deepcopy(prior['analysis']),observation=copy.deepcopy(prior.get('observation')),observation_model=prior.get('observation_model'),verification=copy.deepcopy(prior.get('verification',{})),analysis_observation=copy.deepcopy(prior.get('analysis_observation')),text_coverage=copy.deepcopy(prior.get('text_coverage')),text_ocr=copy.deepcopy(prior.get('text_ocr')),structural_checks=copy.deepcopy(prior.get('structural_checks')),progress=len(selected),finished_at=now(),reused_from={'job_id':old['id'],'run_id':prior['id']})
+                            run.update(results=copy.deepcopy(prior['results']),analysis=copy.deepcopy(prior['analysis']),observation=copy.deepcopy(prior.get('observation')),observation_model=prior.get('observation_model'),verification=copy.deepcopy(prior.get('verification',{})),analysis_observation=copy.deepcopy(prior.get('analysis_observation')),text_coverage=copy.deepcopy(prior.get('text_coverage')),source_copy=copy.deepcopy(prior.get('source_copy')),text_ocr=copy.deepcopy(prior.get('text_ocr')),glyph_audit=copy.deepcopy(prior.get('glyph_audit')),pixel_text=copy.deepcopy(prior.get('pixel_text')),spelling_audit=copy.deepcopy(prior.get('spelling_audit')),structural_checks=copy.deepcopy(prior.get('structural_checks')),progress=len(selected),finished_at=now(),reused_from={'job_id':old['id'],'run_id':prior['id']})
                             job['runs'].append(run);job['state']='COMPLETED';self.store.save(job);return job
             job['runs'].append(run);job['state']='QUEUED';self.store.save(job)
             self.pool.submit(self.execute,jid,run['id']);return job
@@ -115,7 +118,7 @@ class Engine:
         except Exception as exc:
             if getattr(exc,'call_meta',None):run['calls'].append(exc.call_meta)
             reason=str(exc)[:400] if isinstance(exc,(ValueError,RuntimeError)) else '검사 처리 오류 · 저장된 관찰은 재분석에 사용할 수 있습니다.'
-            failure_model=(getattr(exc,'call_meta',None) or {}).get('model') or options.get('vision_model' if run.get('phase') in ('READING','VERIFYING','TEXT_OCR') else 'analysis_model')
+            failure_model=(getattr(exc,'call_meta',None) or {}).get('model') or options.get('vision_model' if run.get('phase') in ('READING','VERIFYING','TEXT_OCR','GLYPH_AUDIT') else 'analysis_model')
             run['failed_phase']=run.get('phase');run['stopped_reason']=reason
             run['analysis'].append({'error':reason,'model':failure_model,'phase':run.get('phase')})
             for r in run['results']:
@@ -167,10 +170,26 @@ class Engine:
         if not grid and (not run.get('observation_reused_from') or options.get('recheck_object_ids')):
             run['phase']='VERIFYING';self.checkpoint(jid,run)
             verification.run_verification(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+        if not grid and not run.get('observation_reused_from') and set(run['selected']).intersection(glyph_audit.TEXT_RULES) and options.get('text_sensitivity','strict')=='strict' and self.s.flag('GLYPH_AUDIT_ENABLED',False):
+            run['phase']='GLYPH_AUDIT';self.checkpoint(jid,run)
+            glyph_audit.run_audit(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+            if self.s.flag('ISOLATED_GLYPH_ENABLED',False):isolated_glyphs.run_isolated(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+        if not grid and set(run['selected']).intersection(pixel_text.TEXT_RULES) and self.s.flag('PIXEL_TEXT_ENABLED',True):
+            run['phase']='TEXT_OCR';self.checkpoint(jid,run)
+            pixel_text.run_check(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+            if self.s.flag('PIXEL_CONFIRM_ENABLED',True):pixel_confirm.confirm(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+        if not grid:source_copy.inspect(run,(self.s.data/jid/'image.png').read_bytes())
         run['analysis_observation']=verification.effective_observation(run)
         run['text_coverage']=verification.coverage(run['analysis_observation'],run.get('verification',{}))
         if not grid:run['symbol_geometry']=symbol_geometry.inspect((self.s.data/jid/'image.png').read_bytes(),run['analysis_observation'],run['reference_snapshot'],self.s.data)
-        if not grid:text_ocr.attach_observations(run)
+        if not grid and 'H-07-b' in run['selected']:
+            run['emblem_geometry']=emblem_geometry.inspect((self.s.data/jid/'image.png').read_bytes(),run['observation'],run['reference_snapshot'],self.s.data)
+        if not grid:
+            text_ocr.attach_observations(run)
+            glyph_audit.attach(run)
+            pixel_text.attach(run)
+        if not grid and 'D-02-l' in run['selected'] and self.s.flag('SPELLING_AUDIT_ENABLED',True):
+            spelling_audit.inspect(self,job,run)
         run['phase']='ANALYZING';self.checkpoint(jid,run)
         model=options.get('analysis_model') or options['vision_model']
         remaining=run['selected']
@@ -269,7 +288,8 @@ class Engine:
             # Quality belongs to the action being judged. An uncertain trigram
             # cannot erase a clear, independently compared colour reversal.
             if scoped and d['target_presence']=='PRESENT':
-                if d['status']=='REVIEW' and steps[d['rule_id']]['review_policy']!='HUMAN_REQUIRED' and all(p['status']=='MISMATCH' for p in scoped):
+                contradiction=verification.reconcile_verdict(d,scoped)
+                if not contradiction and d['status']=='REVIEW' and steps[d['rule_id']]['review_policy']!='HUMAN_REQUIRED' and all(p['status']=='MISMATCH' for p in scoped):
                     d.update(status='FAIL',review_basis='OBSERVED_ANOMALY',reason='해당 행동의 공식 도안 직접 비교: '+' / '.join(p['evidence'] for p in scoped),recommended_action='확인된 도안 차이를 수정하고 제작 의도는 별도로 검토하세요.')
                 expected='MATCH' if d['status']=='PASS' else 'MISMATCH' if d['status']=='FAIL' else None
                 if expected and all(p['status']==expected for p in scoped):quality='CLEAR'
@@ -308,7 +328,15 @@ class Engine:
         if not grid:found=evidence_guards.protect_glyphs(run,found,ids)
         found=verification.protect_transcription_conflicts(run,found,ids,model)
         if not grid:found=evidence_guards.protect(run,found,ids)
-        return text_ocr.protect_rows(run,found,ids,model) if not grid else found
+        if not grid:found=emblem_geometry.protect(run,found,ids)
+        if not grid:
+            found=text_ocr.protect_rows(run,found,ids,model)
+            found=glyph_audit.protect(run,found,ids,model)
+            found=source_copy.protect(run,found,ids)
+            found=text_location.protect(run,found)
+            found=pixel_text.protect(run,found,ids)
+            found=spelling_audit.protect(run,found,ids)
+        return found
 
     def mock(self,job,ids,grid):
         # Only our own synthetic fixture has scripted observations; arbitrary uploads get REVIEW.

@@ -22,3 +22,16 @@ test('each measured flag only opens the opinions of its observed object',()=>{
  assert.deepEqual(Array.from(ctx.analysisAtPoint(targets,.2,.2),x=>x.row.id),['a']);
  assert.deepEqual(Array.from(ctx.analysisAtPoint(targets,.7,.2),x=>x.row.id),['b']);
 });
+
+test('unresolved findings are not clickable on their previous wrong objects',()=>{
+ const r={...row('wrong'),location_unresolved:true,rects:[[.1,.1,.2,.2]]};
+ const run={scope:'FULL_IMAGE',observation:{objects:[{id:'text',label:'다른 문구',rects:r.rects}]},results:[r]};
+ assert.equal(ctx.imageAnalysisTargets(run).length,0);
+});
+
+test('click targeting respects precise verified text geometry',()=>{
+ const r={...row('precise'),rects:[[.1,.1,.2,.2]],location_evidence:{status:'VERIFIED_REGION'}};
+ const run={scope:'FULL_IMAGE',observation:{objects:[{id:'text',label:'넓은 문구',rects:[[0,0,.8,.8]]}]},results:[r]};
+ assert.equal(ctx.analysisAtPoint(ctx.imageAnalysisTargets(run),.5,.5).length,0);
+ assert.equal(ctx.analysisAtPoint(ctx.imageAnalysisTargets(run),.15,.15)[0].row.id,'precise');
+});

@@ -1197,6 +1197,8 @@ def create_app(engine=None, auto_collect=None):
 
     from .ai_collection_api import install as install_ai_collection
     install_ai_collection(app,service,authenticated,PREFIX)
+    from .stage_reconciliation_api import install as install_stage_reconciliation
+    install_stage_reconciliation(app,service,authenticated,PREFIX)
 
     @app.get(PREFIX + '/api/publication-reviews')
     def publication_reviews_api():
@@ -1217,6 +1219,15 @@ def create_app(engine=None, auto_collect=None):
             'Content-Disposition': f'attachment; filename="home-publication-reviews-{status}-{today().isoformat()}.csv"',
             'Cache-Control': 'no-store',
         })
+
+    @app.get(PREFIX + '/api/publication-reviews/export.json')
+    def publication_review_json(status: str = 'ALL', priority: int | None = None, search: str = Query('', max_length=500)):
+        from .publication_review_export import export_json
+        try: content = export_json(service, status=status, priority=priority, search=search)
+        except ValueError as error: raise HTTPException(422, str(error)) from None
+        return Response(json.dumps(content, ensure_ascii=False, indent=2) + '\n', media_type='application/json', headers={
+            'Content-Disposition': f'attachment; filename="home-publication-evidence-{status}-{today().isoformat()}.json"',
+            'Cache-Control':'no-store'})
 
     @app.get(PREFIX + '/api/publication-reviews/{document_id}/history')
     def publication_review_history(document_id: str):

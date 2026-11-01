@@ -33,9 +33,12 @@ def infer(args):
     resultpath=resultdir/(Path(args.image).stem+'.json')
     if resultpath.exists():raise RuntimeError('Existing result: use another revision; never silently rerun')
     work=resultdir/(Path(args.image).stem+'-work');work.mkdir(parents=True,exist_ok=True)
-    settings=Settings({**values,'DATA_DIR':str(work),'NAVER_OCR_ENABLED':'false'})
+    settings=Settings({**values,'DATA_DIR':str(work),'NAVER_OCR_ENABLED':'false','GLYPH_AUDIT_ENABLED':'false','PIXEL_CONFIRM_ENABLED':'true' if getattr(args,'pixel_confirm',False) else 'false','PIXEL_TEXT_ENABLED':'true' if getattr(args,'pixel_text',False) else 'false','TEXT_BALANCED_SELECTION':'true' if getattr(args,'balanced_text',False) else 'false',
+                       **({'OCR_ENABLED':'true','OCR_VISION_SCALE':str(getattr(args,'ocr_scale',1))} if getattr(args,'ocr',False) else {})})
     # No separate OCR calls during initial end-to-end baseline; matches production setting.
     settings.values['OCR_PYTHON']=str(ROOT/'.venv-ocr/bin/python')
+    if (getattr(args,'ocr',False) or getattr(args,'glyph_audit',False) or getattr(args,'pixel_text',False)) and (production/'ocr-models').is_dir() and not (work/'ocr-models').exists():
+        (work/'ocr-models').symlink_to(production/'ocr-models',target_is_directory=True)
     from evaluation_budget import capped_usage
     CappedUsage=capped_usage(Usage,EVAL/'budget.sqlite3',snap['limits'],RATES,BudgetError,wait_seconds=180)
     usage=CappedUsage(settings,prod)
@@ -54,16 +57,23 @@ def infer(args):
     if master.get('logo_reference'):
         asset=EVAL/'inputs'/master['logo_reference'];name='fixture-emblem.png';(work/'references'/name).write_bytes(asset.read_bytes())
         refs.append(dict(id='fixture-emblem',name='가상 안내단 문양 — 제작자 제공 기준',kind='official-emblems',parent_ids=['H-07'],status='APPROVED',version='test-source-1',content='이 합성 이미지의 가상 안내단 표식을 비교하는 제작자 제공 도안. 실제 정부 공식 문양이 아님. 이 실행에만 적용한다.',issuer='테스트 제작자',official_url='',image_file=name,image_hash=hashlib.sha256(asset.read_bytes()).hexdigest()))
-        if args.revision!='baseline':refs[-1]['target_image_sha256']=hashlib.sha256(raw).hexdigest()
+        # A reference supplied for this fixture applies only to this image,
+        # regardless of experiment name. Baselines need the same input scope.
+        refs[-1]['target_image_sha256']=hashlib.sha256(raw).hexdigest()
     selected=[s['rule_id'] for s in snap['pack']['steps']]
     job={'id':jid,'metadata':dict(title='합성 홍보물 품질 검수',context='제작자가 제공한 합성 시험용 홍보물입니다. 실제 개인정보가 아닌 가상 문자열입니다. 발견한 결함은 그대로 기록하고 최종 공개 승인과 분리합니다.',department='',media_type='카드뉴스',release_date='')}
     run=dict(id=uuid.uuid4().hex,created_at=now(),options=dict(mode='live',vision_model=args.vision,analysis_model=args.analysis,text_sensitivity='strict'),selected=selected,rule_pack=snap['pack'],reference_snapshot=refs,calls=[],analysis=[],results=[placeholder(r) for r in selected],reviews=[],progress=0,total=len(selected),scope='FULL_IMAGE')
     if args.reuse:
         saved=json.loads(Path(args.reuse).read_text());prior=saved['run']
         if saved['image_sha256']!=hashlib.sha256(raw).hexdigest():raise ValueError('reuse image mismatch')
-        for key in ('observation','observation_model','verification','text_ocr','structural_checks'):
+        for key in ('observation','observation_model','verification','text_ocr','structural_checks','glyph_audit','pixel_text'):
             if key in prior:run[key]=copy.deepcopy(prior[key])
         run['observation_reused_from']={'run_id':prior['id']}
+        if getattr(args,'text_only',False):
+            run['selected']=[r for r in ('D-02-l','H-06-b') if r in selected]
+            run['results']=copy.deepcopy([r for r in prior['results'] if r['rule_id'] not in run['selected']])+[placeholder(r) for r in run['selected']]
+            run['total']=len(run['selected'])
+            run['analysis_reused_from']={'run_id':prior['id'],'reason':'문자 규칙 2개만 새 검사 · 나머지 결과 보존'}
         if args.repair:
             run['selected']=list(dict.fromkeys(r['rule_id'] for r in prior['results'] if r['status'] in ('ERROR','NOT_RUN')))
             if not run['selected']:raise ValueError('No incomplete actions to repair')
@@ -72,12 +82,29 @@ def infer(args):
             run['analysis_reused_from']={'run_id':prior['id'],'reason':'성공한 행동은 유지하고 실행 오류만 재처리'}
         if args.reverify:
             run['options']['recheck_object_ids']=[o['id'] for o in run['observation']['objects']]
+        if getattr(args,'reverify_nontext',False):
+            from app.verification import is_text
+            run['options']['recheck_object_ids']=[o['id'] for o in run['observation']['objects'] if not is_text(o)]
     started=time.monotonic()
     def checkpoint(*_):
         dump(resultpath.with_suffix('.progress.json'),dict(image=args.image,revision=args.revision,run=run,elapsed=round(time.monotonic()-started,2)))
     engine.checkpoint=checkpoint
     print('START',args.revision,args.image,args.vision,args.analysis,flush=True)
-    try:engine.inspect(job,run,None,started)
+    try:
+        if getattr(args,'glyph_audit',False):
+            from app.glyph_audit import run_audit
+            run['phase']='GLYPH_AUDIT'
+            run_audit(engine,job,run,raw)
+        if getattr(args,'isolated_glyphs',False):
+            from app.isolated_glyphs import run_isolated
+            run_isolated(engine,job,run,raw)
+        if getattr(args,'ocr',False) and args.reuse:
+            # Paired OCR comparison on exactly the saved scene inventory; no new
+            # scene reading or previous OCR verdict is injected into its prompt.
+            from app.text_ocr import run_text_ocr
+            run['phase']='TEXT_OCR';run['options']['evaluation_ocr']=True
+            run_text_ocr(engine,job,run,raw)
+        engine.inspect(job,run,None,started)
     except Exception as exc:
         if getattr(exc,'call_meta',None):run['calls'].append(exc.call_meta)
         run['stopped_reason']=str(exc)[:500];run['failed_phase']=run.get('phase')
@@ -91,7 +118,10 @@ def infer(args):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('image');p.add_argument('--revision',default='baseline');p.add_argument('--vision',default='gpt-5.4');p.add_argument('--analysis',default='gpt-5.4-mini');p.add_argument('--reuse');p.add_argument('--reverify',action='store_true');p.add_argument('--repair',action='store_true');a=p.parse_args()
+    global EVAL
+    p=argparse.ArgumentParser();p.add_argument('image');p.add_argument('--revision',default='baseline');p.add_argument('--vision',default='gpt-5.4');p.add_argument('--analysis',default='gpt-5.4-mini');p.add_argument('--reuse');p.add_argument('--reverify',action='store_true');p.add_argument('--reverify-nontext',action='store_true');p.add_argument('--repair',action='store_true');p.add_argument('--evaluation-root',type=Path,default=EVAL);p.add_argument('--isolated-glyphs',action='store_true');p.add_argument('--glyph-audit',action='store_true');p.add_argument('--text-only',action='store_true');p.add_argument('--balanced-text',action='store_true');p.add_argument('--pixel-text',action='store_true');p.add_argument('--pixel-confirm',action='store_true');p.add_argument('--ocr',action='store_true');p.add_argument('--ocr-scale',type=int,choices=(1,2,3),default=1);a=p.parse_args()
+    EVAL=a.evaluation_root.resolve()
+    if a.text_only and not a.reuse:p.error('--text-only requires --reuse')
     if a.repair and not a.reuse:p.error('--repair requires --reuse')
     infer(a)
 

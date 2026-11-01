@@ -1,0 +1,12 @@
+[
+  {
+    "event_id": "poc11-10c5a6a1e0e84f3d8e1deb7466288a6d",
+    "released_unknown_tokens": 8143,
+    "note": "Local KeyError image_index during request construction, before httpx POST; verified provider code and regression test. Actual API calls/tokens/cost 0."
+  },
+  {
+    "event_id": "poc11-8a2c601072e243ae9e13fb3239fa25de",
+    "released_unknown_tokens": 11413,
+    "note": "Local KeyError image_index during request construction, before httpx POST; verified provider code and regression test. Actual API calls/tokens/cost 0."
+  }
+]

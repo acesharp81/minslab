@@ -1,0 +1,18 @@
+{
+  "job_id": "fd87c1b7962855d8b0d274076118f4c5",
+  "run_id": "0c098c424f684d0f912f4e05e2b49e89",
+  "state": "COMPLETED",
+  "selected": 156,
+  "errors": 0,
+  "usage": {
+    "gpt-5.4-mini": {
+      "calls": 8,
+      "input_tokens": 153144,
+      "output_tokens": 20079
+    }
+  },
+  "reading_reused": true,
+  "spelling_reused": true,
+  "typo_fail": true,
+  "report_status": 200
+}

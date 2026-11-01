@@ -1,0 +1,48 @@
+{
+  "python": {
+    "passed": 227,
+    "skipped": 2
+  },
+  "javascript": {
+    "passed": 33
+  },
+  "deployed": true,
+  "source_hashes": {
+    "app/providers.py": "c96866dee98ec9103e9714feccd9fd4259903f67ba498f9524980659c2829444",
+    "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+    "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+    "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+    "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+    "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+    "app/engine.py": "f9cb103e1f0fc869b902b4da191d6bd389cbcbb21c324915ff44fe99b048280c",
+    "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+    "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+    "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+    "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+    "app/main.py": "5990d04361aed918ed2caa192e5d28d98ccc7cb168f7bbc897ef72b3d4134790",
+    "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+    "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+    "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+    "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+    "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+    "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+    "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+    "app/symbol_geometry.py": "b97782a3d96c96a04dbeecf934e60a5dc520077d535188f687db4fbdd84de9d3",
+    "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+    "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+    "app/verification.py": "25e94c30943fae0d103bb84f89d1e7e3372e32e1ba1bf68ce0e1accd39cf5b06",
+    "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+    "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+    "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+    "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+    "web/app.js": "8f6bf3abd4ec8cc28a13413330677d7ae585e17c92ab7ce114c49c7c5b5d534e",
+    "web/index.html": "66bdf4bce25769a384d7ae15165ea7275fb8e012b26ac87cc4ef6aa479437dc7"
+  },
+  "test_usage": {
+    "gpt-5.4": 649959,
+    "gpt-5.4-mini": 3138672,
+    "unknown_gpt54_reserved": 146538,
+    "monthly_credit_usd": 0
+  }
+}

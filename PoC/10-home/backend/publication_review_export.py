@@ -21,6 +21,10 @@ FIELDS = (
     '최근판단반영범위', '검토이력_JSON', '외부검증결과', '외부검증사유', '추가확인사항',
     'AI수집본문', 'AI분석_JSON',
     '수동수집상태', '수동수집본문', '수동수집확인내용', '수동수집첨부_JSON',
+    '통합유효본문', '통합본문출처', '통합본문품질', '본문판본별상태_JSON',
+    '외부모델권고유형', '외부모델검토의견_JSON', '담당자구조화검증_JSON',
+    '구조화사실_JSON', '단계별일정_JSON', '미확인필드_JSON', '동일관련사건_JSON',
+    '사건군ID', '확정자료연결여부', '실적합산허용', '개인정보처리안내',
 )
 
 
@@ -30,7 +34,7 @@ def cell(value):
     return "'" + text if text.lstrip().startswith(('=', '+', '-', '@')) or text.startswith(('\t', '\r', '\n')) else text
 
 
-def export_csv(service, status='ALL', priority=None, search=''):
+def _export(service, status='ALL', priority=None, search='', structured=False):
     if status not in {*STATES, 'ALL', 'OPEN'}:
         raise ValueError('지원하지 않는 검토 상태입니다')
     if priority is not None and priority not in (1, 2, 3, 4):
@@ -66,7 +70,10 @@ def export_csv(service, status='ALL', priority=None, search=''):
     projects = {p['id']: p for p in data['projects']}
     policies = {p['id']: p['name'] for p in data['policies']}
     policies['UNASSIGNED'] = '정책 미지정'
-    encoded = lambda value: json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+    from .publication_evidence import load as load_assessments, evidence, redact, safe_value
+    assessments=load_assessments(service,[r['id'] for r in items])
+    structured_items=[]
+    encoded = lambda value: json.dumps(safe_value(value), ensure_ascii=False, separators=(',', ':'))
     output = io.StringIO(newline=''); writer = csv.DictWriter(output, fieldnames=FIELDS)
     writer.writeheader(); exported_at = now().isoformat()
     for r in items:
@@ -76,11 +83,16 @@ def export_csv(service, status='ALL', priority=None, search=''):
         selected = [projects.get(pid, dict(id=pid, missing=True)) for pid in d.get('project_ids', [])]
         extra = supplements.get(r['id'], {})
         extra_state = ('이전 판본 수집 · 재확인 필요' if extra['source_revision_no'] != r['source_revision_no'] else '현재 판본 원문·첨부 수집') if extra else '미수집'
+        ev=evidence(r,source,extra,ai.get(r['id'],{}),assessments.get(r['id'],{}))
+        ev['linkage_confirmed']=ev['linkage_confirmed'] and all(not p.get('missing') for p in selected)
+        structured_items.append(dict(ev,title=r['title'],source_url=r['evidence_url'],source_hash=digest,
+            system_status=r['status'],decision=safe_value(d),review_history=safe_value(histories[r['id']]),selected_projects=selected))
+        has_text=any(c['chars'] for c in ev['candidates'])
         values = (
             exported_at, r['id'], r['title'], r['status'], r['status_label'], r['priority'],
             r['source_id'], r['source_name'], LABELS.get(r['authority'], '출처 확인 필요'),
             r['source_date'], r['evidence_url'], r['source_revision_no'], digest,
-            source.get('content_scope', ''), '보유 · 수집본문 기준' if body else '미보유 · 원문URL에서 별도 확인 필요', body,
+            source.get('content_scope', ''), ('보유 · 통합본문 품질·판본 확인: '+ev['quality']) if has_text else '미보유 · 원문URL에서 별도 확인 필요', redact(body),
             '예' if r['source_changed'] else '아니오', '예' if r['link_changed'] else '아니오',
             d.get('status'), STATES.get(d.get('status'), '판단 기록 없음'), r['review_revision_no'], d.get('source_revision_no'),
             d.get('actor'), d.get('reviewed_at'), d.get('reason'),
@@ -89,8 +101,21 @@ def export_csv(service, status='ALL', priority=None, search=''):
             encoded(selected), encoded(d.get('new_project_names', [])), encoded(r['candidates']),
             r['review_topic'], g.get('decision', r['question']), g.get('basis'), encoded(g.get('checks', [])),
             g.get('next_step'), d.get('effect'), encoded(histories[r['id']]), '', '', '',
-            ai.get(r['id'],{}).get('body_text',''), encoded(r.get('ai_analysis',{})),
-            extra_state, extra.get('body_text'), extra.get('summary'), encoded(extra.get('attachments', [])),
+            redact(ai.get(r['id'],{}).get('body_text','')), encoded(r.get('ai_analysis',{})),
+            extra_state, redact(extra.get('body_text')), extra.get('summary'), encoded(extra.get('attachments', [])),
+            ev['effective_text'], ev['effective_origin'], ev['quality'], encoded([{k:v for k,v in c.items() if k!='text'} for c in ev['candidates']]),
+            ev['external_recommendation'].get('code'), encoded(ev['external_recommendation']), encoded(ev['officer_assessment']),
+            encoded(ev['facts']), encoded(ev['stage_dates']), encoded(ev['unknown_fields']), encoded(ev['related_documents']),
+            ev['event_group'], '예' if ev['linkage_confirmed'] else '아니오', '아니오 · 별도 실적 승인 필요', ev['privacy_note'],
         )
-        writer.writerow({key: cell(value) for key, value in zip(FIELDS, values, strict=True)})
+        writer.writerow({key: cell(redact(value) if isinstance(value,str) and not key.endswith('_JSON') else value) for key, value in zip(FIELDS, values, strict=True)})
+    if structured:return dict(schema_version='publication-review-evidence-2',exported_at=exported_at,
+        filters=dict(status=status,priority=priority,search=search),count=len(structured_items),items=structured_items,
+        note='외부 모델 의견은 담당자 업무 보조 의견. 시스템 판단·확정 연결·사업 실적과 별도입니다.')
     return '\ufeff' + output.getvalue()
+
+def export_csv(service,status='ALL',priority=None,search=''):
+    return _export(service,status,priority,search)
+
+def export_json(service,status='ALL',priority=None,search=''):
+    return _export(service,status,priority,search,structured=True)

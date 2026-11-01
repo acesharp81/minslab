@@ -1,0 +1,54 @@
+{
+  "additional_usage": {
+    "gpt-5.4-2026-03-05": {
+      "calls": 9,
+      "input_tokens": 44524,
+      "output_tokens": 12443,
+      "unknown": 0
+    },
+    "gpt-5.4-mini-2026-03-17": {
+      "calls": 3,
+      "input_tokens": 58364,
+      "output_tokens": 8687,
+      "unknown": 0
+    }
+  },
+  "shared": [
+    {
+      "id": "gpt-5.4-mini",
+      "remaining": 9932949,
+      "reserved": 0,
+      "expires_at": "2026-11-02T00:00:00+00:00"
+    },
+    {
+      "id": "gpt-5.4",
+      "remaining": 943033,
+      "reserved": 0,
+      "expires_at": "2026-11-02T00:00:00+00:00"
+    },
+    {
+      "id": "openai-shared",
+      "remaining": 100.0,
+      "reserved": 0.0,
+      "expires_at": "2026-12-01T00:00:00+09:00"
+    },
+    {
+      "id": "solar-pro4",
+      "remaining": null,
+      "reserved": 0.0,
+      "expires_at": null
+    }
+  ],
+  "frozen_evaluation": [
+    {
+      "pool": "gpt-5.4",
+      "used": 895125.0
+    },
+    {
+      "pool": "gpt-5.4-mini",
+      "used": 4168652.0
+    }
+  ],
+  "pending": 0,
+  "automatic_resume": false
+}

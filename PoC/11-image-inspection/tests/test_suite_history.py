@@ -29,3 +29,9 @@ def test_import_preserves_results_no_usage_or_global_reference_and_is_idempotent
     job['runs'][0]['reviews'].append({'reason':'user review'});store.save(job)
     assert import_history(evaluation,data,store)[0]['skipped']
     assert store.get(job['id'])['runs'][0]['reviews']==[{'reason':'user review'}]
+    # A later day's evaluation is appended, never hidden by idempotent import.
+    run['id']='run-2';run['created_at']='2026-11-01T00:00:00Z'
+    (directory/'QA_01.json').write_text(json.dumps(dict(image_sha256=digest,revision='later',run=run)))
+    added=import_history(evaluation,data,store)[0]
+    assert added['added']==1 and added['runs']==2
+    assert store.get(job['id'])['runs'][0]['reviews']==[{'reason':'user review'}]

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "gpt-5.4-mini",
+    "limit": 10000000,
+    "remaining": 6794277,
+    "used": 3205723,
+    "unknown": 0,
+    "reserved": 0,
+    "expires_at": "2026-11-02T00:00:00+00:00"
+  },
+  {
+    "id": "gpt-5.4",
+    "limit": 1000000,
+    "remaining": 146536,
+    "used": 706926,
+    "unknown": 146538,
+    "reserved": 0,
+    "expires_at": "2026-11-02T00:00:00+00:00"
+  },
+  {
+    "id": "openai-shared",
+    "limit": 100.0,
+    "remaining": 100.0,
+    "used": 0.0,
+    "unknown": 0.0,
+    "reserved": 0.0,
+    "expires_at": "2026-12-01T00:00:00+09:00"
+  }
+]

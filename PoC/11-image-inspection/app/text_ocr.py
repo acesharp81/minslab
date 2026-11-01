@@ -115,6 +115,17 @@ def native_crop(raw, rect):
     return out.getvalue(),[px[0]/w,px[1]/h,px[2]/w,px[3]/h],list(cropped.size)
 
 
+def reading_scale(raw, scale):
+    """Pixel repetition for small glyphs; never invent strokes or alter geometry."""
+    image=Image.open(io.BytesIO(raw))
+    scale=max(1,min(3,int(scale)))
+    if scale>1:
+        factor=min(scale,3000/max(image.size))
+        if factor>1:image=image.resize((round(image.width*factor),round(image.height*factor)),Image.Resampling.NEAREST)
+    out=io.BytesIO();image.save(out,format='PNG')
+    return out.getvalue(),list(image.size)
+
+
 def verdict(region):
     """Conservative source/engine distinction; never repair transcripts in place."""
     v=region.get('vision');ocr=normalized(region.get('text'));flags=[]
@@ -160,17 +171,20 @@ def run_text_ocr(engine,job,run,raw):
         not bool(re.search('[가-힣]',r['text'])),r['rect'][3]-r['rect'][1]))
     limit=min(48,max(0,settings.integer('OCR_VISION_MAX_REGIONS',24)));batch_size=6
     model=run['options']['vision_model'];audit['vision_model']=model
+    scale=max(1,min(3,settings.integer('OCR_VISION_SCALE',1)));audit['pixel_scale']=scale
     def inspect(batch, high=False):
         images=[];tasks=[]
         for r in batch:
-            data,rect,size=native_crop(raw,r['rect']);images.append(data)
+            data,rect,size=native_crop(raw,r['rect']);r['source_pixels']=size
+            data,size=reading_scale(data,scale);images.append(data)
             r['crop_rect']=rect;r['sent_pixels']=size
             tasks.append({'region_id':r['id'],'image_index':len(images)-1,
                 'target_rect_in_crop':[(r['rect'][0]-rect[0])/(rect[2]-rect[0]),(r['rect'][1]-rect[1])/(rect[3]-rect[1]),
                                        (r['rect'][2]-rect[0])/(rect[2]-rect[0]),(r['rect'][3]-rect[1])/(rect[3]-rect[1])]})
         # No OCR transcript, label, previous model answer, or answer key enters this prompt.
         payload={'tasks':tasks,'sensitivity':run['options'].get('text_sensitivity','strict'),
-                 'instruction':'각 crop은 격자 없는 원본 픽셀입니다. 전사·획 품질·철자를 별도로 기록하십시오.'}
+                 'pixel_scale':scale,
+                 'instruction':'각 crop은 격자 없는 원본 픽셀입니다. 전사·획 품질·철자를 별도로 기록하십시오.'+(' 원본 픽셀을 반복하여 확대했습니다. 확대의 계단 현상 자체를 원본 글자 결함으로 보지 마십시오.' if scale>1 else '')}
         data,meta=engine.provider.call(model,json.dumps(payload,ensure_ascii=False),images,workload='text-ocr-recheck' if high else 'text-ocr')
         run['calls'].append(meta);audit['call_count']+=1
         readings=TextReadings.model_validate(data).model_dump()['results']
@@ -249,7 +263,7 @@ def analysis_observation(run, ids):
     """OCR IDs must be legal evidence IDs for text rules, not just prompt footnotes."""
     observation=run['analysis_observation']
     text_rules=bool(set(ids).intersection({'D-02-l','H-06-b'}))
-    return {**observation,'objects':[o for o in observation['objects'] if not o.get('ocr_region') or text_rules]}
+    return {**observation,'objects':[o for o in observation['objects'] if not (o.get('ocr_region') or o.get('pixel_text_region')) or text_rules]}
 
 
 def protect_rows(run,rows,ids,model):
@@ -257,6 +271,9 @@ def protect_rows(run,rows,ids,model):
     audit=run.get('text_ocr')
     if not audit:return rows
     regions=audit.get('regions',[]);by_id={r['id']:r for r in regions}
+    confirmed=[p for p in (run.get('pixel_text') or {}).get('regions',[]) if p.get('shape_confirmed')]
+    resolved_ids={r['id'] for r in regions if any(r['rect']==p['rect'] for p in confirmed)}
+    rows=[r for r in rows if not (r.get('rule_id') in ('D-02-l','H-06-b') and set(r.get('evidence_ids',[])).intersection(resolved_ids) and r.get('error_type') in ('OCR_UNCERTAIN','OCR_MISMATCH','OCR_RECOGNITION_ERROR'))]
     for row in rows:
         if row['rule_id'] not in ('D-02-l','H-06-b'):continue
         matches=[by_id[e] for e in row.get('evidence_ids',[]) if e in by_id]
@@ -265,7 +282,9 @@ def protect_rows(run,rows,ids,model):
         # Reference/meaning uncertainty is not the same as uncertain transcription.
         # A clear agreed institution name can still fail a later reference check.
         uncertain=any(r['verdict']['status']=='REVIEW' and not source_transcription_confirmed(r) for r in matches)
-        if row['status'] in ('PASS','FAIL') and (uncertain or audit['status']=='UNAVAILABLE'):
+        grounded_shape=any(p['id'] in row.get('evidence_ids',[]) for p in confirmed)
+        grounded_defect=row['status']=='FAIL' and row.get('error_type')=='VISUAL_TEXT_DEFECT' and (row.get('glyph_evidence') or row.get('pixel_text_evidence'))
+        if row['status'] in ('PASS','FAIL') and not grounded_defect and not grounded_shape and (uncertain or audit['status']=='UNAVAILABLE'):
             row.update(status='REVIEW',error_type='OCR_UNCERTAIN',visual_issue=True,document_review=False,
                        reason=row['reason']+' · 독립 OCR/획 검사 근거 미확정')
         if row['status']=='PASS' and any(r['verdict']['status']=='FAIL' for r in matches):
@@ -273,10 +292,11 @@ def protect_rows(run,rows,ids,model):
     if 'D-02-l' not in ids or not regions:return rows
     # Successful transcription cannot erase a semantic or visual defect finding.
     # Keep concerns and execution failures even where detector geometry overlaps.
-    rows=[r for r in rows if r['rule_id']!='D-02-l' or r['status'] in ('FAIL','REVIEW','ERROR') or (r.get('evidence_ids') and not any(e in by_id for e in r['evidence_ids']) and not any(overlap(a,o['rect'])>.6 for a in r.get('rects',[]) for o in regions))]
+    rows=[r for r in rows if r['rule_id']!='D-02-l' or r['status'] in ('FAIL','REVIEW','ERROR') or any(p['id'] in r.get('evidence_ids',[]) for p in confirmed) or (r.get('evidence_ids') and not any(e in by_id for e in r['evidence_ids']) and not any(overlap(a,o['rect'])>.6 for a in r.get('rects',[]) for o in regions))]
     concerns=[r for r in rows if r['rule_id']=='D-02-l' and r['status'] in ('FAIL','REVIEW','ERROR')]
     steps={s['rule_id']:s for s in run['rule_pack']['steps']};step=steps['D-02-l']
     for r in regions:
+        if r['id'] in resolved_ids:continue  # Superseded by source/template comparison; raw OCR remains in audit.
         v=r.get('vision') or {};d=r['verdict'];x,y,z,b=r['rect']
         if d['status']=='PASS' and any(r['id'] in a.get('evidence_ids',[]) or any(overlap(r['rect'],rect)>.6 for rect in a.get('rects',[])) for a in concerns):
             d={**d,'status':'REVIEW','error_type':'OCR_UNCERTAIN','reason':'문자 판독은 일치하지만 규칙 분석에서 별도 문제가 제기됐습니다. 기존 검토 의견을 함께 확인하세요.'}

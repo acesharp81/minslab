@@ -1,0 +1,33 @@
+{
+  "report_items": 107,
+  "counts": {
+    "REGISTRATION_REQUIRED": 45,
+    "APPROVED": 14,
+    "HOLD": 32,
+    "EXCLUDED": 109
+  },
+  "target_counts": {
+    "REGISTRATION_REQUIRED": 45,
+    "HOLD": 32,
+    "EXCLUDED": 29,
+    "APPROVED": 1
+  },
+  "new_decision_versions": 97,
+  "prior_decisions_preserved_without_rewrite": 10,
+  "assessments": 107,
+  "supplements": 51,
+  "exact_quote_facts": 138,
+  "body_quality": {
+    "TEXT_AVAILABLE_UNVERIFIED": 90,
+    "SUMMARY_ONLY": 2,
+    "MISSING": 11,
+    "INSUFFICIENT": 4
+  },
+  "new_document_links": 1,
+  "project_count": 455,
+  "protected_data_sha256_before": "a450e057e85973bb059d3b5d975fc0041f4ea7a4878c2fbe4ea9a1a7636f8047",
+  "protected_data_sha256_after": "a450e057e85973bb059d3b5d975fc0041f4ea7a4878c2fbe4ea9a1a7636f8047",
+  "policy_mappings_unchanged": true,
+  "outside_review_set_unchanged": true,
+  "actual_units_added": 0
+}

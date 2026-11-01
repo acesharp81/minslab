@@ -1,0 +1,32 @@
+{
+  "version": "hangul-shape-v1",
+  "range": [
+    "AC00",
+    "D7A3"
+  ],
+  "size": 64,
+  "sources": [
+    {
+      "name": "NotoSansCJK-Regular",
+      "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a",
+      "face": 1
+    },
+    {
+      "name": "NotoSansCJK-Bold",
+      "sha256": "faa5f3656a78b2e2d450d27fe8382c778bc2b6bb5ea29c986664a6a435056ceb",
+      "face": 1
+    },
+    {
+      "name": "NotoSansCJK-Black",
+      "sha256": "3cffb10242b4b7e6edd439ebf3bd7e392345525e093ea08149e0a0158a1b5151",
+      "face": 1
+    },
+    {
+      "name": "NotoSerifCJK-Regular",
+      "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77",
+      "face": 1
+    }
+  ],
+  "asset_sha256": "11d6c4c64463a5607bb88fc398fd3f5e3d686e0d4cb7fb265232e34a8d59fb7b",
+  "purpose": "Glyph pixel similarity, not a spelling dictionary or official text reference"
+}
