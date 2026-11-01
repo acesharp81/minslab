@@ -1,0 +1,16 @@
+{
+  "url": "https://www.minslab.kr/poc/home/#publication-reviews",
+  "screen_seconds": 3.528,
+  "items": 138,
+  "csv_rows": 138,
+  "lazy_single_query": true,
+  "desktop": {
+    "width": 1440,
+    "scroll": 1440
+  },
+  "mobile": {
+    "width": 390,
+    "scroll": 390
+  },
+  "page_errors": []
+}

@@ -39,6 +39,17 @@ test('matching diagram is opt-in; whole-image measurements are not drawn on crop
   assert.equal(fixture('CROP').filter(g=>g.technical).length,0);
 });
 
+test('measured emblem location overrides coarse scene cells for its object only',()=>{
+ const rect=[.2,.3,.4,.5];
+ const groups=fixture('FULL_IMAGE',false,{
+  observation:{objects:[{id:'logo',label:'문양',cell_ids:['R01C01'],text_legibility:'NOT_TEXT'}]},
+  results:[{id:'logo-proof',rule_id:'H-07-b',parent_id:'H-07',status:'FAIL',reason:'측정 차이',evidence_ids:['logo'],rects:[rect],cell_ids:['R01C01'],emblem_geometry:{rect}}]
+ });
+ const logo=groups.find(g=>g.id==='logo');
+ assert.deepEqual(Array.from(logo.rects[0]),rect);
+ assert.ok(Math.abs(logo.anchor[0]-.3)<1e-9&&Math.abs(logo.anchor[1]-.4)<1e-9);
+});
+
 test('disconnected text blocks stay one issue without inventing a midpoint marker',()=>{
   const rects=[[2/12,10/12,3/12,11/12],[7/12,10/12,8/12,11/12]];
   const rows=['H-06-b','D-02-l'].map(id=>({id,rule_id:id,parent_id:id.slice(0,4),status:'FAIL',reason:'문구 오타 후보',evidence_ids:['O7'],rects}));
@@ -82,4 +93,17 @@ test('text reading limits remain actionable without flagging ordinary background
  const row={id:'text',rule_id:'D-02-l',parent_id:'D-02',status:'REVIEW',reason:'획을 판독할 수 없음',review_basis:'READING_LIMIT',error_type:'OCR_UNREADABLE',evidence_ids:['text'],rects:[[.2,.3,.3,.4]]};
  const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row],observation:{objects:[{id:'text',label:'작은 안내판',text_legibility:'UNREADABLE',rects:row.rects}]}});
  assert.equal(groups[0].number,1);
+});
+
+test('unresolved text location stays in results without using stale object coordinates',()=>{
+ const row={id:'missing',rule_id:'D-02-l',parent_id:'D-02',status:'FAIL',reason:'지적한 문구 위치 미확정',evidence_ids:['sign'],rects:[[.1,.1,.3,.2]],location_unresolved:true};
+ const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row],observation:{objects:[{id:'sign',label:'다른 문구',rects:row.rects}]}});
+ assert.equal(groups.length,1);assert.equal(groups[0].rows[0].status,'FAIL');assert.equal(groups[0].anchor,undefined);assert.equal(groups[0].rects.length,0);
+});
+
+test('independently grounded text uses detector rectangle rather than coarse scene object',()=>{
+ const rect=[.2,.3,.4,.34];
+ const row={id:'text',rule_id:'D-02-l',parent_id:'D-02',status:'FAIL',reason:'문구 오류',evidence_ids:['sign'],rects:[rect],location_evidence:{status:'VERIFIED_REGION',rects:[rect]}};
+ const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row],observation:{objects:[{id:'sign',label:'문구',rects:[[0,0,.7,.7]]}]}});
+ assert.deepEqual(Array.from(groups[0].rects[0]),rect);
 });

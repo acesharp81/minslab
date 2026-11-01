@@ -11,6 +11,24 @@ class Meter:
     def reserve(self,*args):return {'event_id':args[0]}
     def record(self,e,r):self.events.append((e,r))
 
+
+def test_daily_vision_reservation_scales_with_image_size_billing_uses_response(tmp_path,monkeypatch):
+    import io
+    from PIL import Image
+    class Capture(Meter):
+        def reserve(self,*args):self.bound=args[2];return super().reserve(*args)
+    real=httpx.Client
+    def respond(req):
+        return httpx.Response(200,json={'status':'completed','usage':{'input_tokens':2500,'output_tokens':100},'output':[{'type':'message','content':[{'type':'output_text','text':json.dumps(inventory())}]}]})
+    monkeypatch.setattr('app.providers.httpx.Client',lambda **kw:real(transport=httpx.MockTransport(respond)))
+    s=Settings({'DATA_DIR':str(tmp_path),'OPENAI_API_KEY':'test','OPENAI_BASE_URL':'https://example.org/v1'})
+    bounds=[]
+    for size in ((96,96),(1600,1000)):
+        b=io.BytesIO();Image.new('RGB',size).save(b,format='PNG');meter=Capture()
+        Provider(s,meter).call('gpt-5.4','{}',[b.getvalue()],workload='image-observation');bounds.append(meter.bound)
+        assert meter.events[0][0]['input_tokens']==2500
+    assert 0<bounds[0]<bounds[1] and bounds[1]-bounds[0]<20000
+
 @pytest.mark.parametrize('mode',['timeout','refusal','incomplete','badjson','schema','unauthorized'])
 def test_provider_errors_preserve_usage_and_no_pass(tmp_path,monkeypatch,mode):
     meter=Meter();s=Settings({'DATA_DIR':str(tmp_path),'OPENAI_API_KEY':'secret-test','OPENAI_BASE_URL':'https://example.org/v1'})
@@ -202,3 +220,27 @@ def test_provider_diagnostics_keep_ids_but_not_error_body(tmp_path,monkeypatch):
     assert exc.value.call_meta['provider_ray_id']=='abc123-ICN'
     assert meter.events[0][0]['http_elapsed_ms']>=0
     assert 'must-not-log' not in json.dumps(meter.events) and 'private-cookie' not in json.dumps(meter.events)
+
+
+def test_pixel_comparison_payload_keeps_opaque_candidates_and_original_detail(tmp_path,monkeypatch):
+    meter=Meter();s=Settings({'DATA_DIR':str(tmp_path),'OPENAI_API_KEY':'test','OPENAI_BASE_URL':'https://example.org/v1'})
+    real=httpx.Client
+    def respond(req):
+        body=json.loads(req.content)
+        images=[c for c in body['input'][0]['content'] if c['type']=='input_image']
+        assert len(images)==3 and all(c['detail']=='original' for c in images)
+        result={'results':[dict(region_id='opaque',choice_id='candidate1',quality='CLEAR',evidence='짧은 획이 두 개') ]}
+        return httpx.Response(200,json={'status':'completed','usage':{'input_tokens':100,'output_tokens':20},'output':[{'type':'message','content':[{'type':'output_text','text':json.dumps(result)}]}]})
+    monkeypatch.setattr('app.providers.httpx.Client',lambda **kwargs:real(transport=httpx.MockTransport(respond)))
+    prompt=json.dumps({'tasks':[dict(region_id='opaque',source_image=0,candidate_images=[dict(choice_id='candidate1',image_index=1),dict(choice_id='candidate2',image_index=2)])]})
+    data,meta=Provider(s,meter).call('gpt-5.4',prompt,[b'png']*3,workload='text-pixel-confirm')
+    assert data['results'][0]['choice_id']=='candidate1' and meta['usage']['input_tokens']==100
+
+
+def test_payload_failure_before_http_releases_reserved_tokens(tmp_path,monkeypatch):
+    meter=Meter();s=Settings({'DATA_DIR':str(tmp_path),'OPENAI_API_KEY':'test','OPENAI_BASE_URL':'https://example.org/v1'})
+    monkeypatch.setattr('app.providers.httpx.Client',lambda **kw:pytest.fail('No HTTP expected'))
+    with pytest.raises(ProviderError) as caught:
+        Provider(s,meter).call('gpt-5.4',json.dumps({'tasks':[{'region_id':'bad'}]}),[b'bad'],workload='text-ocr')
+    assert not caught.value.call_meta['request_sent'] and not caught.value.call_meta['usage_unknown']
+    assert meter.events[0][0]['cost_usd']==0

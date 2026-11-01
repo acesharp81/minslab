@@ -51,7 +51,7 @@ def test_measurements_never_replace_original_rule_analysis_and_reuse_is_full(tmp
     from app.config import Settings
     from test_observations import poll, inventory, BATCHES
     import json
-    settings=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'test','COOKIE_SECURE':'false','EXTERNAL_API_ENABLED':'true','OPENAI_API_KEY':'test','UPSTAGE_API_KEY':'test'})
+    settings=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'test','COOKIE_SECURE':'false','EXTERNAL_API_ENABLED':'true','PIXEL_TEXT_ENABLED':'false','OPENAI_API_KEY':'test','UPSTAGE_API_KEY':'test'})
     with TestClient(create_app(settings)) as c:
         c.post('/api/login',json={'role':'admin','password':'test'})
         j=c.post('/api/jobs',files={'file':('flag.png',raw(diagram()),'image/png')}).json()

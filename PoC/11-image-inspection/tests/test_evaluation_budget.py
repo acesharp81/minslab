@@ -7,6 +7,16 @@ class Base:
     def record(self,*args):pass
 
 
+def test_continuation_allowlist_blocks_premium_models_before_central_call(tmp_path):
+    calls=[]
+    class Spy(Base):
+        def reserve(self,*args):calls.append(args);return super().reserve(*args)
+    Meter=capped_usage(Spy,tmp_path/'budget.db',{'gpt-5.4':1000,'gpt-5.4-mini':10000},{})
+    for model in ('gpt-6.1-sol','gpt-6-astra','solar-pro4'):
+        with pytest.raises(RuntimeError,match='승인 범위'):Meter().reserve(model,model,1,1)
+    assert calls==[]
+
+
 def test_atomic_cap_unknown_usage_and_known_settlement(tmp_path):
     Meter=capped_usage(Base,tmp_path/'budget.db',{'gpt-5.4':100},{});m=Meter()
     def reserve(i):

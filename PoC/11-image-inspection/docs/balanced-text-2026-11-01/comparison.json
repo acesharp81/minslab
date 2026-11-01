@@ -1,0 +1,1079 @@
+{
+  "cases": [
+    {
+      "image": "QA_03_ocr_readability",
+      "target": "기관명 오탈자",
+      "expected": "FAIL",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "before": "FAIL",
+      "before_evidence": [
+        {
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 독립 재판독은 미확정이며 원본 글자 확인이 필요합니다.",
+          "evidence_ids": [
+            "OBJ-006"
+          ],
+          "rects": [
+            [
+              0.16666666666666666,
+              0.3333333333333333,
+              0.25,
+              0.4166666666666667
+            ],
+            [
+              0.25,
+              0.3333333333333333,
+              0.3333333333333333,
+              0.4166666666666667
+            ],
+            [
+              0.3333333333333333,
+              0.3333333333333333,
+              0.4166666666666667,
+              0.4166666666666667
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        }
+      ],
+      "after": "FAIL",
+      "after_evidence": [
+        {
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 독립 재판독은 미확정이며 원본 글자 확인이 필요합니다.",
+          "evidence_ids": [
+            "OBJ-006"
+          ],
+          "rects": [
+            [
+              0.16666666666666666,
+              0.3333333333333333,
+              0.25,
+              0.4166666666666667
+            ],
+            [
+              0.25,
+              0.3333333333333333,
+              0.3333333333333333,
+              0.4166666666666667
+            ],
+            [
+              0.3333333333333333,
+              0.3333333333333333,
+              0.4166666666666667,
+              0.4166666666666667
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_03_ocr_readability",
+      "target": "본문 흐림(실물 가독성 저하)",
+      "expected": "FAIL",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "before": "FAIL",
+      "before_evidence": [
+        {
+          "reason": "문자 획 품질: □□□□□□□□□□□□□□□□: 한 줄의 연속된 음절 블록들은 보이지만 각 블록 내부 획이 퍼져 자모 식별이 불가능하다. 공백 위치와 음절 수도 확정하기 어렵다.",
+          "evidence_ids": [
+            "OBJ-008"
+          ],
+          "rects": [
+            [
+              0.1975,
+              0.64175,
+              0.2653125,
+              0.6585
+            ],
+            [
+              0.2653125,
+              0.64175,
+              0.333125,
+              0.6585
+            ],
+            [
+              0.333125,
+              0.64175,
+              0.4009375,
+              0.6585
+            ],
+            [
+              0.4009375,
+              0.64175,
+              0.46875,
+              0.6585
+            ]
+          ]
+        }
+      ],
+      "after": "REVIEW",
+      "after_evidence": [
+        {
+          "reason": "문장 전체가 심하게 번져 원문 철자를 안정적으로 판독할 수 없습니다.",
+          "evidence_ids": [
+            "OBJ-008"
+          ],
+          "rects": [
+            [
+              0.16666666666666666,
+              0.5833333333333334,
+              0.25,
+              0.6666666666666666
+            ],
+            [
+              0.25,
+              0.5833333333333334,
+              0.3333333333333333,
+              0.6666666666666666
+            ],
+            [
+              0.3333333333333333,
+              0.5833333333333334,
+              0.4166666666666667,
+              0.6666666666666666
+            ],
+            [
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5,
+              0.6666666666666666
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_03_ocr_readability",
+      "target": "정상 신청방법 안내",
+      "expected": "PASS",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "before": "PASS",
+      "before_evidence": [
+        {
+          "reason": "'신청 방법 : 주민센터 방문 또는 온라인 접수'가 선명하다.",
+          "evidence_ids": [
+            "OBJ-009"
+          ],
+          "rects": [
+            [
+              0.17671874999999998,
+              0.792,
+              0.234140625,
+              0.80875
+            ],
+            [
+              0.234140625,
+              0.792,
+              0.2915625,
+              0.80875
+            ],
+            [
+              0.2915625,
+              0.792,
+              0.348984375,
+              0.80875
+            ],
+            [
+              0.348984375,
+              0.792,
+              0.40640624999999997,
+              0.80875
+            ]
+          ]
+        }
+      ],
+      "after": "PASS",
+      "after_evidence": [
+        {
+          "reason": "신청 방법 문구가 또렷하고 부호·문자 결함이 보이지 않습니다.",
+          "evidence_ids": [
+            "OBJ-009"
+          ],
+          "rects": [
+            [
+              0.16666666666666666,
+              0.75,
+              0.25,
+              0.8333333333333334
+            ],
+            [
+              0.25,
+              0.75,
+              0.3333333333333333,
+              0.8333333333333334
+            ],
+            [
+              0.3333333333333333,
+              0.75,
+              0.4166666666666667,
+              0.8333333333333334
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_08_all_pass",
+      "target": "행정안전부 정확한 기관명",
+      "expected": "PASS",
+      "rule_id": "H-04-n",
+      "semantic_rule": "D-02-l",
+      "before": "PASS",
+      "before_evidence": [
+        {
+          "reason": "'행정안전부'가 선명하게 읽히며 획 손상이나 오독이 없습니다.",
+          "evidence_ids": [
+            "OBJ-010"
+          ],
+          "rects": [
+            [
+              0.5833333333333334,
+              0.6666666666666666,
+              0.6666666666666666,
+              0.75
+            ],
+            [
+              0.6666666666666666,
+              0.6666666666666666,
+              0.75,
+              0.75
+            ]
+          ]
+        }
+      ],
+      "after": "PASS",
+      "after_evidence": [
+        {
+          "reason": "기관명 ‘행정안전부’가 선명하며 자소 누락이나 번짐이 보이지 않는다.",
+          "evidence_ids": [
+            "OBJ-010"
+          ],
+          "rects": [
+            [
+              0.5833333333333334,
+              0.6666666666666666,
+              0.6666666666666666,
+              0.75
+            ],
+            [
+              0.6666666666666666,
+              0.6666666666666666,
+              0.75,
+              0.75
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_08_all_pass",
+      "target": "선명한 날짜 텍스트",
+      "expected": "PASS",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "before": "PASS",
+      "before_evidence": [
+        {
+          "reason": "'신청 기간: 11월 1일~30일'이 명확히 판독됩니다.",
+          "evidence_ids": [
+            "OBJ-011"
+          ],
+          "rects": [
+            [
+              0.5833333333333334,
+              0.75,
+              0.6666666666666666,
+              0.8333333333333334
+            ],
+            [
+              0.6666666666666666,
+              0.75,
+              0.75,
+              0.8333333333333334
+            ]
+          ]
+        }
+      ],
+      "after": "PASS",
+      "after_evidence": [
+        {
+          "reason": "신청 기간 문구의 숫자·기호·한글이 분리되어 읽히며 깨짐이 없다.",
+          "evidence_ids": [
+            "OBJ-011"
+          ],
+          "rects": [
+            [
+              0.5833333333333334,
+              0.75,
+              0.6666666666666666,
+              0.8333333333333334
+            ],
+            [
+              0.6666666666666666,
+              0.75,
+              0.75,
+              0.8333333333333334
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_10_emblem",
+      "target": "안젼한 하루 오탈자",
+      "expected": "FAIL",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "before": "REVIEW",
+      "before_evidence": [
+        {
+          "reason": "대상은 관찰됐지만 이 행동에 대한 모델 판정이 누락됐습니다. 정상·오류 모두 미확정입니다.",
+          "evidence_ids": [
+            "OBJ-009"
+          ],
+          "rects": [
+            [
+              0.5833333333333334,
+              0.3333333333333333,
+              0.6666666666666666,
+              0.4166666666666667
+            ],
+            [
+              0.6666666666666666,
+              0.3333333333333333,
+              0.75,
+              0.4166666666666667
+            ]
+          ]
+        },
+        {
+          "reason": "문자 판독은 일치하지만 규칙 분석에서 별도 문제가 제기됐습니다. 기존 검토 의견을 함께 확인하세요.",
+          "evidence_ids": [
+            "OCR013"
+          ],
+          "rects": [
+            [
+              0.556875,
+              0.325,
+              0.71375,
+              0.391
+            ]
+          ]
+        }
+      ],
+      "after": "PASS",
+      "after_evidence": [
+        {
+          "reason": "독립 전사가 일치하며 해당 원본 영역의 획·철자 검사에서 결함을 발견하지 않았습니다.",
+          "evidence_ids": [
+            "OCR013"
+          ],
+          "rects": [
+            [
+              0.556875,
+              0.325,
+              0.71375,
+              0.391
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_10_emblem",
+      "target": "안전한 동행 문구",
+      "expected": "PASS",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "before": "REVIEW",
+      "before_evidence": [
+        {
+          "reason": "대상은 관찰됐지만 이 행동에 대한 모델 판정이 누락됐습니다. 정상·오류 모두 미확정입니다.",
+          "evidence_ids": [
+            "OBJ-007"
+          ],
+          "rects": [
+            [
+              0.1559375,
+              0.7585,
+              0.20296874999999998,
+              0.77525
+            ],
+            [
+              0.20296874999999998,
+              0.7585,
+              0.25,
+              0.77525
+            ],
+            [
+              0.25,
+              0.7585,
+              0.29703124999999997,
+              0.77525
+            ],
+            [
+              0.20296874999999998,
+              0.77525,
+              0.25,
+              0.792
+            ]
+          ]
+        },
+        {
+          "reason": "문자 판독은 일치하지만 규칙 분석에서 별도 문제가 제기됐습니다. 기존 검토 의견을 함께 확인하세요.",
+          "evidence_ids": [
+            "OCR010"
+          ],
+          "rects": [
+            [
+              0.145625,
+              0.739,
+              0.260625,
+              0.788
+            ]
+          ]
+        }
+      ],
+      "after": "PASS",
+      "after_evidence": [
+        {
+          "reason": "독립 전사가 일치하며 해당 원본 영역의 획·철자 검사에서 결함을 발견하지 않았습니다.",
+          "evidence_ids": [
+            "OCR010"
+          ],
+          "rects": [
+            [
+              0.145625,
+              0.739,
+              0.260625,
+              0.788
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "image": "QA_03_ocr_readability.json",
+      "run_id": "8c0bfff3104c4009bfe3a04ff40c1134",
+      "calls": [
+        {
+          "event_id": "poc11-29eee4a79c79439a8fc653de7f90a9c7",
+          "response_id": "resp_075d80643c2e2f02016ae687efc69887d0a0ff834a25dba63a",
+          "model": "gpt-5.4-2026-03-05",
+          "requested_model": "gpt-5.4",
+          "workload": "image-verification",
+          "usage": {
+            "input_tokens": 4840,
+            "output_tokens": 1062
+          },
+          "cost_usd": 0.02803,
+          "image_detail": "original",
+          "reasoning_effort": "medium"
+        },
+        {
+          "event_id": "poc11-746da41f88154f3687520b95c84a7bd0",
+          "response_id": "resp_0a94c80305c24b91016ae687fc7d7887d095d53ed6880492f7",
+          "model": "gpt-5.4-2026-03-05",
+          "requested_model": "gpt-5.4",
+          "workload": "image-verification",
+          "usage": {
+            "input_tokens": 4727,
+            "output_tokens": 2065
+          },
+          "cost_usd": 0.0427925,
+          "image_detail": "original",
+          "reasoning_effort": "medium"
+        },
+        {
+          "event_id": "poc11-9040e238c3f44c7c95f892d7751e29b0",
+          "response_id": "resp_0a62a393c3f5e958016ae6881c4a1887d0928be02d77b5048e",
+          "model": "gpt-5.4-2026-03-05",
+          "requested_model": "gpt-5.4",
+          "workload": "image-verification",
+          "usage": {
+            "input_tokens": 4502,
+            "output_tokens": 792
+          },
+          "cost_usd": 0.023135,
+          "image_detail": "original",
+          "reasoning_effort": "medium"
+        },
+        {
+          "event_id": "poc11-ade28950fa1c43cb8cd79b81054fcd06",
+          "response_id": "resp_0987aedd981973b7016ae68827293c87d08ec5369f31bbb7b5",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "requested_model": "gpt-5.4-mini",
+          "workload": "checklist-analysis",
+          "usage": {
+            "input_tokens": 16738,
+            "output_tokens": 2298
+          },
+          "cost_usd": 0.0228945,
+          "image_detail": null,
+          "reasoning_effort": "low"
+        }
+      ],
+      "text_coverage": {
+        "roles": {
+          "institution": {
+            "label": "기관명",
+            "detected": 0,
+            "rechecked": 0
+          },
+          "heading": {
+            "label": "제목",
+            "detected": 3,
+            "rechecked": 2
+          },
+          "body": {
+            "label": "본문",
+            "detected": 8,
+            "rechecked": 1
+          },
+          "notice": {
+            "label": "작은 안내",
+            "detected": 0,
+            "rechecked": 0
+          }
+        },
+        "detected_text_regions": 11,
+        "transcribed_regions": 10,
+        "unreadable_regions": 1,
+        "ocr_disagreement_regions": 1,
+        "rechecked_text_regions": 3,
+        "note": "탐지된 객체 기준 집계. 이미지의 모든 글자를 발견했다는 보장은 아닙니다. 독립 OCR 엔진 수가 아닌 시각 모델 재판독입니다."
+      },
+      "errors": 0,
+      "stopped_reason": null,
+      "elapsed_seconds": 63.59,
+      "readings": [
+        {
+          "object_id": "OBJ-002",
+          "coverage": "COMPLETE",
+          "text": "OCR·오탈자·가독성 검수",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "OCR·오탈자·가독성 검수",
+              "quality": "CLEAR",
+              "evidence": "한 줄 전체가 선명합니다. 'OCR'의 외곽 획이 또렷하고, 가운데점 2개가 각각 독립되어 보입니다. '오/탈/자/가/독/성/검/수' 각 음절의 초성·중성·종성 구분이 가능하며 획의 비정상적 소실이나 붙음은 보이지 않습니다.",
+              "cell_ids": [
+                "R05C03",
+                "R05C04",
+                "R05C05",
+                "R05C06"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-010",
+          "coverage": "COMPLETE",
+          "text": "첵미! 검수 성능시험 · 가상 합성 이미지 / 실제 배포 금지",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "첵미! 검수 성능시험 · 가상 합성 이미지 / 실제 배포 금지",
+              "quality": "CLEAR",
+              "evidence": "문구 전체의 자획이 원본 확대에서 연속적으로 확인된다. 첫 구간 '첵미!'와 이후 각 단어 사이 공백, 중점, 사선이 모두 분리되어 보이며 글자 자체의 번짐·융합·결손은 확인되지 않는다.",
+              "cell_ids": [
+                "R06C03",
+                "R06C04",
+                "R06C05",
+                "R06C06"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-005",
+          "coverage": "COMPLETE",
+          "text": "홍보 카드 예시",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "홍보 카드 예시",
+              "quality": "CLEAR",
+              "evidence": "'홍','보','카','드','예','시' 각 음절의 초성·중성·종성 획이 안정적으로 식별됩니다. 글자 내부 획의 소실이나 비정상 결합은 보이지 않습니다.",
+              "cell_ids": [
+                "R05C02",
+                "R05C03",
+                "R05C04"
+              ],
+              "origin": "SOURCE"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "run_id": "2a26c2882c924f74a8c6ac3dd0e734d0",
+      "calls": [
+        {
+          "event_id": "poc11-37f011380a594641ae9a25729f4b50b3",
+          "response_id": "resp_0244f4902d2f2e3d016ae6882fc35487d084a44ed0d222df2f",
+          "model": "gpt-5.4-2026-03-05",
+          "requested_model": "gpt-5.4",
+          "workload": "image-verification",
+          "usage": {
+            "input_tokens": 4606,
+            "output_tokens": 831
+          },
+          "cost_usd": 0.02398,
+          "image_detail": "original",
+          "reasoning_effort": "medium"
+        },
+        {
+          "event_id": "poc11-bc4e76ff8a7d41e99b363331d8058cd3",
+          "response_id": "resp_0a9a40286d93b730016ae6883de78887d0a1c3b70fb1b05c1a",
+          "model": "gpt-5.4-2026-03-05",
+          "requested_model": "gpt-5.4",
+          "workload": "image-verification",
+          "usage": {
+            "input_tokens": 4840,
+            "output_tokens": 1116
+          },
+          "cost_usd": 0.02884,
+          "image_detail": "original",
+          "reasoning_effort": "medium"
+        },
+        {
+          "event_id": "poc11-045f7144d59c494fa1cf053a3c13c046",
+          "response_id": "resp_0e4a76e0176ec930016ae6884b54cc87d0ac789eb1bca8a503",
+          "model": "gpt-5.4-2026-03-05",
+          "requested_model": "gpt-5.4",
+          "workload": "image-verification",
+          "usage": {
+            "input_tokens": 5238,
+            "output_tokens": 1296
+          },
+          "cost_usd": 0.032535,
+          "image_detail": "original",
+          "reasoning_effort": "medium"
+        },
+        {
+          "event_id": "poc11-8f6c7cdf34f04067abea08d36364ded9",
+          "response_id": "resp_0441ee7856b8e312016ae6885f828c87d086906f6ea363f36f",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "requested_model": "gpt-5.4-mini",
+          "workload": "checklist-analysis",
+          "usage": {
+            "input_tokens": 16651,
+            "output_tokens": 2510
+          },
+          "cost_usd": 0.02378325,
+          "image_detail": null,
+          "reasoning_effort": "low"
+        }
+      ],
+      "text_coverage": {
+        "roles": {
+          "institution": {
+            "label": "기관명",
+            "detected": 1,
+            "rechecked": 0
+          },
+          "heading": {
+            "label": "제목",
+            "detected": 4,
+            "rechecked": 1
+          },
+          "body": {
+            "label": "본문",
+            "detected": 5,
+            "rechecked": 0
+          },
+          "notice": {
+            "label": "작은 안내",
+            "detected": 1,
+            "rechecked": 0
+          }
+        },
+        "detected_text_regions": 11,
+        "transcribed_regions": 11,
+        "unreadable_regions": 0,
+        "ocr_disagreement_regions": 0,
+        "rechecked_text_regions": 1,
+        "note": "탐지된 객체 기준 집계. 이미지의 모든 글자를 발견했다는 보장은 아닙니다. 독립 OCR 엔진 수가 아닌 시각 모델 재판독입니다."
+      },
+      "errors": 0,
+      "stopped_reason": null,
+      "elapsed_seconds": 58.17,
+      "readings": [
+        {
+          "object_id": "OBJ-010",
+          "coverage": "PARTIAL",
+          "text": "행정안전부",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "행정안전부",
+              "quality": "CLEAR",
+              "evidence": "1줄 5음절. '행'의 ㅎ·ㅐ·ㅇ, '정'의 ㅈ·ㅓ·ㅇ, '안'의 ㅇ·ㅏ·ㄴ, '전'의 ㅈ·ㅓ·ㄴ, '부'의 ㅂ·ㅜ 획이 모두 식별된다. 획 번짐이나 비정상 융합 없이 자모 형태가 안정적이다.",
+              "cell_ids": [
+                "R06C02",
+                "R06C03",
+                "R06C04",
+                "R07C03"
+              ],
+              "origin": "SOURCE"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-002",
+          "coverage": "COMPLETE",
+          "text": "정상 사례 — REVIEW 남발 방지",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "정상 사례 — REVIEW 남발 방지",
+              "quality": "CLEAR",
+              "evidence": "한글과 영문 모두 획 경계가 또렷합니다. '정/상/사/례/남/발/방/지' 각 음절의 초성·중성·종성 구분이 가능하고, 'REVIEW' 각 글자의 세로·가로획과 내부 공간이 선명합니다. 대시도 별도 기호로 분리되어 보입니다.",
+              "cell_ids": [
+                "R05C03",
+                "R05C04",
+                "R05C05",
+                "R05C06"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-006",
+          "coverage": "COMPLETE",
+          "text": "",
+          "quality": "CLEAR",
+          "text_legibility": "NOT_TEXT",
+          "glyph_checks": []
+        }
+      ]
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "run_id": "be309f4f907a4146a5d6772c3e9c8750",
+      "calls": [
+        {
+          "event_id": "poc11-330f6fca6e98450982abfdf76b7d5a7c",
+          "response_id": "resp_0e4501ca77c54fc8016ae687abb10887d0838f6dddfda1a0bf",
+          "model": "gpt-5.4-2026-03-05",
+          "requested_model": "gpt-5.4",
+          "workload": "image-verification",
+          "usage": {
+            "input_tokens": 5642,
+            "output_tokens": 2439
+          },
+          "cost_usd": 0.05069,
+          "image_detail": "original",
+          "reasoning_effort": "medium"
+        },
+        {
+          "event_id": "poc11-9dbf6f831461426c830f6883d68179cb",
+          "response_id": "resp_01995d2bf3c4034a016ae687c4c3f087d0a8bbdc7a59462f5f",
+          "model": "gpt-5.4-2026-03-05",
+          "requested_model": "gpt-5.4",
+          "workload": "image-verification",
+          "usage": {
+            "input_tokens": 5628,
+            "output_tokens": 1967
+          },
+          "cost_usd": 0.043575,
+          "image_detail": "original",
+          "reasoning_effort": "medium"
+        },
+        {
+          "event_id": "poc11-c6c628731f0f424183996a69e5d2137a",
+          "response_id": "resp_0d06955d640b12b4016ae687da007c87d08b0100a987e80bca",
+          "model": "gpt-5.4-2026-03-05",
+          "requested_model": "gpt-5.4",
+          "workload": "image-verification",
+          "usage": {
+            "input_tokens": 4501,
+            "output_tokens": 875
+          },
+          "cost_usd": 0.0243775,
+          "image_detail": "original",
+          "reasoning_effort": "medium"
+        },
+        {
+          "event_id": "poc11-28e945b307fb4e40b7653c5b0a34d47b",
+          "response_id": "resp_00d061c9129bc998016ae687e49a5087d08a66776684f8262c",
+          "model": "gpt-5.4-mini-2026-03-17",
+          "requested_model": "gpt-5.4-mini",
+          "workload": "checklist-analysis",
+          "usage": {
+            "input_tokens": 24975,
+            "output_tokens": 3879
+          },
+          "cost_usd": 0.03618675,
+          "image_detail": null,
+          "reasoning_effort": "low"
+        }
+      ],
+      "text_coverage": {
+        "roles": {
+          "institution": {
+            "label": "기관명",
+            "detected": 0,
+            "rechecked": 0
+          },
+          "heading": {
+            "label": "제목",
+            "detected": 6,
+            "rechecked": 2
+          },
+          "body": {
+            "label": "본문",
+            "detected": 4,
+            "rechecked": 2
+          },
+          "notice": {
+            "label": "작은 안내",
+            "detected": 3,
+            "rechecked": 2
+          }
+        },
+        "detected_text_regions": 13,
+        "transcribed_regions": 13,
+        "unreadable_regions": 0,
+        "ocr_disagreement_regions": 1,
+        "rechecked_text_regions": 6,
+        "note": "탐지된 객체 기준 집계. 이미지의 모든 글자를 발견했다는 보장은 아닙니다. 독립 OCR 엔진 수가 아닌 시각 모델 재판독입니다."
+      },
+      "errors": 0,
+      "stopped_reason": null,
+      "elapsed_seconds": 68.28,
+      "readings": [
+        {
+          "object_id": "OBJ-002",
+          "coverage": "COMPLETE",
+          "text": "문양·제복·정보 비교",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "문양·제복·정보 비교",
+              "quality": "CLEAR",
+              "evidence": "문양, 제복, 정보, 비교 각 음절의 외곽이 또렷하며 가운데점 구분이 가능하다. 자모 결손이나 비정상 분리는 보이지 않는다.",
+              "cell_ids": [
+                "R05C03",
+                "R05C04",
+                "R05C05",
+                "R05C06"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-005",
+          "coverage": "COMPLETE",
+          "text": "활동 안내 / 예시 도안 기준 검사",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "활동 안내 / 예시 도안 기준 검사",
+              "quality": "CLEAR",
+              "evidence": "활동, 안내, 예시, 도안, 기준, 검사로 읽히며 슬래시 좌우 공백도 보인다. 한글 자모의 짧은 획과 받침 구분이 가능하고 뭉개짐은 뚜렷하지 않다.",
+              "cell_ids": [
+                "R05C02",
+                "R05C03",
+                "R05C04",
+                "R05C05"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-012",
+          "coverage": "COMPLETE",
+          "text": "표준 참고\n가상 문양",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "표준 참고",
+              "quality": "CLEAR",
+              "evidence": "상단 줄의 표, 준, 참, 고 각 음절이 또렷하다. 획의 융합이나 결손이 관찰되지 않는다.",
+              "cell_ids": [
+                "R04C04",
+                "R04C05",
+                "R05C04",
+                "R05C05"
+              ],
+              "origin": "UNRESOLVED"
+            },
+            {
+              "literal": "가상 문양",
+              "quality": "CLEAR",
+              "evidence": "하단 줄의 가, 상, 문, 양 각 음절이 식별 가능하다. 연한 색상이지만 실제 글자 획은 안정적으로 보인다.",
+              "cell_ids": [
+                "R04C04",
+                "R04C05",
+                "R05C04",
+                "R05C05"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-009",
+          "coverage": "COMPLETE",
+          "text": "안전한 하루",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "안전한 하루",
+              "quality": "CLEAR",
+              "evidence": "안: ㅇ·ㅏ·ㄴ 식별 가능. 전: ㅈ·ㅓ·ㄴ 식별 가능. 한: ㅎ·ㅏ·ㄴ 식별 가능. 하: ㅎ·ㅏ 식별 가능. 루: ㄹ·ㅜ 식별 가능. 각 획의 결손·융합·비정상 분리 없음.",
+              "cell_ids": [
+                "R03C04",
+                "R03C05",
+                "R04C04",
+                "R04C05"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-007",
+          "coverage": "COMPLETE",
+          "text": "안전한 동행",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "안전한 동행",
+              "quality": "CLEAR",
+              "evidence": "안: ㅇ·ㅏ·ㄴ 식별 가능. 전: ㅈ·ㅓ·ㄴ 식별 가능. 한: ㅎ·ㅏ·ㄴ 식별 가능. 동: ㄷ·ㅗ·ㅇ 식별 가능. 행: ㅎ·ㅐ·ㅇ 식별 가능. 전체적으로 획의 결손·융합·끊김 없음.",
+              "cell_ids": [
+                "R03C03",
+                "R03C04",
+                "R04C03",
+                "R04C04"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-013",
+          "coverage": "COMPLETE",
+          "text": "가상 문양",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "가상 문양",
+              "quality": "CLEAR",
+              "evidence": "가: ㄱ·ㅏ 식별 가능. 상: ㅅ·ㅏ·ㅇ 식별 가능. 문: ㅁ·ㅜ·ㄴ 식별 가능. 양: ㅇ·ㅑ·ㅇ 식별 가능. 실제 획의 결손·융합·비정상 분리 없음.",
+              "cell_ids": [
+                "R02C04",
+                "R02C05",
+                "R03C04",
+                "R03C05"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        },
+        {
+          "object_id": "OBJ-004",
+          "coverage": "PARTIAL",
+          "text": "가상 안전안내단",
+          "quality": "CLEAR",
+          "text_legibility": "CLEAR",
+          "glyph_checks": [
+            {
+              "literal": "가상 안전안내단",
+              "quality": "CLEAR",
+              "evidence": "'가''상'과 공백, 이어지는 '안''전''안''내''단'의 각 음절 획이 분리되어 보인다. ㅏ/ㅓ, ㅣ 계열 짧은 획과 받침 유무가 식별 가능하며 글자 내부 융합이나 소실은 보이지 않는다.",
+              "cell_ids": [
+                "R06C03",
+                "R06C04",
+                "R06C05",
+                "R07C04"
+              ],
+              "origin": "UNRESOLVED"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "before": {
+      "cases": 7,
+      "expected": {
+        "FAIL": 3,
+        "PASS": 4
+      },
+      "predicted": {
+        "FAIL": 2,
+        "PASS": 3,
+        "REVIEW": 2
+      },
+      "fail_recall": 0.6667,
+      "false_positive_rate": 0.0,
+      "normal_pass_rate": 0.75,
+      "required_review_accuracy": null,
+      "review_rate": 0.2857,
+      "error_or_omission_rate": 0.0
+    },
+    "after": {
+      "cases": 7,
+      "expected": {
+        "FAIL": 3,
+        "PASS": 4
+      },
+      "predicted": {
+        "FAIL": 1,
+        "REVIEW": 1,
+        "PASS": 5
+      },
+      "fail_recall": 0.3333,
+      "false_positive_rate": 0.0,
+      "normal_pass_rate": 1.0,
+      "required_review_accuracy": null,
+      "review_rate": 0.1429,
+      "error_or_omission_rate": 0.0
+    }
+  },
+  "limitations": [
+    "One rerun per image; model variability is not isolated.",
+    "Previously inspected images are regression cases, not an unseen holdout.",
+    "Semantic agency-name mapping H-04-n to D-02-l is explicit.",
+    "No full character-level truth; cannot report character error rate or comprehensive OCR omission rate.",
+    "Unlabelled text warnings are not included in false-positive rate.",
+    "No answer labels or ROIs enter inference."
+  ]
+}

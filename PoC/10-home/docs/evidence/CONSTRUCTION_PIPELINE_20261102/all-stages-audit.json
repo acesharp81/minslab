@@ -1,0 +1,496 @@
+{
+  "BUSINESS": {
+    "label": "사업화",
+    "managed_projects": 298,
+    "inferred_projects": 295,
+    "last_management_update": "2026-10-22 09:15:25.606116+00:00",
+    "source_facts": {
+      "STATE": 317,
+      "ACTUAL": 1748,
+      "DOCUMENT": 22
+    },
+    "recent_actual_facts": 1405,
+    "recent_shadowed_facts": [],
+    "chart_latest_event": {
+      "date": "2026-06-29",
+      "units": 147491,
+      "confirmed_units": 147491,
+      "policy_confirmed_units": 147491,
+      "review_units": 0,
+      "origin": "SOURCE_OR_MANUAL",
+      "manual_units": 147491,
+      "inferred_units": 147491,
+      "evidence_urls": []
+    }
+  },
+  "APPROVAL": {
+    "label": "인허가",
+    "managed_projects": 292,
+    "inferred_projects": 150,
+    "last_management_update": "2026-10-22 09:15:25.606116+00:00",
+    "source_facts": {
+      "STATE": 243,
+      "ACTUAL": 992,
+      "DOCUMENT": 15,
+      "PLAN": 8
+    },
+    "recent_actual_facts": 621,
+    "recent_shadowed_facts": [],
+    "chart_latest_event": {
+      "date": "2026-06-30",
+      "units": 94801,
+      "confirmed_units": 93633,
+      "policy_confirmed_units": 93633,
+      "review_units": 1168,
+      "origin": "SOURCE_OR_MANUAL",
+      "manual_units": 93633,
+      "inferred_units": 63177,
+      "evidence_urls": []
+    }
+  },
+  "CONSTRUCTION": {
+    "label": "착공",
+    "managed_projects": 244,
+    "inferred_projects": 168,
+    "last_management_update": "2026-10-22 09:15:25.606116+00:00",
+    "source_facts": {
+      "PLAN": 48,
+      "ACTUAL": 242,
+      "DOCUMENT": 69,
+      "STATE": 2
+    },
+    "recent_actual_facts": 31,
+    "recent_shadowed_facts": [
+      {
+        "id": "EVI_5e9909e9e3d364886cfb6f01",
+        "project_id": "PRO_91a176954d241b2aac791074",
+        "title": "부천대장 A9",
+        "status": "REVIEW",
+        "fact": {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-10-30",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 1.7
+        },
+        "managed": {
+          "event_date": "2026-06-30",
+          "units": 574,
+          "field_provenance": {
+            "event_date": {
+              "rule": "SEQUENCE_VALIDATED_TARGET_ESTIMATE",
+              "value": "2026-06-30",
+              "target_stage": "CONSTRUCTION",
+              "target_field": "due_date",
+              "target_date": "2026-06-30",
+              "target_units": 574,
+              "target_revision_id": null,
+              "sequence_evidence": {
+                "witness": {
+                  "stage": "CONSTRUCTION",
+                  "date": "2026-06-30",
+                  "units": 574,
+                  "pct": null,
+                  "exact": false,
+                  "source_id": "officer",
+                  "source_entity_id": "DOC_4a218668543866ac9c9a7339",
+                  "source_revision_no": 3
+                },
+                "lower_date": null,
+                "upper_date": "2026-06-30",
+                "basis": "같은 단계 또는 후행 단계의 확인 사건으로 도달 여부·날짜 경계·물량 검증"
+              },
+              "basis": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정"
+            },
+            "units": {
+              "rule": "SOURCE_ACCEPTED",
+              "value": 574,
+              "source_id": "officer",
+              "source_entity_id": "DOC_4a218668543866ac9c9a7339",
+              "source_revision_no": 3,
+              "basis": "같은 사업·단계의 수집 측정값 우선 보존"
+            }
+          },
+          "inferred": true,
+          "input_rule": "SEQUENCE_VALIDATED_TARGET_ESTIMATE",
+          "input_basis": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정",
+          "actor": "시스템 · 사용자 요청 기준 정정",
+          "reason": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정",
+          "origin": "MANUAL",
+          "changed_at": "2026-10-22T06:57:17.351718+00:00",
+          "batch_id": "measure-sequence-validated-20261022"
+        }
+      },
+      {
+        "id": "EVI_b164d289574f6ddd70eadf5b",
+        "project_id": "PRO_795bc2926b42e5534efe75ef",
+        "title": "인천계양 A16",
+        "status": "REVIEW",
+        "fact": {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-10-30",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 1.0
+        },
+        "managed": {
+          "event_date": "2026-06-30",
+          "units": 434,
+          "field_provenance": {
+            "event_date": {
+              "rule": "SEQUENCE_VALIDATED_TARGET_ESTIMATE",
+              "value": "2026-06-30",
+              "target_stage": "CONSTRUCTION",
+              "target_field": "due_date",
+              "target_date": "2026-06-30",
+              "target_units": 434,
+              "target_revision_id": null,
+              "sequence_evidence": {
+                "witness": {
+                  "stage": "CONSTRUCTION",
+                  "date": "2026-06-30",
+                  "units": 434,
+                  "pct": null,
+                  "exact": false,
+                  "source_id": "officer",
+                  "source_entity_id": "DOC_5b4ae98c29beff1d131c6238",
+                  "source_revision_no": 3
+                },
+                "lower_date": "2023-12-29",
+                "upper_date": "2026-06-30",
+                "basis": "같은 단계 또는 후행 단계의 확인 사건으로 도달 여부·날짜 경계·물량 검증"
+              },
+              "basis": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정"
+            },
+            "units": {
+              "rule": "SOURCE_ACCEPTED",
+              "value": 434,
+              "source_id": "officer",
+              "source_entity_id": "DOC_5b4ae98c29beff1d131c6238",
+              "source_revision_no": 3,
+              "basis": "같은 사업·단계의 수집 측정값 우선 보존"
+            }
+          },
+          "inferred": true,
+          "input_rule": "SEQUENCE_VALIDATED_TARGET_ESTIMATE",
+          "input_basis": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정",
+          "actor": "시스템 · 사용자 요청 기준 정정",
+          "reason": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정",
+          "origin": "MANUAL",
+          "changed_at": "2026-10-22T06:57:17.351718+00:00",
+          "batch_id": "measure-sequence-validated-20261022"
+        }
+      },
+      {
+        "id": "EVI_21f6b0b505c2bba3d022ed7e",
+        "project_id": "PRO_bf06ad6b8b22e4c3ed114ae6",
+        "title": "인천계양 A18",
+        "status": "REVIEW",
+        "fact": {
+          "stage": "CONSTRUCTION",
+          "kind": "ACTUAL",
+          "date": "2026-10-30",
+          "basis": "동일 사업 후보의 원천 공정률",
+          "pct": 1.28
+        },
+        "managed": {
+          "event_date": "2026-06-30",
+          "units": 782,
+          "field_provenance": {
+            "event_date": {
+              "rule": "SEQUENCE_VALIDATED_TARGET_ESTIMATE",
+              "value": "2026-06-30",
+              "target_stage": "CONSTRUCTION",
+              "target_field": "due_date",
+              "target_date": "2026-06-30",
+              "target_units": 782,
+              "target_revision_id": null,
+              "sequence_evidence": {
+                "witness": {
+                  "stage": "CONSTRUCTION",
+                  "date": "2026-06-30",
+                  "units": 782,
+                  "pct": null,
+                  "exact": false,
+                  "source_id": "officer",
+                  "source_entity_id": "DOC_5b4ae98c29beff1d131c6238",
+                  "source_revision_no": 3
+                },
+                "lower_date": null,
+                "upper_date": "2026-06-30",
+                "basis": "같은 단계 또는 후행 단계의 확인 사건으로 도달 여부·날짜 경계·물량 검증"
+              },
+              "basis": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정"
+            },
+            "units": {
+              "rule": "SOURCE_ACCEPTED",
+              "value": 782,
+              "source_id": "officer",
+              "source_entity_id": "DOC_5b4ae98c29beff1d131c6238",
+              "source_revision_no": 3,
+              "basis": "같은 사업·단계의 수집 측정값 우선 보존"
+            }
+          },
+          "inferred": true,
+          "input_rule": "SEQUENCE_VALIDATED_TARGET_ESTIMATE",
+          "input_basis": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정",
+          "actor": "시스템 · 사용자 요청 기준 정정",
+          "reason": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정",
+          "origin": "MANUAL",
+          "changed_at": "2026-10-22T06:57:17.351718+00:00",
+          "batch_id": "measure-sequence-validated-20261022"
+        }
+      }
+    ],
+    "chart_latest_event": {
+      "date": "2026-10-21",
+      "units": 81131,
+      "confirmed_units": 81131,
+      "policy_confirmed_units": 81131,
+      "review_units": 0,
+      "origin": "SOURCE_OR_MANUAL",
+      "manual_units": 78015,
+      "inferred_units": 69986,
+      "evidence_urls": [
+        "https://dwce.co.kr/business/performance"
+      ]
+    }
+  },
+  "COMPLETION": {
+    "label": "준공",
+    "managed_projects": 10,
+    "inferred_projects": 4,
+    "last_management_update": "2026-10-22 09:15:25.606116+00:00",
+    "source_facts": {
+      "PLAN": 175,
+      "ACTUAL": 12
+    },
+    "recent_actual_facts": 0,
+    "recent_shadowed_facts": [],
+    "chart_latest_event": {
+      "date": "2026-09-16",
+      "units": 697,
+      "confirmed_units": 697,
+      "policy_confirmed_units": 697,
+      "review_units": 0,
+      "origin": "SOURCE_OR_MANUAL",
+      "manual_units": 697,
+      "inferred_units": 0,
+      "evidence_urls": [
+        "https://apply.gh.or.kr/cs/sr/sr7900/selectNoticeDetailView.do?bbsSn=111"
+      ]
+    }
+  },
+  "SUPPLY": {
+    "label": "공급·모집",
+    "managed_projects": 81,
+    "inferred_projects": 13,
+    "last_management_update": "2026-10-22 09:15:25.606116+00:00",
+    "source_facts": {
+      "DOCUMENT": 298,
+      "PLAN": 64,
+      "ACTUAL": 383,
+      "STATE": 11
+    },
+    "recent_actual_facts": 155,
+    "recent_shadowed_facts": [
+      {
+        "id": "EVI_bd0a14373f3a15d7b9452e8d",
+        "project_id": "PRO_956d75d8144b84a201c71b73",
+        "title": "조달청)시흥하중 A-1BL 공동주택 건설공사 1공구",
+        "status": "REVIEW",
+        "fact": {
+          "stage": "SUPPLY",
+          "kind": "ACTUAL",
+          "date": "2026-10-23",
+          "milestone": "NOTICE",
+          "units": 175,
+          "notice_round": "ADDITIONAL",
+          "basis": "LH 추가·잔여 모집공고 게시 확인 · 본 모집량에 중복 합산 금지 · 금회 공급 175호 · 금회 공급 부분 범위; 전체 단지 일정 별도 확인",
+          "scope_partial": true,
+          "scope_units": 175,
+          "scope_label": "금회 공급 175호 / 전체 600호"
+        },
+        "managed": {
+          "origin": "MANUAL",
+          "actor": "시스템 · 사용자 요청 기준 정정",
+          "reason": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정",
+          "changed_at": "2026-10-22T06:57:17.351718+00:00",
+          "batch_id": "measure-sequence-validated-20261022",
+          "input_rule": "SEQUENCE_VALIDATED_TARGET_ESTIMATE",
+          "input_basis": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정",
+          "inferred": true,
+          "authentication": "ADMIN",
+          "actor_basis": "사용자 지정 담당자 이름",
+          "event_date": "2026-04-30",
+          "units": 600,
+          "field_provenance": {
+            "event_date": {
+              "rule": "SOURCE_ACCEPTED",
+              "value": "2026-04-30",
+              "source_id": "cheongyak",
+              "source_entity_id": "NOT_d08566532546b30eacd3f2d0",
+              "source_revision_no": 1,
+              "basis": "같은 사업·단계의 수집 측정값 우선 보존"
+            },
+            "units": {
+              "rule": "SEQUENCE_VALIDATED_TARGET_ESTIMATE",
+              "value": 600,
+              "target_stage": "SUPPLY",
+              "target_field": "units",
+              "target_date": "2026-04-30",
+              "target_units": 600,
+              "target_revision_id": "b1f29a9f-471f-47f2-9f6e-d8adccaf566b",
+              "sequence_evidence": {
+                "witness": {
+                  "stage": "SUPPLY",
+                  "date": "2026-04-30",
+                  "units": null,
+                  "pct": null,
+                  "exact": true,
+                  "source_id": "cheongyak",
+                  "source_entity_id": "NOT_d08566532546b30eacd3f2d0",
+                  "source_revision_no": 1
+                },
+                "lower_date": "2023-12-12",
+                "upper_date": "2026-04-30",
+                "basis": "같은 단계 또는 후행 단계의 확인 사건으로 도달 여부·날짜 경계·물량 검증"
+              },
+              "basis": "수집 측정값 우선 보존 · 확인된 사건의 선후관계·물량에 합당한 미확보 항목만 같은 단계 목표값으로 추정"
+            }
+          }
+        }
+      },
+      {
+        "id": "EVI_1e6b211cd6067ca2e04d385a",
+        "project_id": "PRO_9ac25f1509bc7f37adddafd1",
+        "title": "인천가정2 B2",
+        "status": "REVIEW",
+        "fact": {
+          "stage": "SUPPLY",
+          "kind": "ACTUAL",
+          "date": "2026-10-30",
+          "milestone": "NOTICE",
+          "units": 231,
+          "notice_round": "ADDITIONAL",
+          "basis": "LH 추가·잔여 모집공고 게시 확인 · 본 모집량에 중복 합산 금지 · 금회 공급 231호 · 금회 공급 부분 범위; 전체 단지 일정 별도 확인",
+          "scope_partial": true,
+          "scope_units": 231,
+          "scope_label": "금회 공급 231호 / 전체 308호"
+        },
+        "managed": {
+          "origin": "MANUAL",
+          "actor": "시스템 · 사용자 요청 기준 정정",
+          "reason": "사용자 지정 기준: 수집 측정값 우선, 미확보 항목만 같은 사업·단계 목표값과 동일하게 추정",
+          "changed_at": "2026-10-22T06:30:27.176104+00:00",
+          "batch_id": "measure-target-equal-20261022",
+          "input_rule": "SOURCE_ACCEPTED",
+          "input_basis": "수집 측정값 보존 · 목표 대체 추정 미적용",
+          "inferred": false,
+          "authentication": "ADMIN",
+          "actor_basis": "사용자 지정 담당자 이름",
+          "event_date": "",
+          "units": 308,
+          "field_provenance": {
+            "event_date": {
+              "rule": "SOURCE_CONFLICT",
+              "values": [
+                "2026-04-15",
+                "2026-07-03",
+                "2026-09-23"
+              ],
+              "basis": "수집값 상충: 목표값으로 대체하지 않고 확인 대기"
+            },
+            "units": {
+              "rule": "SOURCE_ACCEPTED",
+              "value": 308,
+              "source_id": "lh_notice_detail",
+              "source_entity_id": "DOC_7405c52f733d4258382b2e3b",
+              "source_revision_no": 1,
+              "basis": "같은 사업·단계의 수집 측정값 우선 보존"
+            }
+          }
+        }
+      },
+      {
+        "id": "EVI_194f4f9ccf3186593e3ab5bd",
+        "project_id": "PRO_f6fe760da2c698c308f46373",
+        "title": "인천가정2 B-2BL 아파트 건설공사 4공구",
+        "status": "REVIEW",
+        "fact": {
+          "stage": "SUPPLY",
+          "kind": "ACTUAL",
+          "date": "2026-10-30",
+          "milestone": "NOTICE",
+          "units": 231,
+          "notice_round": "ADDITIONAL",
+          "basis": "LH 추가·잔여 모집공고 게시 확인 · 본 모집량에 중복 합산 금지 · 금회 공급 231호 · 금회 공급 부분 범위; 전체 단지 일정 별도 확인",
+          "scope_partial": true,
+          "scope_units": 231,
+          "scope_label": "금회 공급 231호 / 전체 308호"
+        },
+        "managed": {
+          "origin": "MANUAL",
+          "actor": "시스템 · 사용자 요청 기준 정정",
+          "reason": "사용자 지정 기준: 수집 측정값 우선, 미확보 항목만 같은 사업·단계 목표값과 동일하게 추정",
+          "changed_at": "2026-10-22T06:30:27.176104+00:00",
+          "batch_id": "measure-target-equal-20261022",
+          "input_rule": "SOURCE_ACCEPTED",
+          "input_basis": "수집 측정값 보존 · 목표 대체 추정 미적용",
+          "inferred": false,
+          "authentication": "ADMIN",
+          "actor_basis": "사용자 지정 담당자 이름",
+          "event_date": "",
+          "units": 308,
+          "field_provenance": {
+            "event_date": {
+              "rule": "SOURCE_CONFLICT",
+              "values": [
+                "2026-04-15",
+                "2026-07-03",
+                "2026-09-23"
+              ],
+              "basis": "수집값 상충: 목표값으로 대체하지 않고 확인 대기"
+            },
+            "units": {
+              "rule": "SOURCE_ACCEPTED",
+              "value": 308,
+              "source_id": "lh_notice_detail",
+              "source_entity_id": "DOC_7405c52f733d4258382b2e3b",
+              "source_revision_no": 1,
+              "basis": "같은 사업·단계의 수집 측정값 우선 보존"
+            }
+          }
+        }
+      }
+    ],
+    "chart_latest_event": {
+      "date": "2026-10-30",
+      "units": 37772,
+      "confirmed_units": 36348,
+      "policy_confirmed_units": 36348,
+      "review_units": 1424,
+      "origin": "SOURCE_OR_MANUAL",
+      "manual_units": 32021,
+      "inferred_units": 8136,
+      "evidence_urls": [
+        "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061189&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027",
+        "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061196&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+      ]
+    }
+  },
+  "MOVE_IN": {
+    "label": "입주 시작",
+    "managed_projects": 0,
+    "inferred_projects": 0,
+    "last_management_update": null,
+    "source_facts": {
+      "PLAN": 420,
+      "DOCUMENT": 2,
+      "STATE": 4
+    },
+    "recent_actual_facts": 0,
+    "recent_shadowed_facts": [],
+    "chart_latest_event": null
+  }
+}

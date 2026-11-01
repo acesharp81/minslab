@@ -135,5 +135,7 @@ def protect_glyphs(run, rows, ids):
                     evidence_quality=prior_quality if independent_fail and prior_quality else 'CLEAR' if status=='FAIL' else 'UNCERTAIN',review_basis='OBSERVED_ANOMALY',
                     error_type=prior_type if independent_fail and prior_type else 'VISUAL_TEXT_DEFECT' if status=='FAIL' else 'OCR_UNCERTAIN',
                     recommended_action='판독 문구와 별도로 표시한 글자의 끊김·융합·모음 획을 원본에서 확인하고 재조판하세요.' if status=='FAIL' else '전체 원본과 확대 경계를 대조해 실제 손상인지 먼저 확인하세요.')
-                if row.get('evidence_ids')==[obj['id']] and not independent_fail:row['rects']=rects
+                if row.get('evidence_ids')==[obj['id']] and not independent_fail:
+                    row['rects']=rects
+                    row['location_evidence']={'status':'VERIFIED_REGION','rects':rects,'method':'original-crop-glyph-cells'}
     return rows

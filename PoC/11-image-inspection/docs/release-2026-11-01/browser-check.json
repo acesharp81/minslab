@@ -1,0 +1,13 @@
+{
+  "images": 14,
+  "reports_ok": true,
+  "defaults_ok": true,
+  "normal_word_pass": true,
+  "typo_fail": true,
+  "spelling_panel_ok": true,
+  "pixel_source_panel_ok": true,
+  "model_usage_ok": true,
+  "zoom_button_and_wheel_ok": true,
+  "logout_ok": true,
+  "errors": []
+}
