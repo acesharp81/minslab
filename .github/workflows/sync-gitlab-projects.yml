@@ -51,7 +51,7 @@ jobs:
           GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
         run: |
           if [[ -z "$GITLAB_USERNAME" || -z "$GITLAB_TOKEN" ]]; then
-            echo "::error::기존 미러링에서 사용하는 GITLAB_USERNAME과 GITLAB_TOKEN secrets가 필요합니다."
+            echo "::error::GITLAB_USERNAME과 GITLAB_TOKEN secrets가 필요합니다."
             exit 1
           fi
           python3 deploy/gitlab_sync.py "$PROJECT" --push

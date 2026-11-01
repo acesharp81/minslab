@@ -14,7 +14,7 @@ GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 �
 
 [sync-gitlab-projects.yml](../../.github/workflows/sync-gitlab-projects.yml)은 GitHub `main`의 두 서비스 폴더 또는 동기화 도구가 변경될 때 실행됩니다. 두 프로젝트를 각각 처리하며, 실패한 프로젝트 때문에 다른 프로젝트의 작업을 취소하지 않습니다. 프로젝트별 작업을 직렬화하고 실행 시 최신 `main`을 받아 오래된 실행이 최신 결과를 되돌리는 것을 방지합니다.
 
-기존 전체 미러링과 같은 GitHub Actions secrets를 사용합니다.
+다음 GitHub Actions secrets를 사용합니다. 기존에 등록한 인증 정보도 두 대상 프로젝트에 접근할 수 있으면 재사용할 수 있습니다.
 
 - `GITLAB_USERNAME`: GitLab 사용자명
 - `GITLAB_TOKEN`: 두 대상 프로젝트의 `main`에 push할 수 있는 토큰 (`write_repository` 권한)
@@ -23,7 +23,7 @@ GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 �
 
 최초 동기화는 이 workflow와 도구를 GitHub `main`에 반영하면 시작됩니다. 재실행이나 특정 프로젝트만 갱신하려면 GitHub **Actions → Sync service projects to GitLab → Run workflow**에서 브랜치 `main`과 `all`·`kjon`·`home`을 선택합니다. `main` 이외의 브랜치에서는 게시하지 않습니다.
 
-기존 [전체 저장소 미러링](../../.github/workflows/mirror-to-gitlab.yml)은 그대로 별도 실행됩니다. 그 workflow의 `GITLAB_REPOSITORY` secret은 기존 전체 미러 저장소를 가리켜야 합니다. 이 값을 `acesharp/kjon` 또는 `acesharp/HOME`으로 바꾸면 전체 미러가 서비스 저장소를 덮어쓸 수 있으므로 서비스별 대상은 새 도구에 지정된 주소를 사용합니다.
+전체 저장소 미러링 workflow는 제거했습니다. 동기화 대상은 이 문서의 두 서비스이며, `GITLAB_REPOSITORY` secret은 더 이상 사용하지 않습니다. 기존 GitLab 전체 미러 저장소와 이미 게시한 코드는 별도로 유지됩니다.
 
 ## 로컬 실행
 
