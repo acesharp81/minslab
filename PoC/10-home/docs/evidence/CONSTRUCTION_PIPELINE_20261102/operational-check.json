@@ -1,0 +1,33 @@
+{
+  "stage_review_seconds": 0.23,
+  "combined_hold_csv_seconds": 0.484,
+  "combined_hold_csv_rows": 266,
+  "stage_rows_in_combined_csv": 138,
+  "policy_view_seconds": 0.096,
+  "all_stage_chart_values_unchanged": true,
+  "agents": {
+    "algorithm": {
+      "model": "solar-pro4",
+      "enabled": true,
+      "hour_kst": 1
+    },
+    "collection": {
+      "model": "solar-pro4",
+      "enabled": true,
+      "hour_kst": 2
+    },
+    "officer": {
+      "model": "solar-pro4",
+      "enabled": true,
+      "hour_kst": 3
+    }
+  },
+  "source_revision_mismatch_by_stage": {
+    "BUSINESS": 34,
+    "APPROVAL": 46,
+    "CONSTRUCTION": 0,
+    "COMPLETION": 0,
+    "SUPPLY": 0,
+    "MOVE_IN": 0
+  }
+}

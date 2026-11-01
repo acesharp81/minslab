@@ -1,0 +1,1034 @@
+[
+  {
+    "image": "QA_07_culture_food.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-014",
+        "domain": "text",
+        "label": "하단 우측 테스트 표기"
+      },
+      {
+        "id": "OBJ-012",
+        "domain": "text",
+        "label": "우측 카드 하단 흐린 각주"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "본문 섹션 제목"
+      },
+      {
+        "id": "OBJ-007",
+        "domain": "text",
+        "label": "좌측 카드 음식명"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "본문 섹션 안내문"
+      },
+      {
+        "id": "OBJ-003",
+        "domain": "text",
+        "label": "상단 부제목"
+      },
+      {
+        "id": "OBJ-009",
+        "domain": "text",
+        "label": "가운데 카드 음식명"
+      },
+      {
+        "id": "OBJ-013",
+        "domain": "text",
+        "label": "하단 좌측 시험 안내 문구"
+      }
+    ],
+    "experimental_glyph_selection": {
+      "before": [
+        {
+          "text": "로해로로",
+          "role": "notice",
+          "rect": [
+            0.715625,
+            0.781,
+            0.765625,
+            0.799
+          ]
+        },
+        {
+          "text": "•••…•",
+          "role": "body",
+          "rect": [
+            0.43,
+            0.505,
+            0.546875,
+            0.546
+          ]
+        },
+        {
+          "text": "비빙밤",
+          "role": "body",
+          "rect": [
+            0.7,
+            0.722,
+            0.774375,
+            0.779
+          ]
+        },
+        {
+          "text": "그림과 설명을 함께 살펴보세요",
+          "role": "notice",
+          "rect": [
+            0.05625,
+            0.284,
+            0.216875,
+            0.311
+          ]
+        },
+        {
+          "text": "우리 음식 바로 알기",
+          "role": "body",
+          "rect": [
+            0.05625,
+            0.218,
+            0.210625,
+            0.256
+          ]
+        },
+        {
+          "text": "김치찌개",
+          "role": "body",
+          "rect": [
+            0.1,
+            0.726,
+            0.194375,
+            0.776
+          ]
+        },
+        {
+          "text": "비빙밥",
+          "role": "body",
+          "rect": [
+            0.393125,
+            0.724,
+            0.4675,
+            0.779
+          ]
+        },
+        {
+          "text": "음식·표기와 텍스트 가독성",
+          "role": "body",
+          "rect": [
+            0.1225,
+            0.044,
+            0.4625,
+            0.106
+          ]
+        }
+      ],
+      "after": [
+        {
+          "text": "•••…•",
+          "role": "body",
+          "rect": [
+            0.43,
+            0.505,
+            0.546875,
+            0.546
+          ]
+        },
+        {
+          "text": "로해로로",
+          "role": "notice",
+          "rect": [
+            0.715625,
+            0.781,
+            0.765625,
+            0.799
+          ]
+        },
+        {
+          "text": "비빙밤",
+          "role": "body",
+          "rect": [
+            0.7,
+            0.722,
+            0.774375,
+            0.779
+          ]
+        },
+        {
+          "text": "그림과 설명을 함께 살펴보세요",
+          "role": "notice",
+          "rect": [
+            0.05625,
+            0.284,
+            0.216875,
+            0.311
+          ]
+        },
+        {
+          "text": "우리 음식 바로 알기",
+          "role": "body",
+          "rect": [
+            0.05625,
+            0.218,
+            0.210625,
+            0.256
+          ]
+        },
+        {
+          "text": "웹미!검수 성능시험 · 가상 합성 이미지/실제 배포 금지",
+          "role": "notice",
+          "rect": [
+            0.04125,
+            0.953,
+            0.368125,
+            0.98
+          ]
+        },
+        {
+          "text": "김치찌개",
+          "role": "body",
+          "rect": [
+            0.1,
+            0.726,
+            0.194375,
+            0.776
+          ]
+        },
+        {
+          "text": "음식 명칭 불일치·오탈자·흐린 각주",
+          "role": "notice",
+          "rect": [
+            0.12625,
+            0.105,
+            0.3625,
+            0.136
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "image": "QA_10_emblem.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "좌측 패널 소문구"
+      },
+      {
+        "id": "OBJ-012",
+        "domain": "symbol",
+        "label": "우측 하단 메인 라벨"
+      },
+      {
+        "id": "OBJ-013",
+        "domain": "text",
+        "label": "우측 하단 보조 라벨"
+      },
+      {
+        "id": "OBJ-009",
+        "domain": "text",
+        "label": "우측 상단 강조 문구"
+      },
+      {
+        "id": "OBJ-011",
+        "domain": "symbol",
+        "label": "우측 하단 작은 가상 문양"
+      },
+      {
+        "id": "OBJ-007",
+        "domain": "text",
+        "label": "좌측 패널 하단 문구"
+      },
+      {
+        "id": "OBJ-014",
+        "domain": "text",
+        "label": "하단 좌측 안내 문구"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "symbol",
+        "label": "좌측 큰 가상 문양"
+      }
+    ],
+    "experimental_glyph_selection": {
+      "before": [
+        {
+          "text": "활동 안내/예시도안기준검사",
+          "role": "notice",
+          "rect": [
+            0.055,
+            0.282,
+            0.219375,
+            0.312
+          ]
+        },
+        {
+          "text": "가상 안전안내단",
+          "role": "body",
+          "rect": [
+            0.055,
+            0.218,
+            0.18375,
+            0.256
+          ]
+        },
+        {
+          "text": "가상문양",
+          "role": "body",
+          "rect": [
+            0.699375,
+            0.735,
+            0.769375,
+            0.774
+          ]
+        },
+        {
+          "text": "표준 참고",
+          "role": "notice",
+          "rect": [
+            0.700625,
+            0.68,
+            0.7775,
+            0.721
+          ]
+        },
+        {
+          "text": "현장 안내 문구",
+          "role": "body",
+          "rect": [
+            0.5425,
+            0.217,
+            0.660625,
+            0.258
+          ]
+        },
+        {
+          "text": "참고용표식",
+          "role": "body",
+          "rect": [
+            0.540625,
+            0.574,
+            0.64,
+            0.623
+          ]
+        },
+        {
+          "text": "안전한 동행",
+          "role": "body",
+          "rect": [
+            0.145625,
+            0.739,
+            0.260625,
+            0.788
+          ]
+        },
+        {
+          "text": "문양·제복·정본 비교",
+          "role": "body",
+          "rect": [
+            0.121875,
+            0.042,
+            0.391875,
+            0.106
+          ]
+        }
+      ],
+      "after": [
+        {
+          "text": "안전한 하루",
+          "role": "heading",
+          "rect": [
+            0.556875,
+            0.325,
+            0.71375,
+            0.391
+          ]
+        },
+        {
+          "text": "가상 안전안내단",
+          "role": "body",
+          "rect": [
+            0.055,
+            0.218,
+            0.18375,
+            0.256
+          ]
+        },
+        {
+          "text": "활동 안내/예시도안기준검사",
+          "role": "notice",
+          "rect": [
+            0.055,
+            0.282,
+            0.219375,
+            0.312
+          ]
+        },
+        {
+          "text": "·제복·정보",
+          "role": "heading",
+          "rect": [
+            0.16666666666666663,
+            0.0,
+            0.33333333333333326,
+            0.08333333333333333
+          ]
+        },
+        {
+          "text": "가상문양",
+          "role": "body",
+          "rect": [
+            0.699375,
+            0.735,
+            0.769375,
+            0.774
+          ]
+        },
+        {
+          "text": "표준 참고",
+          "role": "notice",
+          "rect": [
+            0.700625,
+            0.68,
+            0.7775,
+            0.721
+          ]
+        },
+        {
+          "text": "현장 안내 문구",
+          "role": "body",
+          "rect": [
+            0.5425,
+            0.217,
+            0.660625,
+            0.258
+          ]
+        },
+        {
+          "text": "웹미!검수 성능시험 · 가상 합성 이미지/실제 배포 금지",
+          "role": "notice",
+          "rect": [
+            0.04125,
+            0.953,
+            0.3675,
+            0.98
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "image": "QA_06_privacy_signs.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "좌측 카드 설명 문장"
+      },
+      {
+        "id": "OBJ-007",
+        "domain": "anatomy",
+        "label": "사람 아이콘"
+      },
+      {
+        "id": "OBJ-012",
+        "domain": "text",
+        "label": "녹색 대피 표지판의 문구"
+      },
+      {
+        "id": "OBJ-011",
+        "domain": "text",
+        "label": "우측 카드 상단 제목"
+      },
+      {
+        "id": "OBJ-015",
+        "domain": "text",
+        "label": "우측 카드 하단 보조 문구"
+      },
+      {
+        "id": "OBJ-016",
+        "domain": "text",
+        "label": "하단 좌측 각주"
+      },
+      {
+        "id": "OBJ-014",
+        "domain": "text",
+        "label": "우측 카드 하단 제목"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "text",
+        "label": "문의 박스 텍스트 블록"
+      }
+    ]
+  },
+  {
+    "image": "QA_14_reference_evidence.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-021",
+        "domain": "text",
+        "label": "하단 우측 시험 번호"
+      },
+      {
+        "id": "OBJ-014",
+        "domain": "symbol",
+        "label": "좌하 카드 원형 아이콘"
+      },
+      {
+        "id": "OBJ-020",
+        "domain": "text",
+        "label": "하단 좌측 시험용 안내 문구"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "좌상 카드 제목줄"
+      },
+      {
+        "id": "OBJ-011",
+        "domain": "text",
+        "label": "우상 카드 하단 설명"
+      },
+      {
+        "id": "OBJ-008",
+        "domain": "text",
+        "label": "우상 카드 제목줄"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "좌상 카드 소문장 1"
+      },
+      {
+        "id": "OBJ-012",
+        "domain": "text",
+        "label": "좌하 카드 제목줄"
+      }
+    ]
+  },
+  {
+    "image": "QA_02_hands.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-013",
+        "domain": "text",
+        "label": "하단 좌측 고지 문구"
+      },
+      {
+        "id": "OBJ-008",
+        "domain": "anatomy",
+        "label": "인물 B 손 그림"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "좌측 패널 제목"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "text",
+        "label": "좌측 패널 하단 문구"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "anatomy",
+        "label": "인물 A 손 그림"
+      },
+      {
+        "id": "OBJ-007",
+        "domain": "text",
+        "label": "가운데 패널 제목"
+      },
+      {
+        "id": "OBJ-009",
+        "domain": "text",
+        "label": "가운데 패널 하단 문구"
+      },
+      {
+        "id": "OBJ-011",
+        "domain": "anatomy",
+        "label": "인물 C 손 그림"
+      }
+    ]
+  },
+  {
+    "image": "QA_04_map_place.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-016",
+        "domain": "text",
+        "label": "하단 우측 테스트 표기"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "map",
+        "label": "좌측 지도 본체"
+      },
+      {
+        "id": "OBJ-007",
+        "domain": "text",
+        "label": "지도 지명 왼쪽 바다 표기"
+      },
+      {
+        "id": "OBJ-011",
+        "domain": "text",
+        "label": "우측 패널 소제목"
+      },
+      {
+        "id": "OBJ-014",
+        "domain": "text",
+        "label": "우측 패널 설명 문장"
+      },
+      {
+        "id": "OBJ-008",
+        "domain": "text",
+        "label": "지도 지명 오른쪽 바다 표기"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "좌측 패널 제목"
+      },
+      {
+        "id": "OBJ-015",
+        "domain": "text",
+        "label": "하단 좌측 고지 문구"
+      }
+    ]
+  },
+  {
+    "image": "QA_03_ocr_readability.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-010",
+        "domain": "text",
+        "label": "하단 좌측 주의 문구"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "본문 카드 소제목"
+      },
+      {
+        "id": "OBJ-009",
+        "domain": "text",
+        "label": "네 번째 주황 배너 문구"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "본문 카드 제목"
+      },
+      {
+        "id": "OBJ-008",
+        "domain": "text",
+        "label": "세 번째 회색 배너 문구"
+      },
+      {
+        "id": "OBJ-011",
+        "domain": "text",
+        "label": "우하단 영문 표기"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "text",
+        "label": "첫 번째 파란 배너 문구"
+      },
+      {
+        "id": "OBJ-007",
+        "domain": "text",
+        "label": "두 번째 초록 배너 문구"
+      }
+    ]
+  },
+  {
+    "image": "QA_13_neutral_communications.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "우상단 카드 텍스트 블록"
+      },
+      {
+        "id": "OBJ-010",
+        "domain": "text",
+        "label": "하단 우측 테스트 라벨"
+      },
+      {
+        "id": "OBJ-007",
+        "domain": "text",
+        "label": "우중단 카드 텍스트 블록"
+      },
+      {
+        "id": "OBJ-009",
+        "domain": "text",
+        "label": "하단 좌측 고지 문구"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "좌상단 카드 텍스트 블록"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "text",
+        "label": "좌중단 카드 텍스트 블록"
+      },
+      {
+        "id": "OBJ-008",
+        "domain": "text",
+        "label": "하단 대형 카드 텍스트 블록"
+      },
+      {
+        "id": "OBJ-001",
+        "domain": "text",
+        "label": "좌상단 번호 배지"
+      }
+    ]
+  },
+  {
+    "image": "QA_01_flag_symbols.json",
+    "selected": [
+      {
+        "id": "OBJ-010",
+        "domain": "text",
+        "label": "기관명 텍스트"
+      },
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "symbol",
+        "label": "대형 태극기 도안"
+      },
+      {
+        "id": "OBJ-013",
+        "domain": "text",
+        "label": "하단 우측 코드"
+      },
+      {
+        "id": "OBJ-011",
+        "domain": "text",
+        "label": "기관 안내 보조문구"
+      },
+      {
+        "id": "OBJ-008",
+        "domain": "symbol",
+        "label": "소형 태극기 도안"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "좌측 메인 패널 제목"
+      },
+      {
+        "id": "OBJ-012",
+        "domain": "text",
+        "label": "하단 좌측 시험용 고지문"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "좌측 메인 패널 안내문"
+      }
+    ]
+  },
+  {
+    "image": "QA_08_all_pass.json",
+    "selected": [
+      {
+        "id": "OBJ-010",
+        "domain": "text",
+        "label": "우측 카드 기관명"
+      },
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-009",
+        "domain": "symbol",
+        "label": "태극기 일러스트"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "anatomy",
+        "label": "좌측 손 일러스트"
+      },
+      {
+        "id": "OBJ-011",
+        "domain": "text",
+        "label": "우측 카드 신청 기간 문구"
+      },
+      {
+        "id": "OBJ-012",
+        "domain": "text",
+        "label": "하단 좌측 각주성 문구"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "좌측 카드 소제목"
+      },
+      {
+        "id": "OBJ-013",
+        "domain": "text",
+        "label": "하단 우측 식별 표기"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "좌측 카드 제목"
+      }
+    ]
+  },
+  {
+    "image": "QA_05_chart_numbers.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-021",
+        "domain": "text",
+        "label": "하단 좌측 주의문"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "text",
+        "label": "A 분야 라벨"
+      },
+      {
+        "id": "OBJ-017",
+        "domain": "text",
+        "label": "우측 하단 카드 제목"
+      },
+      {
+        "id": "OBJ-008",
+        "domain": "text",
+        "label": "A 분야 값"
+      },
+      {
+        "id": "OBJ-009",
+        "domain": "text",
+        "label": "B 분야 라벨"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "좌측 큰 카드 제목"
+      },
+      {
+        "id": "OBJ-011",
+        "domain": "text",
+        "label": "B 분야 값"
+      },
+      {
+        "id": "OBJ-012",
+        "domain": "text",
+        "label": "C 분야 라벨"
+      }
+    ]
+  },
+  {
+    "image": "QA_09_history.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-018",
+        "domain": "text",
+        "label": "하단 좌측 시험용 고지 문구"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "anatomy",
+        "label": "좌측 첫 번째 인물 아이콘"
+      },
+      {
+        "id": "OBJ-015",
+        "domain": "text",
+        "label": "우측 안내 패널 날짜 문구"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "본문 섹션 제목"
+      },
+      {
+        "id": "OBJ-019",
+        "domain": "text",
+        "label": "하단 우측 테스트 표기"
+      },
+      {
+        "id": "OBJ-016",
+        "domain": "text",
+        "label": "우측 안내 패널 중간 문구"
+      },
+      {
+        "id": "OBJ-014",
+        "domain": "text",
+        "label": "우측 안내 패널 제목"
+      },
+      {
+        "id": "OBJ-001",
+        "domain": "text",
+        "label": "좌상단 파란 번호 배지"
+      }
+    ]
+  },
+  {
+    "image": "QA_12_animal_disaster_positive.json",
+    "selected": [
+      {
+        "id": "OBJ-014",
+        "domain": "text",
+        "label": "우측 하단 패널 강조 문구"
+      },
+      {
+        "id": "OBJ-015",
+        "domain": "text",
+        "label": "하단 좌측 주의/시험용 문구"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "anatomy",
+        "label": "강아지 얼굴 아이콘"
+      },
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "좌측 패널 보조 문구"
+      },
+      {
+        "id": "OBJ-007",
+        "domain": "text",
+        "label": "좌측 패널 하단 강조 문구"
+      },
+      {
+        "id": "OBJ-009",
+        "domain": "text",
+        "label": "우측 상단 패널 보조 문구"
+      },
+      {
+        "id": "OBJ-010",
+        "domain": "text",
+        "label": "우측 상단 패널 중심 강조 문구"
+      },
+      {
+        "id": "OBJ-012",
+        "domain": "text",
+        "label": "우측 하단 패널 보조 문구"
+      }
+    ]
+  },
+  {
+    "image": "QA_11_inclusive_positive.json",
+    "selected": [
+      {
+        "id": "OBJ-002",
+        "domain": "text",
+        "label": "상단 메인 제목"
+      },
+      {
+        "id": "OBJ-003",
+        "domain": "text",
+        "label": "상단 부제"
+      },
+      {
+        "id": "OBJ-009",
+        "domain": "text",
+        "label": "하단 좌측 각주성 문구"
+      },
+      {
+        "id": "OBJ-010",
+        "domain": "text",
+        "label": "우하단 테스트 표기"
+      },
+      {
+        "id": "OBJ-004",
+        "domain": "text",
+        "label": "좌상단 안내 카드"
+      },
+      {
+        "id": "OBJ-001",
+        "domain": "text",
+        "label": "상단 좌측 번호 배지"
+      },
+      {
+        "id": "OBJ-005",
+        "domain": "text",
+        "label": "우상단 안내 카드"
+      },
+      {
+        "id": "OBJ-006",
+        "domain": "text",
+        "label": "좌중단 안내 카드"
+      },
+      {
+        "id": "OBJ-008",
+        "domain": "text",
+        "label": "하단 대형 안내 카드"
+      }
+    ]
+  }
+]

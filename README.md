@@ -358,6 +358,12 @@ git add --dry-run .
 python3 -m py_compile main.py chunking_compare.py
 ```
 
+## 서비스별 GitLab 동기화
+
+GitHub `main`을 원본으로 국정ON `PoC/07-NationalAssembly/`는 [acesharp/kjon](https://gitlab.aigov.go.kr/acesharp/kjon), the주택 `PoC/10-home/`는 [acesharp/HOME](https://gitlab.aigov.go.kr/acesharp/HOME)에 각각 폴더 내용과 변경 이력만 분리해 게시합니다. 관련 변경을 push하면 GitHub Actions가 자동으로 동기화하며, 특정 프로젝트만 수동 실행할 수도 있습니다. GitLab 동기화 대상은 이 두 서비스입니다.
+
+로컬 미리보기는 `python3 deploy/gitlab_sync.py all`, 선택 반영은 `python3 deploy/gitlab_sync.py kjon --push` 또는 `python3 deploy/gitlab_sync.py home --push`를 사용합니다. 인증·최초 실행·충돌 처리 방법은 [서비스별 GitLab 동기화](deploy/gitlab-projects/README.md)를 확인하세요.
+
 ## 운영과 배포
 
 현재 운영 구조는 Nginx → `myservice` systemd → Uvicorn `127.0.0.1:8000`입니다. React PoC의 `dist/`를 갱신한 경우에도 최종적으로 Python 서비스를 재시작해 정적 파일과 동적 모듈 상태를 함께 확인합니다.

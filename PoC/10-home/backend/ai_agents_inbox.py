@@ -43,6 +43,20 @@ def items(service,store,role):
      results.append(dict(role=role,subject=d['id'],state='HOLD',stage='EXISTING_HOLD',title=d['title'],url=d['evidence_url'],
        reason=(d['decision'] or {}).get('reason') or '기존 담당자 보류',source_revision_no=d['source_revision_no'],
        model=None,evidence=[],action='원문과 기존 판단 근거를 확인해 연결·제외 판단',created=None))
+  if role=='officer':
+   from .stage_reconciliation import list_items, LIVE
+   from .publication_evidence import safe_value
+   proposals=list_items(service);by_id={p['id']:p for p in proposals}
+   for r in results:
+    ids=[p['id'] for p in r.get('stage_proposals',[])]
+    if ids and all(by_id.get(pid,{}).get('status') in ('APPLIED','DISMISSED') for pid in ids):
+     r.update(state='DONE',stage='STAGE_RESOLVED',reason='단계별 실적 제안 처리 완료 · 승인·제외 이력 확인')
+   for proposal in proposals:
+    p=safe_value(proposal)
+    results.append(dict(role=role,subject=p['id'],state='HOLD' if p['status'] in LIVE else 'DONE',stage='STAGE_REVIEW',
+     title=p['project_name']+' · '+p['stage_label']+' 실적 반영',url=p['url'],reason=' / '.join(p['blockers']+p['review_reasons']) or p['status'],
+     source_revision_no=p['source_ref']['revision_no'],created=None,action='신규 자료 검토 → 단계별 실적 반영 검토에서 기존값·새 근거 확인',
+     result=p,evidence=p['quotes'],body_text='',model=None))
   return [enrich(r,docs.get(r['subject']),supplements.get(r['subject']),ai.get(r['subject'])) for r in results]
  seen={};result=[]
  with store.db() as c:

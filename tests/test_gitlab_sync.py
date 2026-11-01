@@ -1,0 +1,201 @@
+import importlib.util
+import io
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+
+SCRIPT = Path(__file__).resolve().parents[1] / "deploy" / "gitlab_sync.py"
+SPEC = importlib.util.spec_from_file_location("minslab_gitlab_sync", SCRIPT)
+sync = importlib.util.module_from_spec(SPEC)
+sys.modules[SPEC.name] = sync
+SPEC.loader.exec_module(sync)
+
+
+class GitLabSyncTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory(prefix="gitlab-sync-test-")
+        self.addCleanup(self.tmp.cleanup)
+        self.base = Path(self.tmp.name)
+        self.root = self.base / "source"
+        self.root.mkdir()
+        self.git(self.root, "init", "-b", "main")
+        self.identity(self.root)
+        self.projects = {}
+        for key, original in sync.PROJECTS.items():
+            directory = self.root / original.prefix
+            directory.mkdir(parents=True)
+            (directory / "README.md").write_text(original.name, encoding="utf-8")
+            (directory / "app.py").write_text(f"SERVICE = {key!r}\n")
+            (directory / ".gitignore").write_text(".env\n")
+            remote = self.base / f"{key}.git"
+            self.git(self.base, "init", "--bare", "--initial-branch=main", str(remote))
+            self.projects[key] = sync.Project(original.name, original.prefix, str(remote))
+        (self.root / "parent-only.txt").write_text("must not be exported")
+        self.commit("initial monorepo")
+        self.env = {
+            key: value for key, value in os.environ.items()
+            if key not in {"GITLAB_TOKEN", "GITLAB_USERNAME", "GIT_ASKPASS"}
+        }
+        self.env["GIT_TERMINAL_PROMPT"] = "0"
+
+    def git(self, root, *args):
+        result = subprocess.run(
+            ["git", *args], cwd=root, capture_output=True, text=True, check=False,
+        )
+        if result.returncode:
+            self.fail(result.stderr or result.stdout)
+        return result.stdout.strip()
+
+    def identity(self, root):
+        self.git(root, "config", "user.name", "Sync Test")
+        self.git(root, "config", "user.email", "sync@example.invalid")
+
+    def commit(self, message):
+        self.git(self.root, "add", "--all")
+        self.git(self.root, "commit", "-m", message)
+        return self.git(self.root, "rev-parse", "HEAD")
+
+    def prepare(self, key):
+        return sync.prepare_export(
+            self.root, self.projects[key], self.git(self.root, "rev-parse", "HEAD"),
+        )
+
+    def tip(self, key):
+        return self.git(Path(self.projects[key].remote), "rev-parse", "main")
+
+    def refs(self, key):
+        return self.git(Path(self.projects[key].remote), "for-each-ref", "--format=%(refname)")
+
+    def test_exports_exact_project_trees_and_only_main_without_changing_source(self):
+        head = self.git(self.root, "rev-parse", "HEAD")
+        index = self.git(self.root, "write-tree")
+        self.git(self.root, "config", "push.followTags", "true")
+        for key, project in self.projects.items():
+            with self.subTest(project=key):
+                export = self.prepare(key)
+                self.git(self.root, "tag", "-a", f"export-{key}", "-m", "do not push", export.commit)
+                sync.publish(self.root, export, self.env)
+                remote = Path(project.remote)
+                self.assertEqual(
+                    self.git(remote, "rev-parse", "main^{tree}"),
+                    self.git(self.root, "rev-parse", f"HEAD:{project.prefix}"),
+                )
+                self.assertEqual(self.refs(key), "refs/heads/main")
+                self.assertEqual(export.files, 3)
+                for commit in self.git(remote, "rev-list", "main").splitlines():
+                    names = self.git(remote, "ls-tree", "-r", "--name-only", commit).splitlines()
+                    self.assertEqual(set(names), {"README.md", "app.py", ".gitignore"})
+        self.assertEqual(self.git(self.root, "rev-parse", "HEAD"), head)
+        self.assertEqual(self.git(self.root, "write-tree"), index)
+        self.assertEqual(self.git(self.root, "branch", "--show-current"), "main")
+        self.assertEqual(self.git(self.root, "status", "--porcelain"), "")
+
+    def test_repeated_sync_and_other_project_commits_do_not_change_export(self):
+        first = self.prepare("kjon")
+        sync.publish(self.root, first, self.env)
+        sync.publish(self.root, self.prepare("kjon"), self.env)
+        (self.root / self.projects["home"].prefix / "README.md").write_text("home only")
+        self.commit("change HOME only")
+        (self.root / "parent-only.txt").write_text("parent only change")
+        self.commit("change parent only")
+        second = self.prepare("kjon")
+        self.assertEqual(first.commit, second.commit)
+        sync.publish(self.root, second, self.env)
+        self.assertEqual(self.tip("kjon"), first.commit)
+
+    def test_selected_updates_and_deletions_preserve_other_remote(self):
+        for key in self.projects:
+            sync.publish(self.root, self.prepare(key), self.env)
+        home_tip = self.tip("home")
+        original = self.tip("kjon")
+        directory = self.root / self.projects["kjon"].prefix
+        (directory / "app.py").unlink()
+        (directory / "README.md").write_text("updated 국정ON", encoding="utf-8")
+        self.commit("update national assembly")
+        export = self.prepare("kjon")
+        sync.publish(self.root, export, self.env)
+        self.assertNotEqual(self.tip("kjon"), original)
+        self.assertEqual(self.tip("home"), home_tip)
+        remote = Path(self.projects["kjon"].remote)
+        self.assertNotIn("app.py", self.git(remote, "ls-tree", "--name-only", "main").splitlines())
+        self.assertEqual(self.git(remote, "rev-list", "--count", "main"), "2")
+
+    def test_dirty_project_cannot_be_published(self):
+        directory = self.root / self.projects["kjon"].prefix
+        (directory / "README.md").write_text("not committed")
+        export = self.prepare("kjon")
+        self.assertTrue(export.dirty)
+        with self.assertRaisesRegex(sync.SyncError, "미커밋"):
+            sync.publish(self.root, export, self.env)
+        self.assertEqual(self.refs("kjon"), "")
+
+    def test_untracked_project_file_cannot_be_silently_omitted_from_push(self):
+        (self.root / self.projects["kjon"].prefix / "new.py").write_text("untracked")
+        self.assertTrue(self.prepare("kjon").dirty)
+
+    def test_other_dirty_project_and_ignored_environment_do_not_block_selected_push(self):
+        (self.root / self.projects["home"].prefix / "README.md").write_text("home in progress")
+        (self.root / self.projects["kjon"].prefix / ".env").write_text("EXAMPLE_ONLY=ignored")
+        export = self.prepare("kjon")
+        self.assertFalse(export.dirty)
+        sync.publish(self.root, export, self.env)
+        names = self.git(Path(export.project.remote), "ls-tree", "-r", "--name-only", "main")
+        self.assertNotIn(".env", names.splitlines())
+
+    def test_independent_remote_change_is_not_overwritten(self):
+        sync.publish(self.root, self.prepare("kjon"), self.env)
+        remote = Path(self.projects["kjon"].remote)
+        independent = self.base / "gitlab-edit"
+        self.git(self.base, "clone", str(remote), str(independent))
+        self.identity(independent)
+        (independent / "README.md").write_text("independent GitLab change")
+        self.git(independent, "add", "README.md")
+        self.git(independent, "commit", "-m", "GitLab change")
+        self.git(independent, "push", "origin", "main")
+        protected = self.tip("kjon")
+        (self.root / self.projects["kjon"].prefix / "README.md").write_text("source change")
+        self.commit("source change")
+        with self.assertRaises(sync.SyncError):
+            sync.publish(self.root, self.prepare("kjon"), self.env)
+        self.assertEqual(self.tip("kjon"), protected)
+
+    def test_shallow_source_requires_full_history(self):
+        clone = self.base / "shallow"
+        self.git(self.base, "clone", "--depth=1", self.root.as_uri(), str(clone))
+        with self.assertRaisesRegex(sync.SyncError, "전체 Git 이력"):
+            sync.prepare_export(clone, self.projects["kjon"], self.git(clone, "rev-parse", "HEAD"))
+
+    def test_cli_defaults_to_preview_and_preflights_both_projects_before_push(self):
+        with patch.object(sync, "__file__", str(self.root / "deploy" / "gitlab_sync.py")), \
+             patch.object(sync, "PROJECTS", self.projects), \
+             patch("sys.stdout", new_callable=io.StringIO), \
+             patch("sys.stderr", new_callable=io.StringIO):
+            self.assertEqual(sync.main(["all"]), 0)
+            self.assertEqual(self.refs("kjon"), "")
+            self.assertEqual(self.refs("home"), "")
+            (self.root / self.projects["home"].prefix / "README.md").write_text("dirty HOME")
+            self.assertEqual(sync.main(["all", "--push"]), 1)
+            self.assertEqual(self.refs("kjon"), "")
+            self.assertEqual(self.refs("home"), "")
+
+    def test_ci_askpass_reads_credentials_from_environment_and_is_removed(self):
+        with patch.dict(os.environ, {"GITLAB_USERNAME": "test-user", "GITLAB_TOKEN": "test-only-token"}):
+            with sync.push_environment() as env:
+                helper = Path(env["GIT_ASKPASS"])
+                self.assertNotIn("test-only-token", helper.read_text())
+                self.assertNotIn("test-user", helper.read_text())
+                self.assertEqual(helper.stat().st_mode & 0o777, 0o700)
+                for prompt, expected in [("Username for 'https://example.invalid'", "test-user"),
+                                         ("Password for 'https://example.invalid'", "test-only-token")]:
+                    result = subprocess.run([str(helper), prompt], env=env, capture_output=True, text=True, check=True)
+                    self.assertEqual(result.stdout.strip(), expected)
+            self.assertFalse(helper.exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

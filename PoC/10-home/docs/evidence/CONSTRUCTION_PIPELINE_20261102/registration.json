@@ -1,0 +1,31 @@
+{
+  "first": {
+    "proposals_changed": 138,
+    "applied": 0
+  },
+  "idempotent_replay": {
+    "proposals_changed": 0,
+    "applied": 0
+  },
+  "project_and_actual_values_unchanged": true,
+  "project_records": 778,
+  "proposal_count": 138,
+  "by_stage": {
+    "COMPLETION": 1,
+    "APPROVAL": 68,
+    "BUSINESS": 44,
+    "CONSTRUCTION": 8,
+    "SUPPLY": 17
+  },
+  "by_status": {
+    "HOLD": 138
+  },
+  "blocked": 108,
+  "invalid_source": 80,
+  "auto_eligible": 0,
+  "sources": {
+    "OFFICER_ASSESSMENT": 1,
+    "SELECTED_STAGE_SOURCE": 101,
+    "STRUCTURED_SOURCE": 36
+  }
+}

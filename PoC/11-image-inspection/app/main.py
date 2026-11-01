@@ -296,6 +296,10 @@ def create_app(settings=None):
                 if d:date.fromisoformat(d)
             if data.effective_from and data.effective_to and data.effective_from>data.effective_to:raise ValueError()
         except ValueError:raise HTTPException(400,'유효 기간을 확인하십시오.')
+        if data.kind=='source-data':
+            from .source_copy import parse
+            try:parse(data.content)
+            except ValueError as exc:raise HTTPException(400,str(exc))
         ref={**data.model_dump(),'id':'ref-'+uuid.uuid4().hex,'status':'DRAFT','retrieved_at':now(),'approved_by':None,'approved_at':None,'source_file_hash':hashlib.sha256(data.content.encode()).hexdigest(),'image_file':None}
         with store.connect() as c:c.execute('INSERT INTO references_registry VALUES(?,?)',(ref['id'],json.dumps(ref,ensure_ascii=False)))
         store.audit(who,'REFERENCE_CREATE',ref['id'],{'version':ref['version']});return ref

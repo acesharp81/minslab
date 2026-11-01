@@ -1,0 +1,57 @@
+name: Sync service projects to GitLab
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "PoC/07-NationalAssembly/**"
+      - "PoC/10-home/**"
+      - "deploy/gitlab_sync.py"
+      - ".github/workflows/sync-gitlab-projects.yml"
+  workflow_dispatch:
+    inputs:
+      project:
+        description: "동기화할 프로젝트"
+        type: choice
+        required: true
+        default: all
+        options: [all, kjon, home]
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [kjon, home]
+    concurrency:
+      group: gitlab-project-${{ matrix.project }}
+      cancel-in-progress: false
+    steps:
+      # Read the newest main after acquiring the project lock, so a queued old
+      # event cannot publish an older revision after a newer event.
+      - name: Check out complete source history
+        if: github.event_name != 'workflow_dispatch' || inputs.project == 'all' || inputs.project == matrix.project
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Publish selected project
+        if: github.event_name != 'workflow_dispatch' || inputs.project == 'all' || inputs.project == matrix.project
+        env:
+          PROJECT: ${{ matrix.project }}
+          GITLAB_USERNAME: ${{ secrets.GITLAB_USERNAME }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          if [[ -z "$GITLAB_USERNAME" || -z "$GITLAB_TOKEN" ]]; then
+            echo "::error::GITLAB_USERNAME과 GITLAB_TOKEN secrets가 필요합니다."
+            exit 1
+          fi
+          python3 deploy/gitlab_sync.py "$PROJECT" --push

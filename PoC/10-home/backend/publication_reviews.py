@@ -64,6 +64,13 @@ def queue(service, include_options=True):
   for item in items:
    if item['id'] in supplements:item['supplement']=supplement_summary(supplements[item['id']],item['source_revision_no'])
   if include_options:
+   from .publication_evidence import load as load_assessments
+   assessments=load_assessments(service,[d.entity_id for d in docs])
+   for item in items:
+    if item['id'] in assessments:
+     a=assessments[item['id']]
+     item['assessment']={k:a.get(k) for k in ('actor','assessed_at','reason','external_recommendation','related_documents','event_group','unknown_fields')}
+     item['assessment']['stale']=a.get('source_revision_no')!=item['source_revision_no'] or a.get('review_revision_no')!=item['review_revision_no']
    from .ai_collection import annotations
    ai=annotations(service,[d.entity_id for d in docs])
    for item in items:

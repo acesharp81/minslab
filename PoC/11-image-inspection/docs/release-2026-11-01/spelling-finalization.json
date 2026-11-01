@@ -1,0 +1,114 @@
+[
+  {
+    "image": "QA_01_flag_symbols.json",
+    "run_id": "d2fbc5be233e470cbe841bcd088e0e1c",
+    "source_run_id": "dd57dcd16091402ab7abd586be5e36e9",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_02_hands.json",
+    "run_id": "5aceddfd07484d5babc6c4d76f777d11",
+    "source_run_id": "3a915ff185d7422cbceb5444e2f057a3",
+    "api_calls": 0,
+    "changes": [
+      {
+        "rule_id": "D-02-l",
+        "before": "PASS",
+        "after": "FAIL",
+        "reason": "독립 철자 검사: ‘힘께’는 표준어 ‘함께’의 철자 오기입니다."
+      }
+    ]
+  },
+  {
+    "image": "QA_03_ocr_readability.json",
+    "run_id": "e13eec8236dc4815bbf85308496d116b",
+    "source_run_id": "13d23fb9807b4f33bafb85d715aac0bb",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_04_map_place.json",
+    "run_id": "2e2067d25a8b444189fd73c2d1f8edb7",
+    "source_run_id": "4df8bb67b72a4f928e9ae21568803b7d",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_05_chart_numbers.json",
+    "run_id": "e9f675641b73490aa1e3bb055357a986",
+    "source_run_id": "1f5bf4785b664bf89e50fd6644c0c909",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_06_privacy_signs.json",
+    "run_id": "118e5af6145845bdbafcb5496e25ceff",
+    "source_run_id": "51a61ecf004e4608bdd9a9585f1fdfc8",
+    "api_calls": 0,
+    "changes": [
+      {
+        "rule_id": "D-02-l",
+        "before": "PASS",
+        "after": "FAIL",
+        "reason": "독립 철자 검사: 동사 활용형 ‘대피하는’ 뒤의 명사 ‘곳’은 띄어 써야 한다."
+      }
+    ]
+  },
+  {
+    "image": "QA_07_culture_food.json",
+    "run_id": "b103901602324c49baf6d74645139a3c",
+    "source_run_id": "4e097a9f1c5241549d63008c6da3b530",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_08_all_pass.json",
+    "run_id": "13971ce957904ae78760faaeff376005",
+    "source_run_id": "3efed9f1673042cf94f2140cb458c5d3",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_09_history.json",
+    "run_id": "d0301ee9871042cf8c4dfe2a09233bc4",
+    "source_run_id": "aa907a5be1ee4d9fb15cc80151bec1a5",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_10_emblem.json",
+    "run_id": "14f7d62f47de4adea6e62e5ed93cc530",
+    "source_run_id": "e42670c19c9d490c87cceef135d2a4dc",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_11_inclusive_positive.json",
+    "run_id": "6c37a765aca1488da9707755fa266a45",
+    "source_run_id": "51bf603590e64a7a889fc85a06f3c23e",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_12_animal_disaster_positive.json",
+    "run_id": "487838208afd4924a7024683ecd94269",
+    "source_run_id": "8e86543996f24b34bb999fe16e3f4fc3",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_13_neutral_communications.json",
+    "run_id": "2ae4f303dd8c4222a547e721386e25c2",
+    "source_run_id": "e188f8da110c4732b9f768c95628500e",
+    "api_calls": 0,
+    "changes": []
+  },
+  {
+    "image": "QA_14_reference_evidence.json",
+    "run_id": "db578483a1b54b2c8195f6a1861a2e54",
+    "source_run_id": "5e53cd993b4f42a3aa4c4e6b0dc13d58",
+    "api_calls": 0,
+    "changes": []
+  }
+]

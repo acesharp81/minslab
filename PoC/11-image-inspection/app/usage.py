@@ -111,7 +111,7 @@ class Usage:
         if not reservation:return
         if reservation.get('kind')=='shared_http':
             e=event or {}
-            rejected=e.get('http_status') in (400,401,403,404,422,429) and cost==0
+            rejected=(e.get('http_status') in (400,401,403,404,422,429) or e.get('request_sent') is False) and cost==0
             return self.shared_request('settle',dict(event_id=reservation['event_id'],input_tokens=e.get('input_tokens'),output_tokens=e.get('output_tokens'),cost_usd=cost,rejected=rejected))
         if reservation.get('kind')=='daily_tokens':
             with psycopg.connect(self.s.get('SHARED_BUDGET_DATABASE_URL'),connect_timeout=5) as c:

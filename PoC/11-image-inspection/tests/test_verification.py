@@ -89,6 +89,19 @@ def test_official_verdict_needs_same_object_action_and_reference_image(tmp_path)
     engine.pool.shutdown()
 
 
+def test_comparison_conflict_is_not_fail_when_custom_rule_omits_reference_requirement(tmp_path):
+    fake,run,calls,data=setup_run(tmp_path,1)
+    v.run_verification(fake,{'id':'job','metadata':{}},run,data)
+    run['verification']['results'][0]['comparisons'][0]['status']='MATCH'
+    next(s for s in run['rule_pack']['steps'] if s['rule_id']=='H-04-i')['reference_requirements']=[]
+    run['analysis_observation']=v.effective_observation(run)
+    engine=Engine(fake.s,Store(tmp_path/'test.sqlite3'))
+    group=dict(target_presence='PRESENT',rule_ids=['H-04-i'],status='FAIL',evidence_ids=['o0'],reference_ids=['flag-ref'],reason='구성 다름',recommended_action='확인',error_type='FACT_OR_STYLE_ISSUE',review_basis='OBSERVED_ANOMALY')
+    row=engine.decisions(run,None,'gpt-5.4-mini',['H-04-i'],{'results':[group]})[0]
+    assert row['status']=='REVIEW' and row['decision_conflict'] and '상충' in row['reason']
+    engine.pool.shutdown()
+
+
 def test_contradictory_or_out_of_scope_comparison_is_not_evidence(tmp_path):
     engine,run,calls,data=setup_run(tmp_path,1);original=engine.provider.call
     def invalid(*a,**kw):
@@ -374,3 +387,21 @@ def test_hand_center_crop_keeps_fingertips_and_wrist_context():
     _,rect=v.expanded_crop(png(),['R07C04'],focus='anatomy')
     assert rect[0] <= 1/12 and rect[1] <= 4/12
     assert rect[2] >= 6/12 and rect[3] >= 9/12
+
+
+def test_global_ocr_count_does_not_skip_unchecked_text_or_explicit_recheck(tmp_path):
+    engine,run,calls,data=setup_run(tmp_path,1)
+    run['reference_snapshot']=[]
+    run['observation']['objects'][0].update(label='큰 제목',description='제목 문구',text='처음 전사',text_legibility='CLEAR')
+    run['text_ocr']={'vision_checked':10,'regions':[]}
+    sent=[]
+    def call(model,prompt,images,workload):
+        payload=json.loads(prompt);sent.append(payload)
+        return {'results':[recheck(t['object_id']) for t in payload['tasks']]},{'event_id':'blind','workload':workload}
+    engine.provider.call=call
+    v.run_verification(engine,{'id':'job','metadata':{}},run,data)
+    assert len(sent)==1 and '처음 전사' not in json.dumps(sent,ensure_ascii=False)
+    run['text_ocr']['regions']=[dict(object_id='o0',coverage='COMPLETE',vision={'inferred':False})]
+    run['options']['recheck_object_ids']=['o0']
+    v.run_verification(engine,{'id':'job','metadata':{}},run,data)
+    assert len(sent)==2

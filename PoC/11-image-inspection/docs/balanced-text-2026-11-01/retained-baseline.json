@@ -1,0 +1,23 @@
+[
+  {
+    "image": "QA_03_ocr_readability.json",
+    "source_run_id": "604cf8eb57bf420c918cc3470f253742",
+    "experiment_run_id": "8c0bfff3104c4009bfe3a04ff40c1134",
+    "retained_run_id": "9a321b882bd847fc8d3c21895b1eaa52",
+    "verdicts_unchanged": true
+  },
+  {
+    "image": "QA_08_all_pass.json",
+    "source_run_id": "16f33e2a877a411cbfc0db6215f4e1d3",
+    "experiment_run_id": "2a26c2882c924f74a8c6ac3dd0e734d0",
+    "retained_run_id": "8b24c4aee1874a6ab080d4932a983477",
+    "verdicts_unchanged": true
+  },
+  {
+    "image": "QA_10_emblem.json",
+    "source_run_id": "c00d39e895294abc860fd2b88889cd89",
+    "experiment_run_id": "be309f4f907a4146a5d6772c3e9c8750",
+    "retained_run_id": "22b21428cf8b43b99331639174949c12",
+    "verdicts_unchanged": true
+  }
+]

@@ -12,43 +12,43 @@ const PublicationReviews=(()=>{
  }
  function render(){
   host().innerHTML='<header class="pr-head"><div><p class="pr-eyebrow">자료 발견 → 담당자 검토 → 사업 연결</p><h2>신규 자료 검토</h2><p>새로 수집한 자료가 어느 주택사업의 근거인지 판단하는 화면입니다. 왼쪽에서 자료를 고르면 오른쪽에 확인할 질문과 처리 방법이 나옵니다.</p></div><button type="button" class="button secondary" data-pr-refresh>새로고침</button></header>'+
-   '<div id="ai-collection-root"></div>'+
+   '<div id="ai-collection-root"></div><div id="stage-review-root"></div>'+
    '<div class="pr-counts">'+[['REVIEW','검토 대기'],['HOLD','보류'],['REGISTRATION_REQUIRED','사업 등록 대기'],['APPROVED','자료 연결 승인'],['EXCLUDED','제외']].map(([k,l])=>'<button type="button" data-pr-status="'+k+'" aria-pressed="'+(filter===k)+'"><span>'+l+'</span><strong>'+num(data.counts[k]||0)+'</strong></button>').join('')+'</div>'+
    '<div class="pr-toolbar"><label>검토 상태<select id="pr-status"><option value="OPEN">미완료 전체</option><option value="ALL">전체</option>'+Object.entries(data.status_labels).map(([v,t])=>'<option value="'+v+'">'+e(t)+'</option>').join('')+'</select></label><label>우선순위<select id="pr-priority"><option value="">전체</option><option value="1">1 · 계획 누락 확인</option><option value="2">2 · 귀속·단계 확인</option><option value="3">3 · 범위·중복 확인</option><option value="4">참고·관련성 분류</option></select></label><label class="pr-search">자료 검색<input id="pr-search" type="search" maxlength="500" placeholder="제목·출처·검토 내용"></label></div><p id="pr-result" role="status"></p>'+
-   '<div class="pr-export"><div><strong>외부 검증용 CSV</strong><p>상태별 목록·원문 URL·검토 사유·사업 정보·판단 이력을 받습니다. 저장된 결과 기준이며, 현재 목록에는 검색·우선순위 조건도 적용됩니다.</p></div><div class="pr-export-actions"><button type="button" class="button secondary" id="pr-export-current">현재 목록 CSV</button><button type="button" class="button secondary" id="pr-export-all">전체 상태 CSV</button></div></div><p id="pr-export-result" role="status" aria-live="polite"></p>'+
+   '<div class="pr-export"><div><strong>외부 검증용 CSV · 구조화 근거 JSON</strong><p>통합 본문·판본·품질, 검토 이력과 관련 사건을 받습니다. JSON에는 인용·단위·계획/실적 구분·미확인 항목이 포함됩니다. 저장된 결과 기준이며, 현재 목록에는 검색·우선순위 조건도 적용됩니다.</p></div><div class="pr-export-actions"><button type="button" class="button secondary" id="pr-export-current">현재 목록 CSV</button><button type="button" class="button secondary" id="pr-export-all">전체 상태 CSV</button><button type="button" class="button secondary" id="pr-export-json">현재 목록 근거 JSON</button></div></div><p id="pr-export-result" role="status" aria-live="polite"></p>'+
    '<div class="pr-workspace"><div id="pr-list" aria-label="검토 대상 목록"></div><article id="pr-detail" class="pr-detail" aria-label="원문과 검토 결과"></article></div>';
   $('pr-status').value=filter;$('pr-priority').value=priority;$('pr-search').value=search;
   $('pr-status').onchange=event=>{filter=event.target.value;renderList();};$('pr-priority').onchange=event=>{priority=event.target.value;renderList();};$('pr-search').oninput=event=>{search=event.target.value;renderList();};
   host().querySelector('[data-pr-refresh]').onclick=()=>{if(canLeave())load();};
   host().querySelectorAll('[data-pr-status]').forEach(b=>b.onclick=()=>{filter=b.dataset.prStatus;$('pr-status').value=filter;renderList();});
-  $('pr-export-current').onclick=()=>downloadCsv(false);$('pr-export-all').onclick=()=>downloadCsv(true);
-  renderList();renderDetail();AICollection.mount($('ai-collection-root'));
+  $('pr-export-current').onclick=()=>downloadCsv(false);$('pr-export-all').onclick=()=>downloadCsv(true);$('pr-export-json').onclick=()=>downloadCsv(false,'json');
+  renderList();renderDetail();AICollection.mount($('ai-collection-root'));StageReviews.mount($('stage-review-root'));
  }
  function renderList(){
   const open=new Set(['REVIEW','HOLD','REGISTRATION_REQUIRED']);
   const rows=data.items.filter(r=>(filter==='ALL'||filter==='OPEN'&&open.has(r.status)||r.status===filter)&&(!priority||String(r.priority)===priority)&&(!search||[r.title,r.source_name,r.question,r.decision?.reason].join(' ').toLowerCase().includes(search.toLowerCase())));
   const exportLabel=filter==='ALL'?'전체':filter==='OPEN'?'미완료':stateLabel(filter);
   $('pr-export-current').textContent=exportLabel+' CSV · '+num(rows.length)+'건';
-  $('pr-export-current').disabled=exporting;$('pr-export-all').disabled=exporting;
+  $('pr-export-current').disabled=exporting;$('pr-export-all').disabled=exporting;$('pr-export-json').disabled=exporting;
   $('pr-result').textContent='조회 '+rows.length+'건 / 전체 '+data.total+'건 · 우선순위는 제목 기반 검토 제안이며 사업 동일성 확정이 아닙니다.';
   $('pr-list').innerHTML=rows.map(r=>'<button type="button" class="pr-item" data-pr-id="'+e(r.id)+'" aria-pressed="'+(selected===r.id)+'"><span class="pr-item-top"><span class="pr-priority p'+r.priority+'">'+(r.priority<4?'우선 '+r.priority:'참고')+'</span><span class="pr-state">'+e(r.status_label)+'</span></span><strong>'+e(r.title)+'</strong><small>'+e(r.source_date)+' · '+e(r.authority==='OFFICIAL'?'공식 자료':'언론 자료')+'</small><span>'+e(r.guidance?.decision||r.review_topic)+'</span>'+(r.source_changed?'<em>원문 새 판본 · 재검토 필요</em>':'')+'</button>').join('')||'<p class="pr-empty">조건에 맞는 자료가 없습니다.</p>';
   $('pr-list').querySelectorAll('[data-pr-id]').forEach(b=>b.onclick=()=>{if(!canLeave())return;selected=b.dataset.prId;dirty=false;renderList();renderDetail();});
   host().querySelectorAll('[data-pr-status]').forEach(b=>b.setAttribute('aria-pressed',String(filter===b.dataset.prStatus)));
  }
- async function downloadCsv(all){
+ async function downloadCsv(all,format='csv'){
   if(exporting)return;
   const params=new URLSearchParams({status:all?'ALL':filter});
   if(!all&&priority)params.set('priority',priority);
   if(!all&&search)params.set('search',search);
-  exporting=true;$('pr-export-current').disabled=true;$('pr-export-all').disabled=true;
-  $('pr-export-result').textContent='저장된 검토 결과와 근거를 모아 CSV를 생성하고 있습니다…';
+  exporting=true;$('pr-export-current').disabled=true;$('pr-export-all').disabled=true;$('pr-export-json').disabled=true;
+  $('pr-export-result').textContent='저장된 검토 결과와 근거를 모아 '+format.toUpperCase()+'를 생성하고 있습니다…';
   try{
-   const response=await fetch(API+'/publication-reviews/export.csv?'+params,{credentials:'same-origin'});
-   if(!response.ok){const error=await response.json().catch(()=>({}));throw new Error(typeof error.detail==='string'?error.detail:'CSV 생성에 실패했습니다. 다시 시도해 주세요.');}
+   const response=await fetch(API+'/publication-reviews/export.'+format+'?'+params,{credentials:'same-origin'});
+   if(!response.ok){const error=await response.json().catch(()=>({}));throw new Error(typeof error.detail==='string'?error.detail:format.toUpperCase()+' 생성에 실패했습니다. 다시 시도해 주세요.');}
    const blob=await response.blob(),url=URL.createObjectURL(blob),link=document.createElement('a');
-   link.href=url;link.download=response.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1]||'home-publication-reviews.csv';
+   link.href=url;link.download=response.headers.get('content-disposition')?.match(/filename="([^"]+)"/)?.[1]||('home-publication-reviews.'+format);
    document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
-   $('pr-export-result').textContent='CSV 다운로드 완료 · 본문 미보유 자료는 원문 URL에서 확인하세요. 외부 검증결과·검증사유·추가확인사항 열에 검토 내용을 적을 수 있습니다.';
+   $('pr-export-result').textContent=format.toUpperCase()+' 다운로드 완료 · 통합본문 품질·판본과 미확인 항목을 함께 확인하세요. 외부 모델 권고와 담당자 판단은 별도 표시됩니다.';
   }catch(error){$('pr-export-result').textContent=error.message;}
   finally{exporting=false;if($('pr-export-current'))renderList();}
  }
@@ -61,6 +61,7 @@ const PublicationReviews=(()=>{
   root.innerHTML=`<div class="pr-detail-top"><span class="pr-priority p${r.priority}">${r.priority<4?'우선순위 '+r.priority:'참고 분류'}</span><span>${e(r.status_label)}</span></div>
    <h3 tabindex="-1">${e(r.title)}</h3><p class="pr-meta">${e(r.source_name)} · 게시일 ${e(r.source_date)} · 원문 판본 ${r.source_revision_no}</p>
    ${AICollection.analysis(r.ai_analysis)}
+   ${r.assessment?`<details class="pr-basis"><summary>담당자 근거 재검증${r.assessment.stale?' · 이전 판본':''}</summary><p>${e(r.assessment.reason)}</p><small>${e(r.assessment.actor)} · ${e(r.assessment.assessed_at)}</small><p>외부 모델은 담당자 업무 보조로 활용했습니다. 상세 인용·사건 관계는 근거 JSON에서 확인하세요.</p><p>${e((r.assessment.unknown_fields||[]).join(' · '))}</p></details>`:''}
    <section class="pr-question"><span class="pr-kicker">이번 자료에서 결정할 한 가지</span><h4>${e(g.decision)}</h4><p>${e(g.why)}</p><small>${e(g.basis)}</small>
     ${r.link_changed?'<p><strong>다른 화면에서 연결이 변경됐습니다.</strong> 현재 연결 상태를 다시 확인하세요.</p>':''}
     ${r.source_changed?'<p><strong>새 원문 판본이 수집됐습니다.</strong> 이전 결정은 보존되며 현재 자료는 재검토 대기입니다.</p>':''}</section>

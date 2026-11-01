@@ -5,6 +5,18 @@ from types import SimpleNamespace
 import httpx
 from PIL import Image
 from app import text_ocr as o
+
+def test_reading_scale_repeats_pixels_without_new_strokes():
+    import io
+    from PIL import Image
+    raw=io.BytesIO();image=Image.new('RGB',(12,10),'white');image.putpixel((3,4),(255,0,0));image.save(raw,format='PNG')
+    data,size=o.reading_scale(raw.getvalue(),3)
+    assert size==[36,30]
+    scaled=Image.open(io.BytesIO(data))
+    assert scaled.getpixel((9,12))==(255,0,0) and scaled.getpixel((11,14))==(255,0,0)
+    assert scaled.getpixel((12,12))==(255,255,255)
+    _,size=o.reading_scale(raw.getvalue(),1)
+    assert size==[12,10]
 from app.config import Settings
 from app.providers import Provider
 from app.rules import PACK
@@ -141,3 +153,20 @@ def test_naver_word_order_is_stable_across_y_bin_boundary():
     b={'text':'나','rect':[.3,.201,.4,.231],'score':.99}
     c={'text':'다','rect':[.5,.198,.6,.23],'score':.99}
     assert [f['text'] for _,f in o.reading_order([(0,c),(1,b),(2,a)])]==['가','나','다']
+
+
+def test_confirmed_shape_comparison_resolves_old_ocr_warning_without_erasing_raw_audit():
+    r=region();r['vision']['inferred']=True;r['verdict']=o.verdict(r)
+    p=dict(id='PXT001',rect=r['rect'],shape_confirmed=True)
+    run={'rule_pack':PACK,'text_ocr':{'status':'COMPLETED','regions':[r]},'pixel_text':{'regions':[p]}}
+    original=dict(rule_id='D-02-l',status='PASS',reason='원본 형태 확인 후 정상 철자',evidence_ids=['PXT001'],rects=[r['rect']])
+    rows=o.protect_rows(run,[original],['D-02-l'],'mini')
+    assert len(rows)==1 and rows[0]['status']=='PASS'
+    assert run['text_ocr']['regions'][0]['vision']['inferred']
+
+
+def test_independent_visible_damage_survives_ocr_reading_uncertainty():
+    r=region();r['vision']['inferred']=True;r['verdict']=o.verdict(r)
+    run={'rule_pack':PACK,'text_ocr':{'status':'COMPLETED','regions':[r]}}
+    row=dict(rule_id='D-02-l',status='FAIL',reason='원본에서 획 융합 확인',evidence_ids=['O1'],rects=[r['rect']],error_type='VISUAL_TEXT_DEFECT',glyph_evidence={'checks':[{'quality':'DEFECT'}]})
+    assert o.protect_rows(run,[row],['D-02-l'],'mini')[0]['status']=='FAIL'

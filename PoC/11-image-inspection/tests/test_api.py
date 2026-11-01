@@ -7,7 +7,7 @@ from app.main import create_app
 
 @pytest.fixture
 def client(tmp_path):
-    s=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'admin-test','REVIEWER_PASSWORD':'review-test','SESSION_SECRET':'test-secret','EXTERNAL_API_ENABLED':'false','SHARED_BUDGET_HTTP':'false','USAGE_GATEWAY_URL':'','SHARED_BUDGET_DATABASE_URL':'','OPENROUTER_API_KEY':'','OPENROUTER_GATEWAY_URL':''})
+    s=Settings({'DATA_DIR':str(tmp_path),'ADMIN_PASSWORD':'admin-test','REVIEWER_PASSWORD':'review-test','SESSION_SECRET':'test-secret','EXTERNAL_API_ENABLED':'false','PIXEL_TEXT_ENABLED':'false','SHARED_BUDGET_HTTP':'false','USAGE_GATEWAY_URL':'','SHARED_BUDGET_DATABASE_URL':'','OPENROUTER_API_KEY':'','OPENROUTER_GATEWAY_URL':''})
     with TestClient(create_app(s)) as c:yield c
 
 def login(c,role='admin'):
