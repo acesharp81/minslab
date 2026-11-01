@@ -19,16 +19,19 @@ class Project:
     name: str
     prefix: str
     remote: str
+    token_env: str = ""
 
 
 PROJECTS = {
     "kjon": Project(
         "국정ON", "PoC/07-NationalAssembly",
         "https://gitlab.aigov.go.kr/acesharp/kjon.git",
+        "GITLAB_KJON_TOKEN",
     ),
     "home": Project(
         "the주택", "PoC/10-home",
         "https://gitlab.aigov.go.kr/acesharp/HOME.git",
+        "GITLAB_HOME_TOKEN",
     ),
 }
 
@@ -76,15 +79,30 @@ def prepare_export(root: Path, project: Project, source: str) -> Export:
     return Export(project, source, commit, files - 1, dirty)
 
 
+def token_for(project: Project | None, env: dict[str, str]) -> str | None:
+    if project and project.token_env:
+        if project.token_env in env or any(env.get(p.token_env) for p in PROJECTS.values()):
+            token = env.get(project.token_env)
+            if not token:
+                raise SyncError(f"{project.name}용 {project.token_env}을 설정하세요.")
+            return token
+    return env.get("GITLAB_TOKEN")
+
+
 @contextmanager
-def push_environment() -> Iterator[dict[str, str]]:
+def push_environment(project: Project | None = None) -> Iterator[dict[str, str]]:
     """Read CI credentials through askpass, never through URLs or files."""
     env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
-    if not env.get("GITLAB_TOKEN"):
+    token = token_for(project, env)
+    # Each Git process gets only its selected token, including in its environment.
+    for configured in PROJECTS.values():
+        env.pop(configured.token_env, None)
+    if not token:
         yield env
         return
+    env["GITLAB_TOKEN"] = token
     if not env.get("GITLAB_USERNAME"):
-        raise SyncError("GITLAB_TOKEN 사용 시 GITLAB_USERNAME도 설정하세요.")
+        env["GITLAB_USERNAME"] = "gitlab-sync"
     with tempfile.TemporaryDirectory(prefix="minslab-gitlab-auth-") as directory:
         askpass = Path(directory) / "askpass.py"
         askpass.write_text(
@@ -141,8 +159,10 @@ def main(argv: list[str] | None = None) -> int:
         # Check every selected project before publishing any of them.
         if any(export.dirty for export in exports):
             raise SyncError("선택한 프로젝트의 미커밋 변경을 먼저 검토·커밋하세요.")
-        with push_environment() as env:
-            for export in exports:
+        for export in exports:
+            token_for(export.project, dict(os.environ))
+        for export in exports:
+            with push_environment(export.project) as env:
                 print(publish(root, export, env), flush=True)
         return 0
     except (SyncError, OSError) as error:

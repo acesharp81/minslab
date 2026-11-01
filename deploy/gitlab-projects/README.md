@@ -14,16 +14,24 @@ GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 �
 
 [sync-gitlab-projects.yml](../../.github/workflows/sync-gitlab-projects.yml)은 GitHub `main`의 두 서비스 폴더 또는 동기화 도구가 변경될 때 실행됩니다. 두 프로젝트를 각각 처리하며, 실패한 프로젝트 때문에 다른 프로젝트의 작업을 취소하지 않습니다. 프로젝트별 작업을 직렬화하고 실행 시 최신 `main`을 받아 오래된 실행이 최신 결과를 되돌리는 것을 방지합니다.
 
-다음 GitHub Actions secrets를 사용합니다. 기존에 등록한 인증 정보도 두 대상 프로젝트에 접근할 수 있으면 재사용할 수 있습니다.
+GitHub 저장소의 **Settings → Secrets and variables → Actions → New repository secret**에 다음 두 값을 각각 등록합니다.
 
-- `GITLAB_USERNAME`: GitLab 사용자명
-- `GITLAB_TOKEN`: 두 대상 프로젝트의 `main`에 push할 수 있는 토큰 (`write_repository` 권한)
+| Secret 이름 | 등록할 값 |
+| --- | --- |
+| `GITLAB_KJON_TOKEN` | 국정ON `acesharp/kjon`에서 발급한 프로젝트 액세스 토큰 |
+| `GITLAB_HOME_TOKEN` | the주택 `acesharp/HOME`에서 발급한 프로젝트 액세스 토큰 |
 
-기존 토큰이 전체 미러 저장소 전용 프로젝트 토큰이면 새 프로젝트에 쓸 수 없습니다. 두 프로젝트에 접근 가능한 사용자 토큰 또는 적절한 그룹 토큰으로 `GITLAB_TOKEN` secret을 갱신해야 합니다. 실제 토큰은 GitHub secrets에만 입력합니다. 인증값은 URL이나 파일 내용에 기록하지 않고 임시 `GIT_ASKPASS`를 통해 전달합니다.
+각 토큰은 `write_repository` 범위와 대상 `main`에 push할 수 있는 역할·브랜치 권한이 필요합니다. 프로젝트 액세스 토큰은 발급한 프로젝트에만 사용합니다. HTTPS 인증의 사용자명은 비어 있지 않은 값이면 되므로 workflow는 `gitlab-sync`를 사용하며 별도의 사용자명 secret은 필요하지 않습니다. [GitLab 프로젝트 토큰 문서](https://docs.gitlab.com/user/project/settings/project_access_tokens/)
+
+workflow는 프로젝트에 해당하는 secret만 해당 작업에 전달합니다. 기존 `GITLAB_TOKEN`·`GITLAB_USERNAME` secrets는 자동 동기화에서 더 이상 사용하지 않습니다. 인증값은 URL이나 파일 내용에 기록하지 않고 임시 `GIT_ASKPASS`를 통해 전달합니다.
 
 최초 동기화는 이 workflow와 도구를 GitHub `main`에 반영하면 시작됩니다. 재실행이나 특정 프로젝트만 갱신하려면 GitHub **Actions → Sync service projects to GitLab → Run workflow**에서 브랜치 `main`과 `all`·`kjon`·`home`을 선택합니다. `main` 이외의 브랜치에서는 게시하지 않습니다.
 
 전체 저장소 미러링 workflow는 제거했습니다. 동기화 대상은 이 문서의 두 서비스이며, `GITLAB_REPOSITORY` secret은 더 이상 사용하지 않습니다. 기존 GitLab 전체 미러 저장소와 이미 게시한 코드는 별도로 유지됩니다.
+
+### GitLab 네트워크 접근
+
+2026-11-02 최초 실행에서는 GitHub 기본 실행 서버에서 `gitlab.aigov.go.kr:443`으로 연결하지 못해 두 작업이 실패했습니다. 현재 MinsLab 서버에서는 직접 TLS 접속이 정상입니다. 프로젝트별 토큰 등록은 인증 설정이며 이 네트워크 문제를 해결하지 않습니다. GitLab에 접속 가능한 서버에서 아래 로컬 명령을 실행하거나, 실행 환경의 GitLab 접근을 허용한 뒤 workflow를 재실행해야 합니다. [최초 실행 로그](https://github.com/acesharp81/minslab/actions/runs/41363450261)
 
 ## 로컬 실행
 
@@ -38,7 +46,9 @@ python3 deploy/gitlab_sync.py kjon --push
 python3 deploy/gitlab_sync.py home --push
 ```
 
-로컬 push는 기존 Git credential helper를 사용할 수 있습니다. 또는 비밀관리 도구로 `GITLAB_USERNAME`·`GITLAB_TOKEN` 환경변수를 주입합니다. 토큰을 명령줄이나 저장소 파일에 쓰지 않습니다.
+로컬 push는 기존 Git credential helper를 사용할 수 있습니다. 또는 비밀관리 도구로 `GITLAB_KJON_TOKEN`·`GITLAB_HOME_TOKEN` 환경변수를 주입하면 `all --push`도 각 프로젝트의 토큰으로 나누어 인증합니다. 한 프로젝트의 토큰을 설정한 상태에서 다른 프로젝트의 토큰이 누락되면 게시 전에 중단하며 다른 프로젝트나 공통 토큰으로 대체하지 않습니다. 각 Git 프로세스에는 선택한 토큰 하나만 전달합니다.
+
+호환성을 위해 프로젝트별 토큰을 하나도 설정하지 않은 로컬 환경에서는 기존 공통 `GITLAB_TOKEN`과 선택적인 `GITLAB_USERNAME`도 지원합니다. 사용자명을 생략하면 `gitlab-sync`를 사용합니다. GitHub secrets의 값은 서버로 자동 전달되지 않으므로 서버에서 실행할 때는 서버의 비밀관리 환경에도 토큰을 별도로 등록해야 합니다. 토큰을 명령줄이나 저장소 파일에 쓰지 않습니다.
 
 동기화는 **커밋된 파일과 이력만** 대상으로 합니다. 대상 폴더에 미커밋 수정이나 미추적 파일이 있으면 미리보기에서 표시하고 push는 중단합니다. 다른 서비스 폴더의 미커밋 수정은 영향을 주지 않습니다. `.gitignore`로 제외된 `.env`·운영 데이터는 새로 포함되지 않으며, 이미 커밋된 파일과 과거 이력은 분리 이력에 포함되므로 공개 전 원본에서 확인합니다.
 

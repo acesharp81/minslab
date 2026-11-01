@@ -28,7 +28,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [kjon, home]
+        include:
+          - project: kjon
+            token_secret: GITLAB_KJON_TOKEN
+          - project: home
+            token_secret: GITLAB_HOME_TOKEN
     concurrency:
       group: gitlab-project-${{ matrix.project }}
       cancel-in-progress: false
@@ -47,11 +51,12 @@ jobs:
         if: github.event_name != 'workflow_dispatch' || inputs.project == 'all' || inputs.project == matrix.project
         env:
           PROJECT: ${{ matrix.project }}
-          GITLAB_USERNAME: ${{ secrets.GITLAB_USERNAME }}
-          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          TOKEN_SECRET_NAME: ${{ matrix.token_secret }}
+          GITLAB_USERNAME: gitlab-sync
+          GITLAB_TOKEN: ${{ secrets[matrix.token_secret] }}
         run: |
-          if [[ -z "$GITLAB_USERNAME" || -z "$GITLAB_TOKEN" ]]; then
-            echo "::error::GITLAB_USERNAME과 GITLAB_TOKEN secrets가 필요합니다."
+          if [[ -z "$GITLAB_TOKEN" ]]; then
+            echo "::error::${TOKEN_SECRET_NAME} secret에 해당 프로젝트의 액세스 토큰을 등록하세요."
             exit 1
           fi
           python3 deploy/gitlab_sync.py "$PROJECT" --push

@@ -34,12 +34,12 @@ class GitLabSyncTests(unittest.TestCase):
             (directory / ".gitignore").write_text(".env\n")
             remote = self.base / f"{key}.git"
             self.git(self.base, "init", "--bare", "--initial-branch=main", str(remote))
-            self.projects[key] = sync.Project(original.name, original.prefix, str(remote))
+            self.projects[key] = sync.Project(original.name, original.prefix, str(remote), original.token_env)
         (self.root / "parent-only.txt").write_text("must not be exported")
         self.commit("initial monorepo")
         self.env = {
             key: value for key, value in os.environ.items()
-            if key not in {"GITLAB_TOKEN", "GITLAB_USERNAME", "GIT_ASKPASS"}
+            if key not in {"GITLAB_TOKEN", "GITLAB_USERNAME", "GIT_ASKPASS", "GITLAB_KJON_TOKEN", "GITLAB_HOME_TOKEN"}
         }
         self.env["GIT_TERMINAL_PROMPT"] = "0"
 
@@ -195,6 +195,38 @@ class GitLabSyncTests(unittest.TestCase):
                     result = subprocess.run([str(helper), prompt], env=env, capture_output=True, text=True, check=True)
                     self.assertEqual(result.stdout.strip(), expected)
             self.assertFalse(helper.exists())
+
+    def test_each_project_receives_only_its_own_token(self):
+        credentials = dict(self.env, GITLAB_KJON_TOKEN="assembly-test-token",
+                           GITLAB_HOME_TOKEN="housing-test-token", GITLAB_TOKEN="legacy-test-token")
+        with patch.dict(os.environ, credentials, clear=True):
+            for key, expected in [("kjon", "assembly-test-token"), ("home", "housing-test-token")]:
+                with self.subTest(project=key), sync.push_environment(self.projects[key]) as env:
+                    self.assertEqual(env["GITLAB_TOKEN"], expected)
+                    self.assertEqual(env["GITLAB_USERNAME"], "gitlab-sync")
+                    self.assertNotIn("GITLAB_KJON_TOKEN", env)
+                    self.assertNotIn("GITLAB_HOME_TOKEN", env)
+                    result = subprocess.run([env["GIT_ASKPASS"], "Password"], env=env,
+                                            capture_output=True, text=True, check=True)
+                    self.assertEqual(result.stdout.strip(), expected)
+
+    def test_missing_project_token_does_not_use_another_token_or_publish_partially(self):
+        credentials = dict(self.env, GITLAB_KJON_TOKEN="assembly-test-token", GITLAB_TOKEN="legacy-test-token")
+        with patch.dict(os.environ, credentials, clear=True):
+            with self.assertRaisesRegex(sync.SyncError, "GITLAB_HOME_TOKEN"):
+                with sync.push_environment(self.projects["home"]):
+                    self.fail("Missing housing token must not fall back to the shared token")
+            with patch.object(sync, "__file__", str(self.root / "deploy" / "gitlab_sync.py")), \
+                 patch.object(sync, "PROJECTS", self.projects), \
+                 patch("sys.stdout", new_callable=io.StringIO), \
+                 patch("sys.stderr", new_callable=io.StringIO):
+                self.assertEqual(sync.main(["all", "--push"]), 1)
+            self.assertEqual(self.refs("kjon"), "")
+            self.assertEqual(self.refs("home"), "")
+
+    def test_explicitly_empty_project_token_cannot_use_legacy_credentials(self):
+        with self.assertRaisesRegex(sync.SyncError, "GITLAB_KJON_TOKEN"):
+            sync.token_for(self.projects["kjon"], {"GITLAB_KJON_TOKEN": "", "GITLAB_TOKEN": "legacy-test-token"})
 
 
 if __name__ == "__main__":
