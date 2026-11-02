@@ -1,7 +1,9 @@
 'use strict';
 /* Standalone regional comparison workspace. Regional observations, dated outlooks and
    the selected project ledger remain separate series and scopes. */
-const HousingIndicators=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const HousingIndicators = {};
+{
  const e=v=>esc(String(v??'')),n=v=>Number.isFinite(v)?num(Math.round(v)):'미확보',f=(v,d=1)=>Number.isFinite(v)?v.toLocaleString('ko-KR',{maximumFractionDigits:d}):'미확보';
  const colors=['#1867b8','#169a87','#df842d','#815bbb','#c64e67'],capital=['서울특별시','경기도','인천광역시'];
  const short=v=>Math.abs(v)>=10000?f(v/10000,1)+'만':f(v,1),known=Number.isFinite;
@@ -164,15 +166,17 @@ const HousingIndicators=(()=>{
   return {kind:'regional',root:host,scope:{policy_id:st.options.id,name:d.scope.name,region:st.options.region||'',municipality_id:d.scope.municipality_id||'',municipality:d.scope.municipality||'',year:d.scope.year,as_of_date:d.as_of_date,baseline_years:st.options.baselineYears||3,portfolio:!!st.options.portfolio,housing_mode:st.calculated?'calculated':'official',starts_mode:st.cumulative?'cumulative':'monthly'},
    data:JSON.parse(JSON.stringify({...d,places:d.places.map(({rings,...place})=>place)})),topics:JSON.parse(JSON.stringify(topics))};
  }
- return {mount,plot,priceCard,mapColor,map,reportContext};
-})();
+ Object.defineProperties(HousingIndicators, Object.getOwnPropertyDescriptors({mount,plot,priceCard,mapColor,map,reportContext}));
+}
 
 // This workspace owns market comparisons; management reports keep their operational charts.
-const SupplyConditions=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const SupplyConditions = {};
+{
  let date='';
  function visible(){
   const asOf=$('as-of').value;if(date===asOf)return;date=asOf;
   HousingIndicators.mount($('supply-conditions-report'),{kind:'policy',id:'POL_2025_0907',asOf,standalone:true,includeHouseholds:true,policies:state.policies});
  }
- return {visible};
-})();
+ Object.defineProperties(SupplyConditions, Object.getOwnPropertyDescriptors({visible}));
+}

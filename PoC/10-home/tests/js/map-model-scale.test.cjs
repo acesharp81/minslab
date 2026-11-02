@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const sandbox={};
-vm.runInNewContext(fs.readFileSync('web/assets/map-3d.js','utf8').replace('return {start,render,focus,','return {modelFor,start,render,focus,')+';globalThis.model=MapThreeD.modelFor;',sandbox);
+vm.runInNewContext(fs.readFileSync('web/assets/map-3d.js','utf8').replace('Object.getOwnPropertyDescriptors({start,render,focus,','Object.getOwnPropertyDescriptors({modelFor,start,render,focus,')+';globalThis.model=MapThreeD.modelFor;',sandbox);
 const block={id:'test',block:'A1',latitude:37.5,longitude:127,coordinate_basis:'APPROXIMATE_ADDRESS'};
 const model=units=>sandbox.model({...block,target_units:units});
 test('supply scale conserves units and volume from small blocks to large districts',()=>{

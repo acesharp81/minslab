@@ -64,3 +64,9 @@ AI 기능은 기본 실행에 포함되지 않습니다. 자신의 OpenAI·Solar
 API·worker 이미지는 UID/GID `1000:1000`으로 실행합니다. 독립 Compose의 새 runtime volume은 이미지의 `/app/data` 소유권을 이어받습니다. 기존 운영 데이터나 다른 bind mount를 재사용할 때는 모든 하위 디렉터리·파일에 이 UID의 읽기·쓰기 권한이 있는지 먼저 확인해야 합니다. 기존 root 소유 데이터는 worker를 중지한 유지보수 절차에서 소유권을 이관한 뒤 새 이미지를 배포합니다.
 
 브라우저에서 유효하지만 일부 검사기가 optional chaining과 혼동하던 `조건?.6:값` 등의 조건식은 `조건 ? 0.6 : 값` 형태로 표기했습니다. 계산 의미는 같습니다.
+
+### 공개 저장소 검증 기록
+
+2026-11-02 GitLab `main`의 실제 게시를 확인하고 새로 clone한 저장소에서 Python 1124 passed / 2 skipped, JavaScript 141 passed를 확인했습니다. 두 생략 항목은 명시적인 별도 PostgreSQL 테스트 URL과 운영에서 고정한 PDF가 필요한 테스트입니다. 필수 오프라인 fixture는 저장소에 포함합니다.
+
+독립 새 DB에서 `0018_snapshot_content`까지 migration, UID/GID 1000:1000 실행, runtime 데이터 쓰기와 health 200을 확인했습니다. Firefox에서는 수정 소스로 초기 화면과 정책 지도를 열어 JavaScript 예외가 없고 지도가 표시됨을 확인했습니다. 이 과정은 운영 API·worker 재배포와 분리하여 수행했습니다.

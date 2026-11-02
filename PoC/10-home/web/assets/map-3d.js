@@ -1,7 +1,9 @@
 'use strict';
 // Continuous 3D supply map. Apartment masses are illustrative, not surveyed
 // buildings, official layouts, construction progress, or a source of unit counts.
-const MapThreeD=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const MapThreeD = {};
+{
   let library,gl,opening,active=false,data,selectedId,selectedDistrict,choose,onViewport;
   let markers=[],visibleIds=new Set(),modelSignature='',contextBlockId='',contextTicket=0,modelFeatures=[],generation=0;
   let infraBlockId='',infraTicket=0,infraItems=[],infraSource=null,infraState='loading',infraBound=false;
@@ -424,5 +426,5 @@ const MapThreeD=(()=>{
   function camera(view){if(!active||!gl)return;if(view==='overview'){const districtBlocks=data.blocks.filter(row=>row.district_name===selectedDistrict&&located(row)&&row.project_ids.some(id=>visibleIds.has(id)));if(districtBlocks.length){const west=Math.min(...districtBlocks.map(row=>row.longitude)),south=Math.min(...districtBlocks.map(row=>row.latitude)),east=Math.max(...districtBlocks.map(row=>row.longitude)),north=Math.max(...districtBlocks.map(row=>row.latitude));gl.fitBounds([[west,south],[east,north]],{padding:110,maxZoom:MapMonitor.wideZoom(14.8),pitch:50,bearing:0,duration:450});}else fit();}else{const settings={top:{pitch:0,bearing:0},oblique:{pitch:55,bearing:-20},north:{pitch:55,bearing:0}}[view];if(!settings)return;gl.easeTo({...settings,duration:450});}document.querySelectorAll('[data-map-3d-camera]').forEach(button=>{const selected=button.getAttribute('data-map-3d-camera')===view;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});}
   function resize(){gl?.resize();scheduleBlockLayout();}
   function exit(){pendingFocus=null;cancelAnimationFrame(layoutFrame);layoutFrame=0;leaderSvg?.remove();leaderSvg=null;contextRadius=500;contextRadiusLinked=false;resizeObserver?.disconnect();resizeObserver=null;radiusSignature='';overlapPopup?.remove();overlapPopup=null;generation++;opening=null;contextTicket++;contextBlockId='';infraTicket++;infraBlockId='';infraItems=[];infraSource=null;infraState='loading';modelSignature='';modelFeatures=[];clearMarkers();if(gl){gl.remove();gl=null;}active=false;surface(false);}
-  return {start,render,focus,setLevel,fit,camera,resize,exit,cancel:exit,status,active:()=>active,loading:()=>Boolean(opening),currentBlock:()=>selectedBlock()?.id,zoom:()=>gl?.getZoom()||0,view:()=>gl?{zoom:gl.getZoom(),level:MapMonitor.levelAt(gl.getZoom()),center:gl.getCenter(),regionId:selectedRegionId,municipalityId:selectedMunicipalityId}:null,modelStats:()=>({features:modelFeatures.length,approximateFeatures:modelFeatures.filter(row=>row.properties.location_basis?.startsWith('APPROXIMATE')).length,selectedFeatures:modelFeatures.filter(row=>row.properties.block_id===selectedBlock()?.id).length,simulated:modelFeatures.every(row=>row.properties.model_status==='ILLUSTRATIVE')})};
-})();
+  Object.defineProperties(MapThreeD, Object.getOwnPropertyDescriptors({start,render,focus,setLevel,fit,camera,resize,exit,cancel:exit,status,active:()=>active,loading:()=>Boolean(opening),currentBlock:()=>selectedBlock()?.id,zoom:()=>gl?.getZoom()||0,view:()=>gl?{zoom:gl.getZoom(),level:MapMonitor.levelAt(gl.getZoom()),center:gl.getCenter(),regionId:selectedRegionId,municipalityId:selectedMunicipalityId}:null,modelStats:()=>({features:modelFeatures.length,approximateFeatures:modelFeatures.filter(row=>row.properties.location_basis?.startsWith('APPROXIMATE')).length,selectedFeatures:modelFeatures.filter(row=>row.properties.block_id===selectedBlock()?.id).length,simulated:modelFeatures.every(row=>row.properties.model_status==='ILLUSTRATIVE')})}));
+}
