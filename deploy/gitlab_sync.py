@@ -22,18 +22,21 @@ class Project:
     prefix: str
     remote: str
     token_env: str = ""
+    base_source: str | None = None
 
+
+PUBLICATION_BASE_SOURCE = "e9482fd1005e7a01301d908ec91d8d2de6912272"
 
 PROJECTS = {
     "kjon": Project(
         "국정ON", "PoC/07-NationalAssembly",
         "https://gitlab.aigov.go.kr/acesharp/kjon.git",
-        "GITLAB_KJON_TOKEN",
+        "GITLAB_KJON_TOKEN", PUBLICATION_BASE_SOURCE,
     ),
     "home": Project(
         "the주택", "PoC/10-home",
         "https://gitlab.aigov.go.kr/acesharp/HOME.git",
-        "GITLAB_HOME_TOKEN",
+        "GITLAB_HOME_TOKEN", PUBLICATION_BASE_SOURCE,
     ),
 }
 
@@ -75,7 +78,7 @@ def publication_tree(root: Path, tree: str) -> str:
         return git(root, "write-tree", env=env)
 
 
-def publication_history(root: Path, commit: str) -> str:
+def publication_history(root: Path, commit: str, excluded_parents: tuple[str, ...] = ()) -> str:
     """Filter only generated evidence, including history, without editing refs."""
     objects = git(root, "rev-parse", "--path-format=absolute", "--git-path", "objects")
     with tempfile.TemporaryDirectory(prefix="minslab-export-history-") as directory:
@@ -89,7 +92,8 @@ def publication_history(root: Path, commit: str) -> str:
         # A private stream preserves arbitrary commit-message bytes exactly.
         with (base / "history.fi").open("w+b") as stream:
             result = subprocess.run(
-                ["git", "fast-export", "--no-data", "refs/heads/export", "--", ".",
+                ["git", "fast-export", "--full-tree", "--no-data", "refs/heads/export",
+                 *[f"^{parent}" for parent in excluded_parents], "--", ".",
                  *[f":(exclude){path}" for path in EXCLUDED_PATHS]],
                 cwd=source, stdout=stream, stderr=subprocess.PIPE,
             )
@@ -122,7 +126,14 @@ def prepare_export(root: Path, project: Project, source: str) -> Export:
         "--", project.prefix,
     ))
     split = git(root, "subtree", "split", f"--prefix={project.prefix}", source)
-    commit = publication_history(root, split)
+    excluded_parents: tuple[str, ...] = ()
+    if project.base_source:
+        # Start sharing with the reviewed, reconstructable version. Earlier
+        # monorepo history remains in GitHub; subsequent history stays linear.
+        git(root, "merge-base", "--is-ancestor", project.base_source, source)
+        base_split = git(root, "subtree", "split", f"--prefix={project.prefix}", project.base_source)
+        excluded_parents = tuple(git(root, "rev-list", "--parents", "-n", "1", base_split).split()[1:])
+    commit = publication_history(root, split, excluded_parents)
     if git(root, "rev-parse", f"{commit}^{{tree}}") != expected_tree:
         raise SyncError(f"분리 결과가 원본 프로젝트와 다릅니다: {project.name}")
     files = len(git(root, "ls-tree", "-r", "--name-only", "-z", commit).split("\0"))

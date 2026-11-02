@@ -124,6 +124,32 @@ class GitLabSyncTests(unittest.TestCase):
         self.assertTrue(evidence.exists())
 
 
+    def test_publication_starts_at_reviewed_version_and_future_updates_fast_forward(self):
+        key = 'home'
+        directory = self.root / self.projects[key].prefix
+        (directory / 'README.md').write_text('unpublished legacy implementation')
+        old_source = self.commit('legacy change')
+        (directory / 'README.md').write_text('reviewed reconstructable implementation')
+        baseline = self.commit('reviewed publication baseline')
+        original = self.projects[key]
+        self.projects[key] = sync.Project(original.name, original.prefix, original.remote,
+                                          original.token_env, baseline)
+        first = self.prepare(key)
+        sync.publish(self.root, first, self.env)
+        remote = Path(original.remote)
+        self.assertEqual(self.git(remote, 'rev-list', '--count', 'main'), '1')
+        self.assertEqual(self.git(remote, 'show', 'main:README.md'), 'reviewed reconstructable implementation')
+        (directory / 'app.py').write_text('reviewed incremental update')
+        self.commit('incremental source update')
+        second = self.prepare(key)
+        sync.publish(self.root, second, self.env)
+        self.assertEqual(self.git(remote, 'rev-list', '--count', 'main'), '2')
+        self.assertEqual(self.git(remote, 'rev-parse', 'main^'), first.commit)
+        self.assertEqual(self.prepare(key).commit, second.commit)
+        with self.assertRaises(sync.SyncError):
+            sync.prepare_export(self.root, self.projects[key], old_source)
+
+
     def test_repeated_sync_and_other_project_commits_do_not_change_export(self):
         first = self.prepare("kjon")
         sync.publish(self.root, first, self.env)

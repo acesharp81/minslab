@@ -8,7 +8,7 @@ GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 �
 | `home` | `PoC/10-home/` | <https://gitlab.aigov.go.kr/acesharp/HOME> |
 | `all` | 위 두 폴더 | 위 두 프로젝트 |
 
-예를 들어 `PoC/07-NationalAssembly/README.md`는 `kjon` 저장소의 `README.md`가 됩니다. 상위 `PoC/` 폴더나 다른 서비스 코드는 포함되지 않습니다. `git subtree split`으로 프로젝트 이력을 분리한 다음 `git fast-export`·`fast-import`의 경로 선택으로 `docs/evidence/`를 과거 이력에서도 제외합니다. 나머지 파일의 작성자·메시지·변경 이력을 유지하며 이후 갱신은 이 공개 이력에 이어집니다. 트리는 원본에서 이 증빙 경로만 제외한 결과와 일치하는지 검증합니다. 원본 branch·index·작업 파일·FETCH_HEAD는 바꾸지 않습니다. 다른 폴더만 바뀌면 분리된 커밋은 동일하여 해당 GitLab 프로젝트에는 새 변경이 생기지 않습니다.
+예를 들어 `PoC/07-NationalAssembly/README.md`는 `kjon` 저장소의 `README.md`가 됩니다. 상위 `PoC/` 폴더나 다른 서비스 코드는 포함되지 않습니다. `git subtree split`으로 프로젝트 이력을 분리한 다음 `git fast-export`·`fast-import`의 경로 선택으로 `docs/evidence/`를 과거 이력에서도 제외합니다. `e9482fd`의 재구성·보안 보완 버전을 최초 공개 기준으로 삼고 그 이전 이력은 GitHub에 보존합니다. 기준 버전의 전체 파일로 공유 이력을 시작하고 이후 작성자·메시지·변경 이력을 이어 갑니다. 트리는 원본에서 이 증빙 경로만 제외한 결과와 일치하는지 검증합니다. 원본 branch·index·작업 파일·FETCH_HEAD는 바꾸지 않습니다. 다른 폴더만 바뀌면 분리된 커밋은 동일하여 해당 GitLab 프로젝트에는 새 변경이 생기지 않습니다.
 
 ## 자동 동기화
 
@@ -93,3 +93,9 @@ python3 -m unittest discover -s tests -p 'test_gitlab_sync.py' -v
 79,281,811바이트 요청은 약 1.3초 만에 전송됐습니다. 이후 약 60초 뒤 재전송되고 다시 약 60초 뒤 502가 반환됐습니다. HTTP/1.1에서도 동일했습니다. 인증이나 전송 속도 실패가 아니라 업로드 이후 응답 대기에서 실패했으며, 서버 내부 원인은 직접 관측하지 못했습니다. [진단 실행](https://github.com/acesharp81/minslab/actions/runs/41369865934)
 
 최신 Home 트리 약 404MiB 중 약 371MiB가 `docs/evidence/`입니다. 사용자와 합의하여 이 생성 증빙만 공개 이력에서 제외합니다. 실행·다른 방식의 재사용에 필요한 데이터, migration, dependency, fixture는 포함합니다. 증빙을 읽던 월별 통계 회귀 테스트의 공식 HTML/PDF는 `tests/fixtures/monthly_release_202608/`에 보존해 제외 정책과 분리했습니다. 다른 파일이나 보안 검사 규칙을 임의로 제외하지 않습니다.
+
+### 최초 공개 기준
+
+증빙 제외로 전송량을 약 79MB에서 8MB로 줄인 뒤에도 업로드 후 약 60초 재전송·60초 뒤 502가 반복됐습니다. 단순 용량 감소만으로 해결됐다고 볼 수 없습니다. 전체 과거 이력의 일괄 전송을 분리하기 위해 현재 재구성 검증 버전 `e9482fd1005e7a01301d908ec91d8d2de6912272`부터 공개 이력을 시작합니다. `git fast-export --full-tree`로 기준 시점의 모든 필수 파일을 포함하고 이후 커밋은 일반 fast-forward로 갱신합니다. 이전 이력은 GitHub에 남으며 이 기준점은 최초 게시 후 임의로 바꾸지 않습니다. 강제 push나 필수 검사 우회는 사용하지 않습니다.
+
+독립 스냅샷 검증: 국정ON Python 924 passed / 28 skipped, Home Python 1121 passed / 2 skipped. 두 이미지 빌드와 새 DB migration·health 응답을 확인했습니다. Home의 0018 migration 중복 생성과 Git에 빠졌던 HWPX fixture도 보완했습니다. [국정ON 재구성](../../PoC/07-NationalAssembly/RECONSTRUCT.md), [Home 재구성](../../PoC/10-home/RECONSTRUCT.md).
