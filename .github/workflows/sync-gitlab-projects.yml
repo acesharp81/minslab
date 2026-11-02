@@ -7,6 +7,7 @@ on:
       - "PoC/07-NationalAssembly/**"
       - "PoC/10-home/**"
       - "deploy/gitlab_sync.py"
+      - "deploy/gitlab-runner/**"
       - ".github/workflows/sync-gitlab-projects.yml"
   workflow_dispatch:
     inputs:
@@ -23,10 +24,11 @@ permissions:
 jobs:
   sync:
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, x64, minslab-gitlab-sync]
     timeout-minutes: 20
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include:
           - project: kjon

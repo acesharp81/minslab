@@ -31,7 +31,7 @@ workflow는 프로젝트에 해당하는 secret만 해당 작업에 전달합니
 
 ### GitLab 네트워크 접근
 
-2026-11-02 최초 실행에서는 GitHub 기본 실행 서버에서 `gitlab.aigov.go.kr:443`으로 연결하지 못해 두 작업이 실패했습니다. 현재 MinsLab 서버에서는 직접 TLS 접속이 정상입니다. 프로젝트별 토큰 등록은 인증 설정이며 이 네트워크 문제를 해결하지 않습니다. GitLab에 접속 가능한 서버에서 아래 로컬 명령을 실행하거나, 실행 환경의 GitLab 접근을 허용한 뒤 workflow를 재실행해야 합니다. [최초 실행 로그](https://github.com/acesharp81/minslab/actions/runs/41363450261)
+2026-11-02 최초 실행에서는 GitHub 기본 실행 서버에서 `gitlab.aigov.go.kr:443`으로 연결하지 못해 두 작업이 실패했습니다. workflow는 GitLab 접속이 정상인 MinsLab 서버의 [격리된 동기화 전용 실행기](../gitlab-runner/README.md)를 사용합니다. 요청 label은 `[self-hosted, linux, x64, minslab-gitlab-sync]`이며 두 프로젝트는 순서대로 처리합니다. 실행기가 중지되면 작업이 대기하므로 GitHub **Settings → Actions → Runners**와 전용 컨테이너 상태를 확인합니다. [기존 기본 실행 서버의 실패 로그](https://github.com/acesharp81/minslab/actions/runs/41363450261)
 
 ## 로컬 실행
 
