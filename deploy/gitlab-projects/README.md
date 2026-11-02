@@ -8,7 +8,7 @@ GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 �
 | `home` | `PoC/10-home/` | <https://gitlab.aigov.go.kr/acesharp/HOME> |
 | `all` | 위 두 폴더 | 위 두 프로젝트 |
 
-예를 들어 `PoC/07-NationalAssembly/README.md`는 `kjon` 저장소의 `README.md`가 됩니다. 상위 `PoC/` 폴더나 다른 서비스 코드는 포함되지 않습니다. `git subtree split`으로 프로젝트 이력을 분리한 다음 `git fast-export`·`fast-import`의 경로 선택으로 `docs/evidence/`를 과거 이력에서도 제외합니다. `e9482fd`의 재구성·보안 보완 버전을 최초 공개 기준으로 삼고 그 이전 이력은 GitHub에 보존합니다. 기준 버전의 전체 파일로 공유 이력을 시작하고 이후 작성자·메시지·변경 이력을 이어 갑니다. 트리는 원본에서 이 증빙 경로만 제외한 결과와 일치하는지 검증합니다. 원본 branch·index·작업 파일·FETCH_HEAD는 바꾸지 않습니다. 다른 폴더만 바뀌면 분리된 커밋은 동일하여 해당 GitLab 프로젝트에는 새 변경이 생기지 않습니다.
+예를 들어 `PoC/07-NationalAssembly/README.md`는 `kjon` 저장소의 `README.md`가 됩니다. 상위 `PoC/` 폴더나 다른 서비스 코드는 포함되지 않습니다. `git subtree split`으로 프로젝트 이력을 분리한 다음 `git fast-export`·`fast-import`의 경로 선택으로 `docs/evidence/`를 과거 이력에서도 제외합니다. 국정ON은 `e9482fd`, Home은 `1d9fd7d`의 재구성·보안 보완 버전을 최초 공개 기준으로 삼고 그 이전 이력은 GitHub에 보존합니다. 기준 버전의 전체 파일로 공유 이력을 시작하고 이후 작성자·메시지·변경 이력을 이어 갑니다. 트리는 원본에서 이 증빙 경로만 제외한 결과와 일치하는지 검증합니다. 원본 branch·index·작업 파일·FETCH_HEAD는 바꾸지 않습니다. 다른 폴더만 바뀌면 분리된 커밋은 동일하여 해당 GitLab 프로젝트에는 새 변경이 생기지 않습니다.
 
 ## 자동 동기화
 
@@ -56,29 +56,13 @@ python3 deploy/gitlab_sync.py home --push
 
 최초 대용량 push에서는 GitLab 앞단의 재전송 요구로 `unable to rewind rpc post data`·`curl 65`가 발생할 수 있습니다. 이 서버의 실제 실패에 맞춰 push 명령에만 `http.postBuffer=268435456`을 적용합니다. 256MiB 이하의 요청을 버퍼링해 재전송할 수 있게 하며 전역 Git 설정은 바꾸지 않습니다. HTTP/1.1도 해당 push에만 지정합니다. workflow의 `--diagnose`는 HTTP 상태 코드·요청 바이트 수·업로드 완료 시각·총 소요 시간만 출력합니다. 인증 헤더·응답 본문은 출력하지 않고 임시 추적 파일은 성공·실패 모두 삭제합니다.
 
-## GitLab 서버 검사로 인한 게시 차단
+## 필수 보안 검사 대응과 실제 게시 확인
 
-2026-11-02 전용 실행기에서 GitLab 네트워크 연결과 프로젝트 토큰 인증은 통과했습니다. 이후 국정ON은 GitLab 서버의 필수 pre-receive 보안 검사에서 거부됐습니다. 이 검사는 저장소 생성 화면의 선택 항목과 별도로 서버에서 강제합니다. [해당 실행](https://github.com/acesharp81/minslab/actions/runs/41365917266)
+GitLab의 필수 pre-receive 검사는 그대로 유지합니다. 최초 실행에서 나타난 XML·pickle·동적 SQL·URL 처리·SHA1 경고에 맞춰 코드를 보완했습니다. 국정ON의 세 Docker 이미지 식별자와 Home의 공개 체크섬·예시 변수명은 정확한 전체 줄만 Gitleaks 예외로 기록하고 기본 탐지 규칙은 유지했습니다. 별도의 임의 비밀값 탐지 테스트도 유지합니다.
 
-### 서버 관리자에게 확인할 항목
+국정ON은 [2026-11-02 실행](https://github.com/acesharp81/minslab/actions/runs/41373360452)에서 Gitleaks·Semgrep·OSV-Scanner·Trivy·Syft를 모두 통과하고 실제 `main` 게시가 완료됐습니다. 공개 GitLab을 새로 clone하여 Python 924 passed / 28 skipped를 확인했습니다. 선택하지 않은 작업의 생략 표시는 게시 성공으로 계산하지 않습니다.
 
-Gitleaks는 아래 세 Docker 이미지 식별자를 비밀값으로 탐지했습니다. 원문 문자열이 `poc07-...` Docker repository와 배포 tag로만 구성됨을 확인했으며 실제 API 키·액세스 토큰이 아닙니다. 과거 검증 증빙을 덮어쓰는 대신 서버 관리자가 이 세 문자열에 대한 오탐 처리를 검토해야 합니다.
-
-| 원본 파일 | 필드 | Docker 이미지 식별자 |
-| --- | --- | --- |
-| `PoC/07-NationalAssembly/docs/AUDIT_READINESS_20261026.json:204` | `image` | `poc07-national-assembly-api:live-priority-db-20261026` |
-| `PoC/07-NationalAssembly/docs/REPORT_FINALIZATION_20261027.json:62` | `image` | `poc07-national-assembly-api:finalization-20261027-v2` |
-| `PoC/07-NationalAssembly/docs/PROVIDER_PRIORITY_AUDIT_20261026.json:212` | `worker_image` | `poc07-national-assembly-api:quota-priority-20261026` |
-
-Semgrep가 출력한 항목은 다음과 같습니다. 코드를 보완하려면 생략된 추가 7건을 포함한 전체 보고서가 필요합니다.
-
-- `backend/app/adapters/live_sources.py:32`, `backend/app/adapters/national_assembly/client.py:57`: 동적 URL의 `urllib` 사용 감사 경고.
-- `backend/app/adapters/national_assembly/xml_envelope.py:4`: 외부 XML 처리에 안전한 파서 사용 필요.
-- `backend/app/db/read_projection_cache.py:24,27`: `pickle` 역직렬화·직렬화 경고.
-- 상세 출력이 생략된 추가 7건.
-- **Semgrep 검사기 자체 오류 1건**: 서버의 전체 오류 내역과 규칙 설정을 확인해야 합니다.
-
-같은 실행에서 OSV-Scanner·Trivy·Syft는 통과했습니다. 전체 검사를 비활성화하거나 동기화 도구에서 우회하지 않습니다. 서버 검사기 오류·오탐과 코드 보완 항목을 구분해 해결한 뒤 실패한 프로젝트만 수동 재실행합니다.
+Home은 PDF·웹 의존성도 검토해 갱신했지만 502는 남았습니다. 보안 의존성 보완과 502 해결 여부는 별도로 검증합니다. 재현한 웹 소스 검사에서 파일 전체 IIFE가 큰 두 정책 모듈은 검사에 약 23초가 걸렸고, 블록 범위로 같은 비공개 상태와 공개 함수 속성을 유지하면 약 2.4초로 줄었습니다. 추가 보고서 모듈도 같은 구조로 개선했습니다. 규칙·소스 파일·검사 경고를 제외하지 않으며 공개 함수 속성 비교와 전체 JavaScript 141개 테스트를 통과했습니다. 로컬 규칙이 서버 설정과 같다는 보장은 없으므로 실제 push 결과를 기준으로 판단합니다.
 
 ## 검증
 
@@ -96,6 +80,6 @@ python3 -m unittest discover -s tests -p 'test_gitlab_sync.py' -v
 
 ### 최초 공개 기준
 
-증빙 제외로 전송량을 약 79MB에서 8MB로 줄인 뒤에도 업로드 후 약 60초 재전송·60초 뒤 502가 반복됐습니다. 단순 용량 감소만으로 해결됐다고 볼 수 없습니다. 전체 과거 이력의 일괄 전송을 분리하기 위해 현재 재구성 검증 버전 `e9482fd1005e7a01301d908ec91d8d2de6912272`부터 공개 이력을 시작합니다. `git fast-export --full-tree`로 기준 시점의 모든 필수 파일을 포함하고 이후 커밋은 일반 fast-forward로 갱신합니다. 이전 이력은 GitHub에 남으며 이 기준점은 최초 게시 후 임의로 바꾸지 않습니다. 강제 push나 필수 검사 우회는 사용하지 않습니다.
+증빙 제외로 전송량을 약 79MB에서 8MB로 줄인 뒤에도 업로드 후 약 60초 재전송·60초 뒤 502가 반복됐습니다. 단순 용량 감소만으로 해결됐다고 볼 수 없습니다. 전체 과거 이력의 일괄 전송을 분리하기 위해 최초 공유 이력은 국정ON `e9482fd1005e7a01301d908ec91d8d2de6912272`, Home `1d9fd7d34f85190c1ca97337e8b5aa5465146d2f`부터 시작합니다. Home의 기준은 빈 저장소임을 확인한 뒤 의존성·화면 모듈 보완까지 포함하도록 확정했습니다. `git fast-export --full-tree`로 기준 시점의 모든 필수 파일을 포함하고 이후 커밋은 일반 fast-forward로 갱신합니다. 이전 이력은 GitHub에 남으며 이 기준점은 최초 게시 후 임의로 바꾸지 않습니다. 강제 push나 필수 검사 우회는 사용하지 않습니다.
 
-독립 스냅샷 검증: 국정ON Python 924 passed / 28 skipped, Home Python 1121 passed / 2 skipped. 두 이미지 빌드와 새 DB migration·health 응답을 확인했습니다. Home의 0018 migration 중복 생성과 Git에 빠졌던 HWPX fixture도 보완했습니다. [국정ON 재구성](../../PoC/07-NationalAssembly/RECONSTRUCT.md), [Home 재구성](../../PoC/10-home/RECONSTRUCT.md).
+독립 스냅샷 검증: 국정ON Python 924 passed / 28 skipped, Home Python 1122 passed / 1 skipped, JavaScript 141 passed. 두 이미지 빌드와 새 DB migration·health 응답을 확인했습니다. Home의 0018 migration 중복 생성과 Git에 빠졌던 HWPX fixture도 보완했습니다. [국정ON 재구성](../../PoC/07-NationalAssembly/RECONSTRUCT.md), [Home 재구성](../../PoC/10-home/RECONSTRUCT.md).

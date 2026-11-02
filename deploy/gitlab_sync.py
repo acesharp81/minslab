@@ -25,18 +25,19 @@ class Project:
     base_source: str | None = None
 
 
-PUBLICATION_BASE_SOURCE = "e9482fd1005e7a01301d908ec91d8d2de6912272"
+KJON_PUBLICATION_BASE_SOURCE = "e9482fd1005e7a01301d908ec91d8d2de6912272"
+HOME_PUBLICATION_BASE_SOURCE = "1d9fd7d34f85190c1ca97337e8b5aa5465146d2f"
 
 PROJECTS = {
     "kjon": Project(
         "국정ON", "PoC/07-NationalAssembly",
         "https://gitlab.aigov.go.kr/acesharp/kjon.git",
-        "GITLAB_KJON_TOKEN", PUBLICATION_BASE_SOURCE,
+        "GITLAB_KJON_TOKEN", KJON_PUBLICATION_BASE_SOURCE,
     ),
     "home": Project(
         "the주택", "PoC/10-home",
         "https://gitlab.aigov.go.kr/acesharp/HOME.git",
-        "GITLAB_HOME_TOKEN", PUBLICATION_BASE_SOURCE,
+        "GITLAB_HOME_TOKEN", HOME_PUBLICATION_BASE_SOURCE,
     ),
 }
 
