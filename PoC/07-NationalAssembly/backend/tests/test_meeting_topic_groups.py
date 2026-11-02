@@ -418,7 +418,7 @@ class MeetingTopicGroupTests(unittest.TestCase):
         self.assertEqual(2, by_key["youth-employment"]["topic_count"])
         self.assertEqual(2, by_key["water-resources-climate"]["topic_count"])
         self.assertEqual(2, by_key["education"]["topic_count"])
-        self.assertEqual("assembly-meeting-topic-grouping/1.16", GROUPING_VERSION)
+        self.assertEqual("assembly-meeting-topic-grouping/1.17", GROUPING_VERSION)
 
     def test_classifies_operational_policy_gaps_without_procedure_swallowing_subject(self):
         brief = {

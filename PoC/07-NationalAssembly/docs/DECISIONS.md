@@ -1174,3 +1174,8 @@ GitLab에 공유한 파일만으로 새 환경에서 설치하고 API·파서·�
 GitLab 필수 검사에서 지적한 동적 urllib 호출을 기존 의존성인 requests의 HTTP 요청으로 바꾼다. 인증 URL을 포함할 수 있는 예외 체인은 adapter 오류에서 노출하지 않는다. 공식 회의록 수집의 쿠키는 requests.Session으로 유지한다. XML은 defusedxml로 DTD·entity를 거부하고 adapter 오류 계약을 유지한다. 파생 조회 캐시는 압축 JSON으로 변경하여 TTL·용량·복사 격리를 유지하면서 실행 가능한 pickle 역직렬화를 제거한다. SQL table/column은 psycopg.sql.Identifier로 구성한다. 원본 응답·이전 source version과 DB schema는 변경하지 않는다.
 
 비밀 탐지의 세 Docker 이미지 오탐은 기본 규칙을 모두 유지하면서 정확한 전체 줄만 `.gitleaks.toml`에 기록한다. 다른 키·값이나 파일 전체를 예외 처리하지 않는다. 서버가 프로젝트 설정 파일을 허용하는지는 실제 재게시 결과로 확인한다.
+
+
+## 2026-11-02: 화면 주제 묶음 키의 SHA-256 전환
+
+실제 GitLab 재검사에서 남은 SHA-1 지적 두 건을 SHA-256으로 보완한다. `title-`·`dynamic-` 화면 묶음 키의 12자리 표현은 유지하되 digest가 바뀌므로 GROUPING_VERSION을 1.17로 올린다. 이 키는 파생 화면 묶음이며 공식 원문·topic/task/source version의 DB ID가 아니다. 분류·묶음 구성과 근거·자료 버전은 유지한다. 예전 화면의 묶음 anchor는 새 버전에서 재계산된다.

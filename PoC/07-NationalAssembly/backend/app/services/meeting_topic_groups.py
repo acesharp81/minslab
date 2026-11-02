@@ -16,7 +16,7 @@ from .ontology_semantic import semantic_match, METHOD as SEMANTIC_METHOD
 from .ontology_extensions import match_topic_extension, EXTENSION_ALIASES, EXTENSION_VERSION
 
 
-GROUPING_VERSION = "assembly-meeting-topic-grouping/1.16"
+GROUPING_VERSION = "assembly-meeting-topic-grouping/1.17"
 GROUPING_METHOD = "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT"
 
 
@@ -1074,7 +1074,7 @@ def _fallback_target(topic: dict[str, Any]) -> tuple[str, str]:
     target = _DETAIL_MARKERS.sub("", target).strip(" -·,.:()[]") or raw_title
     if len(target) > 36:
         target = target[:36].rstrip() + "…"
-    digest = hashlib.sha1(_compact(target).encode("utf-8")).hexdigest()[:12]
+    digest = hashlib.sha256(_compact(target).encode("utf-8")).hexdigest()[:12]
     return f"title-{digest}", target
 
 
@@ -1164,7 +1164,7 @@ def _dynamic_target(records: list[dict[str, Any]]) -> tuple[str, str, str]:
                 key=lambda value: (len(value), value),
             )
     digest_source = "|".join(sorted(fallback_keys))
-    digest = hashlib.sha1(digest_source.encode("utf-8")).hexdigest()[:12]
+    digest = hashlib.sha256(digest_source.encode("utf-8")).hexdigest()[:12]
     return f"dynamic-{digest}", title, "DYNAMIC_SEMANTIC"
 
 
