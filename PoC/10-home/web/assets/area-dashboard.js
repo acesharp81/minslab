@@ -1,5 +1,7 @@
 'use strict';
-const AreaDashboard=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const AreaDashboard = {};
+{
   let places=null, generation=0, loadedKey='', loadedAt=0,retryTimer=null;
   const known=n=>Number.isFinite(n);
   const count=n=>known(n)?num(n):'미확보';
@@ -148,5 +150,5 @@ const AreaDashboard=(()=>{
     for(const id of ['area-municipality','area-year'])$(id).addEventListener('change',load);
     $('area-region-compare').addEventListener('click',event=>{const button=event.target.closest('[data-area-region]');if(button){$('area-region').value=button.dataset.areaRegion;updateMunicipalities();$('area-municipality').value='';load();}});
   }
-  return {start,visible};
-})();
+  Object.defineProperties(AreaDashboard, Object.getOwnPropertyDescriptors({start,visible}));
+}

@@ -1,5 +1,7 @@
 'use strict';
-const MapSupply=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const MapSupply = {};
+{
   let data,grouping='policy',groupId='',redraw,refit;
   const textUnits=value=>value==null?'미확보':num(value)+'호';
   const units=value=>value==null?'<span class="quantity-unknown">미확보</span>':num(value)+'<small>호</small>';
@@ -56,5 +58,5 @@ const MapSupply=(()=>{
   function query(){return new URLSearchParams({horizon:10,measure:'SUPPLY',schedule_status:'all'}).toString();}
   function reset(){groupId='';grouping='policy';}
   function select(kind,id){grouping=kind;groupId=id;redraw();refit();}
-  return {set,render,panels,filter,start,query,reset,textUnits,districtQuantity,districtPanel,active,selection:()=>({kind:grouping,id:groupId}),select};
-})();
+  Object.defineProperties(MapSupply, Object.getOwnPropertyDescriptors({set,render,panels,filter,start,query,reset,textUnits,districtQuantity,districtPanel,active,selection:()=>({kind:grouping,id:groupId}),select}));
+}

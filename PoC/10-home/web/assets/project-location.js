@@ -1,5 +1,7 @@
 'use strict';
-const ProjectLocation=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ProjectLocation = {};
+{
  const cache=new Map(),types={subway:'지하철',bus:'버스 정류장',school:'학교',childcare:'어린이집',hospital:'병원',mart:'대형마트'};
  const facilityName=i=>i.name+(i.line?' · '+i.line:'');
  const e=v=>esc(String(v??'')),distance=v=>v>=1000?(v/1000).toFixed(1)+'km':num(v)+'m';
@@ -36,5 +38,5 @@ const ProjectLocation=(()=>{
  }
  function gaps(){return '<p class="pr-note">입지 분석 구성 참고: <a href="https://play.google.com/store/apps/details?hl=ko&amp;id=com.hogangnono.hogangnono" target="_blank" rel="noopener">호갱노노 공식 앱 소개</a>의 교통·학교·주변 시설 분류. 시설 데이터는 HOME의 원천 연계를 사용합니다.</p><div class="psr-location-gaps"><div><b>교통·통근</b><span>역·버스 정류장 위치 확인 / 통근시간·배차·개통일 보완 필요</span></div><div><b>교육·돌봄</b><span>학교·어린이집 위치 및 개교·개원 계획 확인분 / 배정 학군·학생 수·학교 수용 능력 미확보</span></div><div><b>생활·상권</b><span>병원·대형마트 위치 확인 / 상권·공원·편의시설 추가 수집 필요</span></div><div><b>시장·입주 수요</b><span>지역 가구·주택 재고와 비교 / 시군구 미분양·준공 후 미분양은 별도 표시 / 단지 실거래·실입주 세대수 추가 확인</span></div></div>';}
  function visibleFacilities(rows,radius){return rows.map(i=>i.kind==='gtx'?{...i,kind:'subway',line:i.line||'GTX-A'}:i).filter(i=>i.service_status!=='PLANNED'&&(i.kind==='subway'||i.distance_m<=radius)).sort((a,b)=>a.distance_m-b.distance_m);}
- return {mount,visibleFacilities};
-})();
+ Object.defineProperties(ProjectLocation, Object.getOwnPropertyDescriptors({mount,visibleFacilities}));
+}

@@ -1,5 +1,7 @@
 'use strict';
-const StageFieldView=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const StageFieldView = {};
+{
  const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const val=(v,present=true)=>!present?'항목 없음':v===null||v===undefined?'미확보':typeof v==='object'?JSON.stringify(v,null,2):String(v);
  const time=v=>{if(!v)return '미기록';const d=new Date(v);return Number.isNaN(d.valueOf())?v:d.toLocaleString('ko-KR',{timeZone:'Asia/Seoul',hour12:false})+' (KST)';};
@@ -16,5 +18,5 @@ const StageFieldView=(()=>{
   try{const data=await request('/projects/'+encodeURIComponent(project)+'/stage-fields/'+encodeURIComponent(stage));if(host.isConnected)host.innerHTML=render(data);}
   catch(error){if(host.isConnected){host.innerHTML='<p role="alert">항목 조회 실패: '+e(error.message)+'</p><button type="button" class="button secondary">다시 조회</button>';host.querySelector('button').onclick=()=>load(host,project,stage);}}
  }
- return {load,render};
-})();
+ Object.defineProperties(StageFieldView, Object.getOwnPropertyDescriptors({load,render}));
+}

@@ -1,6 +1,8 @@
 'use strict';
 /* Stage residence from adjacent cumulative values; targets and sources remain unchanged. */
-const PolicyStageFlow = (() => {
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicyStageFlow = {};
+{
   const order=['MOVE_IN','SUPPLY','CONSTRUCTION','APPROVAL','BUSINESS','POLICY'];
   // Bottom to top: each stage's actual residence, then its positive target shortfall.
   const stackOrder=['BUSINESS','APPROVAL','CONSTRUCTION','SUPPLY','MOVE_IN','POLICY'];
@@ -364,7 +366,7 @@ const PolicyStageFlow = (() => {
     });
     document.addEventListener('pointerout',e=>{if(!e.target.hasAttribute?.('data-d907-hover'))return;const wrap=e.target.closest('.d907-chart-wrap');wrap?.querySelector('.d907-chart-tooltip')?.setAttribute('hidden','');wrap?.querySelector('.d907-hover-line')?.setAttribute('visibility','hidden');});
   }
-  return {windowAxis,visibleAxis,quarterEnd,assessGap,formatGapRate,render,start,totals,trackingPoints,monthlyPoints,referenceAxis,comparisonStatus,delaySummary,layoutCallouts,summaryTable,summaryValues,stageBands,gapBand,stackExtent,stageLayout,axisMaximum,shortageRate,projectedValue,projectedStages,envelopeBands,applyHighlight};
-})();
+  Object.defineProperties(PolicyStageFlow, Object.getOwnPropertyDescriptors({windowAxis,visibleAxis,quarterEnd,assessGap,formatGapRate,render,start,totals,trackingPoints,monthlyPoints,referenceAxis,comparisonStatus,delaySummary,layoutCallouts,summaryTable,summaryValues,stageBands,gapBand,stackExtent,stageLayout,axisMaximum,shortageRate,projectedValue,projectedStages,envelopeBands,applyHighlight}));
+}
 
 if(typeof module!=='undefined')module.exports=PolicyStageFlow;

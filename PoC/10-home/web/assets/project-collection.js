@@ -1,5 +1,7 @@
 'use strict';
-const ProjectCollection=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ProjectCollection = {};
+{
   const stages={POLICY:'정책',BUSINESS:'사업화',APPROVAL:'인허가',CONSTRUCTION:'건설',SUPPLY:'공급',MOVE_IN:'입주'};
   const kinds={LINK:'정책 연결',STATE:'단계 근거',ACTUAL:'실적·진척',PLAN:'예정·목표',PLAN_STATUS:'일정 제공 상태',DOCUMENT:'문서 확보 · 사건일 미확정'};
   let data=null,loaded=false,generation=0,page=1,stage='ALL',selected=null,detail=null,version=null,dirty=false,polling=false,pendingCell=null;
@@ -210,5 +212,5 @@ const ProjectCollection=(()=>{
     const index=rows().findIndex(p=>p.id===id);if(index<0){el('pc-message').textContent='선택 사업을 현재 수집 범위에서 확인할 수 없습니다.';return;}
     page=Math.floor(index/30)+1;selected=id;stage=cellStage;detail={id,stage};render();el('pc-cell-detail').scrollIntoView({block:'start',behavior:'smooth'});
   }
-  let ready=false;return {visible(options={}){if(!ready){setup();ready=true;}if(loaded)refreshIfChanged();else load({preserveSelection:true});},reload:load,refreshIfChanged,constructionPlanHtml,cellClasses,cellContent,detailContent,calculationContent,compactBadge,focusCell};
-})();
+  let ready=false;Object.defineProperties(ProjectCollection, Object.getOwnPropertyDescriptors({visible(options={}){if(!ready){setup();ready=true;}if(loaded)refreshIfChanged();else load({preserveSelection:true});},reload:load,refreshIfChanged,constructionPlanHtml,cellClasses,cellContent,detailContent,calculationContent,compactBadge,focusCell}));
+}

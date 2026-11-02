@@ -1,5 +1,7 @@
 'use strict';
-const MapStageRing=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const MapStageRing = {};
+{
   const stages=['POLICY','BUSINESS','APPROVAL','CONSTRUCTION','SUPPLY','MOVE_IN','UNKNOWN'];
   const labels={ALL:'전체 단계',POLICY:'정책',BUSINESS:'사업화',APPROVAL:'인허가',CONSTRUCTION:'건설',SUPPLY:'공급',MOVE_IN:'입주',UNKNOWN:'단계 미확인'};
   const colors={POLICY:'#74839b',BUSINESS:'#ad7100',APPROVAL:'#007bb5',CONSTRUCTION:'#df6800',SUPPLY:'#00886b',MOVE_IN:'#773faf',UNKNOWN:'#d7dfe9'};
@@ -40,5 +42,5 @@ const MapStageRing=(()=>{
       stages.map(s=>`<dt><i class="map-stage-swatch stage-${s}"></i> ${labels[s]}</dt><dd>${num(m.d.parts?.[s]||0)}호</dd>`).join('')+
       '</dl><p>한 물량은 가장 뒤에 확인된 단계에 한 번만 배정합니다. 입주는 입주 시작 확인 사업의 계획물량이며 실제 입주 세대수와 구분합니다.</p>';
   }
-  return {svg,description,metric,legend,details,selected};
-})();
+  Object.defineProperties(MapStageRing, Object.getOwnPropertyDescriptors({svg,description,metric,legend,details,selected}));
+}

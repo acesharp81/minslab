@@ -1,5 +1,7 @@
 'use strict';
-const ProjectLivingCharts=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ProjectLivingCharts = {};
+{
  const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const valid=v=>typeof v==='number'&&Number.isFinite(v),n=v=>valid(v)?v.toLocaleString('ko-KR',{maximumFractionDigits:1}):'미확보';
  const colors=['#245e64','#46988e','#8ba056','#c49c54','#95768c'];
@@ -38,5 +40,5 @@ const ProjectLivingCharts=(()=>{
   return card('인구 유입·유출과 거주기간',body,'pac-migration');
  }
  function render(data,place){const l=data.living||{};return income(l.income,l.pir,place)+migration(l.migration,l.duration)+card('주거 형태·주택 유형',distribution(l.tenure,'주거 형태 · 자가·전세·월세')+'<section class="pac-housing-types">'+distribution(l.housing_type,'주택·거처 유형')+'</section><p class="pac-note">일반가구 기준 · 월세는 보증금 유무를 합산합니다. 주택 유형은 거주 가구 비율이며 빈집은 제외합니다. 기타는 전체에서 앞선 유형을 제외한 잔여 가구입니다. 비공개·미확보 수치는 0으로 대체하지 않습니다.</p>','pac-housing');}
- return {render};
-})();
+ Object.defineProperties(ProjectLivingCharts, Object.getOwnPropertyDescriptors({render}));
+}

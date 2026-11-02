@@ -1,6 +1,8 @@
 'use strict';
 /* Project-only visualisations. Missing observations remain missing; stock series are never summed. */
-const ProjectAreaCharts=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ProjectAreaCharts = {};
+{
  const colors=['#245e63','#45958a','#859c54','#c49b58','#977185','#a6bbb1'],e=v=>esc(String(v??'')),n=v=>v==null?'미확보':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:1}),valid=v=>typeof v==='number'&&Number.isFinite(v),sum=rows=>rows.reduce((a,b)=>a+b.value,0);
  const source=(url,label)=>'<a href="'+e(safeUrl(url))+'" target="_blank" rel="noopener">▤ '+e(label)+'</a>';
  const empty=label=>'<p class="pac-empty">'+e(label)+' 자료 미확보</p>';
@@ -71,5 +73,5 @@ const ProjectAreaCharts=(()=>{
    (collector||card).append(details);
   }
  }
- return{render,trend,trendRows,ageComparison,industryComparison,collapseMethods};
-})();
+ Object.defineProperties(ProjectAreaCharts, Object.getOwnPropertyDescriptors({render,trend,trendRows,ageComparison,industryComparison,collapseMethods}));
+}

@@ -1,5 +1,7 @@
 'use strict';
-const SourceYears=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const SourceYears = {};
+{
  let loaded=false,loading=false,generation=0;
  const statuses={ACQUIRED:'확보',NO_SOURCE_RECORD:'원본 행 없음',SOURCE_NOT_PUBLISHED:'미공표',NOT_ACQUIRED:'미입수',NOT_STARTED:'미시작',FAILED:'실패'};
  function render(data){
@@ -15,5 +17,5 @@ const SourceYears=(()=>{
  }
  function invalidate(){loaded=false;loading=false;generation++;load();}
  function start(){document.getElementById('source-volume-details').addEventListener('toggle',load);}
- return {start,invalidate,render};
-})();
+ Object.defineProperties(SourceYears, Object.getOwnPropertyDescriptors({start,invalidate,render}));
+}

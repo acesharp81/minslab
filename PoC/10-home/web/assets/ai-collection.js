@@ -1,5 +1,7 @@
  'use strict';
-const AICollection=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const AICollection = {};
+{
  let timer=null,clockTimer=null,snapshot=null,root=null,selected='collection',filter='HOLD',inbox=null,loading=false;
  const e=v=>esc(v??''),dollars=v=>'$'+Number(v||0).toFixed(4),n=v=>Number(v||0).toLocaleString('ko-KR');
  const names={QUEUED:'실행 대기',RUNNING:'처리 중',STOPPING:'중지 중',CANCELLED:'중지됨',COMPLETED:'완료',PARTIAL:'일부 확인 필요',BUDGET_PAUSED:'한도 대기',FAILED:'실패',INTERRUPTED:'중단'};
@@ -96,5 +98,5 @@ const AICollection=(()=>{
    ${r?`<strong>확인할 질문</strong><p>${e(r.review_question)}</p><ul>${r.quantities.map(q=>`<li>${e(q.scope)} ${Number(q.value).toLocaleString('ko-KR')}${e(q.unit)}<blockquote>${e(q.quote)}</blockquote></li>`).join('')}</ul><details><summary>원문 근거 문장</summary>${r.evidence_quotes.map(q=>`<blockquote>${e(q)}</blockquote>`).join('')}</details>`:''}
    <ul>${[...(value.checks||[]),...(r?.issues||[])].map(q=>`<li>${e(q)}</li>`).join('')}</ul><p>자동 분석은 기존 승인·정책 귀속·실적을 변경하지 않습니다. 수집 본문과 분석 결과는 CSV에 포함됩니다.</p></section>`;
  }
- return {mount,analysis};
-})();
+ Object.defineProperties(AICollection, Object.getOwnPropertyDescriptors({mount,analysis}));
+}

@@ -1,5 +1,7 @@
 'use strict';
-const MapMonitor=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const MapMonitor = {};
+{
   const colors=['#1665ee','#21a9ca','#8265d5','#ce649a'];
   const units=value=>value==null?'미확보':num(value)+'호';
   const percent=value=>value==null?'—':num(value)+'%';
@@ -103,5 +105,5 @@ const MapMonitor=(()=>{
   }
 
   function start(setLevel){document.addEventListener('click',event=>{const button=event.target.closest('[data-map-level], [data-bar-level]');if(button)setLevel(button.dataset.mapLevel||button.dataset.barLevel);const tab=event.target.closest('[data-monitor-policy]');if(tab)MapSupply.select('policy',tab.dataset.monitorPolicy);});}
-  return {draw,panel,start,levelAt,wideZoom};
-})();
+  Object.defineProperties(MapMonitor, Object.getOwnPropertyDescriptors({draw,panel,start,levelAt,wideZoom}));
+}

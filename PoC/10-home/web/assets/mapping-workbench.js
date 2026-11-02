@@ -1,5 +1,7 @@
 'use strict';
-const MappingWorkbench=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const MappingWorkbench = {};
+{
  let data=null,selected=null,pending=null,saving=false;
  const labels={CONNECTED:'확인 완료(자동)',OFFICER:'확인 완료(담당자)',REVIEW:'확인 필요',UNLINKED:'후보',EXCLUDED:'제외 확인(담당자)'},groups=['CONNECTED','OFFICER','REVIEW','UNLINKED','EXCLUDED'];
  const node=(kind,id)=>kind==='policy'?data.policies.find(p=>p.policy_id===id):(kind==='program'?data.programs:data.items).find(p=>p.id===id);
@@ -69,5 +71,5 @@ const MappingWorkbench=(()=>{
   $('pane-tree').addEventListener('submit',e=>{if(e.target.id==='mapping-review-form')save(e);else if(e.target.id==='mapping-decision-form')saveDecision(e);});
   $('pane-tree').addEventListener('click',e=>{const f=e.target.closest('[data-mr-filter]');if(f){$('mapping-review-filter').value=f.dataset.mrFilter;filterChanged();return;}const n=e.target.closest('[data-mr-node]');if(n){selected={kind:n.dataset.mrNode,id:n.dataset.id};renderTree();renderDetail();return;}const i=e.target.closest('[data-mr-info]');if(i&&!i.disabled)openInfo(i.dataset.mrInfo,i.dataset.id);});
  }
- return {render,start,candidateCsv,query:()=>{const r=pending||selected;return r?.kind==='project'?'?focus_project_id='+encodeURIComponent(r.id):'';},focusPolicy:id=>focus('policy',id),focusProject:id=>focus('project',id)};
-})();
+ Object.defineProperties(MappingWorkbench, Object.getOwnPropertyDescriptors({render,start,candidateCsv,query:()=>{const r=pending||selected;return r?.kind==='project'?'?focus_project_id='+encodeURIComponent(r.id):'';},focusPolicy:id=>focus('policy',id),focusProject:id=>focus('project',id)}));
+}

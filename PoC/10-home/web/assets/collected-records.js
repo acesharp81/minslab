@@ -1,5 +1,7 @@
 'use strict';
-const CollectedRecords=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const CollectedRecords = {};
+{
  const apiUrl=url=>{try{const u=new URL(url);return u.hostname==='apis.data.go.kr'||(u.hostname==='data.go.kr'||u.hostname.endsWith('.data.go.kr'))&&/openapi/i.test(u.pathname);}catch{return false;}};
  function link(url,id,revision,project){
   if(!apiUrl(url))return '<a href="'+esc(safeUrl(url))+'" target="_blank" rel="noopener noreferrer">출처 원문 ↗</a>';
@@ -17,5 +19,5 @@ const CollectedRecords=(()=>{
    if(!dialog.isConnected)return;body.innerHTML=items.length?'<p>해당 근거를 수집·정형화하여 저장한 필드와 값입니다. 원천 값은 화면의 관리·추정값과 다를 수 있습니다.</p>'+items.map(render).join(''):'<p>이 근거에 연결된 개별 원천 레코드가 확인되지 않습니다. API 전체 샘플을 해당 값의 증빙으로 대신 표시하지 않습니다.</p>';
   }catch(e){body.textContent='원천 조회 실패: '+e.message;}
  });
- return {link,apiUrl};
-})();
+ Object.defineProperties(CollectedRecords, Object.getOwnPropertyDescriptors({link,apiUrl}));
+}

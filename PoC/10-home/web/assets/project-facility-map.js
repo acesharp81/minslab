@@ -1,5 +1,7 @@
 'use strict';
-const ProjectFacilityMap=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ProjectFacilityMap = {};
+{
  const types={subway:['🚇','지하철'],bus:['🚌','버스 정류장'],school:['🏫','학교'],childcare:['🧸','어린이집'],hospital:['🏥','병원'],mart:['🛒','대형마트']};
  const e=v=>esc(String(v??''));
  const located=p=>Number.isFinite(p.latitude)&&Number.isFinite(p.longitude);
@@ -26,5 +28,5 @@ const ProjectFacilityMap=(()=>{
   return {update,focus,clear};
  }
  function legend(){return '<section class="pjt-map-legend" aria-label="지도 범례"><h4>지도 범례</h4><ul>'+Object.entries(types).map(([kind,info])=>'<li><i class="pjt-legend-dot pjt-facility-'+kind+'" aria-hidden="true"></i><span>'+info[1]+'</span></li>').join('')+'<li><i class="pjt-legend-project" aria-hidden="true"></i><span>사업 위치</span></li><li><i class="pjt-legend-radius" aria-hidden="true"></i><span>선택한 조회 반경</span></li><li class="pjt-legend-planned"><i aria-hidden="true">🏫 🧸</i><span>개교·개원 예정 <small>지도에 ‘예정’ 표시</small></span></li></ul><p>마커 또는 시설 목록을 누르면 상세정보를 확인합니다.</p></section>';}
- return {create,visiblePlanned,legend};
-})();
+ Object.defineProperties(ProjectFacilityMap, Object.getOwnPropertyDescriptors({create,visiblePlanned,legend}));
+}

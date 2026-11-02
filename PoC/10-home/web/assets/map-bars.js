@@ -1,5 +1,7 @@
 'use strict';
-const SupplyBars=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const SupplyBars = {};
+{
   const amount=value=>value==null?'미확보':num(value)+'호';
   function chart(row,compact=false,concise=false){
     const p=row.progress,capacity=row.target_units,h=compact?96:136,base=h+22;
@@ -43,5 +45,5 @@ const SupplyBars=(()=>{
 
   function scoped(row){if(!row)return null;const selection=MapSupply.selection();const quantity=selection.id?row.group_quantities?.[selection.kind]?.[selection.id]:row;return quantity?{...row,...quantity}:null;}
 
-  return {chart,scoped};
-})();
+  Object.defineProperties(SupplyBars, Object.getOwnPropertyDescriptors({chart,scoped}));
+}

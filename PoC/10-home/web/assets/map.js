@@ -1,5 +1,7 @@
 'use strict';
-const HousingMap = (() => {
+// Block scope keeps module state private without a whole-file function wrapper.
+const HousingMap = {};
+{
   const stages={PLANNING:'계획',APPROVAL:'인허가',CONSTRUCTION:'착공',SUPPLY:'공급',COMPLETION:'준공',MOVE_IN:'입주'};
   const icons={PLANNING:'▤',APPROVAL:'✓',CONSTRUCTION:'⌁',SUPPLY:'▥',COMPLETION:'◇',MOVE_IN:'⌂'};
   let payload, roadmap, supply, selectedId, selectedDistrict, year, mode='current', timer, userSelected=false, pickerSignature='';
@@ -162,5 +164,5 @@ const HousingMap = (() => {
   function hidden(){MapThreeD.exit();stop();}
   function reset(){MapThreeD.exit();MapSupply.reset();year=null;mode='current';userSelected=false;stop();}
   function setLevel(level){MapThreeD.setLevel(level);draw(true);}
-  return {render,start,visible,hidden,reset,setLevel,query:()=>MapSupply.query()};
-})();
+  Object.defineProperties(HousingMap, Object.getOwnPropertyDescriptors({render,start,visible,hidden,reset,setLevel,query:()=>MapSupply.query()}));
+}

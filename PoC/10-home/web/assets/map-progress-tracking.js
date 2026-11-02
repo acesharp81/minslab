@@ -1,6 +1,8 @@
 'use strict';
 // Narrow map summaries reuse the canonical stage ledger, with no time-axis scrolling.
-const MapProgressTracking=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const MapProgressTracking = {};
+{
  const order=['BUSINESS','APPROVAL','CONSTRUCTION','SUPPLY','MOVE_IN'],colors={BUSINESS:'#a66b00',APPROVAL:'#0072b2',CONSTRUCTION:'#d55e00',SUPPLY:'#00856a',MOVE_IN:'#7a3e9d'};
  const units=v=>v==null?'미측정':num(v)+'호';
  let signature='',ticket=0,timer,refreshed=0;
@@ -70,5 +72,5 @@ const MapProgressTracking=(()=>{
   node.innerHTML='<h3>추진현황</h3><p>선택 범위의 목표·측정값을 조회합니다…</p>';
   timer=setTimeout(async()=>{try{const data=await request('/map/progress?'+key);if(current===ticket)render(node,data,chosen,supply,selection,ids,current);}catch(error){if(current===ticket){signature='';node.innerHTML='<h3>추진현황</h3><p>'+esc(error.message)+'</p>';}}},180);
  }
- return {panel,checks,conditionsHtml,summary,periodLabel};
-})();
+ Object.defineProperties(MapProgressTracking, Object.getOwnPropertyDescriptors({panel,checks,conditionsHtml,summary,periodLabel}));
+}

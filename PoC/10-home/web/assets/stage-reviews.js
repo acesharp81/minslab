@@ -1,5 +1,7 @@
 'use strict';
-const StageReviews=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const StageReviews = {};
+{
  let rows=[],root;
  const e=v=>esc(v??''),labels={HOLD:'확인 필요',READY:'반영 조건 충족',APPLIED:'반영 완료',DISMISSED:'제외'};
  function mount(el){root=el;root.innerHTML='<details class="sr-shell"><summary>단계별 실적 반영 검토 <span>사업화 → 인허가 → 착공 → 준공 · 공급 · 입주</span></summary><div class="sr-body"><p>자료 연결 이후, 새 근거를 현재 실적과 비교합니다. 열 때 한 번 조회합니다.</p></div></details>';root.querySelector('details').ontoggle=ev=>{if(ev.target.open&&!ev.target.dataset.loaded){ev.target.dataset.loaded='1';load();}};}
@@ -11,5 +13,5 @@ const StageReviews=(()=>{
    body.querySelectorAll('form').forEach(form=>form.onsubmit=async event=>{event.preventDefault();const r=rows[Number(form.dataset.srForm)],f=new FormData(form),action=event.submitter.value;if(action==='APPLY'&&!f.get('checked')){form.querySelector('.sr-form-message').textContent='원문 확인 항목에 체크하세요.';return;}form.querySelectorAll('button').forEach(b=>b.disabled=true);try{await request('/admin/stage-reviews/'+encodeURIComponent(r.id),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({revision_no:r.revision_no,project_revision_no:r.project_revision_no,profile_revision_no:r.profile_revision_no,mapping_revision_no:r.mapping_revision_no,action,actor:f.get('actor'),reason:f.get('reason'),checked:!!f.get('checked'),replace_confirmed:!!f.get('replace')})});await load('처리 완료 · 실적은 동일 단계 누적값으로 반영됩니다.');}catch(err){form.querySelector('.sr-form-message').textContent=err.message;form.querySelectorAll('button').forEach(b=>b.disabled=b.value==='APPLY'&&!r.can_apply);}});
   }catch(error){body.innerHTML='<p role="alert">'+e(error.message)+'</p><button class="button secondary">다시 조회</button>';body.querySelector('button').onclick=()=>load();}
  }
- return {mount};
-})();
+ Object.defineProperties(StageReviews, Object.getOwnPropertyDescriptors({mount}));
+}

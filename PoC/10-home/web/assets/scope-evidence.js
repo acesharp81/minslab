@@ -1,6 +1,8 @@
 'use strict';
 /* Read persisted relationships and source observations; never rematch on navigation. */
-const ScopeEvidence=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ScopeEvidence = {};
+{
  const cache=new Map(),names={BUSINESS:'사업화',APPROVAL:'인허가',CONSTRUCTION:'건설',SUPPLY:'공급',COMPLETION:'준공',MOVE_IN:'입주 시작'};
  const e=v=>esc(String(v??'')),u=v=>v==null?'미확보':num(v)+'호';
  const fetchOnce=url=>{if(!cache.has(url))cache.set(url,request(url).catch(err=>{cache.delete(url);throw err;}));return cache.get(url);};
@@ -40,5 +42,5 @@ const ScopeEvidence=(()=>{
    }
   }catch(err){if(host.isConnected)host.innerHTML='<article class="pr-card">단계별 근거 조회 실패: '+e(err.message)+'</article>';}
  }
- return {mount};
-})();
+ Object.defineProperties(ScopeEvidence, Object.getOwnPropertyDescriptors({mount}));
+}

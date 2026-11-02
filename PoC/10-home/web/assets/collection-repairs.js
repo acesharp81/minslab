@@ -1,5 +1,7 @@
 'use strict';
-const CollectionRepairs=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const CollectionRepairs = {};
+{
  const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const stages={POLICY:'정책',BUSINESS:'사업화',APPROVAL:'인허가',CONSTRUCTION:'건설',SUPPLY:'공급',MOVE_IN:'입주'};
  const status={APPLIED_REVIEW_PENDING:'조치 반영 · 담당자 검토 남음',OPEN:'미해결 · 조사 필요',RECOVERED:'수집 복구 · 내용 확인 별도',REVIEW:'연결 검토',CONFIRMED:'담당자 확정',RELEASED:'연결 해제',UNMATCHED:'미연결'};
@@ -44,5 +46,5 @@ const CollectionRepairs=(()=>{
   const groupHtml=Object.entries(types).filter(([kind])=>groups.has(kind)).map(([kind,label])=>{const entries=groups.get(kind),key=context+':'+kind;return '<details class="pc-repair-type" data-repair-type="'+e(kind)+'" data-repair-open-key="'+key+'"'+open(key)+'><summary><strong>'+e(label)+'</strong><span class="pc-repair-count">'+entries.length+'건</span></summary><div class="pc-repair-type-records">'+entries.map(record).join('')+'</div></details>';}).join('');
   return '<section class="pc-repair-history"><details class="pc-repair-overview" data-repair-open-key="'+overviewKey+'"'+open(overviewKey)+'><summary><strong>오류·조치 이력</strong><span class="pc-repair-count">'+repairs.length+'건</span></summary><p>건수를 누르면 오류 유형별 이력이 펼쳐집니다. 건수는 조치 기록 수이며 사업·블록 수와 다릅니다. 점검 숫자는 각 기록의 확인일·점검 범위 기준입니다.</p><p><a class="pc-quality-export" href="'+e(guideUrl())+'" download>조회 범위 품질·정비 기록 내려받기 (JSON)</a></p>'+(repairs.length?groupHtml:'<p>선택 범위에 등록된 진단 기록이 없습니다. 오류가 없다는 의미는 아닙니다.</p>')+'</details>'+(changes.length?'<details class="pc-link-changes"><summary>실제 연결 변경 기록 <span class="pc-repair-count">'+changes.length+'건</span> · 연결별 최근 3건</summary>'+changes.map(c=>'<article><b>'+e(c.title)+'</b><small>'+e(c.recorded_at)+' · '+e(status[c.status]||c.status||'상태 미기록')+'</small><p>'+e(c.basis||'저장된 연결 상태 변경')+'</p><p>이전: '+e(status[c.before.status]||c.before.status||'미등록')+' / '+e(c.before.date||'사건일 미확인')+' → 이후: '+e(status[c.after.status]||c.after.status||'미기록')+' / '+e(c.after.date||'사건일 미확인')+'</p></article>').join('')+'</details>':'<details class="pc-link-changes"><summary>실제 연결 변경 기록 <span class="pc-repair-count">0건</span></summary><p>선택한 범위에서 표시할 변경 기록이 없습니다.</p></details>')+reports()+'</section>';
  }
- return {html,relevant};
-})();
+ Object.defineProperties(CollectionRepairs, Object.getOwnPropertyDescriptors({html,relevant}));
+}

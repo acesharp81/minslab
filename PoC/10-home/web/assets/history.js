@@ -1,5 +1,7 @@
 'use strict';
-const HistoryPanel=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const HistoryPanel = {};
+{
   let data;
   function render(value){
     data=value;
@@ -23,5 +25,5 @@ const HistoryPanel=(()=>{
     $('history-prev').addEventListener('click',()=>{if(data?.page>1){state.historyPage--;load();}});
     $('history-next').addEventListener('click',()=>{if(data?.page*data.page_size<data.report_total){state.historyPage++;load();}});
   }
-  return {render,start};
-})();
+  Object.defineProperties(HistoryPanel, Object.getOwnPropertyDescriptors({render,start}));
+}

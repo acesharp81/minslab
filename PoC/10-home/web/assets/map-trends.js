@@ -2,7 +2,9 @@
 // Geographic supply trends use the same canonical project IDs as the API's
 // aggregates. An observed notice is a reviewed evidence lower bound, never
 // physical completion or move-in.
-const MapTrends=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const MapTrends = {};
+{
   const known=value=>Number.isFinite(value)&&value>=0;
   const units=value=>known(value)?num(value)+'호':'미확보';
   const pct=(value,total)=>known(value)&&known(total)&&total>0?(100*value/total).toFixed(1)+'%':'미확보';
@@ -160,5 +162,5 @@ const MapTrends=(()=>{
     node.classList.toggle('trend-region',level==='region');
     node.innerHTML=`<h3>공급 진척현황</h3>${tabMarkup}${policyOverview}<div id="monitor-policy-chart" role="tabpanel"><div class="trend-heading"><div><small>${levelName} ${automatic?'· 화면 중심 자동 선택':'· 선택됨'}</small><h4>${esc(label)}</h4></div><span>${num(quantity.project_count)}개 사업</span></div><div class="trend-kpis"><div><small>전체 목표 · 사업계획</small><strong>${units(target)}</strong></div><div><small>올해까지 누적 목표</small><strong>${units(cumulativeGoal)}</strong></div><div><small>확인 공고 · 누적 하한</small><strong>${units(observed)}</strong></div><div><small>누적 목표 대비 공고</small><strong>${pct(observed,cumulativeGoal)}</strong></div><div><small>${data.analysis_year}년 목표</small><strong>${units(yearGoal)}</strong></div><div><small>올해 목표 대비 공고</small><strong>${pct(yearObserved,yearGoal)}</strong></div><div><small>올해 예상 달성률</small><strong>${pct(expectedYear,yearGoal)}</strong></div></div>${blockMeter}<h4 class="trend-chart-title">연도별 누적 계획·공고 / 당해 연도 물량</h4>${chart(data,quantity,series)}<div class="trend-legend"><span><i class="line plan"></i>누적 계획</span><span><i class="line observed"></i>누적 공고</span><span><i class="bar plan"></i>연도 계획</span><span><i class="bar observed"></i>연도 공고</span><span><i class="line estimated"></i>추정선</span></div><div class="trend-five">${future}</div>${level==='block'?milestones(row):''}</div>`;
   }
-  return {panel,derive,scope};
-})();
+  Object.defineProperties(MapTrends, Object.getOwnPropertyDescriptors({panel,derive,scope}));
+}

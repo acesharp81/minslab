@@ -1,5 +1,7 @@
 'use strict';
-const SourcePreview=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const SourcePreview = {};
+{
  const value=v=>v===null?'null':typeof v==='object'?JSON.stringify(v):String(v);
  function table(data){
   if(!data.items.length)return '<p class="source-preview-empty">현재 저장된 수집 레코드가 없습니다. 샘플 데이터는 생성하지 않습니다.</p>';
@@ -24,5 +26,5 @@ const SourcePreview=(()=>{
    details.addEventListener('click',event=>{const button=event.target.closest('[data-value]');if(!button)return;const dialog=document.createElement('dialog');dialog.className='source-value-dialog';const close=document.createElement('button');close.className='button secondary';close.textContent='닫기';const pre=document.createElement('pre');pre.textContent=button.dataset.value;dialog.append(close,pre);document.body.append(dialog);close.onclick=()=>dialog.close();dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();});
   });
  }
- return {attach};
-})();
+ Object.defineProperties(SourcePreview, Object.getOwnPropertyDescriptors({attach}));
+}

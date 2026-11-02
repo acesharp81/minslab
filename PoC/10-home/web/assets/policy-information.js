@@ -1,5 +1,7 @@
 'use strict';
-const PolicyInformation=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicyInformation = {};
+{
   let model, dialog, changes={}, programChanges={}, busy=false;
   const labels={name:'정책명',overview:'개요 · 서술식 목표',period_start:'추진 시작일',period_end:'추진 종료일',target_units:'정책 전체 목표',advice:'정책조언'};
   const icons={evidence:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h7l2 2h9v12H3z M6 6V3h12v5 M7 12h10 M7 16h7"/></svg>',edit:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 16-1 5 5-1L20 8l-4-4Z M14 6l4 4"/></svg>'};
@@ -128,5 +130,5 @@ const PolicyInformation=(()=>{
     dialog.addEventListener('keydown',e=>{if(e.key==='Escape'&&tooltip&&!tooltip.hidden){e.preventDefault();e.stopPropagation();hideTip();}});
     try{model=await request('/policy-information');render();}catch(e){dialog.innerHTML='<h2 id="pi-title">정책정보</h2><p>'+esc(e.message)+'</p><button data-pi-close>닫기</button>';}
   }
-  return {open};
-})();
+  Object.defineProperties(PolicyInformation, Object.getOwnPropertyDescriptors({open}));
+}

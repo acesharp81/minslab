@@ -1,6 +1,8 @@
 'use strict';
 /* Official administrative outlines; housing quantities never come from mesh geometry. */
-const PolicyRegionMap = (() => {
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicyRegionMap = {};
+{
   const regions = ['서울특별시', '인천광역시', '경기도'];
   const short = {'서울특별시':'SEOUL', '인천광역시':'INCHEON', '경기도':'GYEONGGI'};
   let threePromise, mode = '3d', generation = 0, lastHost, lastModel, cards = [], shellKey="";
@@ -197,5 +199,5 @@ const PolicyRegionMap = (() => {
     control.querySelectorAll('[data-prm-mode]').forEach(b=>{b.classList.toggle('selected',b.dataset.prmMode===mode);b.setAttribute('aria-selected',b.dataset.prmMode===mode);});
   }
   function suspend(){++generation;dispose();if(lastHost?.querySelector('.prm-cards'))lastHost.innerHTML='';}
-  return {render,suspend,stageDistribution};
-})();
+  Object.defineProperties(PolicyRegionMap, Object.getOwnPropertyDescriptors({render,suspend,stageDistribution}));
+}

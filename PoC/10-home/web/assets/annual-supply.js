@@ -1,5 +1,7 @@
 'use strict';
-const AnnualSupply=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const AnnualSupply = {};
+{
   let data=null,pending=null;
   const colors={'서울특별시':'#245db8','경기도':'#ee834d','인천광역시':'#229b86'};
   const names={'서울특별시':'서울','경기도':'경기','인천광역시':'인천'};
@@ -43,5 +45,5 @@ const AnnualSupply=(()=>{
     return pending;
   }
   function start(){for(const id of ['annual-region','annual-metric'])$(id).addEventListener('change',render);}
-  return {visible,start};
-})();
+  Object.defineProperties(AnnualSupply, Object.getOwnPropertyDescriptors({visible,start}));
+}

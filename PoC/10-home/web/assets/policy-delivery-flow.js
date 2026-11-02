@@ -2,7 +2,9 @@
 /* Source-only supply flow. Month-dated source SUPPLY events are plans; unique
    official main notices are supply actuals. Neither construction nor move-in
    events become supplied units. Curves only connect monthly evidence snapshots. */
-const PolicyDeliveryFlow=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicyDeliveryFlow = {};
+{
   const amount=value=>Number.isFinite(Number(value))&&value!=null?Math.max(0,Number(value)):null;
   const format=value=>value==null?'미확보':Math.round(value).toLocaleString('ko-KR')+'호';
   const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -133,6 +135,6 @@ const PolicyDeliveryFlow=(()=>{
     const chart='<div class="pr-chart-scroll pr-flow-scroll"><svg viewBox="0 0 1120 385" role="img" aria-label="'+escape(start+'–'+end+'년 월별 누적 공급 흐름 · 공고 '+format(selected.actual)+' · 지연 후보 '+format(selected.overdue))+'"><defs><linearGradient id="pr-flow-unknown" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#cfdfef" stop-opacity=".78"/><stop offset="1" stop-color="#f6faff" stop-opacity=".9"/></linearGradient><pattern id="pr-flow-future-hatch" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(40)"><line x1="0" y1="0" x2="0" y2="9" stroke="#fff" stroke-opacity=".55" stroke-width="3"/></pattern><clipPath id="pr-flow-after-now"><rect x="'+(nowX??1062).toFixed(1)+'" y="60" width="'+(1062-(nowX??1062)).toFixed(1)+'" height="268"/></clipPath></defs><rect x="54" y="59" width="1018" height="274" rx="6" fill="#fbfdff"/>'+yearHeaders+(selectX==null?'':'<rect x="'+selectX.toFixed(1)+'" y="61" width="'+selectedWidth.toFixed(1)+'" height="266" fill="#dbeafb" opacity=".43"/>')+'<line x1="62" x2="1062" y1="327" y2="327" stroke="#a8bfd1"/>'+paths+'<path d="'+overduePath+'" fill="url(#pr-flow-future-hatch)" clip-path="url(#pr-flow-after-now)" opacity=".72"/><path d="'+futurePath+'" fill="url(#pr-flow-future-hatch)" opacity=".7"/><path d="'+remainingPath+'" fill="url(#pr-flow-future-hatch)" opacity=".16"/>'+targetLine+present+callouts+months+'<text x="1058" y="377" text-anchor="end" class="pr-flow-axis">월별 원천 일정과 공고 날짜 기준 · 곡선은 시각적 연결</text></svg></div>';
     return legend+chart+overview+'<div class="pr-flow-readout"><div><small>전체 연결 계획</small><strong>'+format(data.target)+'</strong></div><div><small>선택 '+data.selected+'년 공고 확인</small><strong>'+format(selected.actual)+'</strong></div><div class="warn"><small>일정 경과·공고 미확인</small><strong>'+format(selected.overdue)+'</strong><small>'+(selected.duePlanned>0?'예정 경과 물량의 '+(100*selected.overdue/selected.duePlanned).toFixed(1)+'%':'비율 산정 근거 미확보')+'</small></div><div><small>선택 연도까지 추가 예정</small><strong>'+format(selected.upcoming)+'</strong></div><div><small>일정 미확보 잔여</small><strong>'+format(selected.remaining)+'</strong></div><div><small>전체 대비 공고 확인</small><strong>'+attainment+'</strong></div></div><p class="pr-flow-issue">'+issueText+'</p>'+issueList+'<p class="pr-note">빨간 면은 원천 모집 예정월이 지났지만 연결 공고가 확인되지 않은 물량입니다. 확정 지연이 아닌 검토 후보이며 공고 원천 누락·연결 오류일 수 있습니다. 큰 옅은 면은 연도 일정이 확보되지 않은 잔여 계획입니다. 곡선은 실제 월별 확인값을 연결한 시각적 보간이며 월 사이의 물량을 추정하지 않습니다.</p>';
   }
-  return {model,render};
-})();
+  Object.defineProperties(PolicyDeliveryFlow, Object.getOwnPropertyDescriptors({model,render}));
+}
 if(typeof module!=='undefined')module.exports=PolicyDeliveryFlow;

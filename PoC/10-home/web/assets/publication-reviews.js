@@ -1,5 +1,7 @@
 'use strict';
-const PublicationReviews=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const PublicationReviews = {};
+{
  let data=null,selected=null,filter='OPEN',search='',priority='',busy=false,dirty=false,generation=0,exporting=false;
  const e=v=>esc(v),host=()=>$('publication-review-root');
  const stateLabel=s=>data?.status_labels[s]||s;
@@ -115,5 +117,5 @@ const PublicationReviews=(()=>{
   catch(error){$('pr-save-result').textContent=error.message+' 입력 내용은 유지됩니다. 원문·검토 기록 충돌이면 새로고침 후 다시 확인하세요.';}
   finally{busy=false;const button=host().querySelector('button[type=submit]');if(button)button.disabled=!state.admin||host().querySelector('[name=status]').value==='REVIEW';}
  }
- return {load,refreshBadge,canLeave};
-})();
+ Object.defineProperties(PublicationReviews, Object.getOwnPropertyDescriptors({load,refreshBadge,canLeave}));
+}

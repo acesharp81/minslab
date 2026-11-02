@@ -1,6 +1,8 @@
 'use strict';
 /* Decision tools consume the same scoped, de-duplicated cohorts as the map. */
-const PolicyDecision=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicyDecision = {};
+{
  const flow=typeof PolicyStageFlow!=='undefined'?PolicyStageFlow:require('./policy-stage-flow.js'),assessGap=flow.assessGap;
  function checks(metrics,day){const comparisons=Object.fromEntries(Object.entries(metrics||{}).map(([k,c])=>[k,c.tracking?{...c,...c.tracking,management_points:[]}:c]));return Object.keys(stages).map(stage=>flow.comparisonStatus({comparisons,asOf:day},stage));}
  function delayAt(metrics,day){const list=checks(metrics,day),known=list.some(c=>c.assessment.status!=='UNKNOWN');return {DELAYED:known?Math.max(0,...list.filter(c=>c.status==='DELAYED').map(c=>c.gap)):null,WARNING:known?Math.max(0,...list.filter(c=>c.status==='WARNING').map(c=>c.gap)):null,checks:list};}
@@ -65,6 +67,6 @@ const PolicyDecision=(()=>{
    card('기관별 진행현황',key(statuses)+'<div class="pd-agencies">'+(m.agencies.map(r=>'<div class="pd-agency-row"><div><b>'+e(r.name)+'</b><small>'+u(r.total)+' · '+r.count+'개 사업</small></div><svg viewBox="0 0 200 16" role="img" aria-label="'+e(r.name+' '+statuses.map(([k,n])=>n+' '+u(r[k])).join(', '))+'">'+statuses.map(([k,n,color],i)=>'<rect x="'+(200*statuses.slice(0,i).reduce((s,[k])=>s+r[k],0)/Math.max(1,r.total))+'" y="0" width="'+(200*r[k]/Math.max(1,r.total))+'" height="16" fill="'+color+'"><title>'+n+' '+u(r[k])+'</title></rect>').join('')+'</svg><strong>'+ (r.total?(100*r.DELAYED/r.total).toFixed(1):'0.0')+'%<small>지연 사업 물량 비중</small></strong></div>').join('')||'<p class="pd-empty">연결 사업이 없습니다.</p>')+'</div>','시행기관별 사업 계획량을 분류합니다. 지연(2% 이상) → 주의(2% 미만) → 도래 목표 도달 순으로 사업당 한 번 집계합니다. 목표·일정 미확보 사업은 회색입니다.')+
    '<article class="pr-card pr-projection"><div class="pr-card-head"><h3>가구 증가와 공급 일정 비교</h3></div><div data-pr-projection><p>가구 추계와 확보된 공급 일정 확인 중…</p></div></article><div data-pr-demography class="pd-stat-demography"><article class="pr-card"><h3>인구·가구 변화와 주택 재고</h3><p>지역 통계 확인 중…</p></article></div></div>';
  }
- return {render,analyze,forecast,statistics,statusAt,checks,delayAt,mapDelay};
-})();
+ Object.defineProperties(PolicyDecision, Object.getOwnPropertyDescriptors({render,analyze,forecast,statistics,statusAt,checks,delayAt,mapDelay}));
+}
 if(typeof module!=='undefined')module.exports=PolicyDecision;

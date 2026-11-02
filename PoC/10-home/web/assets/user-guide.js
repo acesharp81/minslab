@@ -1,6 +1,8 @@
 'use strict';
 /* Read-only user guidance: no API calls, no changes to filters or saved data. */
-const UserGuide = (() => {
+// Block scope keeps module state private without a whole-file function wrapper.
+const UserGuide = {};
+{
   let ready=false, printState=null, searchOpen=null;
   const content=String.raw`
     <div class="guide-hero">
@@ -156,5 +158,5 @@ const UserGuide = (() => {
     window.addEventListener('beforeprint',beforePrint);window.addEventListener('afterprint',afterPrint);
     ready=true;filter();
   }
-  return {visible(){if(!ready)setup();}};
-})();
+  Object.defineProperties(UserGuide, Object.getOwnPropertyDescriptors({visible(){if(!ready)setup();}}));
+}

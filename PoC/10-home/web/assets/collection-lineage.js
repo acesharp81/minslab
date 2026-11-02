@@ -1,5 +1,7 @@
 'use strict';
-const CollectionLineage=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const CollectionLineage = {};
+{
  const escape=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const num=v=>Number(v||0).toLocaleString('ko-KR');
  const stages=[
@@ -139,5 +141,5 @@ const CollectionLineage=(()=>{
   if(dialog.open){const title=body.querySelector('.cl-inspector>strong');if(title)dialog.querySelector('h3').textContent=title.textContent;}
 
  }
- return {render:renderTab};
-})();
+ Object.defineProperties(CollectionLineage, Object.getOwnPropertyDescriptors({render:renderTab}));
+}

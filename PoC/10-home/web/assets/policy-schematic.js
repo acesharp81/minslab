@@ -1,6 +1,8 @@
 'use strict';
 // Official municipality outlines, drawn as bounded prisms without map tiles.
-const PolicySchematic=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicySchematic = {};
+{
   let shape=null,metrics=null,policyId='',policyMeta=null,region='all',zoom=1,selectedCity='',stage='COMPLETION',focusYear=null;
   const fmt=n=>n==null?'미확보':num(n)+'호';
   const regions={'all':'전체','서울특별시':'서울','경기도':'경기','인천광역시':'인천'};
@@ -142,5 +144,5 @@ const PolicySchematic=(()=>{
     node.addEventListener('keydown',event=>{const city=event.target.closest('[data-ps-city]');if(city&&(event.key==='Enter'||event.key===' ')){event.preventDefault();selectedCity=city.dataset.psCity;render();emit();}});
     node.addEventListener('wheel',event=>{if(!document.body.classList.contains('policy-summary-view'))return;event.preventDefault();const next=Math.min(1.35,Math.max(1,zoom+(event.deltaY<0?.08:-.08)));if(next!==zoom){zoom=next;render();}},{passive:false});
   }
-  return {start,draw,reset,clearSelection};
-})();
+  Object.defineProperties(PolicySchematic, Object.getOwnPropertyDescriptors({start,draw,reset,clearSelection}));
+}

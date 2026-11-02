@@ -1,5 +1,7 @@
 'use strict';
-const CollectionSchema=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const CollectionSchema = {};
+{
  const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const colors={stage:'#ffcc80',field:'#7ec2ff',source:'#80f3c3'};
  let generation=0,expanded=new Set(),dispose=()=>{};
@@ -171,5 +173,5 @@ const CollectionSchema=(()=>{
    host.querySelector('button').onclick=()=>load(sources);
   }
  }
- return {load,html,graphData};
-})();
+ Object.defineProperties(CollectionSchema, Object.getOwnPropertyDescriptors({load,html,graphData}));
+}

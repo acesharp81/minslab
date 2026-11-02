@@ -1,5 +1,7 @@
 'use strict';
-const ProjectWorkspace=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ProjectWorkspace = {};
+{
  let catalogue=null,model=null,selected='',program='',ticket=0,map=null,observer=null,desired='',mapData=null,reportArea=null,reportLocationPending=null,facilityMap=null;
  const locations=()=>mapData||(mapData=request('/project-locations').catch(err=>{mapData=null;throw err;}));
  const basisLabel=v=>({LH_PUBLIC_BLOCK_LABEL_POINT:'LH 공개 블록 대표점',APPROXIMATE_ADDRESS:'주소 인근 추정 위치',APPROXIMATE_AREA:'일대·범위 대표 위치',DISTRICT_REPRESENTATIVE:'지구 대표점',UNLOCATED:'위치 미확보'}[v]||v||'대표 좌표');
@@ -116,5 +118,5 @@ const ProjectWorkspace=(()=>{
   if(t!==ticket||!root.isConnected||state.view!=='projects')throw Error('선택 사업이 변경되었습니다. 현재 사업에서 다시 만들어 주세요.');
   return {kind:'project',root,scope:{policy_id:project.mapping?.policy_id||policy,program_id:project.mapping?.program_id,project_id:project.id,name:project.name,region:project.region,municipality:reportArea?.place.municipality||project.municipality||'',year:reportArea?.data.year||Number(value.as_of_date.slice(0,4)),as_of_date:value.as_of_date},data:{project:value,area:reportArea?.data||null,area_place:reportArea?.place||null,area_status:reportArea?'READY':'UNAVAILABLE'}};
  }
- return {load,select,openEditor,reportContext,currentStage,hidden(){ticket++;destroyMap();}};
-})();
+ Object.defineProperties(ProjectWorkspace, Object.getOwnPropertyDescriptors({load,select,openEditor,reportContext,currentStage,hidden(){ticket++;destroyMap();}}));
+}

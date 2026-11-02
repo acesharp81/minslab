@@ -1,5 +1,7 @@
 'use strict';
-const PolicyDashboard=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicyDashboard = {};
+{
   let payload,selected='POL_2025_0907',measure='COMPLETION';
   const collapsed=new Set();
   const units=n=>n==null?'':num(n)+'호';
@@ -86,5 +88,5 @@ const PolicyDashboard=(()=>{
     });
   }
   function select(id){if(!payload||!payload.items.some(row=>row.id===id))return;selected=id;collapsed.clear();render(payload);}
-  return {render,start,select};
-})();
+  Object.defineProperties(PolicyDashboard, Object.getOwnPropertyDescriptors({render,start,select}));
+}

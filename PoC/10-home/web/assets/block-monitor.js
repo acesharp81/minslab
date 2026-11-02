@@ -1,5 +1,7 @@
 'use strict';
-const BlockMonitor=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const BlockMonitor = {};
+{
   const width=82,height=142,gap=12;
   const barHeightFor=row=>row.target_units>0?Math.max(10,Math.min(180,Math.round(65*row.target_units/1000))):65;
   const heightFor=row=>45+barHeightFor(row)+32;
@@ -75,5 +77,5 @@ const BlockMonitor=(()=>{
     }
     return {placed,hidden};
   }
-  return {width,height,status,graph,tooltip,stageDetails,layout,barHeightFor,heightFor};
-})();
+  Object.defineProperties(BlockMonitor, Object.getOwnPropertyDescriptors({width,height,status,graph,tooltip,stageDetails,layout,barHeightFor,heightFor}));
+}

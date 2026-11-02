@@ -1,6 +1,8 @@
 'use strict';
 // Compact map companion for the same official area series shown in the full analysis page.
-const MapAreaContext=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const MapAreaContext = {};
+{
   let signature='',request=0;
   const known=n=>Number.isFinite(n);
   const fmt=value=>known(value)?num(value):'미확보';
@@ -75,5 +77,5 @@ const MapAreaContext=(()=>{
       if(current===request)render(node,data,place,null);
     }catch(_){if(current===request){node.innerHTML='<h3>지역 생활·수요 지표</h3><p>통계 연결 확인 필요</p>';signature='';}}
   }
-  return {panel,householdShares,ageShares,renderAt:(node,data,place)=>render(node,data,place,null)};
-})();
+  Object.defineProperties(MapAreaContext, Object.getOwnPropertyDescriptors({panel,householdShares,ageShares,renderAt:(node,data,place)=>render(node,data,place,null)}));
+}

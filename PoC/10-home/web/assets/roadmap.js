@@ -1,5 +1,7 @@
 'use strict';
-const Roadmap = (() => {
+// Block scope keeps module state private without a whole-file function wrapper.
+const Roadmap = {};
+{
   const stages={PLANNING:'계획',APPROVAL:'인허가',CONSTRUCTION:'착공',SUPPLY:'공급',COMPLETION:'준공',MOVE_IN:'입주'};
   let data=null, selectedYear=null, generation=0;
   function eventCard(event) {
@@ -64,5 +66,5 @@ const Roadmap = (() => {
     });
     $('close-target').addEventListener('click',()=>{$('target-dialog').close();++generation;});
   }
-  return {render,open,start,selectYear:year=>{selectedYear=year;if(data)render(data);},reset:()=>{selectedYear=null;}};
-})();
+  Object.defineProperties(Roadmap, Object.getOwnPropertyDescriptors({render,open,start,selectYear:year=>{selectedYear=year;if(data)render(data);},reset:()=>{selectedYear=null;}}));
+}

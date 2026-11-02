@@ -1,7 +1,9 @@
 'use strict';
 // A cartographic extrusion of official residential LAND parcels. Display height
 // is a screen-space visual effect: it never represents building height/floors.
-const ApartmentShapes=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ApartmentShapes = {};
+{
   const ns='http://www.w3.org/2000/svg';
   function polygons(geometry){
     if(!geometry)return [];
@@ -60,5 +62,5 @@ const ApartmentShapes=(()=>{
     }
     L.svgOverlay(svg,map.getBounds(),{className:'apartment-extrusion-overlay',interactive:false}).addTo(layer);
   }
-  return {draw,polygons};
-})();
+  Object.defineProperties(ApartmentShapes, Object.getOwnPropertyDescriptors({draw,polygons}));
+}
