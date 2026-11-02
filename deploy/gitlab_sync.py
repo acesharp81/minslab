@@ -127,7 +127,10 @@ def push_environment(project: Project | None = None) -> Iterator[dict[str, str]]
 def publish(root: Path, export: Export, env: dict[str, str]) -> str:
     if export.dirty:
         raise SyncError(f"{export.project.prefix}에 미커밋 변경이 있습니다. 먼저 검토·커밋하세요.")
-    options = ["-c", "push.followTags=false"]
+    # The GitLab front proxy requests retransmission during large initial
+    # pushes. Buffer these requests so Git can rewind instead of failing on
+    # a chunked upload with curl 65. Scoped to this push, not global Git config.
+    options = ["-c", "push.followTags=false", "-c", "http.postBuffer=268435456"]
     if env.get("GITLAB_TOKEN"):
         # Do not let a credential helper save the CI token.
         options += ["-c", "credential.helper="]

@@ -54,6 +54,32 @@ python3 deploy/gitlab_sync.py home --push
 
 대상 브랜치는 `main` 하나입니다. 강제 push·전체 mirror·태그 동기화·서버 재배포는 수행하지 않습니다. GitLab에서 직접 만든 README나 별도 코드 수정으로 이력이 갈라지면 일반 push가 거부됩니다. 원본과 대상의 변경을 검토해 이력을 정리한 뒤 다시 실행합니다.
 
+최초 대용량 push에서는 GitLab 앞단의 재전송 요구로 `unable to rewind rpc post data`·`curl 65`가 발생할 수 있습니다. 이 서버의 실제 실패에 맞춰 push 명령에만 `http.postBuffer=268435456`을 적용합니다. 256MiB 이하의 요청을 버퍼링해 재전송할 수 있게 하며 전역 Git 설정은 바꾸지 않습니다.
+
+## GitLab 서버 검사로 인한 게시 차단
+
+2026-11-02 전용 실행기에서 GitLab 네트워크 연결과 프로젝트 토큰 인증은 통과했습니다. 이후 국정ON은 GitLab 서버의 필수 pre-receive 보안 검사에서 거부됐습니다. 이 검사는 저장소 생성 화면의 선택 항목과 별도로 서버에서 강제합니다. [해당 실행](https://github.com/acesharp81/minslab/actions/runs/41365917266)
+
+### 서버 관리자에게 확인할 항목
+
+Gitleaks는 아래 세 Docker 이미지 식별자를 비밀값으로 탐지했습니다. 원문 문자열이 `poc07-...` Docker repository와 배포 tag로만 구성됨을 확인했으며 실제 API 키·액세스 토큰이 아닙니다. 과거 검증 증빙을 덮어쓰는 대신 서버 관리자가 이 세 문자열에 대한 오탐 처리를 검토해야 합니다.
+
+| 원본 파일 | 필드 | Docker 이미지 식별자 |
+| --- | --- | --- |
+| `PoC/07-NationalAssembly/docs/AUDIT_READINESS_20261026.json:204` | `image` | `poc07-national-assembly-api:live-priority-db-20261026` |
+| `PoC/07-NationalAssembly/docs/REPORT_FINALIZATION_20261027.json:62` | `image` | `poc07-national-assembly-api:finalization-20261027-v2` |
+| `PoC/07-NationalAssembly/docs/PROVIDER_PRIORITY_AUDIT_20261026.json:212` | `worker_image` | `poc07-national-assembly-api:quota-priority-20261026` |
+
+Semgrep가 출력한 항목은 다음과 같습니다. 코드를 보완하려면 생략된 추가 7건을 포함한 전체 보고서가 필요합니다.
+
+- `backend/app/adapters/live_sources.py:32`, `backend/app/adapters/national_assembly/client.py:57`: 동적 URL의 `urllib` 사용 감사 경고.
+- `backend/app/adapters/national_assembly/xml_envelope.py:4`: 외부 XML 처리에 안전한 파서 사용 필요.
+- `backend/app/db/read_projection_cache.py:24,27`: `pickle` 역직렬화·직렬화 경고.
+- 상세 출력이 생략된 추가 7건.
+- **Semgrep 검사기 자체 오류 1건**: 서버의 전체 오류 내역과 규칙 설정을 확인해야 합니다.
+
+같은 실행에서 OSV-Scanner·Trivy·Syft는 통과했습니다. 전체 검사를 비활성화하거나 동기화 도구에서 우회하지 않습니다. 서버 검사기 오류·오탐과 코드 보완 항목을 구분해 해결한 뒤 실패한 프로젝트만 수동 재실행합니다.
+
 ## 검증
 
 ```bash
