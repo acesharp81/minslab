@@ -59,7 +59,7 @@ const CollectionSchema = {};
   function makeGeometry(){
    geometry=graph.nodes.map(node=>{const h=seed(node.id),items=graph.nodes.filter(n=>n.type===node.type),index=items.findIndex(n=>n.id===node.id);
     const theta=node.type==='stage'?index/Math.max(items.length,1)*Math.PI*2-Math.PI/2:(h%100000)/100000*Math.PI*2;
-    const latitude=(((h>>>13)%1000)/1000-.5)*(node.type==='stage'?.6:1.8),rank={stage:.38,field:.71,source:1}[node.type];
+    const latitude=(((h>>>13)%1000)/1000-.5)*(node.type==='stage'? 0.6:1.8),rank={stage:.38,field:.71,source:1}[node.type];
     const radius=rank*(.78+((h>>>7)%100)/470);
     return {...node,wx:Math.cos(theta)*Math.cos(latitude)*radius,wy:Math.sin(theta)*Math.cos(latitude)*radius,wz:Math.sin(latitude)*radius,seed:h%120/100};
    });
@@ -85,9 +85,9 @@ const CollectionSchema = {};
    ctx.strokeStyle='rgba(112,252,209,.45)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(cx,cy,15+Math.sin(sceneTime*.0017)*4,0,Math.PI*2);ctx.stroke();
    const visibleEdges=graph.edges.slice(0,Math.floor(graph.edges.length*progress));
    visibleEdges.forEach((l,i)=>{const a=byId.get(l.from),b=byId.get(l.to),active=l.from===focus||l.to===focus,depth=(a.depth+b.depth)/2;
-    ctx.globalAlpha=active?.9:focus?.055:(.18+depth*.3)*(.23+ep*.6);ctx.lineWidth=active?1.7:.45+depth*.6;
+    ctx.globalAlpha=active? 0.9:focus? 0.055:(.18+depth*.3)*(.23+ep*.6);ctx.lineWidth=active?1.7:.45+depth*.6;
     const line=ctx.createLinearGradient(a.x,a.y,b.x,b.y);line.addColorStop(0,i%7===0?'#80f3c3':'#7ec2ff');line.addColorStop(1,i%7===0?'#b8ffe5':'#789ab9');ctx.strokeStyle=line;ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
-    if((active||i%17===0)&&motion&&progress===1){const t=(sceneTime*.00017+i*.137)%1;ctx.globalAlpha=active?.9:.55;ctx.fillStyle='#d2fff0';ctx.shadowColor='#80f3c3';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,active?1.7:1.1,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
+    if((active||i%17===0)&&motion&&progress===1){const t=(sceneTime*.00017+i*.137)%1;ctx.globalAlpha=active? 0.9:.55;ctx.fillStyle='#d2fff0';ctx.shadowColor='#80f3c3';ctx.shadowBlur=6;ctx.beginPath();ctx.arc(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,active?1.7:1.1,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;}
    });
    // Keep stage/selected nodes in the foreground, with opaque sphere cores masking edges.
    const childIds=new Set(graph.edges.filter(l=>l.from===selected).map(l=>l.to)),labelPoints=[];
@@ -96,7 +96,7 @@ const CollectionSchema = {};
     const active=!focus||p.id===focus||neighbors.has(p.id),twinkle=.55+.4*Math.sin(sceneTime*.001+p.seed*6)**2;
     const radius=(p.r+(p.id===focus?3:0)+Math.sin(sceneTime*.002+p.seed*5)*.35)*ep,size=radius*4.48;
     ctx.globalAlpha=1;ctx.fillStyle='#071424';ctx.beginPath();ctx.arc(p.x,p.y,radius*1.02,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=active?.9+twinkle*.1:.22;ctx.drawImage(sprites[p.type],p.x-size/2,p.y-size/2,size,size);
+    ctx.globalAlpha=active? 0.9+twinkle*.1:.22;ctx.drawImage(sprites[p.type],p.x-size/2,p.y-size/2,size,size);
     if(p.id===focus){ctx.globalAlpha=.55+.3*Math.sin(sceneTime*.003)**2;ctx.strokeStyle=colors[p.type];ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(p.x,p.y,radius+8,(radius+8)*.42,-.3,0,Math.PI*2);ctx.stroke();}
     if((p.type==='stage'&&active)||p.id===selected||childIds.has(p.id))labelPoints.push({...p,radius});
    }

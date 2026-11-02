@@ -7,7 +7,7 @@ from collections import Counter
 from datetime import datetime
 from html import escape
 from pathlib import Path
-from urllib.request import urlopen
+import requests
 import json
 from zoneinfo import ZoneInfo
 
@@ -16,8 +16,9 @@ DEFAULT_OUTPUT = Path(__file__).resolve().parents[1] / 'docs' / 'HOME_ARCHITECTU
 
 
 def fetch(base, name):
-    with urlopen(base.rstrip('/') + '/' + name, timeout=30) as response:
-        return json.load(response)
+    with requests.get(base.rstrip('/') + '/' + name, timeout=30) as response:
+        response.raise_for_status()
+        return response.json()
 
 
 def e(value):

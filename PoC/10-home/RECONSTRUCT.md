@@ -56,3 +56,11 @@ docker compose --env-file .env.standalone -f compose.standalone.yml exec api pyt
 PDF·웹 요청 처리를 위한 의존성은 2026-11-02 공개 보안 정보를 확인해 pypdf 6.21.4, FastAPI 0.162.0, Starlette 1.10.0으로 고정했습니다. 이미지의 설치 도구도 pip 26.2.2로 고정합니다. [pypdf 보안 공지](https://github.com/py-pdf/pypdf/security/advisories), [Starlette 보안 공지](https://github.com/Kludex/starlette/security/advisories). 이 보완이 GitLab 502의 직접 원인 해결이라는 뜻은 아니며 실제 게시 결과로 별도 검증합니다.
 
 AI 기능은 기본 실행에 포함되지 않습니다. 자신의 OpenAI·Solar 키와 로컬 사용량 한도로 독립 운영하려면 관련 provider 설정과 `POC10_SHARED_BUDGET_REQUIRED=false`를 명시적으로 선택합니다. 기존 공유 예산을 유지할 때는 `USAGE_GATEWAY_URL`·`USAGE_METER_TOKEN`을 연결하며, 게이트웨이 소스는 별도 공유된 [국정ON 저장소의 backend/app/openrouter_gateway.py](https://gitlab.aigov.go.kr/acesharp/kjon/-/blob/main/backend/app/openrouter_gateway.py)에 있습니다. 기존 MinsLab 운영 키를 복제하지 않습니다.
+
+### HTTP 처리·실행 사용자 보완
+
+검증용 스크립트의 HTTP 요청도 requests로 통일하고 HTTP 오류 응답을 원천 데이터로 저장하지 않도록 확인합니다. 키가 포함된 공식 통계 요청의 예외에는 키·요청 URL을 출력하지 않습니다. requests와 보안 민감 간접 의존성(anyio, certifi, idna, h11, urllib3, charset-normalizer)의 검증 버전을 명시합니다. [AnyIO](https://pypi.org/project/anyio/), [Certifi](https://pypi.org/project/certifi/), [Requests](https://pypi.org/project/requests/)의 공식 배포와 OSV 공개 정보를 확인했습니다.
+
+API·worker 이미지는 UID/GID `1000:1000`으로 실행합니다. 독립 Compose의 새 runtime volume은 이미지의 `/app/data` 소유권을 이어받습니다. 기존 운영 데이터나 다른 bind mount를 재사용할 때는 모든 하위 디렉터리·파일에 이 UID의 읽기·쓰기 권한이 있는지 먼저 확인해야 합니다. 기존 root 소유 데이터는 worker를 중지한 유지보수 절차에서 소유권을 이관한 뒤 새 이미지를 배포합니다.
+
+브라우저에서 유효하지만 일부 검사기가 optional chaining과 혼동하던 `조건?.6:값` 등의 조건식은 `조건 ? 0.6 : 값` 형태로 표기했습니다. 계산 의미는 같습니다.

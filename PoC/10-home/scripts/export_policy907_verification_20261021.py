@@ -151,8 +151,7 @@ def official():
 
 def type_months(history=False):
     import os
-    import urllib.request
-    import urllib.parse
+    import requests
     folder = Path('/app/data') / FOLDER
     rows = []
     periods=[(year,1,2) for year in [2025,2026]] if not history else [(year,start,min(start+1,7)) for year in [2023,2024] for start in [1,3,5,7]]
@@ -160,8 +159,12 @@ def type_months(history=False):
         params = dict(key=os.environ['POC10_MOLIT_STAT_API_KEY'], form_id='5387', style_num='1',
             start_dt=f'{year}{start:02d}', end_dt=f'{year}{end:02d}')
         url = 'https://stat.molit.go.kr/portal/openapi/service/rest/getList.do'
-        with urllib.request.urlopen(url+'?'+urllib.parse.urlencode(params), timeout=30) as response:
-            data = json.load(response)
+        try:
+            with requests.get(url, params=params, timeout=30) as response:
+                response.raise_for_status()
+                data = response.json()
+        except requests.RequestException as exc:
+            raise RuntimeError(f'Official statistics request failed: {type(exc).__name__}') from None
         assert data['result_status']['status_code'] == 'INFO-000'
         assert data['result_data']['unitName'] == '호'
         data = {k: v for k, v in data.items() if k.lower() not in ['cert_id', 'key', 'apikey']}

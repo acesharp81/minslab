@@ -4,7 +4,7 @@ from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
-from urllib.request import urlopen
+import requests
 from backend.db import engine_for
 from backend.service import HomeService,today
 from backend.data_integrity import rounds,get_round
@@ -19,7 +19,10 @@ def main():
     old_list=rounds(s)['items']
     if any(r['id']==ID for r in old_list):print('이미 1차 보고서가 발행되어 있습니다.');return
     previous=get_round(s,old_list[0]['id']);save('previous-assessment.json',previous)
-    get=lambda route:json.load(urlopen('http://127.0.0.1:8000/poc/home/api/'+route,timeout=180))
+    def get(route):
+        with requests.get('http://127.0.0.1:8000/poc/home/api/'+route,timeout=180) as response:
+            response.raise_for_status()
+            return response.json()
     sources=get('sources')['items'];requirements=get('requirements-status');summary=get('source-summary');schema=get('collection-schema')
     save('sources.json',sources);save('requirements.json',requirements);save('source-summary.json',summary)
     model=build_delivery(s,today(),include_portfolio_comparisons=False)

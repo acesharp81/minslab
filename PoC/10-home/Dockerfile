@@ -9,4 +9,6 @@ COPY alembic.ini .
 COPY web web
 COPY ["docs/공급유형별_추진절차.html", "docs/데이터 신뢰도 확인.html", "/app/docs/"]
 COPY scripts scripts
+RUN groupadd --gid 1000 homeapp && useradd --uid 1000 --gid homeapp --create-home homeapp && mkdir -p /app/data && chown homeapp:homeapp /app/data
+USER 1000:1000
 CMD ["sh", "-c", "alembic upgrade head && uvicorn backend.app:app --host 0.0.0.0 --port 8000"]

@@ -1,5 +1,6 @@
 """Small authenticated official probes; never persist keys or credential fields."""
-import json,os,urllib.request,urllib.parse
+import json,os
+import requests
 from pathlib import Path
 OUT=Path('/app/data/official-followup-sources-20261021');OUT.mkdir(exist_ok=True)
 
@@ -11,7 +12,9 @@ def clean(value):
 def fetch(name,url,params):
     safe={k:v for k,v in params.items() if k.lower() not in ('key','apikey')}
     try:
-        with urllib.request.urlopen(url+'?'+urllib.parse.urlencode(params),timeout=30) as r:data=json.load(r)
+        with requests.get(url,params=params,timeout=30) as response:
+            response.raise_for_status()
+            data=response.json()
         data=clean(data);(OUT/(name+'.json')).write_text(json.dumps(data,ensure_ascii=False,indent=2))
         rows=data if isinstance(data,list) else data.get('result_data',{}).get('formList',[])
         result=dict(name=name,url=url,params=safe,rows=len(rows),status=data.get('result_status') if isinstance(data,dict) else 'LIST',

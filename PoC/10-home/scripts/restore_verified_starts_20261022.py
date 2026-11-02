@@ -3,7 +3,7 @@ import argparse
 from copy import deepcopy
 import hashlib,json,re
 from pathlib import Path
-from urllib.request import urlopen
+import requests
 from bs4 import BeautifulSoup
 from pypdf import PdfReader
 from sqlalchemy import select,text
@@ -22,7 +22,9 @@ def current(db,eid):return db.scalar(select(Revision).where(Revision.entity_id==
 def prepare(s):
     raw=OUT/'icouncil-20240614.html'
     if not raw.exists():
-        raw.write_bytes(urlopen(URL,timeout=40).read())
+        with requests.get(URL,timeout=40) as response:
+            response.raise_for_status()
+            raw.write_bytes(response.content)
     txt=BeautifulSoup(raw.read_bytes(),'html.parser').get_text(' ',strip=True);compact=re.sub(r'\s+','',txt)
     assert all(t in compact for t in ['2024-06-14','AA10-1BL','1458세대','작년11월','8.94%'])
     cert=Path('data/raw/gh_completion_evidence')/(GH_HASH+'.pdf');assert hashlib.sha256(cert.read_bytes()).hexdigest()==GH_HASH
