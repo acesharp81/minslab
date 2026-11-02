@@ -52,3 +52,7 @@ docker compose --env-file .env.standalone -f compose.standalone.yml exec api pyt
 ## 2026-11-02 공유 준비 보완
 
 외부 XML은 defusedxml로 읽고 요청 내 캐시는 타입과 객체 격리를 유지하는 복사 방식으로 변경했습니다. 초기 설치 migration의 동적 SQL 식별자는 Alembic의 식별자 처리로 구성하며 기존 schema·index 의미를 유지합니다. 비밀 탐지는 기본 규칙을 유지하고 검토한 정확한 체크섬·변수명·공개 식별자 줄만 `.gitleaks.toml`로 기록합니다. 빈 키 예시의 여러 줄 오탐은 빈 문자열을 명시해 해결합니다.
+
+PDF·웹 요청 처리를 위한 의존성은 2026-11-02 공개 보안 정보를 확인해 pypdf 6.21.4, FastAPI 0.162.0, Starlette 1.10.0으로 고정했습니다. 이미지의 설치 도구도 pip 26.2.2로 고정합니다. [pypdf 보안 공지](https://github.com/py-pdf/pypdf/security/advisories), [Starlette 보안 공지](https://github.com/Kludex/starlette/security/advisories). 이 보완이 GitLab 502의 직접 원인 해결이라는 뜻은 아니며 실제 게시 결과로 별도 검증합니다.
+
+AI 기능은 기본 실행에 포함되지 않습니다. 자신의 OpenAI·Solar 키와 로컬 사용량 한도로 독립 운영하려면 관련 provider 설정과 `POC10_SHARED_BUDGET_REQUIRED=false`를 명시적으로 선택합니다. 기존 공유 예산을 유지할 때는 `USAGE_GATEWAY_URL`·`USAGE_METER_TOKEN`을 연결하며, 게이트웨이 소스는 별도 공유된 [국정ON 저장소의 backend/app/openrouter_gateway.py](https://gitlab.aigov.go.kr/acesharp/kjon/-/blob/main/backend/app/openrouter_gateway.py)에 있습니다. 기존 MinsLab 운영 키를 복제하지 않습니다.
