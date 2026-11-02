@@ -62,7 +62,11 @@ GitLab의 필수 pre-receive 검사는 그대로 유지합니다. 최초 실행�
 
 국정ON은 [2026-11-02 실행](https://github.com/acesharp81/minslab/actions/runs/41373360452)에서 Gitleaks·Semgrep·OSV-Scanner·Trivy·Syft를 모두 통과하고 실제 `main` 게시가 완료됐습니다. 공개 GitLab을 새로 clone하여 Python 924 passed / 28 skipped를 확인했습니다. 선택하지 않은 작업의 생략 표시는 게시 성공으로 계산하지 않습니다.
 
-Home은 PDF·웹 의존성도 검토해 갱신했지만 502는 남았습니다. 보안 의존성 보완과 502 해결 여부는 별도로 검증합니다. 재현한 웹 소스 검사에서 파일 전체 IIFE가 큰 두 정책 모듈은 검사에 약 23초가 걸렸고, 블록 범위로 같은 비공개 상태와 공개 함수 속성을 유지하면 약 2.4초로 줄었습니다. 추가 보고서 모듈도 같은 구조로 개선했습니다. 규칙·소스 파일·검사 경고를 제외하지 않으며 공개 함수 속성 비교와 전체 JavaScript 141개 테스트를 통과했습니다. 로컬 규칙이 서버 설정과 같다는 보장은 없으므로 실제 push 결과를 기준으로 판단합니다.
+Home은 전송량과 최초 이력을 줄여도 업로드 후 약 60초 응답 대기와 재전송·502가 반복됐습니다. 재현한 전체 웹 소스 검사는 약 54초였고, 파일 전체 IIFE를 비공개 블록 범위와 동일한 공개 함수 속성을 유지하는 구조로 바꾸자 약 27초로 줄었습니다. 규칙·소스 파일·탐지 결과를 제외하지 않았습니다. 이후 서버가 약 57초 안에 실제 검사 결과를 반환하여 502 대신 구체적인 거부 항목을 확인할 수 있었습니다. 마지막 대형 모듈 두 파일도 같은 방식으로 개선했습니다.
+
+서버가 지적한 다섯 검증 스크립트의 `urllib` 요청은 HTTP 전용 requests로 바꾸고, HTTP 실패를 원문으로 저장하지 않게 했습니다. 키를 포함한 요청 예외는 URL·키를 출력하지 않습니다. JavaScript 조건식 `조건?.6:값`은 계산 의미를 유지한 `조건 ? 0.6 : 값`으로 표기하여 검사기 오류를 해결했습니다. OSV가 지적한 anyio·certifi 등 HTTP 간접 의존성은 검증 버전을 명시하고, Docker는 UID/GID `1000:1000`으로 실행하도록 보완했습니다. 기존 root 소유 bind mount를 새 이미지에서 재사용할 때의 권한 이관 조건은 [Home 재구성 문서](../../PoC/10-home/RECONSTRUCT.md)에 기록했습니다.
+
+[최초 두 프로젝트 게시 성공](https://github.com/acesharp81/minslab/actions/runs/41378740360) 후 [후속 갱신 성공](https://github.com/acesharp81/minslab/actions/runs/41379457979)을 확인했습니다. Home은 `32b437da`에서 `8845269b`로 강제 push 없이 전진했고 국정ON은 기존 `3af1d4e8`을 유지했습니다. Home 후속 push는 약 57.3초였습니다. 새 변경으로 검사 부하가 커지면 약 60초 응답 제한과 맞물린 502가 재발할 수 있으므로 `--diagnose`의 업로드 완료·상태·소요 시간과 최신 서버 검사 결과를 구분해 확인합니다.
 
 ## 검증
 
@@ -82,4 +86,19 @@ python3 -m unittest discover -s tests -p 'test_gitlab_sync.py' -v
 
 증빙 제외로 전송량을 약 79MB에서 8MB로 줄인 뒤에도 업로드 후 약 60초 재전송·60초 뒤 502가 반복됐습니다. 단순 용량 감소만으로 해결됐다고 볼 수 없습니다. 전체 과거 이력의 일괄 전송을 분리하기 위해 최초 공유 이력은 국정ON `e9482fd1005e7a01301d908ec91d8d2de6912272`, Home `1d9fd7d34f85190c1ca97337e8b5aa5465146d2f`부터 시작합니다. Home의 기준은 빈 저장소임을 확인한 뒤 의존성·화면 모듈 보완까지 포함하도록 확정했습니다. `git fast-export --full-tree`로 기준 시점의 모든 필수 파일을 포함하고 이후 커밋은 일반 fast-forward로 갱신합니다. 이전 이력은 GitHub에 남으며 이 기준점은 최초 게시 후 임의로 바꾸지 않습니다. 강제 push나 필수 검사 우회는 사용하지 않습니다.
 
-독립 스냅샷 검증: 국정ON Python 924 passed / 28 skipped, Home Python 1122 passed / 1 skipped, JavaScript 141 passed. 두 이미지 빌드와 새 DB migration·health 응답을 확인했습니다. Home의 0018 migration 중복 생성과 Git에 빠졌던 HWPX fixture도 보완했습니다. [국정ON 재구성](../../PoC/07-NationalAssembly/RECONSTRUCT.md), [Home 재구성](../../PoC/10-home/RECONSTRUCT.md).
+실제 공개 GitLab clone 검증: 국정ON Python 924 passed / 28 skipped, Home Python 1124 passed / 2 skipped, JavaScript 141 passed. 두 이미지 빌드와 새 DB migration·health 응답을 확인했습니다. Home의 0018 migration 중복 생성과 Git에 빠졌던 HWPX fixture도 보완했습니다. [국정ON 재구성](../../PoC/07-NationalAssembly/RECONSTRUCT.md), [Home 재구성](../../PoC/10-home/RECONSTRUCT.md).
+
+## 2026-11-02 최종 상태와 운영 영향
+
+| 대상 | 확인 결과 |
+| --- | --- |
+| 국정ON GitLab `main` | `3af1d4e84a6d454df8751b26cb0164b43b528964`, 해당 프로젝트 557개 파일 |
+| Home GitLab `main` | `8845269b343d63350cd9b1235d158717eb783293`, 해당 프로젝트 922개 파일 |
+| GitHub | 서비스 변경은 `71c28b2b`까지 `main` 반영, 두 게시 작업 성공 |
+| 독립 설치 | 새 DB migration·이미지 빌드·health 200, Home UID1000 데이터 쓰기 확인 |
+| Firefox | 수정 소스의 초기 화면·정책 지도 표시, JavaScript 예외 0 |
+| 본서비스 | 메인·Home 화면·Home 조회 API·국정ON health 모두 HTTP 200 |
+
+Home 내부·공개 overview의 최종 재확인은 각각 0.03초·0.02초였습니다. 앞선 조회에서는 17.84초도 관측되어 이 결과를 전체 조회의 지연 보장으로 해석하지 않습니다. 운영 API 컨테이너의 기존 시작 시각과 재시작 0회를 확인했으며 이번 작업에서 API·worker를 교체하지 않았습니다. 새 DB·데이터 volume을 사용한 임시 검증 컨테이너·network·volume은 정리했습니다. 동기화 실행기는 별도 컨테이너·제한된 자원·격리된 volume으로 유지합니다.
+
+GitLab 공개 파일로 새 환경의 앱·DB schema·테스트를 재구성할 수 있습니다. 설치용 외부 의존성, 자신의 원천 API 키, 운영 누적 기록을 복원할 때 필요한 별도 백업은 각 재구성 문서에 설명합니다.
