@@ -103,7 +103,9 @@ def push_environment(project: Project | None = None) -> Iterator[dict[str, str]]
     env["GITLAB_TOKEN"] = token
     if not env.get("GITLAB_USERNAME"):
         env["GITLAB_USERNAME"] = "gitlab-sync"
-    with tempfile.TemporaryDirectory(prefix="minslab-gitlab-auth-") as directory:
+    # Hardened runners may mount /tmp with noexec. RUNNER_TEMP is the runner's
+    # executable job scratch directory, also cleaned when the job completes.
+    with tempfile.TemporaryDirectory(prefix="minslab-gitlab-auth-", dir=env.get("RUNNER_TEMP") or None) as directory:
         askpass = Path(directory) / "askpass.py"
         askpass.write_text(
             "#!/usr/bin/env python3\n"

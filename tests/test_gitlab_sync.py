@@ -228,6 +228,19 @@ class GitLabSyncTests(unittest.TestCase):
         with self.assertRaisesRegex(sync.SyncError, "GITLAB_KJON_TOKEN"):
             sync.token_for(self.projects["kjon"], {"GITLAB_KJON_TOKEN": "", "GITLAB_TOKEN": "legacy-test-token"})
 
+    def test_askpass_uses_runner_scratch_instead_of_noexec_system_tmp(self):
+        scratch = self.base / "runner-temp"
+        scratch.mkdir()
+        credentials = dict(self.env, RUNNER_TEMP=str(scratch), GITLAB_TOKEN="test-only-token")
+        with patch.dict(os.environ, credentials, clear=True):
+            with sync.push_environment() as env:
+                helper = Path(env["GIT_ASKPASS"])
+                self.assertTrue(helper.is_relative_to(scratch))
+                result = subprocess.run([str(helper), "Password"], env=env,
+                                        capture_output=True, text=True, check=True)
+                self.assertEqual(result.stdout.strip(), "test-only-token")
+            self.assertFalse(helper.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

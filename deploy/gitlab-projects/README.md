@@ -23,7 +23,7 @@ GitHub 저장소의 **Settings → Secrets and variables → Actions → New rep
 
 각 토큰은 `write_repository` 범위와 대상 `main`에 push할 수 있는 역할·브랜치 권한이 필요합니다. 프로젝트 액세스 토큰은 발급한 프로젝트에만 사용합니다. HTTPS 인증의 사용자명은 비어 있지 않은 값이면 되므로 workflow는 `gitlab-sync`를 사용하며 별도의 사용자명 secret은 필요하지 않습니다. [GitLab 프로젝트 토큰 문서](https://docs.gitlab.com/user/project/settings/project_access_tokens/)
 
-workflow는 프로젝트에 해당하는 secret만 해당 작업에 전달합니다. 기존 `GITLAB_TOKEN`·`GITLAB_USERNAME` secrets는 자동 동기화에서 더 이상 사용하지 않습니다. 인증값은 URL이나 파일 내용에 기록하지 않고 임시 `GIT_ASKPASS`를 통해 전달합니다.
+workflow는 프로젝트에 해당하는 secret만 해당 작업에 전달합니다. 기존 `GITLAB_TOKEN`·`GITLAB_USERNAME` secrets는 자동 동기화에서 더 이상 사용하지 않습니다. 인증값은 URL이나 파일 내용에 기록하지 않고 임시 `GIT_ASKPASS`를 통해 전달합니다. 실행기에서는 실행 가능한 작업용 `RUNNER_TEMP`에 인증 도구를 만들고 삭제하므로 시스템 `/tmp`의 실행 제한을 유지할 수 있습니다.
 
 최초 동기화는 이 workflow와 도구를 GitHub `main`에 반영하면 시작됩니다. 재실행이나 특정 프로젝트만 갱신하려면 GitHub **Actions → Sync service projects to GitLab → Run workflow**에서 브랜치 `main`과 `all`·`kjon`·`home`을 선택합니다. `main` 이외의 브랜치에서는 게시하지 않습니다.
 
