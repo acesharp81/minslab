@@ -95,6 +95,35 @@ class GitLabSyncTests(unittest.TestCase):
         self.assertEqual(self.git(self.root, "branch", "--show-current"), "main")
         self.assertEqual(self.git(self.root, "status", "--porcelain"), "")
 
+    def test_evidence_is_removed_from_all_history_but_runtime_data_and_fixtures_remain(self):
+        prefix = self.root / self.projects['home'].prefix
+        evidence = prefix / 'docs/evidence/audit.json'
+        evidence.parent.mkdir(parents=True)
+        evidence.write_text('large generated verification dump')
+        for name in ['tests/fixtures/source.json', 'backend/data/seed.json', 'docs/setup.md']:
+            path = prefix / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text('required reconstruction input')
+        self.commit('add reconstruction inputs and audit dump')
+        refs = self.git(self.root, 'show-ref')
+        fetch_head = self.root / '.git/FETCH_HEAD'
+        fetch_head.write_text('keep existing fetch marker\n')
+        export = self.prepare('home')
+        sync.publish(self.root, export, self.env)
+        for commit in self.git(Path(export.project.remote), 'rev-list', 'main').splitlines():
+            paths = self.git(Path(export.project.remote), 'ls-tree', '-r', '--name-only', commit)
+            self.assertNotIn('docs/evidence/', paths)
+        paths = self.git(Path(export.project.remote), 'ls-tree', '-r', '--name-only', 'main')
+        for name in ['tests/fixtures/source.json', 'backend/data/seed.json', 'docs/setup.md']:
+            self.assertIn(name, paths)
+        self.assertEqual(self.git(self.root, 'show-ref'), refs)
+        self.assertEqual(fetch_head.read_text(), 'keep existing fetch marker\n')
+        evidence.write_text('new verification dump only')
+        self.commit('change audit dump only')
+        self.assertEqual(self.prepare('home').commit, export.commit)
+        self.assertTrue(evidence.exists())
+
+
     def test_repeated_sync_and_other_project_commits_do_not_change_export(self):
         first = self.prepare("kjon")
         sync.publish(self.root, first, self.env)

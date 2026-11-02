@@ -21,7 +21,7 @@ def service(tmp_path):
 
 
 def test_official_pdf_and_cumulative_periods_never_double_count(service):
-    root=Path(__file__).resolve().parents[1]/'docs/evidence/HOME_COLLECTION_GAP_REVIEW_20261019'
+    root=Path(__file__).resolve().parent/'fixtures/monthly_release_202608'
     period,(_,url)=discover((root/'index_permits.html').read_bytes())
     source=next(s for s in SOURCES if s['id']=='molit_monthly_release')
     body=(root/'official_august.pdf').read_bytes()

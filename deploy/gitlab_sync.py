@@ -62,18 +62,67 @@ class Export:
     dirty: bool
 
 
+# Generated verification snapshots stay in GitHub. Runtime data, fixtures,
+# migrations, documentation and source remain in each independent export.
+EXCLUDED_PATHS = ("docs/evidence",)
+
+
+def publication_tree(root: Path, tree: str) -> str:
+    with tempfile.TemporaryDirectory(prefix="minslab-export-index-") as directory:
+        env = dict(os.environ, GIT_INDEX_FILE=str(Path(directory) / "index"))
+        git(root, "read-tree", tree, env=env)
+        git(root, "rm", "-r", "--cached", "--ignore-unmatch", "--", *EXCLUDED_PATHS, env=env)
+        return git(root, "write-tree", env=env)
+
+
+def publication_history(root: Path, commit: str) -> str:
+    """Filter only generated evidence, including history, without editing refs."""
+    objects = git(root, "rev-parse", "--path-format=absolute", "--git-path", "objects")
+    with tempfile.TemporaryDirectory(prefix="minslab-export-history-") as directory:
+        base = Path(directory)
+        source, target = base / "source.git", base / "publication.git"
+        for bare in (source, target):
+            git(root, "init", "--bare", "--quiet", str(bare))
+            (bare / "objects/info/alternates").write_text(objects + "\n", encoding="utf-8")
+        git(source, "update-ref", "refs/heads/export", commit)
+        # --no-data reuses existing blobs through read-only object alternates.
+        # A private stream preserves arbitrary commit-message bytes exactly.
+        with (base / "history.fi").open("w+b") as stream:
+            result = subprocess.run(
+                ["git", "fast-export", "--no-data", "refs/heads/export", "--", ".",
+                 *[f":(exclude){path}" for path in EXCLUDED_PATHS]],
+                cwd=source, stdout=stream, stderr=subprocess.PIPE,
+            )
+            if result.returncode:
+                raise SyncError(result.stderr.decode("utf-8", errors="replace"))
+            stream.seek(0)
+            result = subprocess.run(
+                ["git", "fast-import", "--quiet"], cwd=target, stdin=stream,
+                capture_output=True,
+            )
+            if result.returncode:
+                raise SyncError(result.stderr.decode("utf-8", errors="replace"))
+        filtered = git(target, "rev-parse", "refs/heads/export")
+        # Transfer new commit/tree objects only; keep source refs and FETCH_HEAD.
+        git(root, "-c", "fetch.writeCommitGraph=false", "fetch", "--no-tags",
+            "--no-write-fetch-head", str(target), "refs/heads/export")
+        return filtered
+
+
 def prepare_export(root: Path, project: Project, source: str) -> Export:
     """Split committed history without changing branches, index or worktree."""
     if git(root, "rev-parse", "--is-shallow-repository") == "true":
         raise SyncError("전체 Git 이력이 필요합니다. git fetch --unshallow 후 다시 실행하세요.")
-    expected_tree = git(root, "rev-parse", f"{source}:{project.prefix}")
-    if git(root, "cat-file", "-t", expected_tree) != "tree":
+    original_tree = git(root, "rev-parse", f"{source}:{project.prefix}")
+    expected_tree = publication_tree(root, original_tree)
+    if git(root, "cat-file", "-t", original_tree) != "tree":
         raise SyncError(f"프로젝트 폴더를 찾을 수 없습니다: {project.prefix}")
     dirty = bool(git(
         root, "status", "--porcelain=v1", "--untracked-files=normal",
         "--", project.prefix,
     ))
-    commit = git(root, "subtree", "split", f"--prefix={project.prefix}", source)
+    split = git(root, "subtree", "split", f"--prefix={project.prefix}", source)
+    commit = publication_history(root, split)
     if git(root, "rev-parse", f"{commit}^{{tree}}") != expected_tree:
         raise SyncError(f"분리 결과가 원본 프로젝트와 다릅니다: {project.name}")
     files = len(git(root, "ls-tree", "-r", "--name-only", "-z", commit).split("\0"))
@@ -193,7 +242,8 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{project.name}: {project.prefix} → {project.remote}", flush=True)
             export = prepare_export(root, project, source)
             exports.append(export)
-            print(f"  원본 {source[:12]} / 분리 {export.commit[:12]} / 파일 {export.files}개")
+            print(f"  원본 {source[:12]} / 분리 {export.commit[:12]} / 파일 {export.files}개", flush=True)
+            print(f"  검증 증빙 제외: {', '.join(EXCLUDED_PATHS)} (GitHub 원본 보존)", flush=True)
             if export.dirty:
                 print("  미커밋 변경이 있습니다. 위 결과에는 커밋된 내용만 포함됩니다.")
         if not args.push:
