@@ -1,7 +1,9 @@
 'use strict';
 /* Source-led policy report. Supply actual means a linked public main sale/rental notice,
    not a plan, construction percentage, completion, or occupancy. */
-const PolicyReport=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicyReport = {};
+{
   let monitor=null,mappings=null,geo=null,view='policy-progress',selected='',measure='SUPPLY',focusYear=null,mapStage='COMPLETION',selectedCityId='',selectedRegion='',projectTicket=0;
   const outlookCache=new Map(),areaCache=new Map(),reportChartData=new WeakMap();
   const label={SUPPLY:'모집·공급',COMPLETION:'준공 예정'};
@@ -362,5 +364,5 @@ const PolicyReport=(()=>{
       const policy=event.target.closest('[data-pr-policy]');if(policy){PolicyGeo3D.choose('policy-progress',policy.dataset.prPolicy);PolicyDashboard.select(policy.dataset.prPolicy);}
     });
   }
-  return {statisticsDemographics,statisticsProjection,reportCharts,programMembers:projectTree,start,setData,policyChanged,scopeChanged,selectProject,supplemental907,policyInfo:id=>monitor?.items?.find(row=>row.id===id)||null};
-})();
+  Object.defineProperties(PolicyReport, Object.getOwnPropertyDescriptors({statisticsDemographics,statisticsProjection,reportCharts,programMembers:projectTree,start,setData,policyChanged,scopeChanged,selectProject,supplemental907,policyInfo:id=>monitor?.items?.find(row=>row.id===id)||null}));
+}

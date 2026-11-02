@@ -1,6 +1,8 @@
 'use strict';
 /* Read-only policy brief. Every export is rendered from one pinned model. */
-const PolicyBriefReport = (() => {
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicyBriefReport = {};
+{
  const appendixFactories=new WeakMap(),appendixCache=new WeakMap();
  const VERSION='HOME_POLICY_BRIEF_V1_20261023';
  const STAGES={BUSINESS:'사업화',APPROVAL:'인허가',CONSTRUCTION:'착공',SUPPLY:'공급·분양',COMPLETION:'준공',MOVE_IN:'입주'};
@@ -241,5 +243,5 @@ const PolicyBriefReport = (() => {
    }catch(error){status.textContent='붙임 생성 실패: '+error.message;}finally{inflight=false;controls.forEach(n=>n.disabled=false);period();}
   };
  }
- return {tableHtml,sectionHtml,download,get,build,appendixModel,body,html,csv,markdown,open,load,contribution,schedules,comparisons,forecast,periodActual,precisionDate,setStyle:s=>{cssText=s;}};
-})();
+ Object.defineProperties(PolicyBriefReport, Object.getOwnPropertyDescriptors({tableHtml,sectionHtml,download,get,build,appendixModel,body,html,csv,markdown,open,load,contribution,schedules,comparisons,forecast,periodActual,precisionDate,setStyle:s=>{cssText=s;}}));
+}

@@ -1,6 +1,8 @@
 'use strict';
 /* Project analysis and all exports use one immutable, dated input. */
-const ProjectBriefReport = (() => {
+// Block scope keeps module state private without a whole-file function wrapper.
+const ProjectBriefReport = {};
+{
  const VERSION='HOME_PROJECT_BRIEF_V1_20261023';
  const STAGES={BUSINESS:'사업화',APPROVAL:'인허가',CONSTRUCTION:'착공',COMPLETION:'준공',SUPPLY:'공급',MOVE_IN:'입주'};
  const BASES={first:'최초 유효 관리계획',previous:'이전 보고시점',adopted:'현재 채택 관리계획'};
@@ -172,5 +174,5 @@ const ProjectBriefReport = (() => {
   exports.querySelector('[data-appendix]').onclick=async()=>{if(!model||busy)return;const pinned=model,format=exports.querySelector('select').value;locked(true);status.textContent='본문과 동일한 입력으로 붙임 4종을 별도 생성합니다…';try{await new Promise(r=>setTimeout(r,0));save(appendixModel(pinned),format);status.textContent='붙임 4종을 별도 파일로 생성했습니다. 본문과 입력 SHA-256이 같습니다.';}catch(e){status.textContent='붙임 생성 실패: '+e.message;}finally{locked(false);}};
   await refreshHistory();
  }
- return {build,appendixModel,body,html,open,load,scopeOptions,changes,setStyle:s=>{cssText=s;}};
-})();
+ Object.defineProperties(ProjectBriefReport, Object.getOwnPropertyDescriptors({build,appendixModel,body,html,open,load,scopeOptions,changes,setStyle:s=>{cssText=s;}}));
+}

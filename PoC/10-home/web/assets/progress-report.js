@@ -1,5 +1,7 @@
  'use strict';
-const ProgressReport=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ProgressReport = {};
+{
  const stages={BUSINESS:'사업화',APPROVAL:'인허가',CONSTRUCTION:'착공',COMPLETION:'준공',SUPPLY:'공급',MOVE_IN:'입주'};
  const supported=new Set(['policy-progress','program-progress','projects']);
  const text=v=>String(v??'미확보').replace(/https?:\/\/[^\s<>"\])]+/gi,'').trim();
@@ -250,5 +252,5 @@ const ProgressReport=(()=>{
  }
  function syncView(view){document.getElementById('progress-report-create').hidden=!supported.has(view);}
  function start(){document.getElementById('progress-report-create').addEventListener('click',create);}
- return {stageSchedule,scheduleHtml,chartHtml,model,markdown,html,reached,risks,start,syncView};
-})();
+ Object.defineProperties(ProgressReport, Object.getOwnPropertyDescriptors({stageSchedule,scheduleHtml,chartHtml,model,markdown,html,reached,risks,start,syncView}));
+}

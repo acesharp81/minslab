@@ -1,6 +1,8 @@
 'use strict';
 /* Local, model-neutral report package. No external AI request or saved-data mutation. */
-const ReportMD=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const ReportMD = {};
+{
  const views=new Set(['supply-conditions','policy-progress','program-progress','projects']);
  const names={regional:'지역여건',policy:'정책 추진현황',program:'프로그램 추진현황',project:'사업 추진현황'};
  const plain=v=>v&&typeof v==='object'&&!Array.isArray(v);
@@ -251,5 +253,5 @@ Y축은 아래부터 사업화·인허가·착공·공급·입주를 등간격 �
 
  async function download(){if(busy)return;const button=document.getElementById('report-md-export'),label=button.querySelector('span');busy=true;button.disabled=true;label.textContent='MD파일 만드는 중…';try{const c=await capture(),md=documentFor(c,RequirementsManual.definitions()),url=URL.createObjectURL(new Blob([md],{type:'text/markdown;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=filename(c);a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);button.title='선택 범위의 수치와 보고서 작성 지침을 내려받았습니다.';}catch(error){document.getElementById('error').textContent=error.message;document.getElementById('error').hidden=false;}finally{busy=false;button.disabled=false;label.textContent='보고서용 MD파일 만들기';}}
  function start(){document.getElementById('report-md-export').addEventListener('click',download);if(typeof ProgressReport!=='undefined')ProgressReport.start();}
- return {start,syncView,capture,documentFor,operationsFor,clean,adoptedValues,reportRequirements,filename};
-})();
+ Object.defineProperties(ReportMD, Object.getOwnPropertyDescriptors({start,syncView,capture,documentFor,operationsFor,clean,adoptedValues,reportRequirements,filename}));
+}
