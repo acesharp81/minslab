@@ -5,7 +5,7 @@ Outputs stay under docs/. No public web assets are written by this script.
 from pathlib import Path
 import csv,gzip,hashlib,json,re,zipfile
 from collections import Counter
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1]
 E=ROOT/'docs/evidence/OFFICIAL_ACCURACY_20261016'
 O=ROOT/'docs/official'

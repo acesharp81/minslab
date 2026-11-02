@@ -11,7 +11,7 @@ import sys
 import zipfile
 from datetime import date, timedelta
 from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 
 from bs4 import BeautifulSoup
 from pypdf import PdfReader

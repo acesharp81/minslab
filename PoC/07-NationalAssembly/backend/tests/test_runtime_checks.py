@@ -23,6 +23,12 @@ def db(state='running', policy='unless-stopped'):
 
 
 class RuntimeChecks(unittest.TestCase):
+    def test_runtime_command_cannot_run_an_arbitrary_executable(self):
+        with patch.object(runtime.subprocess, 'run') as run:
+            with self.assertRaises(ValueError):
+                runtime.command(['sh', '-c', 'echo rejected'])
+            run.assert_not_called()
+
     def test_original_outage_is_detected_without_mutation(self):
         for row in [db(policy='no'), db(state='exited')]:
             calls = []
@@ -71,15 +77,17 @@ class RuntimeChecks(unittest.TestCase):
         self.assertEqual(calls, [])
 
     def test_http_502_and_wrong_health_body_fail(self):
-        with patch.object(runtime.urllib.request, 'urlopen', side_effect=OSError('connection refused')):
+        with patch.object(runtime.requests, 'get', side_effect=OSError('connection refused')):
             self.assertFalse(runtime.check_url('https://example.test/')['ok'])
         class Response(io.BytesIO):
-            status = 502
-        with patch.object(runtime.urllib.request, 'urlopen', return_value=Response(b'Bad Gateway')):
+            status_code = 502
+            raw = property(lambda self: self)
+        with patch.object(runtime.requests, 'get', return_value=Response(b'Bad Gateway')):
             self.assertFalse(runtime.check_url('https://example.test/')['ok'])
         class HealthyHTTP(io.BytesIO):
-            status = 200
-        with patch.object(runtime.urllib.request, 'urlopen', return_value=HealthyHTTP(b'{"status":"failed"}')):
+            status_code = 200
+            raw = property(lambda self: self)
+        with patch.object(runtime.requests, 'get', return_value=HealthyHTTP(b'{"status":"failed"}')):
             self.assertFalse(runtime.check_url('https://example.test/api/health')['ok'])
 
     @unittest.skipUnless(os.geteuid() == 0, 'deployment scripts require root; fake tools prevent all Docker access')

@@ -11,7 +11,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET
 import zipfile
 
 BATCH='candidate-ext-review-20261021'

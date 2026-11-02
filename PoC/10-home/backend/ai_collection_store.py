@@ -167,7 +167,7 @@ class Store:
             if not unlimited and (total(today, dollars,cap_filter)+cost > config['daily_usd'] or total(today.replace(day=1), dollars,cap_filter)+cost > config['monthly_usd']):
                 raise BudgetExceeded('일/월 비용 상한 도달 · 다음 실행 또는 예산 조정 필요')
             if provider == 'SOLAR':
-                used = db.execute(f"SELECT COALESCE(SUM({dollars}),0) FROM calls WHERE provider='SOLAR'").fetchone()[0]
+                used = db.execute("SELECT COALESCE(SUM(COALESCE(cost_usd,reserved_usd)),0) FROM calls WHERE provider='SOLAR'").fetchone()[0]
                 if not unlimited and used+cost > config['solar_total_usd']: raise BudgetExceeded('Solar 누적 비용 상한 도달')
             elif group in ('mini','large'):
                 used = total(today, 'COALESCE(input_tokens+output_tokens,reserved_tokens)', 'AND token_group=?', (group,))

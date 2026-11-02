@@ -102,7 +102,7 @@ def build():
         retained_metric_assessed_at=before['result']['assessed_at'],connection_actor=ACTOR,connection_reason=LINK_REASON)
     for path in current['additional_collection_paths']:
         if path['name']=='건축HUB 일반 건축인허가':path.update(status='기본 수집 적용 · 전 지역 확대 중',result=f"{activation['records']:,}건 실제 적재, 법정동 {activation['completed_dongs']}/{activation['total_dongs']}개. 연결 확인 김민 / {LINK_REASON}. 신규 공급실적으로 자동 합산하지 않음.")
-    import xml.etree.ElementTree as ET
+    from defusedxml import ElementTree as ET
     suite=ET.parse(FOLDER/'regression.xml').getroot().find('testsuite')
     assert int(suite.get('failures'))==int(suite.get('errors'))==0
     main_tests=len(ET.parse(FOLDER/'regression.xml').getroot().findall('.//testcase'))

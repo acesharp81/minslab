@@ -31,3 +31,9 @@ data/processed/*
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 backups/
+
+# Private reconstruction environment
+.env.standalone
+
+# Required public parser fixture for standalone offline regression
+!tests/fixtures/route_documents/lh-department-plan-3.hwpx

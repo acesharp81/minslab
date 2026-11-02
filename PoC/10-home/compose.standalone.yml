@@ -1,0 +1,31 @@
+# Independent reconstruction; no MinsLab parent service or external network.
+name: home-standalone
+services:
+  db:
+    image: postgis/postgis:16-3.5
+    environment:
+      POSTGRES_USER: home
+      POSTGRES_DB: home
+      POSTGRES_PASSWORD: ${POC10_DB_PASSWORD:?Run scripts/init_standalone.py first}
+    volumes: [database:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U home -d home"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  api:
+    build: .
+    image: minslab-home-standalone:local
+    env_file: .env.standalone
+    environment:
+      POC10_DATABASE_URL: postgresql+psycopg://home:${POC10_DB_PASSWORD}@db:5432/home
+      POC10_DATA_DIR: /app/data
+      POC10_AUTO_COLLECT: "false"
+    command: [sh, -c, "alembic upgrade head && exec uvicorn backend.app:app --host 0.0.0.0 --port 8000 --lifespan off"]
+    ports: ["127.0.0.1:${POC10_HOST_PORT:-18110}:8000"]
+    volumes: [runtime:/app/data]
+    depends_on:
+      db: {condition: service_healthy}
+volumes:
+  database:
+  runtime:

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from urllib import error as url_error
 from urllib import parse as url_parse
-from urllib import request as url_request
+
+import requests
 
 from .base import AdapterError, SourcePayload
 from .contracts import OPEN_API_BASE_URL, get_contract
@@ -49,19 +49,20 @@ class NationalAssemblyClient:
         request_url = f"{endpoint}?{url_parse.urlencode(authenticated_query)}"
         safe_url = f"{endpoint}?{url_parse.urlencode(public_query)}"
 
-        request = url_request.Request(
-            request_url,
-            headers={"User-Agent": "POC-07-NationalAssembly/0.1"},
-        )
         try:
-            with url_request.urlopen(request, timeout=self._timeout_seconds) as response:
-                content = response.read()
-                status = int(response.status)
-                content_type = response.headers.get_content_type()
-        except url_error.HTTPError as error:
-            raise AdapterError(f"HTTP {error.code} from {source_key}") from error
-        except (url_error.URLError, TimeoutError) as error:
-            raise AdapterError(f"request failed for {source_key}: {type(error).__name__}") from error
+            response = requests.get(
+                request_url, headers={"User-Agent": "POC-07-NationalAssembly/0.1"},
+                timeout=self._timeout_seconds,
+            )
+            response.raise_for_status()
+            content = response.content
+            status = response.status_code
+            content_type = response.headers.get("Content-Type", "application/octet-stream").split(";", 1)[0]
+        except requests.HTTPError as error:
+            raise AdapterError(f"HTTP {error.response.status_code} from {source_key}") from None
+        except requests.RequestException as error:
+            # requests exception messages may contain the authenticated query URL.
+            raise AdapterError(f"request failed for {source_key}: {type(error).__name__}") from None
 
         return SourcePayload(
             source_key=source_key,

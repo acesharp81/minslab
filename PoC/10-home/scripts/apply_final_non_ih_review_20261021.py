@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import re
 import zipfile
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET
 
 BATCH='final-non-ih-review-20261021'
 ACTOR='담당자 대행 · 공식 원천 범위·일정 최종 대조'

@@ -15,19 +15,21 @@ def upgrade():
         op.execute("SET maintenance_work_mem='32MB'")
         op.execute('SET max_parallel_maintenance_workers=0')
         indexes = {
-            'ix_home_permit_name_trgm': "USING gin (sample_name gin_trgm_ops)",
-            'ix_home_permit_address': "(sample_region, (CAST(payload->>'address' AS VARCHAR)))",
+            'ix_home_permit_name_trgm': (['sample_name'], {'postgresql_using': 'gin', 'postgresql_ops': {'sample_name': 'gin_trgm_ops'}}),
+            'ix_home_permit_address': (['sample_region', text("(CAST(payload->>'address' AS VARCHAR))")], {}),
         }
-        for name, definition in indexes.items():
+        for name, (columns, options) in indexes.items():
             valid = op.get_bind().execute(text(
                 'SELECT indisvalid FROM pg_index WHERE indexrelid=to_regclass(:name)'), {'name': name}).scalar()
             if valid is False:
-                op.execute(f'DROP INDEX CONCURRENTLY {name}')
-            op.execute(f'CREATE INDEX CONCURRENTLY IF NOT EXISTS {name} ON home_revision {definition} '
-                       "WHERE kind='permit' AND superseded_at IS NULL")
+                op.drop_index(name, postgresql_concurrently=True)
+            op.create_index(name, 'home_revision', columns, if_not_exists=True,
+                            postgresql_concurrently=True,
+                            postgresql_where=text("kind='permit' AND superseded_at IS NULL"), **options)
+
 
 
 def downgrade():
     if op.get_bind().dialect.name == 'postgresql':
         for name in ('ix_home_permit_name_trgm', 'ix_home_permit_address'):
-            op.execute(f'DROP INDEX IF EXISTS {name}')
+            op.drop_index(name, if_exists=True)

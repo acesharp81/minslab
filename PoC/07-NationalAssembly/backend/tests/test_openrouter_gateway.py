@@ -93,7 +93,7 @@ class OpenRouterGatewayTests(unittest.TestCase):
     def test_summary_candidates_preserve_reasoning_compatibility_and_free_allowlist(self, post):
         post.return_value = self.response(200, {"id": "compatible", "choices": []})
         headers = {**self.headers("compatible"), "X-Minslab-Workload": "utterance_summary"}
-        models = ["nvidia/nemotron-3-super-120b-a12b:free", "dots-studio/dots-3-note-preview:free"]
+        models = ["nvidia/nemotron-3.5-super-vl:free", "nvidia/nemotron-3-super-120b-a12b:free"]
         body = {"model": models[0], "models": models, "messages": [], "reasoning": {"enabled": False}}
         response = self.client.post("/api/v1/chat/completions", json=body, headers=headers)
         self.assertEqual(200, response.status_code)

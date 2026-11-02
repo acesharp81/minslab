@@ -51,7 +51,7 @@ def build():
         for item in category['items']:
             if item['id'] in notes and notes[item['id']] not in item['change_comment']:
                 item['change_comment']+=' 보고서 작성 검증: '+notes[item['id']];item['reason']=item['change_comment']
-    import xml.etree.ElementTree as ET
+    from defusedxml import ElementTree as ET
     test_path=FOLDER/'regression.xml'
     if test_path.exists():
         tree=ET.parse(test_path);suite=tree.getroot().find('testsuite')
@@ -75,7 +75,7 @@ def build():
             begin=previous_html.index(marker);end=previous_html.index('</section>',begin)+len('</section>')
             html=html.replace('<section class="section" id="items">',previous_html[begin:end]+'<section class="section" id="items">')
     write('round',current);(FOLDER/'round.html').write_text(html)
-    from xml.etree import ElementTree as ET
+    from defusedxml import ElementTree as ET
     test_path=FOLDER/'regression.xml'
     if test_path.exists():
         suite=ET.parse(test_path).getroot().find('testsuite');assert int(suite.get('failures'))==int(suite.get('errors'))==0

@@ -9,6 +9,8 @@ from __future__ import annotations
 import argparse
 import json
 
+from psycopg import sql
+
 from ..config import Settings
 from ..db.connection import connect
 
@@ -49,7 +51,7 @@ def normalize(*, blocks: int = 2048, database_url: str | None = None) -> None:
                         if status == 'COMPLETED':
                             break
                         if cursor >= stop:
-                            left = c.execute(f'SELECT count(*) FROM {table} WHERE {column} IS NOT NULL').fetchone()[0]
+                            left = c.execute(sql.SQL('SELECT count(*) FROM {} WHERE {} IS NOT NULL').format(sql.Identifier(table), sql.Identifier(column))).fetchone()[0]
                             if left:
                                 raise RuntimeError(f'UNPROCESSED_ROWS:{job}:{left}')
                             c.execute("UPDATE storage_normalization_jobs SET status='COMPLETED',updated_at=now() WHERE job=%s", (job,))
@@ -59,7 +61,7 @@ def normalize(*, blocks: int = 2048, database_url: str | None = None) -> None:
                         c.execute('CREATE TEMP TABLE storage_batch_ids(id uuid PRIMARY KEY,row_tid tid) ON COMMIT DROP')
                         # Page-range scans keep IO sequential; the locks make CTIDs
                         # stable until our update. Save new CTIDs from RETURNING.
-                        c.execute(f'INSERT INTO storage_batch_ids SELECT id,ctid FROM {table} WHERE ctid >= %s::tid AND ctid < %s::tid AND {column} IS NOT NULL FOR UPDATE', (f'({cursor},0)', f'({end},0)'))
+                        c.execute(sql.SQL('INSERT INTO storage_batch_ids SELECT id,ctid FROM {} WHERE ctid >= %s::tid AND ctid < %s::tid AND {} IS NOT NULL FOR UPDATE').format(sql.Identifier(table), sql.Identifier(column)), (f'({cursor},0)', f'({end},0)'))
                         c.execute('ANALYZE storage_batch_ids')
                         c.execute('SET LOCAL enable_hashjoin=off')
                         c.execute('SET LOCAL enable_mergejoin=off')

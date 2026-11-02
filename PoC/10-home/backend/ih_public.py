@@ -8,7 +8,7 @@ import io
 import re
 import time
 import zipfile
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 from urllib.parse import parse_qs, urlencode, urljoin, urlsplit
 from bs4 import BeautifulSoup
 from pypdf import PdfReader

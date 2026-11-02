@@ -1,5 +1,7 @@
 # the주택 · HOME — 주택공급 정책 추진현황 시스템 원천 설명서
 
+독립 GitLab 저장소로 설치·테스트·재사용하려면 [재구성 안내](RECONSTRUCT.md)를 확인하세요.
+
 > 2026-10-31 저장공간 정리: HOME은 서버 내부 PostgreSQL/PostGIS를 사용합니다. 저장된 LH 이력에서 참조하는 원문은 유지하고, 24시간 이상 지난 미참조 `lh_notice_detail` HTML만 해시·복원 검증 후 정리합니다. 매일 02:40 KST 이후 최대 10분 지연으로 `home-storage-retention.timer`가 실행하며 회차별 복원본은 `data/storage-maintenance/home/`에 7일 보관합니다. 업무 DB·참조 원문·기존 정기 백업은 보존합니다. 최초 10번과 폴더·URL은 유지하고 포트폴리오 메뉴로 분류합니다.
 
 

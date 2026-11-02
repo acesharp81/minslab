@@ -6,7 +6,7 @@ import httpx
 import time
 import threading
 from urllib.parse import urljoin
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 from bs4 import BeautifulSoup
 from .collectors import Fetcher
 from .api_samples import today

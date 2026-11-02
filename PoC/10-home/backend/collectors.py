@@ -13,7 +13,7 @@ from collections import defaultdict
 from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlsplit, urlunsplit
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 
 import httpx
 from bs4 import BeautifulSoup

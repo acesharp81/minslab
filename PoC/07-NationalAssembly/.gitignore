@@ -21,3 +21,6 @@ frontend/dist/
 
 # Local recovery archives; never publish database contents.
 data/maintenance-backups/
+
+# Private reconstruction environment
+.env.standalone

@@ -4,7 +4,7 @@ from email.utils import parsedate_to_datetime
 from html import unescape
 import re
 from urllib.parse import urljoin, urlsplit, parse_qs, urlencode
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 from zoneinfo import ZoneInfo
 from bs4 import BeautifulSoup
 from .api_samples import today

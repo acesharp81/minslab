@@ -1,0 +1,15 @@
+# Retain every default rule. Only these reviewed Docker-image lines are public
+# deployment identifiers, not API keys. No file/directory is exempted.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+[rules.allowlist]
+description = "Three exact public Docker image references in historical audit JSON"
+regexTarget = "line"
+regexes = [
+  '''^\s*"image": "poc07-national-assembly-api:live-priority-db-20261026",?\s*$''',
+  '''^\s*"image": "poc07-national-assembly-api:finalization-20261027-v2",?\s*$''',
+  '''^\s*"worker_image": "poc07-national-assembly-api:quota-priority-20261026",?\s*$''',
+]

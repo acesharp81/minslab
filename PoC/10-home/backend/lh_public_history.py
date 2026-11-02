@@ -7,7 +7,7 @@ import zipfile
 from collections import Counter
 from datetime import datetime
 from urllib.parse import urljoin
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 
 from bs4 import BeautifulSoup
 from .api_samples import base

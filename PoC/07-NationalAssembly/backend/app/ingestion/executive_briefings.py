@@ -7,7 +7,6 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urljoin
-from urllib.request import Request, urlopen
 
 import requests
 from bs4 import BeautifulSoup
@@ -62,32 +61,27 @@ def _report_match_tokens(value: str) -> set[str]:
     return tokens
 
 def fetch_html(source_key: str, url: str) -> SourcePayload:
-    request = Request(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html"})
-    with urlopen(request, timeout=30) as response:
-        return SourcePayload(
-            source_key=source_key,
-            content=response.read(),
-            content_type=response.headers.get("Content-Type", "text/html"),
-            retrieved_at=datetime.now(timezone.utc),
-            source_url=response.geturl(),
-            http_status=response.status,
-        )
+    response = requests.get(url, headers={"User-Agent": USER_AGENT, "Accept": "text/html"}, timeout=30)
+    response.raise_for_status()
+    return SourcePayload(
+        source_key=source_key, content=response.content,
+        content_type=response.headers.get("Content-Type", "text/html"),
+        retrieved_at=datetime.now(timezone.utc), source_url=response.url,
+        http_status=response.status_code,
+    )
 
 
 def fetch_binary(source_key: str, url: str) -> SourcePayload:
-    request = Request(
-        url,
-        headers={"User-Agent": USER_AGENT, "Accept": "application/pdf,*/*"},
+    response = requests.get(
+        url, headers={"User-Agent": USER_AGENT, "Accept": "application/pdf,*/*"}, timeout=45,
     )
-    with urlopen(request, timeout=45) as response:
-        return SourcePayload(
-            source_key=source_key,
-            content=response.read(),
-            content_type=response.headers.get("Content-Type", "application/octet-stream"),
-            retrieved_at=datetime.now(timezone.utc),
-            source_url=response.geturl(),
-            http_status=response.status,
-        )
+    response.raise_for_status()
+    return SourcePayload(
+        source_key=source_key, content=response.content,
+        content_type=response.headers.get("Content-Type", "application/octet-stream"),
+        retrieved_at=datetime.now(timezone.utc), source_url=response.url,
+        http_status=response.status_code,
+    )
 
 
 def fetch_president_list() -> SourcePayload:

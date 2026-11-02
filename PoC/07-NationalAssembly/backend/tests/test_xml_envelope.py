@@ -32,6 +32,14 @@ class XmlEnvelopeTests(unittest.TestCase):
         with self.assertRaises(AdapterError):
             parse_xml_envelope(b"<response><totalCount>many</totalCount></response>")
 
+    def test_rejects_dtd_and_entity_expansion(self):
+        for declaration in [
+            b'<!DOCTYPE response [<!ENTITY payload "expanded">]>',
+            b'<!DOCTYPE response SYSTEM "file:///etc/passwd">',
+        ]:
+            with self.subTest(declaration=declaration), self.assertRaises(AdapterError):
+                parse_xml_envelope(declaration + b"<response><row>&payload;</row></response>")
+
 
 if __name__ == "__main__":
     unittest.main()

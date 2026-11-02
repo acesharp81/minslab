@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import http.cookiejar
 import urllib.parse
-import urllib.request
 from datetime import datetime, timezone
+
+import requests
 
 from ..adapters.national_assembly.base import AdapterError, SourcePayload
 
@@ -29,17 +29,17 @@ def fetch_official_minutes_body(
     if source_key not in {"committee_minutes_body", "plenary_minutes_body"}:
         raise AdapterError("unsupported official minutes body source")
     view_url = body_view_url(official_url)
-    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
     headers = {"User-Agent": "PoC07-NationalAssembly/1.0 (+official-source-collector)"}
-    with opener.open(urllib.request.Request(ROOT_URL, headers=headers), timeout=timeout_seconds):
-        pass
-    request = urllib.request.Request(view_url, headers={**headers, "Referer": official_url})
-    retrieved_at = datetime.now(timezone.utc)
-    with opener.open(request, timeout=timeout_seconds) as response:
-        content = response.read()
-        status = int(getattr(response, "status", 200))
+    with requests.Session() as session:
+        warmup = session.get(ROOT_URL, headers=headers, timeout=timeout_seconds)
+        warmup.raise_for_status()
+        retrieved_at = datetime.now(timezone.utc)
+        response = session.get(view_url, headers={**headers, "Referer": official_url}, timeout=timeout_seconds)
+        response.raise_for_status()
+        content = response.content
+        status = response.status_code
         content_type = response.headers.get("Content-Type", "application/octet-stream")
-        final_url = response.geturl()
+        final_url = response.url
     if status != 200:
         raise AdapterError(f"official minutes body returned HTTP {status}")
     return SourcePayload(

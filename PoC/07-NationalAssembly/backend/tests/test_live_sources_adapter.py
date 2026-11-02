@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 import json
-from http.client import RemoteDisconnected
+import requests
 from pathlib import Path
 from unittest.mock import patch
 
@@ -23,8 +23,8 @@ FIXTURES = Path(__file__).parent / "fixtures"
 class LiveSourcesAdapterTests(unittest.TestCase):
     def test_remote_disconnect_is_retryable_adapter_error(self):
         with patch(
-            "app.adapters.live_sources.url_request.urlopen",
-            side_effect=RemoteDisconnected("closed"),
+            "app.adapters.live_sources.requests.get",
+            side_effect=requests.ConnectionError("closed"),
         ), self.assertRaises(AdapterError):
             fetch_public_source("assembly_live_list", "https://example.invalid/live")
 

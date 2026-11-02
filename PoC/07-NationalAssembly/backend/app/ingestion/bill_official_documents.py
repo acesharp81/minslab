@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from urllib import request as url_request
+import requests
 
 from ..adapters.national_assembly.base import SourcePayload
 from ..db.bill_repository import BillRepository
@@ -12,14 +12,14 @@ from ..storage.raw_store import RawStore
 
 
 def fetch_official_pdf(url: str, referer: str | None) -> SourcePayload:
-    request = url_request.Request(url, headers={
+    response = requests.get(url, headers={
         "User-Agent": "Mozilla/5.0 POC-07-NationalAssembly/0.1",
         "Referer": referer or "https://likms.assembly.go.kr/",
-    })
-    with url_request.urlopen(request, timeout=30) as response:
-        content = response.read()
-        final_url = response.geturl()
-        status = int(response.status)
+    }, timeout=30)
+    response.raise_for_status()
+    content = response.content
+    final_url = response.url
+    status = response.status_code
     if not content.startswith(b"%PDF-"):
         raise ValueError("official bill attachment is not a PDF")
     return SourcePayload(

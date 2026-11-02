@@ -6,7 +6,7 @@ import argparse
 import json
 import subprocess
 import sys
-import urllib.request
+import requests
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable
 
@@ -33,7 +33,9 @@ FORMAT = ('{"name":{{json .Name}},"state":{{json .State.Status}},'
 
 
 def command(args: list[str]) -> str:
-    result = subprocess.run(args, capture_output=True, text=True, timeout=15)
+    if not args or args[0] != 'docker':
+        raise ValueError('only Docker runtime checks are supported')
+    result = subprocess.run(['docker', *args[1:]], shell=False, capture_output=True, text=True, timeout=15)
     if result.returncode:
         # Docker stderr can contain operator-supplied strings; report only the operation.
         raise RuntimeError('command_failed:' + args[0] + ':' + args[1] + ':' + str(result.returncode))
@@ -77,14 +79,14 @@ def container_checks(rows: list[dict[str, Any]], names: list[str], *, repair_pol
 
 def check_url(url: str) -> dict[str, Any]:
     try:
-        with urllib.request.urlopen(url, timeout=6) as response:
-            payload = response.read(100000)
-            healthy = response.status == 200
+        with requests.get(url, timeout=6, stream=True) as response:
+            payload = response.raw.read(100000)
+            healthy = response.status_code == 200
             if url.endswith('/api/health'):
                 healthy = healthy and json.loads(payload).get('status') == 'ok'
             if '/api/live/broadcasts?' in url:
                 healthy = healthy and isinstance(json.loads(payload).get('items'), list)
-            return {'check': url, 'ok': bool(healthy), 'http_status': response.status}
+            return {'check': url, 'ok': bool(healthy), 'http_status': response.status_code}
     except Exception as exc:
         return {'check': url, 'ok': False, 'error': type(exc).__name__}
 

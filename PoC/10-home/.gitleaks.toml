@@ -1,0 +1,21 @@
+# Default secret detection remains enabled. These exact reviewed source lines
+# contain checksums, public variable/API identifiers or a repair identifier.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+[rules.allowlist]
+description = "Exact reviewed non-secret manifest hashes and public identifiers"
+regexTarget = "line"
+regexes = [
+  '''^\s*"docs/evidence/HOME_COLLECTION_REMEDIATION_20261019/api_annual\.json": "baf6560381a82889236b24cbeb76bcdf10346606a9cfd3cd4ca2bd5e0a5ce33e",\s*$''',
+  '''^\s*"docs/evidence/HOME_COLLECTION_REMEDIATION_20261019/api_health\.json": "f803b1728cbd63c7485baffce07ed1a62b5ad9dd567890f5a9fd91e76e3a2955",\s*$''',
+  '''^\s*"docs/evidence/HOME_COLLECTION_REMEDIATION_20261019/api_jobs\.json": "d4d312dc970cd89454cee62cf5d9c856ea0d6f873d2d79a0a63d3baaf37c24ab",\s*$''',
+  '''^\s*"docs/evidence/HOME_COLLECTION_REMEDIATION_20261019/api_sources\.json": "5bf85eb7bb669e2596d54f9ff1bd124173ee29e886433f3fc5b9d8418942f24a",\s*$''',
+  '''^\s*"backend/additional_apis\.py": "40f8281be3c723a830b2ee39b4b87ccc2e40c42d42917f0a2866c8d778ba7e5b",\s*$''',
+  '''^\s*"key_env":"POC10_SGIS_CONSUMER_KEY","collection_mode":"AREA_SERIES","implemented":True,"show_key_card":False\},\s*$''',
+  '''^\s*"key_env": "POC10_SGIS_CONSUMER_KEY",\s*$''',
+  '''^\s*근거: \[국토부 고시 제2026-364호\]\(https://www\.eum\.go\.kr/web/gs/gv/gvGosiDet\.jsp\?seq=643252\), \[고시 PDF 보관본\]\(continuation_20261020/notice-643252\.pdf\)\. 원천 API ID: `PER_659498cd3ee4d1ca7910c9da`\.\s*$''',
+  '''^\s*dict\(key='geumto-a2-split-tenure', title='성남금토 A-2 · 입주 예정월의 부분 유형 연결 누락',\s*$''',
+]

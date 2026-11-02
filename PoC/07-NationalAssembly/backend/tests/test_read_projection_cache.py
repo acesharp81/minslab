@@ -50,3 +50,21 @@ def test_many_large_projections_do_not_thrash_the_compressed_budget():
     for identifier in range(57):cache.put(identifier,{'source':identifier,'evidence':['same immutable excerpt']*1000})
     assert all(cache.get(identifier)['source']==identifier for identifier in range(57))
     assert cache.bytes<20000
+
+
+def test_json_cache_preserves_nested_api_values_and_unicode():
+    value = {'text': '국정ON', 'nested': [None, True, 12, 1.25, {'evidence': ['원문']}]}
+    cache = ProjectionCache()
+    cache.put('json', value)
+    assert cache.get('json') == value
+
+
+def test_cache_rejects_executable_python_objects():
+    import pytest
+    cache = ProjectionCache()
+    class NotJson:
+        def __reduce__(self):
+            raise AssertionError('Python object serialization must not run')
+    with pytest.raises(TypeError):
+        cache.put('unsafe', {'payload': NotJson()})
+    assert cache.get('unsafe') is None

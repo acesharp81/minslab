@@ -8,3 +8,5 @@ alembic==1.15.2
 pypdf==5.4.0
 pyhwp==0.1b15
 six==1.17.0
+
+defusedxml>=0.7.1,<1

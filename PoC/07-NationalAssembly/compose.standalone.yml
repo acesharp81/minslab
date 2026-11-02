@@ -1,0 +1,42 @@
+# Independent reconstruction; workers and paid/external model calls are opt-in.
+name: kjon-standalone
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: national_assembly
+      POSTGRES_USER: national_assembly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run scripts/init_standalone.py first}
+    volumes: [database:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U national_assembly -d national_assembly"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  storage:
+    build: ./backend
+    image: minslab-kjon-standalone:local
+    user: root
+    command: [sh, -c, "mkdir -p /app/data/raw /app/data/processed && chown 1000:1000 /app/data /app/data/raw /app/data/processed"]
+    volumes: [runtime:/app/data]
+  api:
+    build: ./backend
+    image: minslab-kjon-standalone:local
+    env_file: .env.standalone
+    environment:
+      DATABASE_URL: postgresql://national_assembly:${POSTGRES_PASSWORD}@db:5432/national_assembly
+      RAW_DATA_DIR: /app/data/raw
+      PROCESSED_DATA_DIR: /app/data/processed
+      AI_ENRICHMENT_ENABLED: "false"
+      WATCH_KAKAO_ENABLED: "false"
+      WATCH_LLM_ENABLED: "false"
+    ports: ["127.0.0.1:${NATIONAL_ASSEMBLY_PORT:-18070}:8070"]
+    volumes:
+      - runtime:/app/data
+      - ./web:/app/web:ro
+    depends_on:
+      db: {condition: service_healthy}
+      storage: {condition: service_completed_successfully}
+volumes:
+  database:
+  runtime:

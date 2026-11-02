@@ -7,7 +7,10 @@ branch_labels=None
 depends_on=None
 
 def upgrade():
-    op.create_table('home_metric_snapshot_content',sa.Column('id',sa.String(64),primary_key=True),sa.Column('payload',sa.JSON(),nullable=False))
+    # 0001 bootstraps current metadata, which already includes this table on
+    # a fresh installation. Preserve both those rows and existing deployments.
+    if not sa.inspect(op.get_bind()).has_table('home_metric_snapshot_content'):
+        op.create_table('home_metric_snapshot_content',sa.Column('id',sa.String(64),primary_key=True),sa.Column('payload',sa.JSON(),nullable=False))
 
 def downgrade():
     # The referenced payloads must be expanded before removing this table.

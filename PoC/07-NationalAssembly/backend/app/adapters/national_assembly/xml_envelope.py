@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from xml.etree import ElementTree
+from typing import Any
+
+from defusedxml import ElementTree
+from defusedxml.common import DefusedXmlException
 
 from .base import AdapterError
 
@@ -18,15 +21,15 @@ def _local_name(tag: str) -> str:
     return tag.rsplit("}", 1)[-1]
 
 
-def _element_dict(element: ElementTree.Element) -> dict[str, str | None]:
+def _element_dict(element: Any) -> dict[str, str | None]:
     return {_local_name(child.tag): child.text for child in list(element)}
 
 
 def parse_xml_envelope(content: bytes, *, row_tag: str = "row") -> XmlEnvelope:
     """Parse only the common envelope; source-specific mapping follows contract verification."""
     try:
-        root = ElementTree.fromstring(content)
-    except ElementTree.ParseError as error:
+        root = ElementTree.fromstring(content, forbid_dtd=True, forbid_entities=True, forbid_external=True)
+    except (ElementTree.ParseError, DefusedXmlException) as error:
         raise AdapterError(f"malformed XML: {error}") from error
 
     values: dict[str, str | None] = {}

@@ -6,7 +6,7 @@ import hashlib
 import json
 from pathlib import Path
 import sys
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET
 from zoneinfo import ZoneInfo
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from scripts.build_integrity_round import ROOT,render_followup,ACTOR,REASON

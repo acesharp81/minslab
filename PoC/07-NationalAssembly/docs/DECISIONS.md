@@ -1165,3 +1165,12 @@ HOME 무료 OpenRouter 경로는 계측 토큰과 역할을 검사하고 실제 
 진행 상태, 본문 버전, 요청 snapshot, 공식 원문/주석의 반복 바이트를 각각 공유 저장한다. 이전 버전과 출처 ID를 없애는 대신 읽기 호환 뷰로 원래 JSON을 재구성한다. 통합·세부 서술의 입력 크기/일일 한도/속도 제한은 응답 품질 실패와 구분한다. 같은 요청에서 같은 provider/시도 모델의 크기 초과는 재호출하지 않고, UTC 다음날 00:00(KST 09:00) 또는 Retry-After 이후에 재개한다. 실제 품질 검증 실패에 대한 교정 경로는 유지한다.
 
 검증 근거: [전체 58개 보고서 비교 및 저장 정리 적용 기록](evidence/REPORT_STORAGE_APPLICATION_20261031/README.md). 대용량 정규화는 페이지 단위 커밋과 전후 전체 필드 해시 검사를 사용한다. 운영 중인 대형 공식자료 테이블의 `VACUUM FULL`은 수행하지 않는다. 공유 저장량 감소와 OS 파일 공간 회수를 구분해서 보고한다.
+
+
+## 2026-11-02: 독립 공유 구성과 안전한 파싱·캐시
+
+GitLab에 공유한 파일만으로 새 환경에서 설치하고 API·파서·수집기를 재사용할 수 있도록 `compose.standalone.yml`, 비밀 설정 생성기와 `RECONSTRUCT.md`를 제공한다. 공용 Docker network·다른 PoC·운영 환경파일을 사용하지 않는다. API·새 DB만 시작하며 외부 모델·알림은 기본 비활성화한다.
+
+GitLab 필수 검사에서 지적한 동적 urllib 호출을 기존 의존성인 requests의 HTTP 요청으로 바꾼다. 인증 URL을 포함할 수 있는 예외 체인은 adapter 오류에서 노출하지 않는다. 공식 회의록 수집의 쿠키는 requests.Session으로 유지한다. XML은 defusedxml로 DTD·entity를 거부하고 adapter 오류 계약을 유지한다. 파생 조회 캐시는 압축 JSON으로 변경하여 TTL·용량·복사 격리를 유지하면서 실행 가능한 pickle 역직렬화를 제거한다. SQL table/column은 psycopg.sql.Identifier로 구성한다. 원본 응답·이전 source version과 DB schema는 변경하지 않는다.
+
+비밀 탐지의 세 Docker 이미지 오탐은 기본 규칙을 모두 유지하면서 정확한 전체 줄만 `.gitleaks.toml`에 기록한다. 다른 키·값이나 파일 전체를 예외 처리하지 않는다. 서버가 프로젝트 설정 파일을 허용하는지는 실제 재게시 결과로 확인한다.

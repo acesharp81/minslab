@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-import urllib.error
 import urllib.parse
-import urllib.request
 from datetime import datetime, timedelta, timezone
 from typing import Any
+
+import requests
 
 
 def public_watch_context(settings: Any, forwarded_host: str = "") -> tuple[str, str]:
@@ -101,22 +101,26 @@ class KakaoNotificationProvider:
             headers["Content-Type"] = "application/x-www-form-urlencoded;charset=utf-8"
         if access_token:
             headers["Authorization"] = f"Bearer {access_token}"
-        request = urllib.request.Request(url, data=data, headers=headers, method=method)
         try:
-            with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
-                return json.loads(response.read().decode("utf-8"))
-        except urllib.error.HTTPError as exc:
+            response = requests.request(
+                method, url, data=data, headers=headers, timeout=self.timeout_seconds,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError as exc:
             try:
-                detail = json.loads(exc.read().decode("utf-8"))
-            except Exception:
+                detail = exc.response.json()
+            except ValueError:
+                detail = {}
+            if not isinstance(detail, dict):
                 detail = {}
             message = str(
                 detail.get("msg") or detail.get("error_description")
                 or detail.get("message") or "Kakao provider error"
             )[:240]
-            raise KakaoProviderError(message, exc.code) from exc
-        except (urllib.error.URLError, TimeoutError) as exc:
-            raise KakaoProviderError("Kakao 연결 시간이 초과되었습니다.", 503) from exc
+            raise KakaoProviderError(message, exc.response.status_code) from None
+        except requests.RequestException:
+            raise KakaoProviderError("Kakao 연결 시간이 초과되었습니다.", 503) from None
 
     def _granted_scopes(self, access_token: str, token_scope: str = "") -> list[str]:
         scopes = {

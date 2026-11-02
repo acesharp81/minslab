@@ -173,7 +173,7 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("task.topic_title === topic.title", script)
         self.assertIn("sourceView.append(topicTaskOverview)", script)
         self.assertIn(
-            "if (lineageUnmappedPanel) sourceView.append(lineageUnmappedPanel)", script
+            "const supplementarySections = lineageUnmappedPanel ? [lineageUnmappedPanel] : []", script
         )
         self.assertIn("sourceView.append(actions, workspace)", script)
         self.assertNotIn("meeting-task-section", script)

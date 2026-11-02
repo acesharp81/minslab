@@ -8,12 +8,11 @@ depends_on = None
 
 
 def upgrade():
-    sql = 'CREATE INDEX {online}IF NOT EXISTS ix_home_revision_entity_version ON home_revision (entity_id, revision_no DESC)'
     if op.get_bind().dialect.name == 'postgresql':
         with op.get_context().autocommit_block():
-            op.execute(sql.format(online='CONCURRENTLY '))
+            op.execute('CREATE INDEX CONCURRENTLY IF NOT EXISTS ix_home_revision_entity_version ON home_revision (entity_id, revision_no DESC)')
     else:
-        op.execute(sql.format(online=''))
+        op.execute('CREATE INDEX IF NOT EXISTS ix_home_revision_entity_version ON home_revision (entity_id, revision_no DESC)')
 
 
 def downgrade():

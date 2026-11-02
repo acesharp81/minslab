@@ -5,7 +5,7 @@ import io
 import re
 import zipfile
 from datetime import datetime, timedelta
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 from bs4 import BeautifulSoup
 from .api_samples import base, today
 from .collectors import clean, integer

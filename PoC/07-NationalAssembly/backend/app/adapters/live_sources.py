@@ -4,9 +4,9 @@ import json
 import re
 from datetime import datetime, timezone
 from html import unescape
-from urllib import error as url_error
 from urllib import parse as url_parse
-from urllib import request as url_request
+
+import requests
 
 from .national_assembly.base import AdapterError, SourcePayload
 
@@ -27,16 +27,18 @@ NATIONAL_SESSION_KEYWORDS = ("정기국회", "정기회", "국정감사", "국�
 
 
 def fetch_public_source(source_key: str, url: str, timeout_seconds: float = 15.0) -> SourcePayload:
-    request = url_request.Request(url, headers={"User-Agent": "POC-07-NationalAssembly/0.1"})
     try:
-        with url_request.urlopen(request, timeout=timeout_seconds) as response:
-            content = response.read()
-            status = int(response.status)
-            content_type = response.headers.get_content_type()
-    except url_error.HTTPError as error:
-        raise AdapterError(f"HTTP {error.code} from {source_key}") from error
-    except (url_error.URLError, TimeoutError, ConnectionError) as error:
-        raise AdapterError(f"request failed for {source_key}: {type(error).__name__}") from error
+        response = requests.get(
+            url, headers={"User-Agent": "POC-07-NationalAssembly/0.1"}, timeout=timeout_seconds,
+        )
+        response.raise_for_status()
+        content = response.content
+        status = response.status_code
+        content_type = response.headers.get("Content-Type", "application/octet-stream").split(";", 1)[0]
+    except requests.HTTPError as error:
+        raise AdapterError(f"HTTP {error.response.status_code} from {source_key}") from None
+    except requests.RequestException as error:
+        raise AdapterError(f"request failed for {source_key}: {type(error).__name__}") from None
     return SourcePayload(
         source_key=source_key,
         content=content,

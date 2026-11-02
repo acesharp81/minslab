@@ -7,7 +7,7 @@ import csv
 import hashlib
 import json
 from pathlib import Path
-import xml.etree.ElementTree as ET
+from defusedxml import ElementTree as ET
 import zipfile
 from datetime import date, datetime
 from zoneinfo import ZoneInfo

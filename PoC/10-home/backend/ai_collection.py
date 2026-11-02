@@ -4,7 +4,7 @@ from email.utils import parsedate_to_datetime
 import hashlib
 import json
 from urllib.parse import urlencode, urlsplit, parse_qs
-from xml.etree import ElementTree as ET
+from defusedxml import ElementTree as ET
 from sqlalchemy import select, Text
 from .db import Revision, Audit, upsert_revision, now
 from .sources import SOURCES
