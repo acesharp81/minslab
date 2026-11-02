@@ -25,7 +25,7 @@ GitHub 저장소의 **Settings → Secrets and variables → Actions → New rep
 
 workflow는 프로젝트에 해당하는 secret만 해당 작업에 전달합니다. 기존 `GITLAB_TOKEN`·`GITLAB_USERNAME` secrets는 자동 동기화에서 더 이상 사용하지 않습니다. 인증값은 URL이나 파일 내용에 기록하지 않고 임시 `GIT_ASKPASS`를 통해 전달합니다. 실행기에서는 실행 가능한 작업용 `RUNNER_TEMP`에 인증 도구를 만들고 삭제하므로 시스템 `/tmp`의 실행 제한을 유지할 수 있습니다.
 
-최초 동기화는 이 workflow와 도구를 GitHub `main`에 반영하면 시작됩니다. 재실행이나 특정 프로젝트만 갱신하려면 GitHub **Actions → Sync service projects to GitLab → Run workflow**에서 브랜치 `main`과 `all`·`kjon`·`home`을 선택합니다. `main` 이외의 브랜치에서는 게시하지 않습니다.
+최초 동기화는 이 workflow와 도구를 GitHub `main`에 반영하면 시작됩니다. 재실행이나 특정 프로젝트만 갱신하려면 GitHub **Actions → Sync service projects to GitLab → Run workflow**에서 브랜치 `main`과 `all`·`kjon`·`home`을 선택합니다. 수동 실행에서는 선택한 프로젝트의 작업만 생성합니다. 선택하지 않은 프로젝트가 게시 성공으로 표시되지 않습니다. `main` 이외의 브랜치에서는 게시하지 않습니다.
 
 전체 저장소 미러링 workflow는 제거했습니다. 동기화 대상은 이 문서의 두 서비스이며, `GITLAB_REPOSITORY` secret은 더 이상 사용하지 않습니다. 기존 GitLab 전체 미러 저장소와 이미 게시한 코드는 별도로 유지됩니다.
 
@@ -54,7 +54,7 @@ python3 deploy/gitlab_sync.py home --push
 
 대상 브랜치는 `main` 하나입니다. 강제 push·전체 mirror·태그 동기화·서버 재배포는 수행하지 않습니다. GitLab에서 직접 만든 README나 별도 코드 수정으로 이력이 갈라지면 일반 push가 거부됩니다. 원본과 대상의 변경을 검토해 이력을 정리한 뒤 다시 실행합니다.
 
-최초 대용량 push에서는 GitLab 앞단의 재전송 요구로 `unable to rewind rpc post data`·`curl 65`가 발생할 수 있습니다. 이 서버의 실제 실패에 맞춰 push 명령에만 `http.postBuffer=268435456`을 적용합니다. 256MiB 이하의 요청을 버퍼링해 재전송할 수 있게 하며 전역 Git 설정은 바꾸지 않습니다.
+최초 대용량 push에서는 GitLab 앞단의 재전송 요구로 `unable to rewind rpc post data`·`curl 65`가 발생할 수 있습니다. 이 서버의 실제 실패에 맞춰 push 명령에만 `http.postBuffer=268435456`을 적용합니다. 256MiB 이하의 요청을 버퍼링해 재전송할 수 있게 하며 전역 Git 설정은 바꾸지 않습니다. HTTP/1.1도 해당 push에만 지정합니다. workflow의 `--diagnose`는 HTTP 상태 코드·요청 바이트 수·업로드 완료 시각·총 소요 시간만 출력합니다. 인증 헤더·응답 본문은 출력하지 않고 임시 추적 파일은 성공·실패 모두 삭제합니다.
 
 ## GitLab 서버 검사로 인한 게시 차단
 

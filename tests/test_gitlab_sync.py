@@ -241,6 +241,41 @@ class GitLabSyncTests(unittest.TestCase):
                 self.assertEqual(result.stdout.strip(), "test-only-token")
             self.assertFalse(helper.exists())
 
+    def test_transport_summary_does_not_disclose_headers_or_body(self):
+        trace = self.base / "trace.log"
+        trace.write_text("\n".join([
+            "01:02:03.000001 http.c: => Send header: Authorization: Basic private-token",
+            "01:02:03.000002 http.c: => Send header: Content-Length: 1234",
+            "01:02:03.000003 http.c: == Info: upload completely sent off: 1234 bytes",
+            "01:02:04.000004 http.c: <= Recv header: HTTP/1.1 502 Bad Gateway",
+            "01:02:04.000005 http.c: <= Recv header: Set-Cookie: private-session",
+            "01:02:04.000006 http.c: <= Recv data: private-response",
+        ]))
+        self.assertEqual(sync.trace_summary(trace), [
+            "01:02:03.000002 request bytes=1234",
+            "01:02:03.000003 upload complete bytes=1234",
+            "01:02:04.000004 HTTP 502",
+        ])
+
+    def test_diagnostic_push_preserves_result_and_removes_private_trace(self):
+        scratch = self.base / "scratch"
+        scratch.mkdir()
+        export = self.prepare("home")
+        env = dict(self.env, RUNNER_TEMP=str(scratch))
+        with patch("sys.stdout", new_callable=io.StringIO) as output:
+            sync.publish(self.root, export, env, diagnose=True)
+        self.assertEqual(self.tip("home"), export.commit)
+        self.assertIn("push elapsed:", output.getvalue())
+        self.assertEqual(list(scratch.iterdir()), [])
+        self.assertNotIn("GIT_TRACE_CURL", env)
+        (self.root / export.project.prefix / "README.md").write_text("new")
+        self.commit("new source revision")
+        with patch.object(sync, "git", side_effect=sync.SyncError("HTTP 502")), \
+             patch("sys.stdout", new_callable=io.StringIO):
+            with self.assertRaisesRegex(sync.SyncError, "HTTP 502"):
+                sync.publish(self.root, export, env, diagnose=True)
+        self.assertEqual(list(scratch.iterdir()), [])
+
 
 if __name__ == "__main__":
     unittest.main()

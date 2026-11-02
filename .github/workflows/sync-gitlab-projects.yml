@@ -29,12 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 1
-      matrix:
-        include:
-          - project: kjon
-            token_secret: GITLAB_KJON_TOKEN
-          - project: home
-            token_secret: GITLAB_HOME_TOKEN
+      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.project != 'all' && (inputs.project == 'home' && '{"include":[{"project":"home","token_secret":"GITLAB_HOME_TOKEN"}]}' || '{"include":[{"project":"kjon","token_secret":"GITLAB_KJON_TOKEN"}]}') || '{"include":[{"project":"kjon","token_secret":"GITLAB_KJON_TOKEN"},{"project":"home","token_secret":"GITLAB_HOME_TOKEN"}]}') }}
     concurrency:
       group: gitlab-project-${{ matrix.project }}
       cancel-in-progress: false
@@ -42,7 +37,6 @@ jobs:
       # Read the newest main after acquiring the project lock, so a queued old
       # event cannot publish an older revision after a newer event.
       - name: Check out complete source history
-        if: github.event_name != 'workflow_dispatch' || inputs.project == 'all' || inputs.project == matrix.project
         uses: actions/checkout@v6
         with:
           ref: main
@@ -50,7 +44,6 @@ jobs:
           persist-credentials: false
 
       - name: Publish selected project
-        if: github.event_name != 'workflow_dispatch' || inputs.project == 'all' || inputs.project == matrix.project
         env:
           PROJECT: ${{ matrix.project }}
           TOKEN_SECRET_NAME: ${{ matrix.token_secret }}
@@ -61,4 +54,4 @@ jobs:
             echo "::error::${TOKEN_SECRET_NAME} secret에 해당 프로젝트의 액세스 토큰을 등록하세요."
             exit 1
           fi
-          python3 deploy/gitlab_sync.py "$PROJECT" --push
+          python3 deploy/gitlab_sync.py "$PROJECT" --push --diagnose
