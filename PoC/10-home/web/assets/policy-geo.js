@@ -1,6 +1,8 @@
 'use strict';
 // Policy-status thematic map. The existing HousingMap/MapThreeD supply view is independent.
-const PolicyGeo3D=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const PolicyGeo3D = {};
+{
   let library,map,geometry,metrics,completionMetrics,mode='policy-progress',selected='',selectedPlace=null;
   let year=null,windowStart=null,active=false,opening=null,asOfKey='',ticket=0;
   const metricCache=new Map(),shapeCache=new Map(),seriesCache=new Map();
@@ -283,5 +285,5 @@ const PolicyGeo3D=(()=>{
     window.addEventListener('resize',resize);
   }
   function choose(view,id){setView(view);selected=id;selectedPlace=null;if(['policy-progress','program-progress'].includes(mode)){scopeOptions();drawMap();return;}if(metrics){scopeOptions();yearControls();drawMap();renderProgram();fit();}}
-  return {start,visible,hidden,resize,dataChanged,choose};
-})();
+  Object.defineProperties(PolicyGeo3D, Object.getOwnPropertyDescriptors({start,visible,hidden,resize,dataChanged,choose}));
+}

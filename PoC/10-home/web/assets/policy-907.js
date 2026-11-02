@@ -1,6 +1,8 @@
 'use strict';
 /* One target ledger backs both the timeline and the thematic map. */
-const Policy907=(()=>{
+// Block scope keeps module state private without a whole-file function wrapper.
+const Policy907 = {};
+{
   const ID='POL_2025_0907',colors={POLICY:'#718096',BUSINESS:'#a66b00',APPROVAL:'#0072b2',CONSTRUCTION:'#d55e00',SUPPLY:'#00856a',MOVE_IN:'#7a3e9d',UNKNOWN:'#dce5ed'};
   let referenceDate=null,comparisonDate=null,prepared=null,highlighted='',axisRange=null,axisTimer=null;
   let data=null,pending=null,pendingKey='',requestVersion=0,stamp='',year=null,city='',region='',stage='SUPPLY',metric='SUPPLY',zoom=1,projectId='',flowWindow='11',axisUnit='month',fullAxis=false,programId='',programRows=[];
@@ -269,5 +271,5 @@ const Policy907=(()=>{
     return {kind:isProgram()?'program':'policy',root,scope:{policy_id:ID,program_id:isProgram()?programId:'',name:scopeName(),region,municipality_id:city,municipality:data.geometry.shapes.find(p=>p.id===city)?.name||'',project_id:projectId,year,as_of_date:cutoff(),data_as_of_date:data.as_of_date,comparison_date:auxiliaryDate(),stage,metric,axis_unit:axisUnit,full_axis:fullAxis,portfolio:portfolio()},
       data:JSON.parse(JSON.stringify({plan:Object.fromEntries(Object.entries(data.plan).filter(([k])=>k!=='program_profiles')),program:isProgram()?program():null,program_assessment:isProgram()?data.program_assessments?.[programId]:null,comparisons,official_alignment:data.official_alignment,summary_cards:PolicyStageFlow.summaryValues({year,asOf:cutoff(),dataAsOf:data.as_of_date,comparisonDate:auxiliaryDate(),comparisons,stages:data.stages}),original_comparisons:original,tracking_points:trackingPoints,timeline_range:{start,end},axis:axisForScope(trackingPoints,comparisons),map_values:mapValues,statistics:PolicyDecision.statistics(rows(),cutoff(),year,comparisonIndex()[scopeKey()]?.metrics||{}),cohorts:rows(),issues:data.issues.filter(i=>rows().some(c=>c.id===i.project_id)),reference_sources:{stage_note:data.stage_note,evidence_url:data.plan.evidence_url},stage_labels:data.stages}))};
   }
-  return {start,show,prepare,reportContext,programs:()=>programRows,setPrograms:list=>{programRows=(list||[]).filter(p=>p.policy_id===ID&&p.status!=='REJECTED'&&p.status!=='RELEASED');stamp='';},showProgram:id=>{if(!isProgram())return;if(programId!==id){programId=id;city='';region='';projectId='';fullAxis=false;const m=program()?.profile?.metric;if(m&&m!=='CAPACITY')metric=m;}show();},invalidate:()=>{stamp='';prepared=null;},openEditor:async(projectId)=>{data=await request('/policy-delivery/view?'+new URLSearchParams({as_of_date:$('as-of').value,group:isProgram()?'program:'+programId:'policy',scope:scopeKey()}));editor(projectId);},reset:()=>{city='';region='';projectId='';zoom=1;render();}};
-})();
+  Object.defineProperties(Policy907, Object.getOwnPropertyDescriptors({start,show,prepare,reportContext,programs:()=>programRows,setPrograms:list=>{programRows=(list||[]).filter(p=>p.policy_id===ID&&p.status!=='REJECTED'&&p.status!=='RELEASED');stamp='';},showProgram:id=>{if(!isProgram())return;if(programId!==id){programId=id;city='';region='';projectId='';fullAxis=false;const m=program()?.profile?.metric;if(m&&m!=='CAPACITY')metric=m;}show();},invalidate:()=>{stamp='';prepared=null;},openEditor:async(projectId)=>{data=await request('/policy-delivery/view?'+new URLSearchParams({as_of_date:$('as-of').value,group:isProgram()?'program:'+programId:'policy',scope:scopeKey()}));editor(projectId);},reset:()=>{city='';region='';projectId='';zoom=1;render();}}));
+}
