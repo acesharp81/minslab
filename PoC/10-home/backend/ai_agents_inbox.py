@@ -18,13 +18,15 @@ def enrich(row,doc,supplement,analysis):
  decision=doc.get('decision') or {}
  row.update(business_status=doc['status'],business_status_label=doc['status_label'],business_reason=decision.get('reason',''))
  if usable(supplement,doc['source_revision_no'],analysis):
-  row.update(body_text=supplement['body_text'],body_origin='담당자 원문 복구',manual_summary=supplement.get('summary',''))
- if doc['status']=='HOLD' and decision_after(doc,row.get('created') or 0):
+  row.update(body_text=supplement['body_text'],body_source_revision_no=supplement['source_revision_no'],body_origin='담당자 원문 복구',manual_summary=supplement.get('summary',''))
+ if row.get('role')=='collection' and row.get('state')=='HOLD' and row.get('body_origin')=='담당자 원문 복구' and row.get('stage') in ('DOCUMENT_ERROR','ANALYSIS_ERROR'):
+  row.update(reanalysis_required=True,reason='유효 수동본문 확보 · 이전 수집 오류 이후 재분석 필요',action='복구된 원문으로 수집·업무 분석 재실행 · 기존 담당자 판단은 보존')
+ if row.get('role')!='algorithm' and doc['status']=='HOLD' and decision_after(doc,row.get('created') or 0):
   row.update(reason=decision.get('reason') or row.get('reason'),stage='HUMAN_HOLD',state='HOLD')
  return row
 
 
-def items(service,store,role):
+def items(service,store,role,evidence_export=False):
  if role not in ROLES:raise ValueError('지원하지 않는 에이전트')
  data=queue(service,include_options=False);docs={d['id']:d for d in data['items']};supplements=load_supplements(service,list(docs));ai=annotations(service,list(docs))
  if role!='collection':
@@ -46,7 +48,7 @@ def items(service,store,role):
   if role=='officer':
    from .stage_reconciliation import list_items, LIVE
    from .publication_evidence import safe_value
-   proposals=list_items(service);by_id={p['id']:p for p in proposals}
+   proposals=list_items(service,include_proof=evidence_export);by_id={p['id']:p for p in proposals}
    for r in results:
     ids=[p['id'] for p in r.get('stage_proposals',[])]
     if ids and all(by_id.get(pid,{}).get('status') in ('APPLIED','DISMISSED') for pid in ids):
@@ -56,8 +58,16 @@ def items(service,store,role):
     results.append(dict(role=role,subject=p['id'],state='HOLD' if p['status'] in LIVE else 'DONE',stage='STAGE_REVIEW',
      title=p['project_name']+' · '+p['stage_label']+' 실적 반영',url=p['url'],reason=' / '.join(p['blockers']+p['review_reasons']) or p['status'],
      source_revision_no=p['source_ref']['revision_no'],created=None,action='신규 자료 검토 → 단계별 실적 반영 검토에서 기존값·새 근거 확인',
-     result=p,evidence=p['quotes'],body_text='',model=None))
-  return [enrich(r,docs.get(r['subject']),supplements.get(r['subject']),ai.get(r['subject'])) for r in results]
+     result=p,evidence=[v for k,v in p['quotes'].items() if k in ('date_quote','units_quote') and isinstance(v,str) and v],body_text=p.get('evidence_package',{}).get('body',''),model=None,cross_review=p.get('cross_review',{})))
+  if role=='algorithm':
+   from .algorithm_review import review_map
+   reviews=review_map(store)
+   for r in results:
+    review=reviews.get(r['subject'],{});r['algorithm_review']=review
+    if review.get('result_id')==r['id'] and r.get('stage')!='SOURCE_CHANGED':
+     action=review.get('action')
+     r.update(state='HOLD' if action=='RETRY' else 'DONE',stage={'APPLY':'RULE_APPLIED','IGNORE':'TRANSIENT_DISMISSED','RETRY':'REANALYSIS_REQUESTED','DISABLE':'RULE_DISABLED'}[action],reason=review['effect'],action='담당자 판단: '+review['reason'])
+  return attach_reviews(service,[enrich(r,docs.get(r['subject']),supplements.get(r['subject']),ai.get(r['subject'])) for r in results])
  seen={};result=[]
  with store.db() as c:
   events=c.execute("SELECT e.*,r.config FROM events e JOIN runs r ON e.run_id=r.id WHERE e.kind IN ('SOURCE','SEARCH','SOURCE_ERROR','ANALYZED','ANALYSIS_ERROR','DOCUMENT_ERROR','UNCHANGED') ORDER BY e.id DESC").fetchall()
@@ -79,19 +89,44 @@ def items(service,store,role):
   result.append(dict(role=role,subject=subject,state='HOLD' if held else 'DONE',stage=event['kind'],
     title=(doc or {}).get('title') or p.get('source') or p.get('query') or subject,url=(doc or {}).get('evidence_url',''),
     source_revision_no=(doc or {}).get('source_revision_no'),reason=reason,model=config.get('selected_model') or config.get('profile'),
-    result=dict(analysis=value.get('result'),passes=value.get('passes',[])),evidence=(value.get('result') or {}).get('evidence_quotes',[]),body_text=value.get('body_text',''),
+    result=dict(analysis=value.get('result'),passes=value.get('passes',[])),evidence=(value.get('result') or {}).get('evidence_quotes',[]),body_text=value.get('body_text',''),body_source_revision_no=value.get('source_revision_no'),
     run_id=event['run_id'],created=event['created'],action='원문·추출값 확인 후 재시도 또는 담당자 판단' if held else '후속 업무 검토'))
- return [enrich(r,docs.get(r['subject']),supplements.get(r['subject']),ai.get(r['subject'])) for r in result]
+ return attach_reviews(service,[enrich(r,docs.get(r['subject']),supplements.get(r['subject']),ai.get(r['subject'])) for r in result])
 
-FIELDS=['에이전트','대상ID','자료명','상태','처리단계','보류사유','담당자확인사항','원문URL','원문판본','검토모델','실행ID','처리시각','근거_JSON','분석결과_JSON','수집본문','현재업무상태','최근업무판단사유','본문출처','수동복구확인내용']
-def export_csv(service,store,role='all'):
+def attach_reviews(service, rows):
+ from .hold_review import load
+ reviews=load(service,[r['subject'] for r in rows if r['subject'].startswith('DOC_')])
+ for r in rows:
+  if r['subject'] in reviews:r['cross_review']=reviews[r['subject']]
+ return rows
+
+
+FIELDS=['에이전트','대상ID','자료명','상태','처리단계','보류사유','담당자확인사항','원문URL','원문판본','검토모델','실행ID','처리시각','근거_JSON','분석결과_JSON','수집본문','현재업무상태','최근업무판단사유','본문출처','수동복구확인내용','대상유형','증빙상태','증빙패키지_JSON','사건군ID','중복검토ID_JSON','상이한값검토ID_JSON','교차검토_JSON','재분석필요','자동반영가능']
+def export_csv(service,store,role='all',unique=False):
+ from .publication_evidence import safe_value
+ import hashlib
  if role not in ('all','collection','officer'):raise ValueError('수집·업무담당 판단보류만 내보낼 수 있습니다')
- output=io.StringIO(newline='');writer=csv.writer(output);writer.writerow(FIELDS)
+ rows=[]
  for selected in ('collection','officer') if role=='all' else (role,):
-  for r in items(service,store,selected):
-   if r['state']!='HOLD':continue
-   writer.writerow([cell(v) for v in [ROLES[selected],r['subject'],r.get('title'), '판단보류 · 사람 개입 필요',r.get('stage'),
+  rows.extend(r for r in items(service,store,selected,evidence_export=True) if r['state']=='HOLD')
+ groups={}
+ for index,r in enumerate(rows):groups.setdefault(r['subject'] if unique else str(index),[]).append(r)
+ output=io.StringIO(newline='');writer=csv.writer(output);writer.writerow(FIELDS+['합쳐진기록수','에이전트별기록_JSON'])
+ encode=lambda x:json.dumps(safe_value(x),ensure_ascii=False)
+ for group in groups.values():
+  # Keep every role's assessment, while including the longest available body once.
+  original=max(group,key=lambda x:len(x.get('body_text','')));r=safe_value(original);result=r.get('result') or {}
+  package=result.get('evidence_package') or dict(source_url=r.get('url'),source_revision_no=r.get('source_revision_no'),
+     body_origin=r.get('body_origin','AI 수집'),body_source_revision_no=r.get('body_source_revision_no'),body_current=r.get('body_source_revision_no')==r.get('source_revision_no') if r.get('body_source_revision_no') else None,exported_body_sha256=hashlib.sha256(r.get('body_text','').encode()).hexdigest() if r.get('body_text') else None,
+     quote_checks=[dict(exact=q in r.get('body_text',''),whitespace_normalized=''.join(q.split()) in ''.join(r.get('body_text','').split())) for q in r.get('evidence',[]) if isinstance(q,str) and q.strip()],
+     note='현재 저장 본문 대조 · 인용 불일치는 허위 단정이 아닌 재확인 대상')
+  record_summaries=[{k:v for k,v in x.items() if k not in ('body_text','cross_review')} for x in group] if unique else []
+  values=[' + '.join(dict.fromkeys(ROLES[x['role']] for x in group)),r['subject'],r.get('title'),'판단보류 · 사람 개입 필요',r.get('stage'),
     r.get('reason'),r.get('action'),r.get('url'),r.get('source_revision_no'),r.get('model'),r.get('run_id'),
-    datetime.fromtimestamp(r['created'],timezone.utc).isoformat() if r.get('created') else '',
-    json.dumps(r.get('evidence',[]),ensure_ascii=False),json.dumps(r.get('result',{}),ensure_ascii=False),r.get('body_text',''),r.get('business_status_label',''),r.get('business_reason',''),r.get('body_origin','AI 수집'),r.get('manual_summary','')]])
+    datetime.fromtimestamp(r['created'],timezone.utc).isoformat() if r.get('created') else '',encode(r.get('evidence',[])),encode(result),r.get('body_text',''),
+    r.get('business_status_label',''),r.get('business_reason',''),r.get('body_origin','AI 수집'),r.get('manual_summary',''),
+    'STAGE' if r['subject'].startswith('STA_') else 'DOCUMENT',result.get('body_status',('STALE_TEXT' if r.get('body_source_revision_no') and r.get('body_source_revision_no')!=r.get('source_revision_no') else 'TEXT_AVAILABLE') if r.get('body_text') else 'MISSING'),encode(package),
+    result.get('event_group',''),encode(result.get('duplicate_ids',[])),encode(result.get('different_value_ids',[])),encode(r.get('cross_review',{})),
+    bool(r.get('reanalysis_required')),bool(result.get('auto_eligible')),len(group),encode(record_summaries)]
+  writer.writerow([cell(v) for v in values])
  return '\ufeff'+output.getvalue()

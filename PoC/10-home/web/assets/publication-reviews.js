@@ -6,7 +6,7 @@ const PublicationReviews = {};
  const e=v=>esc(v),host=()=>$('publication-review-root');
  const stateLabel=s=>data?.status_labels[s]||s;
  async function refreshBadge(){try{const r=await request('/publication-reviews/summary');const badge=$('publication-review-badge');badge.textContent=r.pending;badge.hidden=!r.pending;badge.title='검토 대기·보류·사업 등록 대기';}catch{$('publication-review-badge').textContent='!';$('publication-review-badge').hidden=false;}}
- function canLeave(){return !dirty||window.confirm('저장하지 않은 검토 내용이 있습니다. 변경 내용을 버리고 이동할까요?');}
+ function canLeave(){if(typeof AlgorithmReview!=='undefined'&&!AlgorithmReview.canLeave(host()))return false;return !dirty||window.confirm('저장하지 않은 검토 내용이 있습니다. 변경 내용을 버리고 이동할까요?');}
  async function load(){
   const token=++generation;host().innerHTML='<p role="status">신규 자료와 검토 기록을 불러오고 있습니다.</p>';
   try{const value=await request('/publication-reviews');if(token!==generation)return;data=value;if(!selected||!data.items.some(r=>r.id===selected))selected=data.items.find(r=>r.status==='REVIEW')?.id||data.items[0]?.id;dirty=false;render();refreshBadge();}

@@ -1,0 +1,32 @@
+{
+  "checks": {
+    "ai-agents": {
+      "status": 200,
+      "seconds": 0.047
+    },
+    "ai-agents/algorithm/items": {
+      "status": 200,
+      "seconds": 0.251
+    },
+    "stage-reviews": {
+      "status": 200,
+      "seconds": 0.171
+    },
+    "policy-delivery/view": {
+      "status": 200,
+      "seconds": 0.101
+    }
+  },
+  "agent_settings_preserved": true,
+  "collection_limits_preserved": true,
+  "algorithm_before": {
+    "held": 57,
+    "done": 23
+  },
+  "algorithm_after": {
+    "held": 53,
+    "done": 27
+  },
+  "regression_tests": "142 passed, 1 warning",
+  "model_calls_requested": 0
+}

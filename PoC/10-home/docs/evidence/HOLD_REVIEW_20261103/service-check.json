@@ -1,0 +1,47 @@
+{
+  "timings": {
+    "agents": 0.032,
+    "stage": 0.43,
+    "collection": 0.288,
+    "officer": 0.96,
+    "policy": 4.341,
+    "exports": 1.573,
+    "policy_warm": 0.14,
+    "officer_final": 0.53,
+    "stage_final": 0.337
+  },
+  "settings_preserved": true,
+  "document_states": {
+    "APPROVED": 13,
+    "HOLD": 39,
+    "EXCLUDED": 80,
+    "REGISTRATION_REQUIRED": 8
+  },
+  "document_quality": {
+    "TEXT_AVAILABLE_UNVERIFIED": 125,
+    "MISSING": 11,
+    "INSUFFICIENT": 4
+  },
+  "effective_bodies": 125,
+  "stage_body_status": {
+    "PINNED_TEXT": 1,
+    "MISSING": 137
+  },
+  "stage_auto_eligible": 0,
+  "duplicate_groups": 6,
+  "different_value_groups": 2,
+  "remaining_rows": 297,
+  "remaining_unique_targets": 268,
+  "reanalysis_marked": 9,
+  "regression_tests": "147 passed, 1 warning",
+  "services": {
+    "poc10-home-api": {
+      "image": "poc10-home:hold-evidence-review-20261103-v2",
+      "health": "healthy"
+    },
+    "poc10-home-ai-worker": {
+      "image": "poc10-home:hold-evidence-review-20261103-v2",
+      "health": "healthy"
+    }
+  }
+}

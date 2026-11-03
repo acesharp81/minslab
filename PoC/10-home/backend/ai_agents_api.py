@@ -40,6 +40,8 @@ class AgentSettings(BaseModel):
 
 
 def install(app,service,authenticated,prefix):
+ from .algorithm_review_api import install as install_algorithm_review
+ install_algorithm_review(app,service,authenticated,prefix)
  @lru_cache(maxsize=1)
  def store():return Store(service.data_dir)
  def check(role):
@@ -54,9 +56,9 @@ def install(app,service,authenticated,prefix):
  @app.get(prefix+'/api/ai-agents/history')
  def history():return dict(runs=store().status()['runs'])
  @app.get(prefix+'/api/ai-agents/holds.csv')
- def csv_export(role:str='all'):
+ def csv_export(role:str='all',unique:bool=False):
   if role not in ('all','collection','officer'):raise HTTPException(422,'지원하지 않는 CSV 범위')
-  return Response(export_csv(service,store(),role),media_type='text/csv; charset=utf-8',headers={
+  return Response(export_csv(service,store(),role,unique=unique),media_type='text/csv; charset=utf-8',headers={
    'Content-Disposition':f'attachment; filename="home-ai-{role}-holds.csv"','Cache-Control':'no-store'})
  @app.get(prefix+'/api/ai-agents/{role}/items')
  def inbox(role:str):

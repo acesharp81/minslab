@@ -1,0 +1,21 @@
+{
+  "backups": {
+    "poc10-home-api": "poc10-home-api-before-algorithm-1793615268"
+  },
+  "containers": {
+    "poc10-home-api": {
+      "image": "poc10-home:algorithm-human-review-20261102-v4",
+      "image_id": "sha256:b2d17a65682382732f96b5503593f22e0b1fe4355ef3e66836f9736762bda914",
+      "state": "running",
+      "health": "healthy"
+    },
+    "poc10-home-ai-worker": {
+      "image": "poc10-home:algorithm-human-review-20261102-v3",
+      "image_id": "sha256:18bd6fa53cc49077288c3b28d702a7cde781a3ca72677c0f5368a160c4a00877",
+      "state": "running",
+      "health": "healthy"
+    }
+  },
+  "scope": "human algorithm review and scoped CSS activation; preserve schedules and shared budgets",
+  "healthy": true
+}
