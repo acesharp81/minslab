@@ -162,7 +162,12 @@ def process_run(service, store, run, fetcher=None, analyzer=evaluate, discover=d
             if not store.alive(rid): raise InterruptedError()
             store.scanned(doc['id'])
             try:
-                raw=fetcher.get(doc['evidence_url']);title,body,truncated=text_content(raw)
+                raw=fetcher.get(doc['evidence_url'])
+                from .algorithm_review import extract_approved
+                (title,body,truncated),applied_rule=extract_approved(store,fetcher.last.get('url') or doc['evidence_url'],raw)
+                if applied_rule:
+                    fetcher.last=dict(fetcher.last,extraction_rule=applied_rule)
+                    store.event(rid,'EXTRACTION_RULE',document_id=doc['id'],**applied_rule)
                 doc['name']=title or doc.get('name')
                 before=old.get(doc['id'],{})
                 digest=hashlib.sha256(body.encode()).hexdigest()
@@ -171,7 +176,8 @@ def process_run(service, store, run, fetcher=None, analyzer=evaluate, discover=d
                     before.get('model_config',[None,None])==[run['config'].get('selected_model'),run['config'].get('review_model')] and
                     before.get('review_revision_no')==(doc.get('previous') or {}).get('review_revision_no',0) and not before.get('failure'))
                 if same_context and not before.get('escalation_pending'):
-                    store.event(rid,'UNCHANGED',document_id=doc['id'],title=doc['name'])
+                    store.event(rid,'DOCUMENT_ERROR' if applied_rule and not applied_rule['applied'] else 'UNCHANGED',document_id=doc['id'],title=doc['name'],**({'message':'승인 추출 규칙 불일치 · 기본 추출기로 복귀: '+applied_rule['reason']} if applied_rule and not applied_rule['applied'] else {}))
+                    if applied_rule and not applied_rule['applied']:errors+=1;deferred+=1
                     skipped+=1;finished=True
                     continue
                 if same_context: doc['_prior_analysis']=before
@@ -189,6 +195,8 @@ def process_run(service, store, run, fetcher=None, analyzer=evaluate, discover=d
                                   failure=True,approved=False,actual_units_added=0)
                     errors+=1
                 if analysis.get('escalation_pending'): errors+=1;deferred+=1
+                if applied_rule and not applied_rule['applied']:
+                    analysis['checks'].append('승인 추출 규칙 불일치 · 기본 추출기로 복귀: '+applied_rule['reason']);errors+=1;deferred+=1
                 if truncated: analysis['checks'].append('본문 24,000자까지만 분석 · 전체 원문 확인 필요')
                 if before.get('body_sha256') and before['body_sha256']!=digest:
                     analysis['checks'].append('이전 자동 수집 본문과 변경됨 · 기존 담당자 판단 재확인 필요')

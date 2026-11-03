@@ -1,0 +1,16 @@
+{
+  "unique_targets": 268,
+  "original_records": 297,
+  "stage_rows": 138,
+  "missing_stage_bodies": 137,
+  "stage_bodies_included": 1,
+  "desktop": {
+    "width": 1440,
+    "scroll": 1440
+  },
+  "mobile": {
+    "width": 390,
+    "scroll": 390
+  },
+  "page_errors": []
+}

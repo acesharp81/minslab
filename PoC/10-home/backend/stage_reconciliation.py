@@ -134,7 +134,7 @@ def reference(row):
     return dict(kind=row.kind,id=row.entity_id,hash=row.payload_hash,revision_no=row.revision_no)
 
 
-def list_items(service):
+def list_items(service, include_proof=False):
     projects,profiles,rows,mappings=snapshot(service);result=[]
     with service.sessions() as db:
         refs={(r.payload['source_ref']['kind'],r.payload['source_ref']['id']) for r in rows}
@@ -151,9 +151,42 @@ def list_items(service):
             profile_revision_no=profile.revision_no if profile else 0,mapping_revision_no=mappings.get(p['project_id'],{}).get('revision_no'),
             project_name=project.payload.get('name') if project else '미등록 사업',stage_label=STAGES[p['stage']],stale=stale,
             quotes={k:v for k,v in p.get('proof',{}).items() if k!='body'},**check)
+        proof=p.get('proof',{});raw_body=proof.get('body','')
+        value['body_status']='PINNED_TEXT' if raw_body and not stale else 'STALE_TEXT' if raw_body else 'MISSING'
+        value['can_apply_note']='형식상 수동 검토 가능 여부 · 동일 사업·원문·호수 범위 확인 및 담당자 승인은 별도'
+        if include_proof:
+            from .publication_evidence import redact
+            body_text=redact(raw_body)
+            value['evidence_package']=dict(body=body_text,body_status=value['body_status'],body_sha256=hashlib.sha256(raw_body.encode()).hexdigest() if raw_body else None,
+                exported_body_sha256=hashlib.sha256(body_text.encode()).hexdigest() if body_text else None,
+                source_ref=ref,related_refs=p.get('related_refs',[]),body_ref=p.get('body_ref'),document_id=p.get('document_id'),
+                source_fact=p.get('source_fact'),source_metadata={k:src.payload.get(k) for k in ('source_entity_id','source_revision_no','source_notice_round','source_name','file_name','notice_no','base_date') if src and src.payload.get(k) is not None},
+                quote_checks={k:bool(raw_body and proof.get(k) and proof[k] in raw_body) for k in ('date_quote','units_quote')},
+                note='저장된 원천만 제공 · 누락 본문은 인용문으로 대체하지 않음 · 해시는 저장 본문과 개인정보 제거 후 본문을 구분')
         if value['status'] in LIVE:value['status']='READY' if check['auto_eligible'] else 'HOLD'
         result.append(value)
+    annotate_events(result)
+    from .hold_review import load as load_reviews
+    reviews=load_reviews(service,[r['id'] for r in result])
+    for value in result:value['cross_review']=reviews.get(value['id'],{})
     return sorted(result,key=lambda r:r.get('created_at',''),reverse=True)
+
+
+def annotate_events(rows):
+    from collections import defaultdict
+    events=defaultdict(list);stages=defaultdict(list)
+    for r in rows:
+        if r['status'] not in LIVE:continue
+        f=r['proposed'];stages[(r['project_id'],r['stage'])].append(r)
+        if f.get('units') is not None and f.get('event_date'):
+            key=[r['project_id'],r['stage'],f.get('event_date'),f.get('units'),f.get('date_basis'),f.get('scope')]
+            r['event_group']='EVENT_'+digest(key)[:20];events[r['event_group']].append(r)
+    for r in rows:
+        r['duplicate_ids']=[x['id'] for x in events.get(r.get('event_group'),[]) if x['id']!=r['id']]
+        f=r['proposed'];others=stages.get((r['project_id'],r['stage']),[])
+        r['different_value_ids']=[x['id'] for x in others if (x['proposed'].get('event_date'),x['proposed'].get('units'))!=(f.get('event_date'),f.get('units'))]
+        if r['different_value_ids'] and r['status'] in LIVE:
+            r['auto_eligible']=False;r['status']='HOLD';r['review_reasons'].append('같은 사업·단계의 다른 일자/물량 후보 존재 · 원천 사건 대조 필요')
 
 
 def decide(service, pid, revision_no, project_revision_no, profile_revision_no, mapping_revision_no, action, actor, reason, checked=False, replace_confirmed=False, automatic=False):
@@ -177,6 +210,9 @@ def decide(service, pid, revision_no, project_revision_no, profile_revision_no, 
         old_profile=deepcopy(profile.payload) if profile else {};old=check['previous'];stamp=now().isoformat()
         if action=='APPLY':
             if check['blockers']:raise ValueError(' / '.join(check['blockers']))
+            if automatic:
+                others=list(db.scalars(select(Revision).where(Revision.kind==KIND,Revision.superseded_at.is_(None),Revision.payload['project_id'].as_string()==p['project_id'])))
+                if any(x.entity_id!=pid and x.payload.get('stage')==p['stage'] and x.payload.get('status') in LIVE and any(x.payload['proposed'].get(k)!=p['proposed'].get(k) for k in ('event_date','units')) for x in others):raise ValueError('동일 사업·단계의 상이한 후보 근거 검토 필요')
             if automatic and not check['auto_eligible']:raise ValueError('자동 반영 조건 미충족')
             if old and not old.get('inferred') and not check['already_reflected'] and not replace_confirmed:raise ValueError('기존 확정 실적 정정 확인이 필요합니다')
             if not check['already_reflected']:
@@ -265,11 +301,11 @@ def refresh(service, auto_apply=False):
 def export_csv(service):
     from .publication_review_export import cell
     from .publication_evidence import safe_value
-    out=io.StringIO(newline='');w=csv.writer(out);w.writerow(['검토ID','사업ID','사업명','단계','상태','기존값_JSON','새근거_JSON','변경호수_가산아님','자동반영제약','반영불가사유','원문URL','근거판본_JSON','인용_JSON'])
-    for r in list_items(service):
+    out=io.StringIO(newline='');w=csv.writer(out);w.writerow(['검토ID','사업ID','사업명','단계','상태','기존값_JSON','새근거_JSON','변경호수_가산아님','자동반영제약','반영불가사유','원문URL','근거판본_JSON','인용_JSON','수집본문','증빙상태','증빙패키지_JSON','사건군ID','중복검토ID_JSON','상이한값검토ID_JSON','교차검토_JSON','수동검토가능_승인아님','자동반영가능'])
+    for r in list_items(service,include_proof=True):
         r=safe_value(r)
         if r['status'] not in LIVE:continue
-        values=[r['id'],r['project_id'],r['project_name'],r['stage_label'],r['status'],json.dumps(r['previous'],ensure_ascii=False),json.dumps(r['proposed'],ensure_ascii=False),r['delta_units'],' / '.join(r['review_reasons']),' / '.join(r['blockers']),r['url'],json.dumps(r['source_ref'],ensure_ascii=False),json.dumps(r['quotes'],ensure_ascii=False)]
+        values=[r['id'],r['project_id'],r['project_name'],r['stage_label'],r['status'],json.dumps(r['previous'],ensure_ascii=False),json.dumps(r['proposed'],ensure_ascii=False),r['delta_units'],' / '.join(r['review_reasons']),' / '.join(r['blockers']),r['url'],json.dumps(r['source_ref'],ensure_ascii=False),json.dumps(r['quotes'],ensure_ascii=False),r['evidence_package']['body'],r['body_status'],json.dumps(r['evidence_package'],ensure_ascii=False),r.get('event_group'),json.dumps(r['duplicate_ids']),json.dumps(r['different_value_ids']),json.dumps(r['cross_review'],ensure_ascii=False),r['can_apply'],r['auto_eligible']]
         w.writerow([cell(v) for v in values])
     return '\ufeff'+out.getvalue()
 

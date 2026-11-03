@@ -1,0 +1,2 @@
+'use strict';
+const HoldReview={render(value){if(!value?.report_id)return '';const e=v=>esc(v??'');return '<details class="hold-cross-review"><summary>외부 의견 교차검토 · '+e(value.reviewed_at?.slice(0,10))+'</summary><p><b>'+e(value.outcome)+'</b></p><p>'+e(value.current?'현재 판본 기준':'검토 이후 원천 변경 · 재확인 필요')+' · '+e(value.actor)+'</p><p>외부 모델 권고: '+e(value.recommendation)+'</p><ul>'+(value.findings||[]).map(x=>'<li>'+e(x)+'</li>').join('')+'</ul><p>추가 확인: '+e(value.next_action)+'</p><small>담당자 업무 보조 의견과 내부 대조 결과입니다. 사업·실적 승인과 별개로 기록됩니다.</small></details>';}};

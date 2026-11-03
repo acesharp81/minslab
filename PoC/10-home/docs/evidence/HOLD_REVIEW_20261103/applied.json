@@ -1,0 +1,13 @@
+{
+  "report_targets": 278,
+  "document_targets": 140,
+  "stage_targets": 138,
+  "supplements": 26,
+  "business_reviews": 19,
+  "cross_reviews": 278,
+  "new_document_links": 1,
+  "actual_units_added": 0,
+  "protected_before_sha256": "4afc870e0b433b33f3b248dd75c00cf409280d79f35da1962d1da027491aef14",
+  "protected_after_sha256": "4afc870e0b433b33f3b248dd75c00cf409280d79f35da1962d1da027491aef14",
+  "policy_mappings_unchanged": true
+}

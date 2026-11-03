@@ -1,0 +1,21 @@
+{
+  "url": "https://www.minslab.kr/poc/home/#publication-reviews",
+  "seconds": 2.77,
+  "held": 53,
+  "done": 27,
+  "details_lazy": true,
+  "readonly_disabled": true,
+  "admin_controls": true,
+  "approval_requires_test": true,
+  "dirty_input_protected": true,
+  "no_production_decisions_posted": true,
+  "desktop": {
+    "width": 1440,
+    "scroll": 1440
+  },
+  "mobile": {
+    "width": 390,
+    "scroll": 390
+  },
+  "page_errors": []
+}
