@@ -1,0 +1,10 @@
+{
+  "guide_cards": 21,
+  "visible_tip_entries": 210,
+  "authenticated_pdf_ok": true,
+  "case_page_image_ok": true,
+  "snapshot_tip_and_pdf_links_ok": true,
+  "unrelated_vehicle_tip_absent": true,
+  "logout_access_blocked": true,
+  "errors": []
+}

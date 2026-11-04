@@ -4,6 +4,7 @@ import re
 import copy
 from pathlib import Path
 from .rules import PACK,validate_batch
+from . import term_dictionary
 
 TERMS=json.loads((Path(__file__).resolve().parents[1]/'rules/official-terms.json').read_text())
 
@@ -25,10 +26,15 @@ def distance(a,b):
 
 def protect(run,rows,ids):
     pack=run.get('rule_pack') or PACK;steps={s['rule_id']:s for s in pack['steps']}
-    originals=run.get('observation',{}).get('objects',[])
-    checks=run.get('verification',{}).get('results',[])
+    originals=list(run.get('observation',{}).get('objects',[]))
+    originals.extend(o for o in run.get('analysis_observation',{}).get('objects',[]) if o.get('ocr_region') and o['id'] not in {x['id'] for x in originals})
+    checks=list(run.get('verification',{}).get('results',[]))
+    from .text_ocr import source_transcription_confirmed
+    for region in run.get('text_ocr',{}).get('regions',[]):
+        if source_transcription_confirmed(region):
+            checks.append(dict(object_id=region['id'],status='COMPLETED',coverage='COMPLETE',text=region['vision']['literal_text'],quality='CLEAR',transcription_inferred=False))
     for obj in originals:
-        for term in TERMS['terms']:
+        for term in term_dictionary.active(run,TERMS):
             scoped_source=any(r.get('status')=='APPROVED' and r.get('kind')=='source-data' and term['canonical'] in r.get('content','') for r in run['reference_snapshot'])
             if not any(k in obj['label'] for k in term['context']) and not scoped_source:continue
             if term.get('identity_context') and not any(k in obj.get('description','') for k in term['identity_context']):continue
@@ -40,24 +46,32 @@ def protect(run,rows,ids):
                 stem=word[:len(canonical)] if suffix in ('은','는','이','가','의','을','를','와','과','에서','으로','로','께서') else word
                 if stem!=canonical and len(stem)>=4 and distance(stem,canonical)==1:stems.append(stem)
             candidates=list(dict.fromkeys(stems))
-            if term.get('aliases'):candidates=[a for a in term['aliases'] if a in obj.get('text','').upper()]
+            if term.get('aliases'):
+                # Preserve the actual source substring, including Unicode form/case.
+                candidates=term_dictionary.find_literals(obj.get('text',''),term['aliases'])
             for literal in candidates:
                 readings=[c for c in checks if c.get('status')=='COMPLETED' and c.get('object_id')==obj['id'] and c.get('text')]
                 confirmed=bool(readings) and obj.get('quality')=='CLEAR' and not obj.get('transcription_inferred') and all(c.get('quality')=='CLEAR' and not c.get('transcription_inferred') and re.sub(r'\s','',c['text'])==re.sub(r'\s','',obj['text']) for c in readings)
                 status='FAIL' if confirmed else 'REVIEW'
+                quoted=bool(re.search('역사적 인용|옛 명칭|오타 예시|잘못된 표현의 예|부정적 인용',obj.get('description','')))
+                if term.get('severity')=='REVIEW' or quoted:status='REVIEW'
                 for rid in ids:
                     if rid not in general_text_rules(steps,ids):continue
+                    if term.get('rule_ids') and rid not in term['rule_ids']:continue
+                    if term.get('parent_ids') and steps[rid]['parent_id'] not in term['parent_ids']:continue
                     selected=[r for r in rows if r['rule_id']==rid and obj['id'] in r.get('evidence_ids',[])]
                     if not selected:
                         selected=validate_batch({'results':[dict(rule_id=rid,instance_id=obj['id'],status='REVIEW',observation=obj['label']+': '+obj['text'],reason='기관명 대조',evidence_quality='UNCERTAIN',cell_ids=obj['cell_ids'],reference_ids=[],recommended_action='공식 명칭과 원문을 대조하세요.')]},[rid],run['reference_snapshot'],None,'system/official-term-check',pack=pack)
                         for row in selected:row.update(evidence_ids=[obj['id']],target_presence='PRESENT',vision_model=run.get('observation_model'))
                         rows.extend(selected)
                     for row in selected:
-                        row['official_term_check']={'literal':literal,'canonical':canonical,'sources':term['sources'],'independent_reading_agrees':confirmed,'version':TERMS['version']}
+                        row['official_term_check']={'literal':literal,'canonical':canonical,'sources':term['sources'],'independent_reading_agrees':confirmed,'version':term['version'],'dictionary_reference_id':term.get('dictionary_reference_id')}
                         if row['status']=='ERROR':continue
+                        if quoted and row['status']=='FAIL':continue  # Preserve an independently established defect.
                         row.update(status='FAIL' if row['status']=='FAIL' else status,error_type='FACT_OR_STYLE_ISSUE',review_basis='OBSERVED_ANOMALY',visual_issue=True,document_review=False,
                             reason=f'원문 명칭 “{literal}”는 공식 명칭 “{canonical}”와 다릅니다. '+('원본 관찰과 독립 재판독이 같은 원문을 확인했습니다.' if confirmed else '독립 재판독은 미확정이며 원본 글자 확인이 필요합니다.'),
                             recommended_action=f'기관을 가리키는 명칭이면 “{canonical}”로 수정하세요.')
+                        if quoted:row.update(status='REVIEW',review_basis='DOCUMENT_CHECK',visual_issue=False,diagnostic_only=True,document_review=True,reason='인용·옛 명칭 문맥 확인 필요: '+row['reason'])
     # A territorial-scope concern must remain visible even if the analysis only
     # assesses the map title, or another part of the map is occluded.
     by_id={o['id']:o for o in originals}

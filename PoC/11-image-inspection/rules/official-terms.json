@@ -1,12 +1,15 @@
 {
-  "version": "2026-10-31",
+  "version": "2026-11-04-contexts",
   "terms": [
     {
       "canonical": "행정안전부",
       "context": [
         "기관명",
         "부처명",
-        "기관 간판"
+        "기관 간판",
+        "책등",
+        "책 등면",
+        "표지석"
       ],
       "english": "Ministry of the Interior and Safety",
       "sources": [

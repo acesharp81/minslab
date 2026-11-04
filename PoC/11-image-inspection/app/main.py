@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import io
 import json
+import re
 import secrets
 import shutil
 import time
@@ -288,8 +289,8 @@ def create_app(settings=None):
     def add_reference(data:ReferenceInput,request:Request):
         who=actor(request,True)
         if not set(data.parent_ids)<={x['id'] for x in PACK['parents']}:raise HTTPException(400,'잘못된 원문 규칙')
-        if not data.official_url.startswith('https://'):raise HTTPException(400,'출처는 HTTPS URL로 기록하십시오. 서버에서 자동 접속하지 않습니다.')
-        if data.kind not in {'history','official-map','official-symbols','culture','official-emblems','policy','language','license','consent','source-data'}:raise HTTPException(400,'지원하지 않는 기준자료 종류')
+        if not data.official_url.startswith('https://') and not (data.kind=='inspection-guidance' and not data.official_url):raise HTTPException(400,'출처는 HTTPS URL로 기록하십시오. 서버에서 자동 접속하지 않습니다.')
+        if data.kind not in {'history','official-map','official-symbols','culture','official-emblems','policy','language','license','consent','source-data','inspection-guidance'}:raise HTTPException(400,'지원하지 않는 기준자료 종류')
         from datetime import date
         try:
             for d in (data.effective_from,data.effective_to):
@@ -299,6 +300,16 @@ def create_app(settings=None):
         if data.kind=='source-data':
             from .source_copy import parse
             try:parse(data.content)
+            except ValueError as exc:raise HTTPException(400,str(exc))
+        if data.kind=='language':
+            from .term_dictionary import parse
+            try:parse(data.content)
+            except (ValueError,TypeError) as exc:raise HTTPException(400,'용어 사전 형식 확인: '+str(exc))
+        if data.kind=='inspection-guidance':
+            from .precheck import parse
+            try:
+                item=parse(data.content)
+                if set(item['parent_ids'])!=set(data.parent_ids):raise ValueError('항목 연결 범위가 다릅니다.')
             except ValueError as exc:raise HTTPException(400,str(exc))
         ref={**data.model_dump(),'id':'ref-'+uuid.uuid4().hex,'status':'DRAFT','retrieved_at':now(),'approved_by':None,'approved_at':None,'source_file_hash':hashlib.sha256(data.content.encode()).hexdigest(),'image_file':None}
         with store.connect() as c:c.execute('INSERT INTO references_registry VALUES(?,?)',(ref['id'],json.dumps(ref,ensure_ascii=False)))
@@ -324,6 +335,40 @@ def create_app(settings=None):
         actor(request);ref=next((x for x in store.references() if x['id']==rid),None)
         if not ref or not ref.get('image_file'):raise HTTPException(404)
         return FileResponse(s.data/'references'/ref['image_file'],media_type='image/png')
+    @app.post('/api/references/{rid}/document')
+    async def add_reference_document(rid:str,request:Request,file:UploadFile=File(...)):
+        who=actor(request,True);ref=next((x for x in store.references() if x['id']==rid),None)
+        if not ref or ref['status']!='DRAFT' or ref['kind']!='inspection-guidance':raise HTTPException(409,'참고자료 초안에만 원문 PDF를 첨부할 수 있습니다.')
+        raw=await file.read(s.integer('MAX_UPLOAD_MB',20)*1024*1024+1)
+        if len(raw)>s.integer('MAX_UPLOAD_MB',20)*1024*1024:raise HTTPException(413)
+        if not raw.startswith(b'%PDF-'):raise HTTPException(400,'PDF 파일을 확인하세요.')
+        from .precheck import parse
+        item=parse(ref['content']);digest=hashlib.sha256(raw).hexdigest()
+        if digest!=item['source_sha256']:raise HTTPException(400,'등록된 원문 해시와 PDF가 다릅니다.')
+        directory=s.data/'reference-documents';directory.mkdir(exist_ok=True,mode=0o700)
+        name=digest+'.pdf';path=directory/name
+        if not path.exists():
+            temporary=directory/(uuid.uuid4().hex+'.tmp');temporary.write_bytes(raw);temporary.replace(path)
+        ref.update(document_file=name,document_sha256=digest,source_page=item['source_page'],source_status=item['source_status'],image_role=item['image_role'])
+        with store.connect() as c:
+            updated=c.execute("UPDATE references_registry SET body=? WHERE id=? AND json_extract(body,'$.status')='DRAFT'",(json.dumps(ref,ensure_ascii=False),rid))
+            if updated.rowcount!=1:raise HTTPException(409,'자료가 승인되어 PDF 수정이 중단되었습니다.')
+        store.audit(who,'REFERENCE_DOCUMENT',rid,{'sha256':digest,'source_page':item['source_page']})
+        return ref
+    def document_response(ref):
+        if not ref or not ref.get('document_file'):raise HTTPException(404)
+        name=ref['document_file'];digest=ref.get('document_sha256','')
+        if not re.fullmatch('[a-f0-9]{64}',digest) or name!=digest+'.pdf':raise HTTPException(404)
+        path=s.data/'reference-documents'/name
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=digest:raise HTTPException(409,'원문 PDF 해시 확인 필요')
+        return FileResponse(path,media_type='application/pdf',headers={'Content-Disposition':'inline; filename="precheck-reference.pdf"','Cache-Control':'private, no-store'})
+    @app.get('/api/references/{rid}/document')
+    def reference_document(rid:str,request:Request):
+        actor(request);return document_response(next((x for x in store.references() if x['id']==rid),None))
+    @app.get('/api/jobs/{jid}/runs/{run_id}/references/{rid}/document')
+    def snapshot_reference_document(jid:str,run_id:str,rid:str,request:Request):
+        actor(request);job=getjob(jid);run=next((r for r in job['runs'] if r['id']==run_id),None)
+        return document_response(next((r for r in (run or {}).get('reference_snapshot',[]) if r['id']==rid),None))
     @app.post('/api/references/{rid}/approve')
     def approve_reference(rid:str,request:Request):
         who=actor(request,True);ref=next((x for x in store.references() if x['id']==rid),None)

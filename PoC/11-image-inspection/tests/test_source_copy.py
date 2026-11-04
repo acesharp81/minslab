@@ -48,3 +48,20 @@ def test_invalid_explicit_schema_is_actionable_and_legacy_is_allowed():
     with pytest.raises(ValueError,match='64자리'):s.parse(json.dumps({'schema':s.SCHEMA}))
     r=run();doc=json.loads(r['reference_snapshot'][0]['content']);doc['entries'][0]['text']=''
     with pytest.raises(ValueError,match='전체'):s.parse(json.dumps(doc))
+
+
+def test_explicit_object_binding_disambiguates_repeated_labels_but_not_wrong_targets():
+    r=run();r['observation']['objects'].append({**r['observation']['objects'][0],'id':'other'})
+    doc=json.loads(r['reference_snapshot'][0]['content']);doc['entries'][0]['object_id']='title'
+    r['reference_snapshot'][0]['content']=json.dumps(doc)
+    assert s.inspect(r,RAW)['results'][0]['object_id']=='title'
+    doc['entries'][0]['object_id']='missing';r['reference_snapshot'][0]['content']=json.dumps(doc)
+    assert not s.inspect(r,RAW)['results'] and s.inspect(r,RAW)['unresolved']
+
+
+def test_explicit_source_rect_is_checked_and_does_not_bind_far_away_text():
+    r=run();doc=json.loads(r['reference_snapshot'][0]['content']);doc['entries'][0]['rect']=[.8,.8,.9,.9]
+    r['reference_snapshot'][0]['content']=json.dumps(doc)
+    assert not s.inspect(r,RAW)['results']
+    doc['entries'][0]['rect']=[0,0,2,1]
+    with pytest.raises(ValueError,match='rect'):s.parse(json.dumps(doc))

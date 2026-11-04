@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 from .imaging import cell_rect
 from .rules import redact
+from .anatomy import HandObservation, POLICY as HAND_POLICY
 
 class ObjectObservation(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True)
@@ -17,6 +18,7 @@ class ObjectObservation(BaseModel):
     text_legibility: Literal['CLEAR','DEGRADED','UNREADABLE','NOT_TEXT','UNASSESSED']='UNASSESSED'
     legibility_evidence: str=''
     transcription_inferred: bool=False
+    hands: list[HandObservation]=Field(default_factory=list)
 
 class Inventory(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True)
@@ -56,9 +58,12 @@ structural_checks는 서버가 원본 획을 직접 측정한 결과입니다. H
 사용할 수 있는 evidence_ids와 reference_ids는 입력에 주어진 것뿐입니다. reason은 80자 이내의 구체적 근거 1문장, recommended_action은 40자 이내의 다음 조치를 기록합니다. 반복적인 면책 문구는 쓰지 마십시오. 일반적인 가능성만으로 모든 항목을 REVIEW로 만들지 않습니다.'''
 
 ANALYSIS_SYSTEM+='''
-status는 검사 수행 성공 여부가 아니라 대상의 품질 판정입니다. 오류를 찾는 행동에서 오류 조건이 충족되면 FAIL이지 PASS가 아닙니다. PASS=검사한 대상의 정상 근거 확인, FAIL=관찰된 결함·오류, REVIEW=판독·기준·문맥 미확정, NOT_APPLICABLE=실제 대상 없음입니다. 예: 일반 사람의 독립된 손가락 6개가 명확히 관찰되고 반사·가림·캐릭터 의도가 배제되면 FAIL. 주먹으로 일부 손가락이 가려져 확인 불가하면 해당 손의 evidence_id를 유지한 PRESENT/REVIEW이며 대상 부재가 아닙니다. 결함을 발견한 관찰과 '조치 불필요'라는 권고가 서로 충돌하지 않는지 확인하십시오.
+status는 검사 수행 성공 여부가 아니라 대상의 품질 판정입니다. 오류를 찾는 행동에서 오류 조건이 충족되면 FAIL이지 PASS가 아닙니다. PASS=검사한 대상의 정상 근거 확인, FAIL=관찰된 결함·오류, REVIEW=판독·기준·문맥 미확정, NOT_APPLICABLE=실제 대상 없음입니다. 예: 일반 사람의 독립된 손가락 6개가 명확히 관찰되고 반사·가림·캐릭터 의도가 배제되면 FAIL. 자연스러운 주먹·브이·엄지·쥐기·원근 때문에 일부 손가락이 가려진 것만으로 REVIEW를 강제하지 않습니다. 보이는 구조에 이상이 없으면 PRESENT/PASS와 확인 범위를 적고, 보이지 않는 부분은 확인했다고 쓰지 않습니다. 구체적인 비정상 연결·분기·융합 소견이 있으나 판독이 미확정이면 해당 손만 REVIEW입니다. 결함을 발견한 관찰과 '조치 불필요'라는 권고가 서로 충돌하지 않는지 확인하십시오.
 문자 관련 규칙(H-06-b, D-02-l)은 OCR 철자의 정답 여부와 text_legibility를 따로 확인합니다. 문맥으로 읽어낸 정답만으로 PASS를 주지 마십시오. DEGRADED와 구체적인 legibility_evidence가 있으면 읽히는 문구라도 실제 문자 품질 결함 후보로 검토하십시오. 명백한 원본 획 손상은 FAIL, 도구의 판독 문제인지 원본 손상인지 불명확하면 해당 문구만 REVIEW이며 OCR_UNREADABLE만으로 실제 결함을 확정하지 않습니다. transcription_inferred=true는 확정 원문이 아니므로 추측 전사를 오타 증거로 쓰지 마십시오. 깨끗한 특수 글꼴과 의도된 장식 효과는 결함으로 단정하지 않습니다. UNASSESSED/누락된 옛 관찰은 문자 외형을 검사했다는 증거가 아닙니다.
 '''
+
+VISION_SYSTEM += '\n' + HAND_POLICY
+ANALYSIS_SYSTEM += '\n' + HAND_POLICY
 
 def clean_inventory(data,grid=None):
     out=Inventory.model_validate(data).model_dump()
@@ -77,6 +82,8 @@ def clean_inventory(data,grid=None):
         obj['cell_ids']=valid
         if invalid:warnings.append({'object_id':obj['id'],'discarded_count':len(invalid),'reason':'허용 범위를 벗어난 위치는 제외했습니다. 관찰 내용은 유지됩니다.'})
         for k in ('label','description','text','visual_concerns','legibility_evidence'):obj[k]=redact(obj[k])[:4000]
+        for hand in obj.get('hands',[]):
+            for key in ('occlusion_reason','anomaly_evidence'):hand[key]=redact(hand[key])[:500]
     for k in ('summary','context','limitations'):out[k]=redact(out[k])[:5000]
     if warnings:out['location_warnings']=warnings
     return out

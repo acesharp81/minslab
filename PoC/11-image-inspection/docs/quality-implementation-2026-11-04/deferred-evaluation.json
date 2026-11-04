@@ -1,0 +1,88 @@
+{
+  "schema": "chekmi-deferred-evaluation-v1",
+  "status": "DEFERRED_BY_USER",
+  "automatic_execution": false,
+  "reason": "국정온 공용 할당량 사용 중 · 실제 LLM 테스트는 나중에 묶어서 실행",
+  "execute_only_after_user_requests_resume": true,
+  "actual_llm_calls_this_change": 0,
+  "actual_external_ocr_calls_this_change": 0,
+  "source_sha256": {
+    "app/anatomy.py": "e24195c1f5eaef97828adef701cef30eac5dcf45de9b4308a2842e3753bd3686",
+    "app/observations.py": "f83be25bbd89728204ef6b1ee642fec89108c7bf9f892151944ab6282b006985",
+    "app/text_routing.py": "d19e667e0bf9b87a701eab208afa74ca34acc4e446c0bae6fc25bcec273745c1",
+    "app/text_ocr.py": "86f2b022150bf75a70014429c533bf9f9d575de1f2162b48b04b3acfc7f8f630",
+    "app/pixel_text.py": "a8f54254859ffbf956558654638abafab20af50779eb0a5c27975366f13bf5c4",
+    "app/spelling_audit.py": "5483d9c67147f70a7b3f2d74f66905dae7f64e37a4bd9dc0372ed7b32351d620",
+    "app/evidence_guards.py": "1a0194ee0e382873c2fca1a8013af34320782b1cc0847ac6a069a06e0cbf2f09",
+    "app/term_dictionary.py": "e682d0340cbaa428d0389daab89387b8c6b6f8f49c416ad2211500a133b0a28b",
+    "app/source_copy.py": "cc2528bb67d9affc32471722664243cc8cb5ca75f3a99ae63d81e192316c4ad4",
+    "app/engine.py": "5be9cf4416ef9eca4afc3b861cd7ffeb53da945c625e27fc4a38e0017880f0c7",
+    "app/verification.py": "42cca6e9464509b7afc3e264804839e47fe1dffdbfc782e5d70574c6c4350239",
+    "web/app.js": "c498e9684e4548349f28671b72eb7d6d37fd28d623cb6885f524a6945cc61149",
+    "rules/official-terms.json": "ca32f440d3aff877faa4dabcf3d180e3116024fc3962b7815a0a19fbd6dd2737"
+  },
+  "models": {
+    "reading": "gpt-5.4",
+    "analysis": "gpt-5.4-mini",
+    "monthly_credit_models": "추가 요청 또는 명시된 소규모 비교에서만",
+    "quota_check": "재개 시점의 PoC7 공용 일일 잔량을 새로 확인·예약; 미확정 호출도 상한에 포함"
+  },
+  "evaluation_cases": [
+    {
+      "image": "QA_02_hands.png",
+      "checks": [
+        "정상 가림 손의 기본 경고율",
+        "실제 융합·분기·손가락 오류 회수율"
+      ]
+    },
+    {
+      "image": "QA_03_ocr_readability.png",
+      "checks": [
+        "문자 탐지 누락",
+        "명칭·오탈자",
+        "실제 획 손상과 OCR 오류 구분"
+      ]
+    },
+    {
+      "image": "QA_07_culture_food.png",
+      "checks": [
+        "음식명 철자",
+        "단어 자동 복원 방지",
+        "미검사 영역 분리"
+      ]
+    },
+    {
+      "image": "QA_08_all_pass.png",
+      "checks": [
+        "정상 문자 오탐",
+        "진단 의견의 기본 경고 제외"
+      ]
+    },
+    {
+      "image": "QA_10_emblem.png",
+      "checks": [
+        "기관 문양 회귀",
+        "안젼한 하루 철자·위치 회귀"
+      ]
+    },
+    {
+      "image": "ImageGen_Exploratory_01/02/03",
+      "role": "개발 사례 재현 전용; 독립 평가 지표와 분리",
+      "checks": [
+        "자연스러운 손 가림",
+        "기관명·간판",
+        "한복/한북·지도 글자",
+        "부분 문양 대조 유지"
+      ]
+    }
+  ],
+  "acceptance": [
+    "동일 이미지·규칙·기준자료로 기준선과 비교",
+    "정답·ROI는 채점에서만 사용",
+    "REVIEW 노출과 FAIL 확정 검출은 별도 점수",
+    "검출률뿐 아니라 정상 손 경고율·문자 누락·위치·토큰·지연 기록",
+    "호출 전 예산 부족 시 중단, 추가 자동 재시도 금지",
+    "결과를 별도 검사 버전으로 보존"
+  ],
+  "additional_fixture_requirement": "주먹·브이·엄지·쥐기·원근·캐릭터의 정상 손 라벨 표본을 확보해 일반화 평가; 단순 저장 관찰은 사람 정답으로 간주하지 않음"
+}

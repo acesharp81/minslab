@@ -1,0 +1,38 @@
+[
+  {
+    "id": "gpt-5.4-mini",
+    "limit": 10000000,
+    "used": 5091258,
+    "remaining": 4908742,
+    "unknown": 0,
+    "reserved": 0,
+    "expires_at": "2026-11-05T00:00:00+00:00"
+  },
+  {
+    "id": "gpt-5.4",
+    "limit": 1000000,
+    "used": 254014,
+    "remaining": 745986,
+    "unknown": 0,
+    "reserved": 0,
+    "expires_at": "2026-11-05T00:00:00+00:00"
+  },
+  {
+    "id": "openai-shared",
+    "limit": 100.0,
+    "used": 0.7436785,
+    "remaining": 99.2563215,
+    "unknown": 0.0,
+    "reserved": 0.0,
+    "expires_at": "2026-12-01T00:00:00+09:00"
+  },
+  {
+    "id": "solar-pro4",
+    "limit": null,
+    "used": 1.7615943,
+    "remaining": null,
+    "unknown": 0.0411384,
+    "reserved": 0.0,
+    "expires_at": null
+  }
+]

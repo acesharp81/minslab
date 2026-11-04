@@ -22,8 +22,8 @@ def build(run):
             key=(status,row.get('observation',''),row.get('reason',''),row.get('recommended_action',''),row.get('model',''))
             g=groups.setdefault(key,{'status':status,'observation':row.get('observation',''),'reason':row.get('reason',''),
                 'action':row.get('recommended_action',''),'model':row.get('model',''),'rule_ids':[],'finding_ids':[],
-                'reference_ids':[],'evidence_ids':[]})
-            for field,values in [('rule_ids',[row['rule_id']]),('finding_ids',[row.get('id')]),('reference_ids',row.get('reference_ids',[])),('evidence_ids',row.get('evidence_ids',[]))]:
+                'reference_ids':[],'evidence_ids':[],'official_tip_ids':[],'precheck_reference_ids':[]})
+            for field,values in [('rule_ids',[row['rule_id']]),('finding_ids',[row.get('id')]),('reference_ids',row.get('reference_ids',[])),('evidence_ids',row.get('evidence_ids',[])),('official_tip_ids',row.get('official_tip_ids',[])),('precheck_reference_ids',[x['reference_id'] for x in row.get('precheck_references',[])])]:
                 g[field]=list(dict.fromkeys(g[field]+[x for x in values if x]))
         ordered=sorted(groups.values(),key=lambda g:pack['status_priority'].index(g['status']))
         states=[g['status'] for g in ordered]

@@ -245,8 +245,10 @@ def attach_observations(run):
     observation=run['analysis_observation'];audit=run.get('text_ocr') or {}
     for r in audit.get('regions',[]):
         v=r.get('vision') or {};decision=r['verdict'];x,y,z,b=r['rect']
-        observation['objects'].append(dict(id=r['id'],label='문자 영역 '+r['id'][3:],description=decision['reason'],
-            text=v.get('literal_text',''),visual_concerns='' if decision['status']=='PASS' else decision['reason'],quality='CLEAR' if decision['status']!='REVIEW' else 'UNCERTAIN',
+        linked=[o for o in run.get('observation',{}).get('objects',[]) if o['id'] in r.get('linked_object_ids',[])]
+        label=linked[0]['label']+' · 독립 문자 판독' if len(linked)==1 else '문자 영역 '+r['id'][3:]
+        observation['objects'].append(dict(id=r['id'],label=label,description=decision['reason'],
+            text=v.get('literal_text',''),visual_concerns='' if decision['status']=='PASS' else decision['reason'],quality='CLEAR' if decision['status']!='REVIEW' or source_transcription_confirmed(r) else 'UNCERTAIN',
             cell_ids=[f'R{min(12,int((y+b)/2*12)+1):02}C{min(12,int((x+z)/2*12)+1):02}'],rects=[r['rect']],
             text_legibility={'CLEAR':'CLEAR','DEFECT':'DEGRADED','NOT_TEXT':'NOT_TEXT'}.get(v.get('glyph_quality'),'UNREADABLE'),
             legibility_evidence=v.get('glyph_evidence',''),transcription_inferred=v.get('inferred',True),ocr_region=True))
@@ -284,7 +286,8 @@ def protect_rows(run,rows,ids,model):
         uncertain=any(r['verdict']['status']=='REVIEW' and not source_transcription_confirmed(r) for r in matches)
         grounded_shape=any(p['id'] in row.get('evidence_ids',[]) for p in confirmed)
         grounded_defect=row['status']=='FAIL' and row.get('error_type')=='VISUAL_TEXT_DEFECT' and (row.get('glyph_evidence') or row.get('pixel_text_evidence'))
-        if row['status'] in ('PASS','FAIL') and not grounded_defect and not grounded_shape and (uncertain or audit['status']=='UNAVAILABLE'):
+        unavailable=audit['status']=='UNAVAILABLE' and (audit.get('mode')!='targeted' or bool(matches))
+        if row['status'] in ('PASS','FAIL') and not grounded_defect and not grounded_shape and (uncertain or unavailable):
             row.update(status='REVIEW',error_type='OCR_UNCERTAIN',visual_issue=True,document_review=False,
                        reason=row['reason']+' · 독립 OCR/획 검사 근거 미확정')
         if row['status']=='PASS' and any(r['verdict']['status']=='FAIL' for r in matches):
@@ -306,7 +309,8 @@ def protect_rows(run,rows,ids,model):
             evidence_ids=[r['id']],evidence_quality='CLEAR' if d['status']!='REVIEW' else 'UNCERTAIN',reference_ids=[],evidence_status='NOT_REQUIRED',
             cell_ids=[f'R{min(12,int((y+b)/2*12)+1):02}C{min(12,int((x+z)/2*12)+1):02}'],rects=[r['rect']],
             model=model,vision_model=audit.get('vision_model'),target_presence='PRESENT',error_type=d['error_type'],
-            visual_issue=bool(v) and v.get('glyph_quality')!='NOT_TEXT',document_review=not bool(v) or v.get('glyph_quality')=='NOT_TEXT',location_unresolved=False,ocr_evidence=r))
+            visual_issue=bool(v) and v.get('glyph_quality')!='NOT_TEXT',document_review=not bool(v) or v.get('glyph_quality')=='NOT_TEXT',location_unresolved=False,ocr_evidence=r,
+            diagnostic_only=not bool(v) or (v.get('glyph_quality')=='CLEAR' and d['error_type'].startswith('OCR_'))))
     return rows
 
 

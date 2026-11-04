@@ -10,3 +10,7 @@ data/
 .DS_Store
 
 .venv-ocr/
+
+# User-provided internal source documents: runtime copies are authenticated.
+docs/대국민 홍보물 사전점검 참고자료.pdf
+docs/췤미_Codex_공식점검자료_증분통합_비용최적화_개발조언.md

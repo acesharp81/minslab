@@ -12,6 +12,8 @@ from .imaging import cell_rect, crop, labeled
 from .rules import redact
 from .usage import BudgetError
 from . import text_selection
+from . import precheck
+from .anatomy import HandObservation, POLICY as HAND_POLICY
 
 class Comparison(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True)
@@ -35,6 +37,7 @@ class GlyphCheck(BaseModel):
 class Recheck(BaseModel):
     model_config=ConfigDict(extra='forbid',strict=True)
     object_id: str
+    hands: list[HandObservation]=Field(default_factory=list)
     coverage: Literal['COMPLETE','PARTIAL','MISSING']
     text: str
     text_legibility: Literal['CLEAR','DEGRADED','UNREADABLE','NOT_TEXT','UNASSESSED']
@@ -88,6 +91,8 @@ glyph_checks.origin은 결함의 발생 위치다. 깨끗한 원본 확대 안�
 """
 
 
+VERIFY_SYSTEM += "\n" + HAND_POLICY
+
 def is_map_body(obj):
     label=obj['label']
     return '지도' in label and (any(t in label for t in ('본체','전체','전도')) or not any(t in label for t in ('제목','문구','방향표','지명','나침반','글자')))
@@ -115,6 +120,7 @@ def reference_candidates(obj,refs,image_hash=None):
         if all(n in text for n in needles):subjects.append(name)
     matched=[]
     for ref in refs:
+        if precheck.is_guidance(ref):continue
         if not ref.get('image_file') or ref['status']!='APPROVED':continue
         if ref.get('target_image_sha256'):
             if ref['target_image_sha256']==image_hash and ref['kind']=='official-emblems' and re.search('로고|심볼|표식|문양|마크',text):matched.append(ref)
@@ -262,8 +268,12 @@ def run_verification(engine,job,run,raw):
                 tasks.append({'object':obj,'references':[],'rules':[],'domain':'text' if obj.get('text') else 'anatomy' if '손' in obj['label'] else 'other','score':0})
         tasks=[t for t in tasks if t['object']['id'] in requested]
     verification={'version':'visual-recheck-v8-balanced-text','results':[r for r in previous.get('results',[]) if r['object_id'] not in requested],'deferred':[r for r in previous.get('deferred',[]) if r['object_id'] not in requested],'max_calls':max(0,min(3,engine.s.integer('AUTO_VERIFY_MAX_CALLS',3)))}
+    if run.get('text_ocr',{}).get('mode')=='targeted' and not run.get('observation_reused_from'):
+        verification['max_calls']=max(0,verification['max_calls']-run['text_ocr'].get('call_count',0))
     run['verification']=verification
     limit=max(0,min(9,engine.s.integer('AUTO_VERIFY_MAX_OBJECTS',9)))
+    if run.get('text_ocr',{}).get('mode')=='targeted' and not run.get('observation_reused_from'):
+        limit=max(0,limit-len(run['text_ocr'].get('regions',[])))
     pending=[]
     for task in tasks:
         obj=task['object']
@@ -296,7 +306,10 @@ def run_verification(engine,job,run,raw):
                 for cell in obj['cell_ids']:
                     x,y,z,w=cell_rect(cell);cx=((x+z)/2-rect[0])/(rect[2]-rect[0]);cy=((y+w)/2-rect[1])/(rect[3]-rect[1])
                     if 0<=cx<=1 and 0<=cy<=1:target_locations.append(f'R{min(8,int(cy*8)+1):02}C{min(8,int(cx*8)+1):02}')
-                request_tasks.append({'object_id':obj['id'],'label':blind_label(obj),'target_locations':target_locations,'clean_image_index':len(images)-2,'grid_image_index':len(images)-1,'reference_ids':[r['id'] for r in task['references']],'rules':task['rules'],'inspection_focus':task['domain']})
+                request_task={'object_id':obj['id'],'label':blind_label(obj),'target_locations':target_locations,'clean_image_index':len(images)-2,'grid_image_index':len(images)-1,'reference_ids':[r['id'] for r in task['references']],'rules':task['rules'],'inspection_focus':task['domain']}
+                guidance=precheck.compact(run,[r['rule_id'] for r in task['rules']],object_ids={obj['id']})
+                if guidance:request_task['inspection_guidance']={'policy':precheck.POLICY,'items':guidance}
+                request_tasks.append(request_task)
             reference_images=[]
             for ref in refset.values():
                 data=(engine.s.data/'references'/Path(ref['image_file']).name).read_bytes()
@@ -333,6 +346,8 @@ def run_verification(engine,job,run,raw):
             for result in returned:
                 task=by_id[result['object_id']];obj=task['object']
                 for k in ('text','description','legibility_evidence','visual_concerns'):result[k]=redact(result[k])[:4000]
+                for hand in result.get('hands',[]):
+                    for key in ('occlusion_reason','anomaly_evidence'):hand[key]=redact(hand[key])[:500]
                 result['emblem_parts']=redact(result['emblem_parts'])[:4000]
                 for glyph in result['glyph_checks']:
                     glyph['literal']=redact(glyph['literal'])[:2000];glyph['evidence']=redact(glyph['evidence'])[:2000]
@@ -376,7 +391,7 @@ def direct_comparisons(run,rule_id,object_ids,reference_ids):
                 quality=cmp.get('quality','UNASSESSED')
                 if (result.get('quality') if quality=='UNASSESSED' else quality)!='CLEAR':continue
                 ref=refs.get(cmp['reference_id'])
-                if ref and ref['id'] in reference_ids and rule_id in cmp['rule_ids'] and cmp['status'] in ('MATCH','MISMATCH') and result['reference_hashes'].get(ref['id'])==ref.get('image_hash'):
+                if ref and not precheck.is_guidance(ref) and ref['id'] in reference_ids and rule_id in cmp['rule_ids'] and cmp['status'] in ('MATCH','MISMATCH') and result['reference_hashes'].get(ref['id'])==ref.get('image_hash'):
                     matches.append(cmp)
         if not matches:return []
         # Color can match while direction fails: separate aspects are conjunctive.
@@ -413,6 +428,7 @@ def effective_observation(run):
         if not obj or result.get('status')!='COMPLETED' or result.get('coverage')!='COMPLETE' or not result.get('cell_ids'):continue
         obj['first_text']=obj.get('text','');obj['recheck_text']=result['text']
         obj['first_visual_concerns']=obj.get('visual_concerns','')
+        if result.get('hands'):obj['hands']=copy.deepcopy(result['hands'])
         if 'visual_concerns' in result:obj['visual_concerns']=result['visual_concerns']
         obj.update({k:result[k] for k in ('text','text_legibility','legibility_evidence','transcription_inferred','quality','description')})
         if result['transcription_inferred']:obj['quality']='UNCERTAIN'

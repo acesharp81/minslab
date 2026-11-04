@@ -33,7 +33,7 @@ def infer(args):
     resultpath=resultdir/(Path(args.image).stem+'.json')
     if resultpath.exists():raise RuntimeError('Existing result: use another revision; never silently rerun')
     work=resultdir/(Path(args.image).stem+'-work');work.mkdir(parents=True,exist_ok=True)
-    settings=Settings({**values,'DATA_DIR':str(work),'NAVER_OCR_ENABLED':'false','GLYPH_AUDIT_ENABLED':'false','PIXEL_CONFIRM_ENABLED':'true' if getattr(args,'pixel_confirm',False) else 'false','PIXEL_TEXT_ENABLED':'true' if getattr(args,'pixel_text',False) else 'false','TEXT_BALANCED_SELECTION':'true' if getattr(args,'balanced_text',False) else 'false',
+    settings=Settings({**values,'PRECHECK_GUIDANCE_ENABLED':'true' if getattr(args,'precheck',False) else 'false','SPELLING_AUDIT_ENABLED':'false' if getattr(args,'guidance_ab',False) else values.get('SPELLING_AUDIT_ENABLED','true'),'DATA_DIR':str(work),'NAVER_OCR_ENABLED':'false','GLYPH_AUDIT_ENABLED':'false','PIXEL_CONFIRM_ENABLED':'true' if getattr(args,'pixel_confirm',False) else 'false','PIXEL_TEXT_ENABLED':'true' if getattr(args,'pixel_text',False) else 'false','TEXT_BALANCED_SELECTION':'true' if getattr(args,'balanced_text',False) else 'false',
                        **({'OCR_ENABLED':'true','OCR_VISION_SCALE':str(getattr(args,'ocr_scale',1))} if getattr(args,'ocr',False) else {})})
     # No separate OCR calls during initial end-to-end baseline; matches production setting.
     settings.values['OCR_PYTHON']=str(ROOT/'.venv-ocr/bin/python')
@@ -66,7 +66,7 @@ def infer(args):
     if args.reuse:
         saved=json.loads(Path(args.reuse).read_text());prior=saved['run']
         if saved['image_sha256']!=hashlib.sha256(raw).hexdigest():raise ValueError('reuse image mismatch')
-        for key in ('observation','observation_model','verification','text_ocr','structural_checks','glyph_audit','pixel_text'):
+        for key in ('observation','observation_model','verification','text_ocr','structural_checks','glyph_audit','pixel_text','spelling_audit'):
             if key in prior:run[key]=copy.deepcopy(prior[key])
         run['observation_reused_from']={'run_id':prior['id']}
         if getattr(args,'text_only',False):
@@ -119,7 +119,7 @@ def infer(args):
 
 def main():
     global EVAL
-    p=argparse.ArgumentParser();p.add_argument('image');p.add_argument('--revision',default='baseline');p.add_argument('--vision',default='gpt-5.4');p.add_argument('--analysis',default='gpt-5.4-mini');p.add_argument('--reuse');p.add_argument('--reverify',action='store_true');p.add_argument('--reverify-nontext',action='store_true');p.add_argument('--repair',action='store_true');p.add_argument('--evaluation-root',type=Path,default=EVAL);p.add_argument('--isolated-glyphs',action='store_true');p.add_argument('--glyph-audit',action='store_true');p.add_argument('--text-only',action='store_true');p.add_argument('--balanced-text',action='store_true');p.add_argument('--pixel-text',action='store_true');p.add_argument('--pixel-confirm',action='store_true');p.add_argument('--ocr',action='store_true');p.add_argument('--ocr-scale',type=int,choices=(1,2,3),default=1);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('image');p.add_argument('--revision',default='baseline');p.add_argument('--vision',default='gpt-5.4');p.add_argument('--analysis',default='gpt-5.4-mini');p.add_argument('--reuse');p.add_argument('--reverify',action='store_true');p.add_argument('--reverify-nontext',action='store_true');p.add_argument('--repair',action='store_true');p.add_argument('--evaluation-root',type=Path,default=EVAL);p.add_argument('--isolated-glyphs',action='store_true');p.add_argument('--glyph-audit',action='store_true');p.add_argument('--text-only',action='store_true');p.add_argument('--precheck',action='store_true');p.add_argument('--guidance-ab',action='store_true');p.add_argument('--balanced-text',action='store_true');p.add_argument('--pixel-text',action='store_true');p.add_argument('--pixel-confirm',action='store_true');p.add_argument('--ocr',action='store_true');p.add_argument('--ocr-scale',type=int,choices=(1,2,3),default=1);a=p.parse_args()
     EVAL=a.evaluation_root.resolve()
     if a.text_only and not a.reuse:p.error('--text-only requires --reuse')
     if a.repair and not a.reuse:p.error('--repair requires --reuse')

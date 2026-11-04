@@ -9,7 +9,7 @@ import uuid
 import httpx
 from .rules import Batch
 from .observations import Inventory, Decisions, VISION_SYSTEM, ANALYSIS_SYSTEM
-from .usage import token_cost
+from .usage import token_cost, usage_details
 from .verification import Verification, VERIFY_SYSTEM
 from .text_ocr import TextReadings, TEXT_SYSTEM
 from .glyph_audit import ShapeReadings, SHAPE_SYSTEM
@@ -181,7 +181,8 @@ class Provider:
                 choice=choices[0] if choices else {}
                 body={**body,'status':'completed' if choice.get('finish_reason')=='stop' else 'incomplete',
                     'output':[{'type':'message','content':[{'type':'output_text','text':choice.get('message',{}).get('content') or ''}]}]}
-            event.update(input_tokens=it,output_tokens=ot,cost_usd=cost)
+            token_details=usage_details(body.get('usage') or {},it,ot)
+            event.update(input_tokens=it,output_tokens=ot,cost_usd=cost,**token_details)
             if body.get('status')!='completed':
                 exc=ProviderError('응답이 완료되지 않았습니다. 출력 한도 또는 공급자 상태를 확인하십시오.')
                 exc.output_truncated=ot>=output or body.get('incomplete_details',{}).get('reason')=='max_output_tokens' or (provider!='openai' and choice.get('finish_reason')=='length')
@@ -201,7 +202,7 @@ class Provider:
                 data={'results':[{**assessment,'rule_ids':[rid]} for rid,items in assessments.items() for assessment in items]}
             schema.model_validate(data)
             event['status']='COMPLETED'
-            return data,{'event_id':eid,'response_id':body.get('id'),'model':body.get('model',model),'requested_model':model,'workload':workload,'usage':{'input_tokens':it,'output_tokens':ot},'cost_usd':cost,'image_detail':detail if images else None,'reasoning_effort':effort if provider=='openai' else None}
+            return data,{'event_id':eid,'response_id':body.get('id'),'model':body.get('model',model),'requested_model':model,'workload':workload,'usage':{'input_tokens':it,'output_tokens':ot,**token_details},'cost_usd':cost,'cost_basis':'conservative_standard_rate_equivalent','image_detail':detail if images else None,'reasoning_effort':effort if provider=='openai' else None,'prompt_bytes':len(prompt.encode()),'image_count':len(images),'http_elapsed_ms':event.get('http_elapsed_ms')}
         except httpx.TimeoutException as exc:raise ProviderError('API 응답 시간 초과 · 사용량 확인 전까지 예약 예산 유지') from exc
         except httpx.HTTPError as exc:raise ProviderError('API 네트워크 오류') from exc
         except (ValueError,KeyError,TypeError) as exc:raise ProviderError('API 응답 JSON/스키마 오류') from exc
