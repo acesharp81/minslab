@@ -20,7 +20,7 @@ from .config import ROOT
 from . import text_ocr
 from .isolated_glyphs import split_word
 
-VERSION = 'pixel-text-v1'
+VERSION = 'pixel-text-v2-coverage'
 TEXT_RULES = {'D-02-l', 'H-06-b'}
 
 
@@ -84,23 +84,27 @@ def compare_char(image, char):
                 accepted=bool(winner==char or strong),font=manifest['sources'][int(scores[:,best].argmax())]['name'])
 
 
-def inspect_regions(raw, regions, max_regions=48):
+def inspect_regions(raw, regions, max_regions=48, diagnostics=None):
     im=Image.open(io.BytesIO(raw)).convert('RGB');w,h=im.size;results=[]
-    for source in regions[:max_regions]:
+    diagnostics = diagnostics if diagnostics is not None else []
+    for index,source in enumerate(regions):
+        record=dict(source_id=source.get('id'),rect=source.get('rect'),state='NOT_MEASURED')
+        diagnostics.append(record)
+        if index>=max_regions:record['state']='REGION_LIMIT';continue
         rect=source.get('rect',[])
-        if not text_ocr.valid_rect(rect):continue
+        if not text_ocr.valid_rect(rect):record['state']='INVALID_LOCATION';continue
         polygon=source.get('polygon_px')
         if polygon:
             # The atlas assumes upright planar text. Bounding boxes alone hide
             # rotation/perspective; unsupported geometry must not become a typo.
             points=np.asarray(polygon,dtype=float)
-            if points.shape!=(4,2) or not np.isfinite(points).all():continue
+            if points.shape!=(4,2) or not np.isfinite(points).all():record['state']='INVALID_POLYGON';continue
             top,bottom=points[1]-points[0],points[2]-points[3]
-            if any(v[0]<=0 or abs(v[1])>abs(v[0])*.07 for v in (top,bottom)):continue
-            if min(top[0],bottom[0])/max(top[0],bottom[0])<.9:continue
+            if any(v[0]<=0 or abs(v[1])>abs(v[0])*.07 for v in (top,bottom)):record['state']='UNSUPPORTED_ROTATION';continue
+            if min(top[0],bottom[0])/max(top[0],bottom[0])<.9:record['state']='UNSUPPORTED_PERSPECTIVE';continue
         x,y,z,b=rect;crop=im.crop((int(x*w),int(y*h),int(np.ceil(z*w)),int(np.ceil(b*h))))
         measurements=measure(crop)
-        if not measurements:continue
+        if not measurements:record['state']='INSUFFICIENT_PIXELS_OR_CONTRAST';continue
         result=dict(id='PXT'+str(len(results)+1).zfill(3),rect=rect,detector_text=source.get('text',''),metrics=measurements,shape_checks=[],source=source.get('source'),source_id=source.get('id'))
         width,height=measurements['pixels']
         text=source.get('text','');compact=text_ocr.normalized(text)
@@ -109,8 +113,10 @@ def inspect_regions(raw, regions, max_regions=48):
         eligible=measurements['uniform_background'] and width>height*2 and height>=20
         detected=source.get('source')=='paddle-detector' and source.get('detection_score',0)>=.55
         result['blur_observed']=bool(spread and eligible and detected and len(compact)>=4)
+        result['shape_status']='BLUR_CANDIDATE' if result['blur_observed'] else 'UNSUPPORTED_BACKGROUND' if not measurements['uniform_background'] else 'UNSUPPORTED_TEXT' if not re.fullmatch('[가-힣]{2,6}',compact) else 'INSUFFICIENT_EDGE_DETAIL'
         if not result['blur_observed'] and measurements['uniform_background'] and measurements['edge_strength']>2.7 and re.fullmatch('[가-힣]{2,6}',compact):
             pieces=split_word(raw,rect)
+            result['shape_status']='SEGMENTATION_MISMATCH'
             if len(pieces)==len(compact):
                 for char,(data,position) in zip(compact,pieces):
                     check=compare_char(Image.open(io.BytesIO(data)),char)
@@ -120,6 +126,9 @@ def inspect_regions(raw, regions, max_regions=48):
                     chars=iter(c['shape_char'] if c['accepted'] else c['ocr_char'] for c in result['shape_checks'])
                     result['shape_text']=''.join(next(chars) if re.fullmatch('[가-힣]',c) else c for c in text)
                     result['shape_conflict']=any(c['accepted'] and c['shape_char']!=c['ocr_char'] for c in result['shape_checks'])
+                    result['shape_status']='CONFLICT_CANDIDATE' if result['shape_conflict'] else 'TEMPLATE_MATCH' if all(c['accepted'] for c in result['shape_checks']) else 'UNCERTAIN_TEMPLATE'
+                else:result['shape_status']='UNSUPPORTED_FONT_OR_GLYPH'
+        record['state']=result['shape_status']
         results.append(result)
     return results
 
@@ -140,7 +149,8 @@ def run_check(engine,job,run,raw):
             audit['detection_summary']={k:v for k,v in detection.items() if k!='regions'}
         # Preserve raw evidence, never replace the OCR text with inferred spelling.
         audit['detector_regions']=regions
-        audit['regions']=inspect_regions(raw,regions,engine.s.integer('PIXEL_TEXT_MAX_REGIONS',48))
+        audit['region_diagnostics']=[]
+        audit['regions']=inspect_regions(raw,regions,engine.s.integer('PIXEL_TEXT_MAX_REGIONS',48),audit['region_diagnostics'])
         audit.update(status='COMPLETED',candidate_count=len(regions),processed_count=len(audit['regions']))
     except (OSError,RuntimeError,ValueError,KeyError,TimeoutError,subprocess.TimeoutExpired) as exc:
         audit.update(status='UNAVAILABLE',error='원본 획 대조 미완료 · 기존 모델 검사 유지')

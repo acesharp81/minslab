@@ -45,3 +45,22 @@ def test_spacing_disagreement_is_not_a_source_typo():
     s.inspect(engine,{'id':'j'},run)
     row=dict(rule_id='D-02-l',status='PASS',evidence_ids=['o1']);s.protect(run,[row],['D-02-l'])
     assert row['status']=='PASS' and run['spelling_audit']['results'][0]['verdict']=='REVIEW'
+
+def test_existing_typo_fail_is_also_grounded_to_actual_text():
+    run,response,engine,calls=fixture();s.inspect(engine,{'id':'j'},run)
+    row=dict(rule_id='D-02-l',status='FAIL',reason='확인한 철자 오류',evidence_ids=['o1'],rects=[[0,0,.1,.1]])
+    s.protect(run,[row],['D-02-l'])
+    assert row['status']=='FAIL' and row['rects']==[[.4,.8,.55,.86]] and row['reason']=='확인한 철자 오류'
+    row.update(rects=[[.41,.81,.42,.82]],glyph_evidence={'source':'source-glyph'})
+    s.protect(run,[row],['D-02-l']);assert row['rects']==[[.41,.81,.42,.82]]
+
+def test_confirmed_source_shape_replaces_context_completed_ocr_word():
+    run,response,engine,calls=fixture()
+    shape=dict(id='PXT001',shape_confirmed=True,shape_text='힘께 만드는 미래',rect=[.4,.8,.55,.86],shape_checks=[dict(accepted=True,shape_char='힘',ocr_char='함',independent_comparison={'agrees':True})])
+    run['pixel_text']['regions']=[shape]
+    run['observation']['objects'][0]['text']='함께 만드는 미래'
+    run['pixel_text']['detector_regions'][0]['text']='함께 만드는 미래'
+    tasks=s.candidates(run)
+    assert len(tasks)==1 and tasks[0]['id']=='PXT001' and tasks[0]['literal']=='힘께 만드는 미래'
+    shape['shape_checks'][0]['independent_comparison']['agrees']=False
+    assert all(t['id']!='PXT001' for t in s.candidates(run))

@@ -1,0 +1,12 @@
+{
+  "targets": 111,
+  "new_annotations": 59,
+  "all_current": true,
+  "existing_business_decisions_changed": 0,
+  "new_projects": 0,
+  "actual_units_added": 0,
+  "protected_before_sha256": "4503d13d4f2064073202316ea032fb1dcc52db7686867801baecc00e18f859bf",
+  "protected_after_sha256": "4503d13d4f2064073202316ea032fb1dcc52db7686867801baecc00e18f859bf",
+  "registration_review": 46,
+  "event_groups": 9
+}

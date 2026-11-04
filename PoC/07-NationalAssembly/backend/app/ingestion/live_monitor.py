@@ -21,6 +21,7 @@ from ..adapters.live_sources import (
 )
 from ..adapters.national_assembly.base import AdapterError
 from ..storage.raw_store import RawStore
+from ..services.watch_lifecycle import official_recess_status
 
 
 class LiveLifecycleSink(Protocol):
@@ -115,8 +116,7 @@ def probe_assembly_live_once(
         lifecycle_sink.finish_poll(
             [str(item["meeting_external_id"]) for item in assembly["items"]
              if item["meeting_external_id"] and (item["is_live"]
-                 or '계속예정' in str(item.get('status_text') or '').replace(' ', '')
-                 or str(item.get('status_text') or '').replace(' ', '').startswith('정회'))],
+                 or official_recess_status(item.get('status_text')))],
             listing_payload.retrieved_at,
         )
     previous: dict[str, Any] = {}

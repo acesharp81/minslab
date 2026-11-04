@@ -1,0 +1,20 @@
+{
+  "backups": {
+    "poc10-home-api": "poc10-home-api-before-algorithm-1793750529",
+    "poc10-home-ai-worker": "poc10-home-ai-worker-before-algorithm-1793750535"
+  },
+  "containers": {
+    "poc10-home-api": {
+      "image": "poc10-home:publication-integrity-20261104-v2",
+      "image_id": "sha256:587f4eebf026d3a61397f4ba89f5ccbe20c269bf3dcf92b2af2210c5ecc35cb4",
+      "log_rotation": "local 10m × 3"
+    },
+    "poc10-home-ai-worker": {
+      "image": "poc10-home:publication-integrity-20261104-v2",
+      "image_id": "sha256:587f4eebf026d3a61397f4ba89f5ccbe20c269bf3dcf92b2af2210c5ecc35cb4",
+      "log_rotation": "local 10m × 3"
+    }
+  },
+  "scope": "publication evidence selection, reproducible export hashes and revision review; preserve business values and budgets",
+  "healthy": true
+}

@@ -58,6 +58,8 @@ def _target(title: str, has_future_fund: bool) -> tuple[str, str] | None:
 def compact_report_parents(brief: dict[str, Any]) -> dict[str, Any]:
     """Return a separate projection, retaining order and exact child membership."""
     result = deepcopy(brief)
+    if result.get('parent_review', {}).get('status') == 'READY':
+        return result
     groups = result.get("topic_groups") or []
     has_future_fund = any("미래대응기금" in _compact(g.get("title", "")) for g in groups)
     buckets: dict[str, list[dict[str, Any]]] = {}

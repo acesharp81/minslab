@@ -897,6 +897,18 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 .meeting-source-tabs button { min-height: 42px; padding: 0 16px; border: 0; border-bottom: 3px solid transparent; color: #667085; background: transparent; cursor: pointer; font-size: 13px; font-weight: 800; }
 .meeting-source-tabs button[aria-selected="true"] { border-bottom-color: var(--ws-primary); color: var(--ws-primary); }
 .meeting-source-tabs button:disabled { cursor: default; opacity: .55; }
+.executive-report-source-switch .meeting-source-tabs { flex-wrap: wrap; }
+.executive-report-source-switch button[aria-pressed="true"] { border-bottom-color: var(--ws-primary); color: var(--ws-primary); }
+.executive-report-source-note { margin: 0; padding: 10px 16px; color: #526580; background: #f5f8fc; font-size: 12px; line-height: 1.6; }
+.executive-related-discussions:empty { display: none; }
+.executive-related-discussions { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--ws-line); }
+.executive-related-discussions summary { cursor: pointer; color: var(--ws-primary); font-size: 13px; font-weight: 700; }
+.executive-related-discussions p { font-size: 12px; color: #526580; }
+.executive-related-discussions ul { margin: 8px 0 0; padding-left: 20px; max-height: 240px; overflow-y: auto; }
+.executive-related-discussions li { margin: 5px 0; }
+.executive-related-discussions button { border: 0; background: transparent; padding: 4px 0; color: #234f9b; font: inherit; font-size: 13px; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
+.executive-related-discussions button:hover { text-decoration: underline; }
+.meeting-brief-view .is-linked-target { outline: 2px solid #486ff5; outline-offset: 2px; scroll-margin-top: 100px; }
 .meeting-source-view { min-height: 360px; }
 .meeting-result-workspace { grid-template-columns: minmax(0,1fr) minmax(340px,.72fr); align-items: start; }
 .meeting-evidence-button[aria-pressed="true"], .meeting-speaker-points > button[aria-pressed="true"], .meeting-result-task[aria-pressed="true"] { border-color: #7c83ef; background: #eef0ff; }

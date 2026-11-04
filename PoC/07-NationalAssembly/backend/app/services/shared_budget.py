@@ -7,7 +7,7 @@ from typing import Any
 from ..db.openai_group_budget import OpenAIGroupBudget
 from .grouped_models import credit_period, daily_limit
 
-RATES = {'gpt-5.4-mini': ('.75', '4.5'), 'gpt-5.4': ('2.5', '15'),
+RATES = {'gpt-5.4-mini': ('.75', '4.5'), 'gpt-5.4': ('2.5', '15'), 'gpt-6-luna': ('.1', '.75'),
          'gpt-6.1-sol': ('2', '10'), 'gpt-6-astra': ('10', '50'),
          'gpt-6.1-terra': ('2.5', '7.5'), 'solar-pro4': ('.3', '1.2')}
 SCOPE = 'PoC7 · PoC10 · PoC11 공통 원장'
@@ -26,7 +26,7 @@ def _solar(settings: Any) -> tuple[str, Decimal]:
 
 
 def reserve(c: Any, settings: Any, event_id: str, project: str, model: str,
-            input_bound: int, output_bound: int) -> dict[str, Any]:
+            input_bound: int, output_bound: int, *, force_credit: bool = False) -> dict[str, Any]:
     if project not in {'poc7', 'poc10', 'poc11'} or model not in RATES:
         raise BudgetUnavailable('지원하지 않는 프로젝트 또는 모델')
     if not 8 <= len(event_id) <= 100 or not 0 < input_bound <= 2_000_000 or not 0 < output_bound <= 100_000:
@@ -44,7 +44,7 @@ def reserve(c: Any, settings: Any, event_id: str, project: str, model: str,
         raise BudgetUnavailable('제공사 공통 호출 대기 상태')
     tokens = input_bound + output_bound
     amount = Decimal('0')
-    if model in {'gpt-5.4', 'gpt-5.4-mini'}:
+    if model in {'gpt-5.4', 'gpt-5.4-mini'} and not force_credit:
         kind = 'mini' if model.endswith('-mini') else 'main'
         cap = daily_limit(settings, kind)
         if cap <= 0: raise BudgetUnavailable('공통 일일 토큰 배정 없음')

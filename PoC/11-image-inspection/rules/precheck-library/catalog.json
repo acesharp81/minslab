@@ -1,0 +1,4802 @@
+{
+  "schema": "chekmi-precheck-library-v1",
+  "version": "precheck-2026-11-03-v1",
+  "reviewed_on": "2026-11-04",
+  "source": {
+    "title": "대국민 홍보물 사전점검 참고자료",
+    "file_name": "대국민 홍보물 사전점검 참고자료.pdf",
+    "sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+    "pages": 25,
+    "source_date": "2026-11-03",
+    "status": "APPROVED_INTERNAL_REFERENCE",
+    "limitations": "내부 참고자료. 사례 사진은 정상 공식 도안·현행 사실/법령·사용권 증빙이 아니다. 저작권은 각 출처에 있다."
+  },
+  "items": [
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O01",
+      "number": 1,
+      "title": "독도",
+      "source_page": 3,
+      "description": "지도·글·영상에 독도가 우리 영토로 바르게 표시됐는지 확인합니다",
+      "questions": [
+        "① 한반도 지도에 독도가 빠짐없이 표시되어 있는가?",
+        "② 독도를 '분쟁지역'·'다케시마' 등으로 쓰지 않았는가?",
+        "③ 해외 기관·방송의 지도를 그대로 쓰지 않았는가?"
+      ],
+      "trigger_terms": [
+        "지도",
+        "지구본",
+        "독도",
+        "울릉도",
+        "Dokdo",
+        "Takeshima"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-03",
+        "H-03",
+        "H-09"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-01-01",
+          "number": 1,
+          "title": "지도 범위",
+          "source_text": "지도 범위\n독도까지 들어가는 범위인가\n✕ 지도 오른쪽이 울릉도에서 잘림",
+          "action": "독도까지 들어가는 범위인가",
+          "example_issue": "지도 오른쪽이 울릉도에서 잘림",
+          "rule_ids": [
+            "H-03-a",
+            "H-03-e",
+            "H-03-f"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        },
+        {
+          "id": "OFFICIAL-01-02",
+          "number": 2,
+          "title": "독도 점",
+          "source_text": "독도 점\n축소 지도에도 점·명칭 표시\n✕ 울릉도만 표시, 독도 생략",
+          "action": "축소 지도에도 점·명칭 표시",
+          "example_issue": "울릉도만 표시, 독도 생략",
+          "rule_ids": [
+            "H-03-b",
+            "H-03-c",
+            "H-03-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        },
+        {
+          "id": "OFFICIAL-01-03",
+          "number": 3,
+          "title": "명칭",
+          "source_text": "명칭\n'독도', 영문 'Dokdo'\n✕ 다케시마, Takeshima, 竹島",
+          "action": "'독도', 영문 'Dokdo'",
+          "example_issue": "다케시마, Takeshima, 竹島",
+          "rule_ids": [
+            "H-03-b",
+            "H-03-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        },
+        {
+          "id": "OFFICIAL-01-04",
+          "number": 4,
+          "title": "영토 색",
+          "source_text": "영토 색\n한국과 같은 색으로 칠했는가\n✕ 일본 영토 색으로 칠해짐",
+          "action": "한국과 같은 색으로 칠했는가",
+          "example_issue": "일본 영토 색으로 칠해짐",
+          "rule_ids": [
+            "H-03-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        },
+        {
+          "id": "OFFICIAL-01-05",
+          "number": 5,
+          "title": "경계선",
+          "source_text": "경계선\n해상 경계·경보구역 선 확인\n✕ 독도가 일본 쪽 구역에 포함",
+          "action": "해상 경계·경보구역 선 확인",
+          "example_issue": "독도가 일본 쪽 구역에 포함",
+          "rule_ids": [
+            "H-03-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        },
+        {
+          "id": "OFFICIAL-01-06",
+          "number": 6,
+          "title": "지도 출처",
+          "source_text": "지도 출처\n국토지리정보원 등 국내 지도\n✕ 일본 기관·해외 방송 지도",
+          "action": "국토지리정보원 등 국내 지도",
+          "example_issue": "일본 기관·해외 방송 지도",
+          "rule_ids": [
+            "H-03-c",
+            "H-03-g",
+            "D-03-a"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        },
+        {
+          "id": "OFFICIAL-01-07",
+          "number": 7,
+          "title": "서술",
+          "source_text": "서술\n영토 관련 문장 확인\n✕ '영토분쟁 지역', '양국이 영유권 주장'",
+          "action": "영토 관련 문장 확인",
+          "example_issue": "'영토분쟁 지역', '양국이 영유권 주장'",
+          "rule_ids": [
+            "H-03-b",
+            "H-03-c",
+            "H-09-b",
+            "H-09-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        },
+        {
+          "id": "OFFICIAL-01-08",
+          "number": 8,
+          "title": "영상 장면",
+          "source_text": "영상 장면\n영상 속 지도를 정지해 확인\n✕ 몇 초 지나가는 자료화면 속 지도",
+          "action": "영상 속 지도를 정지해 확인",
+          "example_issue": "몇 초 지나가는 자료화면 속 지도",
+          "rule_ids": [
+            "H-03-a",
+            "H-03-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        },
+        {
+          "id": "OFFICIAL-01-09",
+          "number": 9,
+          "title": "배경 소품",
+          "source_text": "배경 소품\n장식용 지구본·지도도 확인\n✕ 배경 그림 지도에서 독도 누락",
+          "action": "장식용 지구본·지도도 확인",
+          "example_issue": "배경 그림 지도에서 독도 누락",
+          "rule_ids": [
+            "H-03-a",
+            "H-03-d",
+            "H-03-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        },
+        {
+          "id": "OFFICIAL-01-10",
+          "number": 10,
+          "title": "외국어판",
+          "source_text": "외국어판\n영문·다국어판 따로 확인\n✕ 외국어판에만 'Takeshima' 표기",
+          "action": "영문·다국어판 따로 확인",
+          "example_issue": "외국어판에만 'Takeshima' 표기",
+          "rule_ids": [
+            "H-03-b",
+            "H-03-c",
+            "H-09-b",
+            "H-09-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://ytn.co.kr/_ln/0101_202312291510377287"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://segye.com/newsView/20240510506234"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "지도 축척·표시 범위·분할도와 가림을 먼저 확인한다. 범위 밖 독도 생략이나 해외 제작이라는 사실만으로 오류 확정하지 않는다. 명칭 인용·비판 맥락은 구분한다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-03-a": "8c0d999399e0f35dca4b4553f2d9077af958d23b95fa0495a79801c88357dc3d",
+        "H-03-a": "63931e1541169d33766ef0c74f3d649d727f9817364d77d4a95f2caf747f16d6",
+        "H-03-b": "7d4c281d4208b2418aa6e14f019cf985224d09c6ceaa636109065b1f0860881d",
+        "H-03-c": "7b99c4e7f3620f2b955b826206015ca65a0ae8a70cff7a94441e67b7a132fc2c",
+        "H-03-d": "dda4ac79b6a432c24e8635917eeb4ae3892d2f33039eb516ea3371e3ceed7e7c",
+        "H-03-e": "6973eaa79796f4a3caaf5c93d133dcf4b54a0343825ed25ea21aaf021ac5dec0",
+        "H-03-f": "107b3101db59811c12f0eb401df9b14b8100f415ac656f001daaedba49f021b2",
+        "H-03-g": "bc32b0d5ae3a3ada0f5abd9dfcac849ff1f90162464aaa1c47367ddf6efdb9f1",
+        "H-09-b": "4813fa8c4a219572716a87d1e7683d5eab021eac42ca2cb24c0e9b5dbee61135",
+        "H-09-c": "f064ca0bdd647bd6d1fa0b19e1a8335794e3b53fcc9c89c54603407c379f229c"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O02",
+      "number": 2,
+      "title": "동해",
+      "source_page": 4,
+      "description": "바다 이름을 '동해(East Sea)'로 바르게 표기했는지 확인합니다",
+      "questions": [
+        "① 동해를 '일본해'로 쓰거나 지도에 그렇게 표시하지 않았는가?",
+        "② 영문판은 'East Sea'로 표기했는가?",
+        "③ 외부에서 받은 지도·자료의 바다 이름을 확인했는가?"
+      ],
+      "trigger_terms": [
+        "지도",
+        "동해",
+        "East Sea",
+        "Japan Sea",
+        "日本海",
+        "해역"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-01",
+        "D-03",
+        "H-03",
+        "H-06",
+        "H-09"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-02-01",
+          "number": 1,
+          "title": "국문 표기",
+          "source_text": "국문 표기\n지도·본문 모두 '동해'\n✕ 일본해, 동해(일본해)",
+          "action": "지도·본문 모두 '동해'",
+          "example_issue": "일본해, 동해(일본해)",
+          "rule_ids": [
+            "H-03-b",
+            "H-03-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        },
+        {
+          "id": "OFFICIAL-02-02",
+          "number": 2,
+          "title": "영문 표기",
+          "source_text": "영문 표기\n'East Sea'\n✕ Sea of Japan, Japan Sea",
+          "action": "'East Sea'",
+          "example_issue": "Sea of Japan, Japan Sea",
+          "rule_ids": [
+            "H-03-b",
+            "H-03-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        },
+        {
+          "id": "OFFICIAL-02-03",
+          "number": 3,
+          "title": "한자·일문",
+          "source_text": "한자·일문\n외국어판 바다 이름\n✕ 日本海",
+          "action": "외국어판 바다 이름",
+          "example_issue": "日本海",
+          "rule_ids": [
+            "H-03-b",
+            "H-03-c",
+            "H-09-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        },
+        {
+          "id": "OFFICIAL-02-04",
+          "number": 4,
+          "title": "지도 캡처",
+          "source_text": "지도 캡처\n온라인 지도 캡처 시 표기\n✕ 해외 지도 서비스 기본 표기",
+          "action": "온라인 지도 캡처 시 표기",
+          "example_issue": "해외 지도 서비스 기본 표기",
+          "rule_ids": [
+            "H-03-a",
+            "H-03-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        },
+        {
+          "id": "OFFICIAL-02-05",
+          "number": 5,
+          "title": "재난 자료",
+          "source_text": "재난 자료\n해외 기상청 자료 바다 이름\n✕ 일본 기상청 지도 인용",
+          "action": "해외 기상청 자료 바다 이름",
+          "example_issue": "일본 기상청 지도 인용",
+          "rule_ids": [
+            "H-03-b",
+            "H-03-c",
+            "D-01-b"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        },
+        {
+          "id": "OFFICIAL-02-06",
+          "number": 6,
+          "title": "배포물 반입",
+          "source_text": "배포물 반입\n행사장 외부 기관 배포물\n✕ 해외 기관 지도 무검수 배포",
+          "action": "행사장 외부 기관 배포물",
+          "example_issue": "해외 기관 지도 무검수 배포",
+          "rule_ids": [
+            "H-03-c",
+            "H-03-g",
+            "D-03-a"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        },
+        {
+          "id": "OFFICIAL-02-07",
+          "number": 7,
+          "title": "영상 자막",
+          "source_text": "영상 자막\n자막·내레이션 바다 이름\n✕ 번역 자막 'Sea of Japan'",
+          "action": "자막·내레이션 바다 이름",
+          "example_issue": "번역 자막 'Sea of Japan'",
+          "rule_ids": [
+            "H-03-b",
+            "H-09-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        },
+        {
+          "id": "OFFICIAL-02-08",
+          "number": 8,
+          "title": "표기 통일",
+          "source_text": "표기 통일\n같은 자료 안 표기 통일\n✕ 본문 '동해', 지도 '일본해' 혼용",
+          "action": "같은 자료 안 표기 통일",
+          "example_issue": "본문 '동해', 지도 '일본해' 혼용",
+          "rule_ids": [
+            "H-03-b",
+            "H-03-c",
+            "H-09-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        },
+        {
+          "id": "OFFICIAL-02-09",
+          "number": 9,
+          "title": "이미지 속 글자",
+          "source_text": "이미지\n속 글자\n사진·그림 안 글자\n✕ 배경 지도 이미지 속 '일본해'",
+          "action": "사진·그림 안 글자",
+          "example_issue": "배경 지도 이미지 속 '일본해'",
+          "rule_ids": [
+            "H-03-b",
+            "H-06-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        },
+        {
+          "id": "OFFICIAL-02-10",
+          "number": 10,
+          "title": "검색 확인",
+          "source_text": "검색 확인\n찾기로 '일본해'·'Japan' 검색\n✕ 각주·출처 문구에 남은 표기",
+          "action": "찾기로 '일본해'·'Japan' 검색",
+          "example_issue": "각주·출처 문구에 남은 표기",
+          "rule_ids": [
+            "H-03-b",
+            "H-09-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://segye.com/view/20241027507040"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "해역의 실제 지시 위치와 문맥을 확인한다. 출처 인용문·비교 설명·해외 원본의 존재만으로 위반을 확정하지 않는다. 외교적 최종 판단은 사람에게 요청한다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-01-b": "ee5f01367eff1eaef4a97ed935433e31cdfee2602d5cc8e0dc8b59e4deebfe0f",
+        "D-03-a": "8c0d999399e0f35dca4b4553f2d9077af958d23b95fa0495a79801c88357dc3d",
+        "H-03-a": "63931e1541169d33766ef0c74f3d649d727f9817364d77d4a95f2caf747f16d6",
+        "H-03-b": "7d4c281d4208b2418aa6e14f019cf985224d09c6ceaa636109065b1f0860881d",
+        "H-03-c": "7b99c4e7f3620f2b955b826206015ca65a0ae8a70cff7a94441e67b7a132fc2c",
+        "H-03-g": "bc32b0d5ae3a3ada0f5abd9dfcac849ff1f90162464aaa1c47367ddf6efdb9f1",
+        "H-06-b": "80d33c4973b8249ecff19d3131f47e34c3531d6ebd885763092809b011e47a9b",
+        "H-09-b": "4813fa8c4a219572716a87d1e7683d5eab021eac42ca2cb24c0e9b5dbee61135",
+        "H-09-c": "f064ca0bdd647bd6d1fa0b19e1a8335794e3b53fcc9c89c54603407c379f229c"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O03",
+      "number": 3,
+      "title": "지도·자료 출처",
+      "source_page": 5,
+      "description": "외부에서 가져온 지도·사진·영상의 원출처와 내용이 맞는지 확인합니다",
+      "questions": [
+        "① 사용한 지도·사진·영상의 원출처를 확인했는가?",
+        "② 해외 기관·방송 화면을 그대로 인용하지 않았는가?",
+        "③ 사진 속 장소·대상이 설명과 일치하는가?"
+      ],
+      "trigger_terms": [
+        "지도",
+        "사진",
+        "촬영",
+        "풍경",
+        "통계",
+        "그래프",
+        "랜드마크"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-01",
+        "D-02",
+        "D-03",
+        "H-03",
+        "H-05",
+        "H-06"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-03-01",
+          "number": 1,
+          "title": "원출처",
+          "source_text": "원출처\n자료를 처음 만든 기관\n✕ 방송·블로그 화면 재인용",
+          "action": "자료를 처음 만든 기관",
+          "example_issue": "방송·블로그 화면 재인용",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-c",
+            "H-05-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        },
+        {
+          "id": "OFFICIAL-03-02",
+          "number": 2,
+          "title": "지도 원본",
+          "source_text": "지도 원본\n국토지리정보원 등 국내 지도\n✕ 해외 기상청·해외 지도 캡처",
+          "action": "국토지리정보원 등 국내 지도",
+          "example_issue": "해외 기상청·해외 지도 캡처",
+          "rule_ids": [
+            "H-03-c",
+            "H-03-g"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        },
+        {
+          "id": "OFFICIAL-03-03",
+          "number": 3,
+          "title": "사진 장소",
+          "source_text": "사진 장소\n사진 속 장소가 설명과 같은가\n✕ 다른 나라 풍경을 국내로 소개",
+          "action": "사진 속 장소가 설명과 같은가",
+          "example_issue": "다른 나라 풍경을 국내로 소개",
+          "rule_ids": [
+            "H-05-a",
+            "H-05-b",
+            "H-05-c",
+            "H-05-d",
+            "H-05-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        },
+        {
+          "id": "OFFICIAL-03-04",
+          "number": 4,
+          "title": "스톡 설명",
+          "source_text": "스톡 설명\n스톡 사진 설명·촬영지 확인\n✕ 제목만 보고 사용",
+          "action": "스톡 사진 설명·촬영지 확인",
+          "example_issue": "제목만 보고 사용",
+          "rule_ids": [
+            "H-05-b",
+            "H-05-c",
+            "H-05-d",
+            "D-03-a"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        },
+        {
+          "id": "OFFICIAL-03-05",
+          "number": 5,
+          "title": "시점",
+          "source_text": "시점\n자료가 최신인가\n✕ 바뀐 행동요령·옛 통계",
+          "action": "자료가 최신인가",
+          "example_issue": "바뀐 행동요령·옛 통계",
+          "rule_ids": [
+            "D-01-b",
+            "D-01-e",
+            "D-02-m"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        },
+        {
+          "id": "OFFICIAL-03-06",
+          "number": 6,
+          "title": "화면 속 화면",
+          "source_text": "화면 속 화면\n영상 안 자료화면 정지 확인\n✕ 지나가는 화면 속 외국 자료",
+          "action": "영상 안 자료화면 정지 확인",
+          "example_issue": "지나가는 화면 속 외국 자료",
+          "rule_ids": [
+            "H-05-a",
+            "H-05-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        },
+        {
+          "id": "OFFICIAL-03-07",
+          "number": 7,
+          "title": "로고·자막",
+          "source_text": "로고·자막\n원 방송사 로고·외국어 자막\n✕ 해외 방송 로고 노출",
+          "action": "원 방송사 로고·외국어 자막",
+          "example_issue": "해외 방송 로고 노출",
+          "rule_ids": [
+            "H-05-a",
+            "H-06-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        },
+        {
+          "id": "OFFICIAL-03-08",
+          "number": 8,
+          "title": "출처 목록",
+          "source_text": "출처 목록\n업체에 자료별 출처 제출 요구\n✕ 업체가 출처 미제출",
+          "action": "업체에 자료별 출처 제출 요구",
+          "example_issue": "업체가 출처 미제출",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        },
+        {
+          "id": "OFFICIAL-03-09",
+          "number": 9,
+          "title": "통계 수치",
+          "source_text": "통계 수치\n기관·기준연도 표기\n✕ 출처 없는 수치",
+          "action": "기관·기준연도 표기",
+          "example_issue": "출처 없는 수치",
+          "rule_ids": [
+            "D-02-m",
+            "D-01-b",
+            "D-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        },
+        {
+          "id": "OFFICIAL-03-10",
+          "number": 10,
+          "title": "외주 계약",
+          "source_text": "외주 계약\n과업지시서 등에 출처 확인 책임 조항\n✕ 조항 없을 시 검수 책임이 불명확",
+          "action": "과업지시서 등에 출처 확인 책임 조항",
+          "example_issue": "조항 없을 시 검수 책임이 불명확",
+          "rule_ids": [
+            "D-03-c",
+            "D-03-e",
+            "D-03-f"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://segye.com/newsView/20240510506234"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://buzzfeed.com/andreborges/the-indian-emba…sed-a-stock-image-fo"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "원출처·촬영지·시점은 이미지 외형만으로 확정하지 않는다. 외국 자료도 승인·목적이 적절할 수 있다. 현재 자료에 없는 출처나 계약은 증빙 필요로만 남긴다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-01-b": "ee5f01367eff1eaef4a97ed935433e31cdfee2602d5cc8e0dc8b59e4deebfe0f",
+        "D-01-c": "6302a04329cb9a1c61effbb0eab120dda4de7f35cb9edffecdbd9dc88c99e106",
+        "D-01-e": "272a4d074ff6e2841b7303dd23dfb57e73c02b0e0b7f633d4ac05452f25b4c93",
+        "D-02-m": "5d4b608ddc4c0abbb70cc7fdfbf0062811ce9dcaba35abcd00c70173cbd459ce",
+        "D-03-a": "8c0d999399e0f35dca4b4553f2d9077af958d23b95fa0495a79801c88357dc3d",
+        "D-03-c": "51f73491fba193feca27f2d6ec3907a5d616073c9635a4df706c0e50b2a4aa95",
+        "D-03-e": "6ff2fca8c42a91e22d5408233e4303e6a179015a9ea3d992afe5de75a65db8f1",
+        "D-03-f": "a8ef59d946245417449e2d8abb705dcb05d889361a1665669707cf4a99f463dd",
+        "H-03-c": "7b99c4e7f3620f2b955b826206015ca65a0ae8a70cff7a94441e67b7a132fc2c",
+        "H-03-g": "bc32b0d5ae3a3ada0f5abd9dfcac849ff1f90162464aaa1c47367ddf6efdb9f1",
+        "H-05-a": "79b6fbf1cd52265383d783645fda8566e8b5270737f25ccf6102377d073afc2e",
+        "H-05-b": "9a143ccdbfd65f17a55402ff3c19c9d6bf46afb5caca08c44b04cbc5751decbc",
+        "H-05-c": "a161742e5dd5512f318fa6462ddafe42590767a7502bc76529b9987c0994a82c",
+        "H-05-d": "1757eac1e219954664d2c008e47e25b65c971be0b914afd4bb33988276498f67",
+        "H-05-e": "e69c3174e258ac7d7590bb4f2828a69599c48dbc68a030da9f0f564399129466",
+        "H-06-b": "80d33c4973b8249ecff19d3131f47e34c3531d6ebd885763092809b011e47a9b"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O04",
+      "number": 4,
+      "title": "금기상징",
+      "source_page": 6,
+      "description": "욱일기 등 역사·외교적으로 민감한 상징이 연상되지 않는지 확인합니다",
+      "questions": [
+        "① 욱일기처럼 중심에서 뻗는 방사형 무늬가 없는가?",
+        "② 외국 국기(일장기·오성홍기·인공기 등)가 의도치 않게 들어가지 않았는가?",
+        "③ 나치 문양 등 혐오 상징과 닮은 도형이 없는가?"
+      ],
+      "trigger_terms": [
+        "국기",
+        "상징",
+        "방사",
+        "일출",
+        "기념일",
+        "광복",
+        "무늬",
+        "패턴",
+        "태양"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-03",
+        "H-02",
+        "H-04",
+        "H-09",
+        "P-02"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-04-01",
+          "number": 1,
+          "title": "방사형 무늬",
+          "source_text": "방사형 무늬\n중심에서 뻗는 빛줄기\n✕ 붉은 원 + 붉은 빛줄기",
+          "action": "중심에서 뻗는 빛줄기",
+          "example_issue": "붉은 원 + 붉은 빛줄기",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-b",
+            "P-02-c",
+            "P-02-d",
+            "H-09-a",
+            "H-09-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-04-02",
+          "number": 2,
+          "title": "일출 구도",
+          "source_text": "일출 구도\n해돋이 그림 구도\n✕ 수평선 위 반원 + 방사선",
+          "action": "해돋이 그림 구도",
+          "example_issue": "수평선 위 반원 + 방사선",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-c",
+            "P-02-d",
+            "H-09-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-04-03",
+          "number": 3,
+          "title": "흰 바탕 붉은 원",
+          "source_text": "흰 바탕\n붉은 원\n색 조합 확인\n✕ 일장기 연상 배치",
+          "action": "색 조합 확인",
+          "example_issue": "일장기 연상 배치",
+          "rule_ids": [
+            "H-04-a",
+            "H-09-a",
+            "H-09-d",
+            "P-02-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-04-04",
+          "number": 4,
+          "title": "외국 국기",
+          "source_text": "외국 국기\n국기 모양 장식\n✕ 오성홍기·인공기 연상 배치",
+          "action": "국기 모양 장식",
+          "example_issue": "오성홍기·인공기 연상 배치",
+          "rule_ids": [
+            "H-04-a",
+            "H-09-a",
+            "H-09-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-04-05",
+          "number": 5,
+          "title": "별 장식",
+          "source_text": "별 장식\n붉은 바탕 노란 별\n✕ 중국·베트남 국기 연상",
+          "action": "붉은 바탕 노란 별",
+          "example_issue": "중국·베트남 국기 연상",
+          "rule_ids": [
+            "H-04-a",
+            "H-09-d",
+            "P-02-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-04-06",
+          "number": 6,
+          "title": "혐오 상징",
+          "source_text": "혐오 상징\n꺾인 십자·번개 문양\n✕ 나치 문양과 닮은 도형",
+          "action": "꺾인 십자·번개 문양",
+          "example_issue": "나치 문양과 닮은 도형",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-b",
+            "P-02-c",
+            "P-02-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-04-07",
+          "number": 7,
+          "title": "배경 패턴",
+          "source_text": "배경 패턴\n무료 패턴 확대 확인\n✕ 패턴 속 방사형 무늬",
+          "action": "무료 패턴 확대 확인",
+          "example_issue": "패턴 속 방사형 무늬",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-04-08",
+          "number": 8,
+          "title": "왜색",
+          "source_text": "왜색\n명절·국경일 콘텐츠\n✕ 일본어 밈·왜색 소품 (14번)",
+          "action": "명절·국경일 콘텐츠",
+          "example_issue": "일본어 밈·왜색 소품 (14번)",
+          "rule_ids": [
+            "H-09-a",
+            "H-09-b",
+            "H-09-d",
+            "P-02-a",
+            "P-02-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-04-09",
+          "number": 9,
+          "title": "게시 시기",
+          "source_text": "게시 시기\n3·1절·광복절 전후\n✕ 기념일 민감도 무시",
+          "action": "3·1절·광복절 전후",
+          "example_issue": "기념일 민감도 무시",
+          "rule_ids": [
+            "H-02-a",
+            "H-02-b",
+            "H-02-e",
+            "H-09-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-04-10",
+          "number": 10,
+          "title": "해외 템플릿",
+          "source_text": "해외 템플릿\n템플릿 기본 장식\n✕ 해외 템플릿 장식 그대로",
+          "action": "템플릿 기본 장식",
+          "example_issue": "해외 템플릿 장식 그대로",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-d",
+            "D-03-a"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://khan.co.kr/article/202508141455011"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://nocutnews.co.kr/news/6128338"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "일출·방사형 장식·일반 외국 국기 자체는 오류가 아니다. 구체적 형태·사용 목적·기념일 문맥을 기록하고 혐오·외교적 의미와 제작 의도는 자동 확정하지 않는다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-03-a": "8c0d999399e0f35dca4b4553f2d9077af958d23b95fa0495a79801c88357dc3d",
+        "H-02-a": "e16efb5d8447f444c2691378f3a42e86c0b8a0939d460a3ce247754b090a182f",
+        "H-02-b": "089bcf10a2dc2fcf8b5cd3a20984b8c477ad1a41eb678df4da84fdc6615ccc83",
+        "H-02-e": "ab8123725cbe72c3988784022459d659105f3b248abf0e10e9550c23e85d8750",
+        "H-04-a": "58e3eb90fa7f562ec576efdcca2c6fff82e56e43aaff690074bc4cf317592a11",
+        "H-09-a": "c83140c349c198a9be682c8b8edd9864786903e557289501c22f717d24ee2923",
+        "H-09-b": "4813fa8c4a219572716a87d1e7683d5eab021eac42ca2cb24c0e9b5dbee61135",
+        "H-09-d": "7119be34d9be6e619f866f743f527eab3edc35ad27b0f037d9015f0c8dd72d84",
+        "P-02-a": "82f384d92065d3d4e5e520ff5920391a398374057151cfe9d28e98dbb0eb33b5",
+        "P-02-b": "422fef622a50f9a47974cf0d1bb58deeaa18d4a326e7eb1db453a9f2a87f5170",
+        "P-02-c": "262581e12979575abb9ef473f9b4da73bcbc78c9287c6c98f70a48a355954b42",
+        "P-02-d": "0ca9b6ed7c61c394d343535c8cb8cc7e900bbab41be16f7a8a5d5623630d8e37"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O05",
+      "number": 5,
+      "title": "태극기",
+      "source_page": 7,
+      "description": "태극 문양 방향과 4괘 위치가 국기 규정과 같은지 확인합니다",
+      "questions": [
+        "① 태극 문양의 빨강이 위, 파랑이 아래인가?",
+        "② 4괘(건·곤·감·리)가 제자리에 바른 모양으로 있는가?",
+        "③ 깃발을 든 모습·비스듬한 구도에서도 뒤집혀 보이지 않는가?"
+      ],
+      "trigger_terms": [
+        "태극기",
+        "태극",
+        "건곤감리",
+        "국기 패치"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "H-04"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-05-01",
+          "number": 1,
+          "title": "태극 색",
+          "source_text": "태극 색\n빨강 위, 파랑 아래\n✕ 파랑이 위로 올라감",
+          "action": "빨강 위, 파랑 아래",
+          "example_issue": "파랑이 위로 올라감",
+          "rule_ids": [
+            "H-04-e",
+            "H-04-f"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        },
+        {
+          "id": "OFFICIAL-05-02",
+          "number": 2,
+          "title": "4괘 위치",
+          "source_text": "4괘 위치\n건 좌상·곤 우하·감 우상·리 좌하\n✕ 감·리괘 자리 바뀜",
+          "action": "건 좌상·곤 우하·감 우상·리 좌하",
+          "example_issue": "감·리괘 자리 바뀜",
+          "rule_ids": [
+            "H-04-i"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        },
+        {
+          "id": "OFFICIAL-05-03",
+          "number": 3,
+          "title": "괘 모양",
+          "source_text": "괘 모양\n건☰ 곤☷ 감☵ 리☲\n✕ 4괘가 모두 같은 모양",
+          "action": "건☰ 곤☷ 감☵ 리☲",
+          "example_issue": "4괘가 모두 같은 모양",
+          "rule_ids": [
+            "H-04-g",
+            "H-04-h"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        },
+        {
+          "id": "OFFICIAL-05-04",
+          "number": 4,
+          "title": "좌우 반전",
+          "source_text": "좌우 반전\n이미지 좌우 뒤집기 금지\n✕ 편집 중 반전된 태극기",
+          "action": "이미지 좌우 뒤집기 금지",
+          "example_issue": "편집 중 반전된 태극기",
+          "rule_ids": [
+            "H-04-c",
+            "H-04-d",
+            "H-04-e",
+            "H-04-i"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        },
+        {
+          "id": "OFFICIAL-05-05",
+          "number": 5,
+          "title": "구도·각도",
+          "source_text": "구도·각도\n든 각도에서도 바르게 보이나\n✕ 올려다본 구도로 뒤집혀 보임",
+          "action": "든 각도에서도 바르게 보이나",
+          "example_issue": "올려다본 구도로 뒤집혀 보임",
+          "rule_ids": [
+            "H-04-c",
+            "H-04-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        },
+        {
+          "id": "OFFICIAL-05-06",
+          "number": 6,
+          "title": "깃대 위치",
+          "source_text": "깃대 위치\n정면에서 깃대는 왼쪽\n✕ 뒷면처럼 보이는 태극기",
+          "action": "정면에서 깃대는 왼쪽",
+          "example_issue": "뒷면처럼 보이는 태극기",
+          "rule_ids": [
+            "H-04-c",
+            "H-04-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        },
+        {
+          "id": "OFFICIAL-05-07",
+          "number": 7,
+          "title": "작은 태극기",
+          "source_text": "작은 태극기\n배지·패치·아이콘 확대\n✕ 작은 배지 속 뒤집힌 태극",
+          "action": "배지·패치·아이콘 확대",
+          "example_issue": "작은 배지 속 뒤집힌 태극",
+          "rule_ids": [
+            "H-04-b",
+            "H-04-l",
+            "H-04-m"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        },
+        {
+          "id": "OFFICIAL-05-08",
+          "number": 8,
+          "title": "AI 생성",
+          "source_text": "AI 생성\nAI 그림 속 태극기\n✕ 괘·태극이 뭉개진 가짜 태극기",
+          "action": "AI 그림 속 태극기",
+          "example_issue": "괘·태극이 뭉개진 가짜 태극기",
+          "rule_ids": [
+            "H-04-g",
+            "H-04-h",
+            "H-04-l",
+            "D-02-l"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        },
+        {
+          "id": "OFFICIAL-05-09",
+          "number": 9,
+          "title": "비율",
+          "source_text": "비율\n가로 3 : 세로 2\n✕ 늘리거나 눌린 태극기",
+          "action": "가로 3 : 세로 2",
+          "example_issue": "늘리거나 눌린 태극기",
+          "rule_ids": [
+            "H-04-k"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        },
+        {
+          "id": "OFFICIAL-05-10",
+          "number": 10,
+          "title": "기울기",
+          "source_text": "기울기\n태극 문양 기울기\n✕ 문양이 기울어진 태극기",
+          "action": "태극 문양 기울기",
+          "example_issue": "문양이 기울어진 태극기",
+          "rule_ids": [
+            "H-04-c",
+            "H-04-d",
+            "H-04-e",
+            "H-04-j"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://ytn.co.kr/_ln/0103_202609051905193173"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://sidae.com/article/2026080915041698043"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "정면 도안만 공식 원본과 비교한다. 뒷면·깃대 방향·회전·휘날림·기울임·교육용 오답 보기는 자동 오류 사유가 아니다. 괘는 감=음양음, 리(이)=양음양이며 공식 도안을 우선한다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-l": "d4124fb787c1019b5388a15e7ab0c1467eccf13069481cbf987e9a3a2b67de5f",
+        "H-04-b": "b3c74b40a019d30a0188a4e3c67dd74cdd4e0e8e4332954ced6e710303ac05ba",
+        "H-04-c": "8be380c92bda6c98eb8472fff827673f36c98476545c3c043fb59cf756eee894",
+        "H-04-d": "44f1fc61070dd1d66d321d0c023ccf1aa871496f25ad7f956c09cba02f48ace5",
+        "H-04-e": "041f386842ee0cbbb7613600cf39dd7af70b15455a87c268667fbd01ca497d42",
+        "H-04-f": "5c88e8869f1fd75012e57424e3ee065a3832f734692812d3c2ad47b13a8197d9",
+        "H-04-g": "43e81ec877229cad5214389f066a94c664091c9cae599b29cf3156b34753ca33",
+        "H-04-h": "3c3ca899799e59b53c9a4e9135a6b4c36aaa6c8537683e5d727c74879181dd11",
+        "H-04-i": "9bf1981052e66eae9f0ba21b8cf0d533a0dfb68806387b8eb5a6d38cba0b2035",
+        "H-04-j": "4c0947281a52d7e582bd149d3865c545aba760b1d99f254d885f0a861e3f5493",
+        "H-04-k": "e118ba4c0c6c4dbdfc95e02f8a6944c55508e897fa844848fe8b1b33b4f36ac6",
+        "H-04-l": "b530fee595d8e12b8e195a7673e6329523d3909bd8930f1ba85248866a255426",
+        "H-04-m": "dde268a7dc97fd87473b81434169498ae480b3053c223834107aa728b98410f0"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O06",
+      "number": 6,
+      "title": "계급장·제복",
+      "source_page": 8,
+      "description": "경찰·군·소방 인물의 계급장, 휘장, 제복, 장비가 국내 규정과 맞는지 확인합니다",
+      "questions": [
+        "① 계급장·휘장이 해당 기관의 실제 규정 문양과 같은가? (경찰=무궁화)",
+        "② 한 인물에 서로 다른 계급(장교·부사관 등)이 섞여 있지 않은가?",
+        "③ AI로 만든 인물이면 아래 검수 요령 10곳을 확대해서 확인했는가?"
+      ],
+      "trigger_terms": [
+        "경찰",
+        "군인",
+        "군복",
+        "소방",
+        "제복",
+        "계급",
+        "견장"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "H-04",
+        "H-05",
+        "H-06",
+        "H-07"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-06-01",
+          "number": 1,
+          "title": "계급장 문양",
+          "source_text": "계급장 문양\n경찰=무궁화, 군 장교=다이아·무궁화·별\n✕ 오각별 경찰 계급장",
+          "action": "경찰=무궁화, 군 장교=다이아·무궁화·별",
+          "example_issue": "오각별 경찰 계급장",
+          "rule_ids": [
+            "H-07-b",
+            "H-07-c",
+            "H-07-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-06-02",
+          "number": 2,
+          "title": "계급 일관성",
+          "source_text": "계급 일관성\n모자·가슴·어깨 계급이 한 체계인가\n✕ 장교 베레모 + 부사관 상의",
+          "action": "모자·가슴·어깨 계급이 한 체계인가",
+          "example_issue": "장교 베레모 + 부사관 상의",
+          "rule_ids": [
+            "H-07-c",
+            "H-07-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-06-03",
+          "number": 3,
+          "title": "명찰·글자",
+          "source_text": "명찰·글자\n'경찰'·'POLICE'·'119' 글자\n✕ AI가 뭉갠 글자, 외국어 표기",
+          "action": "'경찰'·'POLICE'·'119' 글자",
+          "example_issue": "AI가 뭉갠 글자, 외국어 표기",
+          "rule_ids": [
+            "H-06-b",
+            "D-02-l"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-06-04",
+          "number": 4,
+          "title": "국기 패치",
+          "source_text": "국기 패치\n어깨 태극기 방향·4괘\n✕ 뒤집힌 태극기, 외국 국기 패치",
+          "action": "어깨 태극기 방향·4괘",
+          "example_issue": "뒤집힌 태극기, 외국 국기 패치",
+          "rule_ids": [
+            "H-04-c",
+            "H-04-d",
+            "H-04-e",
+            "H-04-g",
+            "H-04-h",
+            "H-04-i",
+            "H-04-l"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-06-05",
+          "number": 5,
+          "title": "제복 형태",
+          "source_text": "제복 형태\n국내 기관 근무복 색·형태\n✕ 외국 경찰·군 제복 형태",
+          "action": "국내 기관 근무복 색·형태",
+          "example_issue": "외국 경찰·군 제복 형태",
+          "rule_ids": [
+            "H-07-a",
+            "H-07-d",
+            "H-07-f"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-06-06",
+          "number": 6,
+          "title": "위장무늬",
+          "source_text": "위장무늬\n한국군 디지털 무늬 전투복\n✕ 외국군 위장무늬",
+          "action": "한국군 디지털 무늬 전투복",
+          "example_issue": "외국군 위장무늬",
+          "rule_ids": [
+            "H-07-a",
+            "H-07-d",
+            "H-07-f"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-06-07",
+          "number": 7,
+          "title": "모자·휘장",
+          "source_text": "모자·휘장\n모자 종류·휘장이 소속과 맞나\n✕ 외국식 휘장, 정모·전투모 혼용",
+          "action": "모자 종류·휘장이 소속과 맞나",
+          "example_issue": "외국식 휘장, 정모·전투모 혼용",
+          "rule_ids": [
+            "H-07-b",
+            "H-07-c",
+            "H-07-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-06-08",
+          "number": 8,
+          "title": "차량 도장",
+          "source_text": "차량 도장\n경찰차·소방차 색·문구\n✕ 흑백 도장 등 외국 차량 디자인",
+          "action": "경찰차·소방차 색·문구",
+          "example_issue": "흑백 도장 등 외국 차량 디자인",
+          "rule_ids": [
+            "H-05-a",
+            "H-05-c",
+            "H-07-a",
+            "H-07-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-06-09",
+          "number": 9,
+          "title": "총기",
+          "source_text": "총기\n한국군 제식 소총 형태\n✕ AK 계열 소총 (북한·중국군 연상)",
+          "action": "한국군 제식 소총 형태",
+          "example_issue": "AK 계열 소총 (북한·중국군 연상)",
+          "rule_ids": [
+            "H-07-a",
+            "H-07-d",
+            "D-02-k"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-06-10",
+          "number": 10,
+          "title": "소방 장비",
+          "source_text": "소방 장비\n방화복·헬멧 형태, '119' 표기\n✕ 외국 소방관 헬멧 형태",
+          "action": "방화복·헬멧 형태, '119' 표기",
+          "example_issue": "외국 소방관 헬멧 형태",
+          "rule_ids": [
+            "H-07-a",
+            "H-07-d",
+            "D-02-k",
+            "D-02-l"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://v.daum.net/v/20261015153805864"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://newdaily.co.kr/site/data/html/2026/03/23/2026032300115.html"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "기관·시기·직급과 모자/가슴/견장을 구분한다. 도식·장식·세부 판독 한계로 단정하지 않는다. 문서의 모식도를 실제 계급장 원본으로 쓰지 않으며 모든 별 문양을 금지하지 않는다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-k": "d7fa4499365cfa72202c405aee623b0fb98f7a874065dbe4ccb3f5e39114a239",
+        "D-02-l": "d4124fb787c1019b5388a15e7ab0c1467eccf13069481cbf987e9a3a2b67de5f",
+        "H-04-c": "8be380c92bda6c98eb8472fff827673f36c98476545c3c043fb59cf756eee894",
+        "H-04-d": "44f1fc61070dd1d66d321d0c023ccf1aa871496f25ad7f956c09cba02f48ace5",
+        "H-04-e": "041f386842ee0cbbb7613600cf39dd7af70b15455a87c268667fbd01ca497d42",
+        "H-04-g": "43e81ec877229cad5214389f066a94c664091c9cae599b29cf3156b34753ca33",
+        "H-04-h": "3c3ca899799e59b53c9a4e9135a6b4c36aaa6c8537683e5d727c74879181dd11",
+        "H-04-i": "9bf1981052e66eae9f0ba21b8cf0d533a0dfb68806387b8eb5a6d38cba0b2035",
+        "H-04-l": "b530fee595d8e12b8e195a7673e6329523d3909bd8930f1ba85248866a255426",
+        "H-05-a": "79b6fbf1cd52265383d783645fda8566e8b5270737f25ccf6102377d073afc2e",
+        "H-05-c": "a161742e5dd5512f318fa6462ddafe42590767a7502bc76529b9987c0994a82c",
+        "H-06-b": "80d33c4973b8249ecff19d3131f47e34c3531d6ebd885763092809b011e47a9b",
+        "H-07-a": "03cd0c311182a21d01807c92f4ba98cfa7107ab1f99bdde4a4d781327cb3e0f5",
+        "H-07-b": "5356e7962e6a089f482e45b45d65c9edfeb727c9e0c25b4d5d014344a71c7364",
+        "H-07-c": "896a6cfd3c68df672db85408769051b4ab46ac10dc01192c09f388494f98b0d8",
+        "H-07-d": "b9249b327a075412456b2069f8f644e58527a432085f7d6db338e5a7df65029c",
+        "H-07-f": "efc19ed8caf9ba5d2522c5f5d36e1774598d0759276865f2d8c37764480a5341"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O07",
+      "number": 7,
+      "title": "경례 동작",
+      "source_page": 9,
+      "description": "국기에 대한 경례와 거수경례 자세가 정해진 규칙과 같은지 확인합니다",
+      "questions": [
+        "① 국기에 대한 경례를 오른손으로 하고 있는가?",
+        "② 거수경례의 손 모양(손바닥·엄지)과 손끝 위치가 맞는가?",
+        "③ 북한식 등 다른 나라 경례로 보이지 않는가?"
+      ],
+      "trigger_terms": [
+        "경례",
+        "국기에 대한",
+        "거수"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "H-04",
+        "H-07"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-07-01",
+          "number": 1,
+          "title": "어느 손",
+          "source_text": "어느 손\n오른손인가\n✕ 왼손 경례",
+          "action": "오른손인가",
+          "example_issue": "왼손 경례",
+          "rule_ids": [
+            "H-07-e",
+            "D-02-c",
+            "D-02-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        },
+        {
+          "id": "OFFICIAL-07-02",
+          "number": 2,
+          "title": "경례 종류",
+          "source_text": "경례 종류\n평상복=가슴에 손, 제복=거수경례\n✕ 평상복 차림 거수경례",
+          "action": "평상복=가슴에 손, 제복=거수경례",
+          "example_issue": "평상복 차림 거수경례",
+          "rule_ids": [
+            "H-07-d",
+            "H-07-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        },
+        {
+          "id": "OFFICIAL-07-03",
+          "number": 3,
+          "title": "가슴 위치",
+          "source_text": "가슴 위치\n오른손을 왼쪽 가슴에\n✕ 오른쪽 가슴·배 위치",
+          "action": "오른손을 왼쪽 가슴에",
+          "example_issue": "오른쪽 가슴·배 위치",
+          "rule_ids": [
+            "H-07-e",
+            "D-02-g"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        },
+        {
+          "id": "OFFICIAL-07-04",
+          "number": 4,
+          "title": "손바닥",
+          "source_text": "손바닥\n거수경례 시 손바닥 안 보이게\n✕ 손바닥이 정면으로 보임",
+          "action": "거수경례 시 손바닥 안 보이게",
+          "example_issue": "손바닥이 정면으로 보임",
+          "rule_ids": [
+            "H-07-e",
+            "D-02-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        },
+        {
+          "id": "OFFICIAL-07-05",
+          "number": 5,
+          "title": "엄지",
+          "source_text": "엄지\n엄지를 붙여 편 손\n✕ 엄지가 늘어지거나 벌어짐",
+          "action": "엄지를 붙여 편 손",
+          "example_issue": "엄지가 늘어지거나 벌어짐",
+          "rule_ids": [
+            "H-07-e",
+            "D-02-d",
+            "D-02-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        },
+        {
+          "id": "OFFICIAL-07-06",
+          "number": 6,
+          "title": "손끝",
+          "source_text": "손끝\n눈썹 또는 모자챙 끝\n✕ 이마 가운데·관자놀이",
+          "action": "눈썹 또는 모자챙 끝",
+          "example_issue": "이마 가운데·관자놀이",
+          "rule_ids": [
+            "H-07-e",
+            "D-02-g"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        },
+        {
+          "id": "OFFICIAL-07-07",
+          "number": 7,
+          "title": "좌우 반전",
+          "source_text": "좌우 반전\n이미지 반전 금지\n✕ 반전으로 왼손 경례가 됨",
+          "action": "이미지 반전 금지",
+          "example_issue": "반전으로 왼손 경례가 됨",
+          "rule_ids": [
+            "H-07-e",
+            "H-04-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        },
+        {
+          "id": "OFFICIAL-07-08",
+          "number": 8,
+          "title": "외국식",
+          "source_text": "외국식\n다른 나라 경례 형태\n✕ 북한식 경례처럼 보이는 손",
+          "action": "다른 나라 경례 형태",
+          "example_issue": "북한식 경례처럼 보이는 손",
+          "rule_ids": [
+            "H-07-d",
+            "H-07-e",
+            "H-07-f"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        },
+        {
+          "id": "OFFICIAL-07-09",
+          "number": 9,
+          "title": "시선·자세",
+          "source_text": "시선·자세\n국기를 향한 바른 자세\n✕ 국기와 다른 방향을 봄",
+          "action": "국기를 향한 바른 자세",
+          "example_issue": "국기와 다른 방향을 봄",
+          "rule_ids": [
+            "H-07-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        },
+        {
+          "id": "OFFICIAL-07-10",
+          "number": 10,
+          "title": "AI 생성",
+          "source_text": "AI 생성\nAI 인물의 손가락·방향\n✕ 손가락 수·방향이 어색함",
+          "action": "AI 인물의 손가락·방향",
+          "example_issue": "손가락 수·방향이 어색함",
+          "rule_ids": [
+            "H-07-e",
+            "D-02-c",
+            "D-02-d",
+            "D-02-e",
+            "D-02-g",
+            "D-02-i"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://wikitree.co.kr/articles/652350"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://mt.co.kr/society/2019/06/07/2019060714402894691"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "착용 복장·경례 종류·거울상·카메라 방향·팔의 실제 연결을 확인한다. 화면 왼쪽만으로 왼손이라 단정하지 않는다. 공식 상황별 지침이 없으면 해당 동작만 미검증이다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-c": "ea10833b80a41fcd8c3eae920f4f8c6ea27a03e61c2bce506ed99f59f5e37040",
+        "D-02-d": "05c8477305ca31eac225ffa8a7c42d2039cbc66acd13969723d96fa6e73aeb3d",
+        "D-02-e": "438237349aa09602273c0f538737de498744ea74a014ee37ac43ee853e28061a",
+        "D-02-g": "ce1cda7ca56a0cdbe29e7948f58bb83a9440fedc6880fdda25703902601c2842",
+        "D-02-i": "822305cbabe536b1dd6b61ea356b50983ab28b00f81eb884e00d7d80664c7034",
+        "H-04-d": "44f1fc61070dd1d66d321d0c023ccf1aa871496f25ad7f956c09cba02f48ace5",
+        "H-07-d": "b9249b327a075412456b2069f8f644e58527a432085f7d6db338e5a7df65029c",
+        "H-07-e": "8d50dcbaff929127bd102473ab88ea5de3c063043e20cd0f3c640807b9bc74b1",
+        "H-07-f": "efc19ed8caf9ba5d2522c5f5d36e1774598d0759276865f2d8c37764480a5341"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O08",
+      "number": 8,
+      "title": "정부·국가상징",
+      "source_page": 10,
+      "description": "정부상징·국가상징(태극 문양 등)을 원본 그대로, 정해진 방향으로 썼는지 확인합니다",
+      "questions": [
+        "① 정부상징을 변형 없이 원본 색·비율로 썼는가?",
+        "② 자격증·증명서 등 공식 발급물 속 상징 방향이 맞는가?",
+        "③ 민간·외주 제작물에 정부상징을 허락 없이 쓰지 않았는가?"
+      ],
+      "trigger_terms": [
+        "정부상징",
+        "기관 로고",
+        "기관 마크",
+        "공공기관",
+        "정부 로고",
+        "기관 문양"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-03",
+        "H-04",
+        "H-07"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-08-01",
+          "number": 1,
+          "title": "원본 파일",
+          "source_text": "원본 파일\n배포 원본 파일 사용\n✕ 인터넷 캡처·다시 그린 상징",
+          "action": "배포 원본 파일 사용",
+          "example_issue": "인터넷 캡처·다시 그린 상징",
+          "rule_ids": [
+            "H-07-b",
+            "H-07-g",
+            "D-03-a"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        },
+        {
+          "id": "OFFICIAL-08-02",
+          "number": 2,
+          "title": "방향",
+          "source_text": "방향\n태극 문양 방향\n✕ 회전·상하 반전",
+          "action": "태극 문양 방향",
+          "example_issue": "회전·상하 반전",
+          "rule_ids": [
+            "H-07-b",
+            "H-04-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        },
+        {
+          "id": "OFFICIAL-08-03",
+          "number": 3,
+          "title": "색",
+          "source_text": "색\n원본 색 그대로\n✕ 디자인 톤에 맞춰 색 변경",
+          "action": "원본 색 그대로",
+          "example_issue": "디자인 톤에 맞춰 색 변경",
+          "rule_ids": [
+            "H-07-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        },
+        {
+          "id": "OFFICIAL-08-04",
+          "number": 4,
+          "title": "비율",
+          "source_text": "비율\n가로세로 비율 유지\n✕ 늘리거나 눌린 상징",
+          "action": "가로세로 비율 유지",
+          "example_issue": "늘리거나 눌린 상징",
+          "rule_ids": [
+            "H-07-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        },
+        {
+          "id": "OFFICIAL-08-05",
+          "number": 5,
+          "title": "여백",
+          "source_text": "여백\n주변 여백 확보\n✕ 다른 그림과 겹침",
+          "action": "주변 여백 확보",
+          "example_issue": "다른 그림과 겹침",
+          "rule_ids": [
+            "H-07-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        },
+        {
+          "id": "OFFICIAL-08-06",
+          "number": 6,
+          "title": "배경 대비",
+          "source_text": "배경 대비\n배경과 구분되는가\n✕ 어두운 배경에 묻힘",
+          "action": "배경과 구분되는가",
+          "example_issue": "어두운 배경에 묻힘",
+          "rule_ids": [
+            "H-07-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        },
+        {
+          "id": "OFFICIAL-08-07",
+          "number": 7,
+          "title": "구 상징",
+          "source_text": "구 상징\n현행 상징인가\n✕ 2016년 이전 무궁화 정부상징",
+          "action": "현행 상징인가",
+          "example_issue": "2016년 이전 무궁화 정부상징",
+          "rule_ids": [
+            "H-07-b",
+            "H-07-d",
+            "H-07-g"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        },
+        {
+          "id": "OFFICIAL-08-08",
+          "number": 8,
+          "title": "배치",
+          "source_text": "배치\n기관 로고와 함께 쓸 때 배치\n✕ 임의 크기·위치",
+          "action": "기관 로고와 함께 쓸 때 배치",
+          "example_issue": "임의 크기·위치",
+          "rule_ids": [
+            "H-07-b",
+            "H-07-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        },
+        {
+          "id": "OFFICIAL-08-09",
+          "number": 9,
+          "title": "발급물",
+          "source_text": "발급물\n자격증·증명서·명함 디자인\n✕ 외주 디자인 무검수",
+          "action": "자격증·증명서·명함 디자인",
+          "example_issue": "외주 디자인 무검수",
+          "rule_ids": [
+            "H-07-a",
+            "H-07-b",
+            "H-07-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        },
+        {
+          "id": "OFFICIAL-08-10",
+          "number": 10,
+          "title": "무단 사용",
+          "source_text": "무단 사용\n민간 협력물 사용 승인\n✕ 협찬·민간 제작물 무단 사용",
+          "action": "민간 협력물 사용 승인",
+          "example_issue": "협찬·민간 제작물 무단 사용",
+          "rule_ids": [
+            "D-03-b",
+            "D-03-c",
+            "D-03-e",
+            "H-07-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://imaeil.com/page/view/2026102709101761187"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://m.go.seoul.co.kr/news/2019/10/16/20191016014011"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "역사 시점·기관·매체별 사용 지침이 필요하다. 구형 로고 자체를 오류로 단정하지 않는다. 시각 일치와 사용 승인·라이선스는 별개다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-03-a": "8c0d999399e0f35dca4b4553f2d9077af958d23b95fa0495a79801c88357dc3d",
+        "D-03-b": "b532c9c29c19f5e67d039d0e828d1d1a534161caf9cdc5217e31db38bfd1a9e3",
+        "D-03-c": "51f73491fba193feca27f2d6ec3907a5d616073c9635a4df706c0e50b2a4aa95",
+        "D-03-e": "6ff2fca8c42a91e22d5408233e4303e6a179015a9ea3d992afe5de75a65db8f1",
+        "H-04-e": "041f386842ee0cbbb7613600cf39dd7af70b15455a87c268667fbd01ca497d42",
+        "H-07-a": "03cd0c311182a21d01807c92f4ba98cfa7107ab1f99bdde4a4d781327cb3e0f5",
+        "H-07-b": "5356e7962e6a089f482e45b45d65c9edfeb727c9e0c25b4d5d014344a71c7364",
+        "H-07-d": "b9249b327a075412456b2069f8f644e58527a432085f7d6db338e5a7df65029c",
+        "H-07-g": "06de2bf7c9cfdcf4d5a68efc60a86307b7137e1129542c9f6c48ecbe80a76e24"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O09",
+      "number": 9,
+      "title": "역사적 사실",
+      "source_page": 11,
+      "description": "날짜·장소·인물 등 역사적 사실이 정확한지 확인합니다",
+      "questions": [
+        "① 사건의 날짜·장소·주체가 정확한가?",
+        "② 기념일의 의미를 다른 사건과 섞지 않았는가?",
+        "③ 국사편찬위원회 등 공신력 있는 자료로 확인했는가?"
+      ],
+      "trigger_terms": [
+        "역사",
+        "기념",
+        "주년",
+        "3·1",
+        "5·18",
+        "광복",
+        "독립",
+        "시대"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "H-01",
+        "H-02",
+        "H-03"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-09-01",
+          "number": 1,
+          "title": "날짜",
+          "source_text": "날짜\n연·월·일 대조\n✕ 연도 오기, 음력·양력 혼동",
+          "action": "연·월·일 대조",
+          "example_issue": "연도 오기, 음력·양력 혼동",
+          "rule_ids": [
+            "H-01-a",
+            "H-01-b",
+            "H-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        },
+        {
+          "id": "OFFICIAL-09-02",
+          "number": 2,
+          "title": "장소",
+          "source_text": "장소\n사건이 일어난 곳\n✕ 상하이·하얼빈 혼동",
+          "action": "사건이 일어난 곳",
+          "example_issue": "상하이·하얼빈 혼동",
+          "rule_ids": [
+            "H-01-a",
+            "H-01-b",
+            "H-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        },
+        {
+          "id": "OFFICIAL-09-03",
+          "number": 3,
+          "title": "주체",
+          "source_text": "주체\n인물·단체 이름\n✕ 다른 인물·단체 이름",
+          "action": "인물·단체 이름",
+          "example_issue": "다른 인물·단체 이름",
+          "rule_ids": [
+            "H-01-a",
+            "H-01-b",
+            "H-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        },
+        {
+          "id": "OFFICIAL-09-04",
+          "number": 4,
+          "title": "인물 사진",
+          "source_text": "인물 사진\n사진 속 인물이 본인인가\n✕ 동명이인·다른 인물 사진",
+          "action": "사진 속 인물이 본인인가",
+          "example_issue": "동명이인·다른 인물 사진",
+          "rule_ids": [
+            "H-01-a",
+            "H-01-c",
+            "H-01-f"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        },
+        {
+          "id": "OFFICIAL-09-05",
+          "number": 5,
+          "title": "기념일 의미",
+          "source_text": "기념일 의미\n기념일과 사건 연결\n✕ 3·1절과 임시정부 수립 혼동",
+          "action": "기념일과 사건 연결",
+          "example_issue": "3·1절과 임시정부 수립 혼동",
+          "rule_ids": [
+            "H-01-a",
+            "H-01-b",
+            "H-01-c",
+            "H-02-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        },
+        {
+          "id": "OFFICIAL-09-06",
+          "number": 6,
+          "title": "주년 계산",
+          "source_text": "주년 계산\n주년·회차 계산\n✕ '제○주년' 계산 오류",
+          "action": "주년·회차 계산",
+          "example_issue": "'제○주년' 계산 오류",
+          "rule_ids": [
+            "H-01-b",
+            "H-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        },
+        {
+          "id": "OFFICIAL-09-07",
+          "number": 7,
+          "title": "용어",
+          "source_text": "용어\n현행 역사 용어\n✕ 바뀐 옛 용어",
+          "action": "현행 역사 용어",
+          "example_issue": "바뀐 옛 용어",
+          "rule_ids": [
+            "H-01-c",
+            "H-02-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        },
+        {
+          "id": "OFFICIAL-09-08",
+          "number": 8,
+          "title": "시대 지도",
+          "source_text": "시대 지도\n시대에 맞는 지도\n✕ 현재 국경을 과거에 적용",
+          "action": "시대에 맞는 지도",
+          "example_issue": "현재 국경을 과거에 적용",
+          "rule_ids": [
+            "H-01-d",
+            "H-03-a",
+            "H-03-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        },
+        {
+          "id": "OFFICIAL-09-09",
+          "number": 9,
+          "title": "1차 자료",
+          "source_text": "1차 자료\n공신력 있는 출처\n✕ 블로그·위키만 참고",
+          "action": "공신력 있는 출처",
+          "example_issue": "블로그·위키만 참고",
+          "rule_ids": [
+            "H-01-c",
+            "H-01-f"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        },
+        {
+          "id": "OFFICIAL-09-10",
+          "number": 10,
+          "title": "전문 감수",
+          "source_text": "전문 감수\n전문기관 감수\n✕ 업체 원고 그대로 게시",
+          "action": "전문기관 감수",
+          "example_issue": "업체 원고 그대로 게시",
+          "rule_ids": [
+            "H-01-e",
+            "H-01-f"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://m.seoul.co.kr/news/2024/03/03/20240303500094"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://khan.co.kr/article/201312022134115"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "승인된 역사 사료/정본과 대조한다. 기사 속 사례나 모델 기억만으로 역사적 사실을 확정하지 않는다. 주년은 기준일·사건일·기념 방식 확인 후 계산한다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "H-01-a": "5aaed2d3ee3d855ca505bb0b4a875b558586a523a0f89eab5fd9a0fce10a07f7",
+        "H-01-b": "d7fc0c0152f1f9f2f1e7ca8ddff68e119efe2bc661e3593cdf1ced80e9b39db7",
+        "H-01-c": "31309c9acbba20da63e860c83ef99f6c930df98ab7e11a6953a5b6030a6b0c86",
+        "H-01-d": "ab43ec8bb22af22194fcc44698dd6827bd38961a6f77579d3518cf6a15186f39",
+        "H-01-e": "ff9b7564579eaca562374f9add36957d4c2df72295446ecd6950811789e46c20",
+        "H-01-f": "fe840a7defabbe2633ecaf160e7a5f55409457829ae5af237dd3bbe0d75f2883",
+        "H-02-c": "c2f38b0de3989bec27844deb175431f7e57523ec8e44406214b88d279c70a98f",
+        "H-03-a": "63931e1541169d33766ef0c74f3d649d727f9817364d77d4a95f2caf747f16d6",
+        "H-03-c": "7b99c4e7f3620f2b955b826206015ca65a0ae8a70cff7a94441e67b7a132fc2c"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O10",
+      "number": 10,
+      "title": "연락처·번호",
+      "source_page": 12,
+      "description": "신고·상담 번호, 전화번호, 링크·QR이 정확한지 확인합니다",
+      "questions": [
+        "① 112·119 등 신고번호가 기관과 맞게 쓰였는가?",
+        "② 안내 전화번호·링크를 실제로 걸고 접속해 확인했는가?",
+        "③ 폐지·통합된 옛 번호를 쓰지 않았는가?"
+      ],
+      "trigger_terms": [
+        "연락처",
+        "전화",
+        "문의",
+        "신고",
+        "긴급",
+        "QR",
+        "URL",
+        "번호",
+        "링크"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-01",
+        "D-02",
+        "H-06"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-10-01",
+          "number": 1,
+          "title": "신고번호",
+          "source_text": "신고번호\n범죄 112, 화재·구조 119\n✕ 기관과 번호가 뒤바뀜",
+          "action": "범죄 112, 화재·구조 119",
+          "example_issue": "기관과 번호가 뒤바뀜",
+          "rule_ids": [
+            "D-01-a",
+            "D-01-b",
+            "D-01-c",
+            "H-06-b"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        },
+        {
+          "id": "OFFICIAL-10-02",
+          "number": 2,
+          "title": "민원번호",
+          "source_text": "민원번호\n정부민원안내 110\n✕ 다른 대표번호 혼용",
+          "action": "정부민원안내 110",
+          "example_issue": "다른 대표번호 혼용",
+          "rule_ids": [
+            "D-01-a",
+            "D-01-b",
+            "D-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        },
+        {
+          "id": "OFFICIAL-10-03",
+          "number": 3,
+          "title": "통합 번호",
+          "source_text": "통합 번호\n자살예방 109\n✕ 통합 전 옛 번호",
+          "action": "자살예방 109",
+          "example_issue": "통합 전 옛 번호",
+          "rule_ids": [
+            "D-01-a",
+            "D-01-b",
+            "D-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        },
+        {
+          "id": "OFFICIAL-10-04",
+          "number": 4,
+          "title": "직접 통화",
+          "source_text": "직접 통화\n인쇄 전 직접 걸어 확인\n✕ 확인 없이 인쇄",
+          "action": "인쇄 전 직접 걸어 확인",
+          "example_issue": "확인 없이 인쇄",
+          "rule_ids": [
+            "D-01-b",
+            "D-01-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        },
+        {
+          "id": "OFFICIAL-10-05",
+          "number": 5,
+          "title": "자릿수",
+          "source_text": "자릿수\n지역번호·자릿수\n✕ 한 자리 누락·중복",
+          "action": "지역번호·자릿수",
+          "example_issue": "한 자리 누락·중복",
+          "rule_ids": [
+            "D-02-l",
+            "D-01-a"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        },
+        {
+          "id": "OFFICIAL-10-06",
+          "number": 6,
+          "title": "외국 번호",
+          "source_text": "외국 번호\n해외 긴급번호\n✕ 911, 999 노출",
+          "action": "해외 긴급번호",
+          "example_issue": "911, 999 노출",
+          "rule_ids": [
+            "D-01-a",
+            "D-01-b",
+            "D-01-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        },
+        {
+          "id": "OFFICIAL-10-07",
+          "number": 7,
+          "title": "링크",
+          "source_text": "링크\nURL 직접 접속\n✕ 오타·만료된 주소",
+          "action": "URL 직접 접속",
+          "example_issue": "오타·만료된 주소",
+          "rule_ids": [
+            "D-01-a",
+            "D-01-b",
+            "D-01-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        },
+        {
+          "id": "OFFICIAL-10-08",
+          "number": 8,
+          "title": "QR코드",
+          "source_text": "QR코드\n스캔해서 연결 확인\n✕ 시안용 임시 QR",
+          "action": "스캔해서 연결 확인",
+          "example_issue": "시안용 임시 QR",
+          "rule_ids": [
+            "D-01-a",
+            "D-01-b",
+            "D-01-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        },
+        {
+          "id": "OFFICIAL-10-09",
+          "number": 9,
+          "title": "담당 부서",
+          "source_text": "담당 부서\n부서 번호가 최신인가\n✕ 조직 개편 전 번호",
+          "action": "부서 번호가 최신인가",
+          "example_issue": "조직 개편 전 번호",
+          "rule_ids": [
+            "D-01-a",
+            "D-01-b",
+            "D-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        },
+        {
+          "id": "OFFICIAL-10-10",
+          "number": 10,
+          "title": "예시 번호",
+          "source_text": "예시 번호\n시안용 번호 삭제\n✕ 0000·1234 같은 번호 잔존",
+          "action": "시안용 번호 삭제",
+          "example_issue": "0000·1234 같은 번호 잔존",
+          "rule_ids": [
+            "D-01-a",
+            "D-01-c",
+            "D-02-l"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://munhwa.com/article/11626624"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "자료의 기준일과 연락 목적을 확인한다. 사전점검 참고자료는 최신 번호 정본이나 실제 연결 확인이 아니다. 전화·링크·QR 접속을 실행했다고 주장하지 않는다. 값은 마스킹한다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-01-a": "1dfea8d25668c9cc5a79ce13df35dcc636989884d8ea8909b51b0623a874f79a",
+        "D-01-b": "ee5f01367eff1eaef4a97ed935433e31cdfee2602d5cc8e0dc8b59e4deebfe0f",
+        "D-01-c": "6302a04329cb9a1c61effbb0eab120dda4de7f35cb9edffecdbd9dc88c99e106",
+        "D-01-e": "272a4d074ff6e2841b7303dd23dfb57e73c02b0e0b7f633d4ac05452f25b4c93",
+        "D-02-l": "d4124fb787c1019b5388a15e7ab0c1467eccf13069481cbf987e9a3a2b67de5f",
+        "H-06-b": "80d33c4973b8249ecff19d3131f47e34c3531d6ebd885763092809b011e47a9b"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O11",
+      "number": 11,
+      "title": "안전행동 정확성",
+      "source_page": 13,
+      "description": "재난·안전 행동요령이 정확하고, 이유·장소·행동이 빠짐없이 안내되는지 확인합니다",
+      "questions": [
+        "① 행동요령이 현행 공식 지침과 같은가?",
+        "② '왜·어디로·어떻게'가 모두 들어 있는가?",
+        "③ 그림 속 동작·장비가 실제 안전수칙과 맞는가?"
+      ],
+      "trigger_terms": [
+        "재난",
+        "안전",
+        "대피",
+        "소화기",
+        "보호구",
+        "AED",
+        "행동요령",
+        "구조",
+        "승선"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-01",
+        "D-02",
+        "E-04",
+        "E-05",
+        "E-07"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-11-01",
+          "number": 1,
+          "title": "지침 대조",
+          "source_text": "지침 대조\n국민재난안전포털 행동요령\n✕ 인터넷 속설 인용",
+          "action": "국민재난안전포털 행동요령",
+          "example_issue": "인터넷 속설 인용",
+          "rule_ids": [
+            "D-01-b",
+            "D-01-c",
+            "D-01-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        },
+        {
+          "id": "OFFICIAL-11-02",
+          "number": 2,
+          "title": "3요소",
+          "source_text": "3요소\n왜·어디로·어떻게\n✕ \"대피하세요\"만 안내",
+          "action": "왜·어디로·어떻게",
+          "example_issue": "\"대피하세요\"만 안내",
+          "rule_ids": [
+            "E-07-a",
+            "E-07-b",
+            "E-07-c",
+            "E-07-d",
+            "D-01-a"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        },
+        {
+          "id": "OFFICIAL-11-03",
+          "number": 3,
+          "title": "최신성",
+          "source_text": "최신성\n개정된 지침 반영\n✕ 바뀌기 전 행동요령",
+          "action": "개정된 지침 반영",
+          "example_issue": "바뀌기 전 행동요령",
+          "rule_ids": [
+            "D-01-b",
+            "D-01-c",
+            "D-01-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        },
+        {
+          "id": "OFFICIAL-11-04",
+          "number": 4,
+          "title": "동작 그림",
+          "source_text": "동작 그림\n그림 속 자세가 수칙과 같나\n✕ 흔들릴 때 밖으로 뛰어나감",
+          "action": "그림 속 자세가 수칙과 같나",
+          "example_issue": "흔들릴 때 밖으로 뛰어나감",
+          "rule_ids": [
+            "D-02-k",
+            "D-01-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        },
+        {
+          "id": "OFFICIAL-11-05",
+          "number": 5,
+          "title": "보호구",
+          "source_text": "보호구\n안전모·구명조끼 착용\n✕ 보호구 없이 작업·승선",
+          "action": "안전모·구명조끼 착용",
+          "example_issue": "보호구 없이 작업·승선",
+          "rule_ids": [
+            "D-02-k",
+            "E-07-a"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        },
+        {
+          "id": "OFFICIAL-11-06",
+          "number": 6,
+          "title": "장비 사용",
+          "source_text": "장비 사용\n소화기·AED 사용 순서\n✕ 순서가 뒤바뀐 그림",
+          "action": "소화기·AED 사용 순서",
+          "example_issue": "순서가 뒤바뀐 그림",
+          "rule_ids": [
+            "D-02-k",
+            "D-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        },
+        {
+          "id": "OFFICIAL-11-07",
+          "number": 7,
+          "title": "대피 경로",
+          "source_text": "대피 경로\n화재 시 계단 이용\n✕ 엘리베이터로 대피하는 그림",
+          "action": "화재 시 계단 이용",
+          "example_issue": "엘리베이터로 대피하는 그림",
+          "rule_ids": [
+            "D-02-k",
+            "D-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        },
+        {
+          "id": "OFFICIAL-11-08",
+          "number": 8,
+          "title": "취약계층",
+          "source_text": "취약계층\n노약자·장애인 안내\n✕ 특정 계층 외출 금지 (17번)",
+          "action": "노약자·장애인 안내",
+          "example_issue": "특정 계층 외출 금지 (17번)",
+          "rule_ids": [
+            "E-07-b",
+            "E-07-c",
+            "E-07-d",
+            "E-05-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        },
+        {
+          "id": "OFFICIAL-11-09",
+          "number": 9,
+          "title": "외국어",
+          "source_text": "외국어\n외국인용 안내\n✕ 한국어 문자만 발송",
+          "action": "외국인용 안내",
+          "example_issue": "한국어 문자만 발송",
+          "rule_ids": [
+            "E-04-a",
+            "E-04-e",
+            "E-07-b",
+            "E-07-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        },
+        {
+          "id": "OFFICIAL-11-10",
+          "number": 10,
+          "title": "정정 문구",
+          "source_text": "정정 문구\n오발령 정정·해제 문구\n✕ 정정 안내 지연",
+          "action": "오발령 정정·해제 문구",
+          "example_issue": "정정 안내 지연",
+          "rule_ids": [
+            "D-01-b",
+            "D-01-c",
+            "D-01-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://namu.wiki/w/서울특별시%20경계경보%20오발령%20사건"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://v.daum.net/v/20130726030516933"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "상황·재난 유형·시기별 승인 행동요령을 우선한다. 하나의 장면만으로 모든 행동 순서를 확정하지 않는다. 접근성·지원 범위는 관련 문서와 사람 확인을 구분한다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-01-a": "1dfea8d25668c9cc5a79ce13df35dcc636989884d8ea8909b51b0623a874f79a",
+        "D-01-b": "ee5f01367eff1eaef4a97ed935433e31cdfee2602d5cc8e0dc8b59e4deebfe0f",
+        "D-01-c": "6302a04329cb9a1c61effbb0eab120dda4de7f35cb9edffecdbd9dc88c99e106",
+        "D-01-e": "272a4d074ff6e2841b7303dd23dfb57e73c02b0e0b7f633d4ac05452f25b4c93",
+        "D-02-k": "d7fa4499365cfa72202c405aee623b0fb98f7a874065dbe4ccb3f5e39114a239",
+        "E-04-a": "1070dfc020c75298d53b6b37a5f985624842e4c78d203772fa8970dc7f342a72",
+        "E-04-e": "c922fc3ce903cc65a3ba992d8fb07b594353d35736b625ba00a408101491684a",
+        "E-05-c": "96b35e2c74cc98053d0ba0bbf4f984c37c7f5960eb36f6f59798687b6b6a9a0d",
+        "E-07-a": "4f3d9a32fed7bd97d1f03efdc74fefc67d86fd8479db7dcb5d921c702c7e06af",
+        "E-07-b": "c74bff5f73bdc4bfb09e52a11157de3cfe44e75aad46858b3c9ef0fd237cb67e",
+        "E-07-c": "c9912cd5aa3b555b786f3cf645a38c75c1bc5c34b5a549b4ffbd4bcfc610d350",
+        "E-07-d": "754533598da91367b7eca959599d93de1db9c7bed25a26926dd8f590b39798d4"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O12",
+      "number": 12,
+      "title": "성 고정관념",
+      "source_page": 14,
+      "description": "직업·역할·외모 묘사에 성별 고정관념이 드러나지 않는지 확인합니다",
+      "questions": [
+        "① 직업군 인물이 한 성별로만 그려지지 않았는가?",
+        "② 돌봄·보조는 여성, 지휘·구조는 남성식 배치가 없는가?",
+        "③ 특정 성별을 열등하게 그리거나 외모로 대상화하지 않았는가?"
+      ],
+      "trigger_terms": [
+        "인물",
+        "사람",
+        "성별",
+        "여성",
+        "남성",
+        "엄마",
+        "아빠",
+        "돌봄",
+        "캐릭터"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "E-01"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-12-01",
+          "number": 1,
+          "title": "직업 성비",
+          "source_text": "직업 성비\n소방·경찰·군 인물 성별\n✕ 전원 남성",
+          "action": "소방·경찰·군 인물 성별",
+          "example_issue": "전원 남성",
+          "rule_ids": [
+            "E-01-a",
+            "E-01-b",
+            "E-01-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        },
+        {
+          "id": "OFFICIAL-12-02",
+          "number": 2,
+          "title": "역할 배치",
+          "source_text": "역할 배치\n지휘·구조 vs 보조 역할\n✕ 남성 지휘, 여성 보조",
+          "action": "지휘·구조 vs 보조 역할",
+          "example_issue": "남성 지휘, 여성 보조",
+          "rule_ids": [
+            "E-01-b",
+            "E-01-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        },
+        {
+          "id": "OFFICIAL-12-03",
+          "number": 3,
+          "title": "돌봄 장면",
+          "source_text": "돌봄 장면\n육아·가사 장면 인물\n✕ 엄마만 아이를 돌봄",
+          "action": "육아·가사 장면 인물",
+          "example_issue": "엄마만 아이를 돌봄",
+          "rule_ids": [
+            "E-01-b",
+            "E-01-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        },
+        {
+          "id": "OFFICIAL-12-04",
+          "number": 4,
+          "title": "직업 호칭",
+          "source_text": "직업 호칭\n성별 붙인 직업명\n✕ 여경·여의사·여교사",
+          "action": "성별 붙인 직업명",
+          "example_issue": "여경·여의사·여교사",
+          "rule_ids": [
+            "E-01-a",
+            "E-01-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        },
+        {
+          "id": "OFFICIAL-12-05",
+          "number": 5,
+          "title": "외모 묘사",
+          "source_text": "외모 묘사\n외모·몸매 강조\n✕ 여성 인물만 외모 묘사",
+          "action": "외모·몸매 강조",
+          "example_issue": "여성 인물만 외모 묘사",
+          "rule_ids": [
+            "E-01-c",
+            "E-01-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        },
+        {
+          "id": "OFFICIAL-12-06",
+          "number": 6,
+          "title": "자세·구도",
+          "source_text": "자세·구도\n위계가 드러나는 구도\n✕ 한 성별만 무릎 꿇음",
+          "action": "위계가 드러나는 구도",
+          "example_issue": "한 성별만 무릎 꿇음",
+          "rule_ids": [
+            "E-01-c",
+            "E-01-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        },
+        {
+          "id": "OFFICIAL-12-07",
+          "number": 7,
+          "title": "색 구분",
+          "source_text": "색 구분\n성별로 색 나누기\n✕ 남자 파랑·여자 분홍",
+          "action": "성별로 색 나누기",
+          "example_issue": "남자 파랑·여자 분홍",
+          "rule_ids": [
+            "E-01-a",
+            "E-01-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        },
+        {
+          "id": "OFFICIAL-12-08",
+          "number": 8,
+          "title": "AI 생성",
+          "source_text": "AI 생성\nAI 인물 성비 확인\n✕ 직업별 한 성별만 생성",
+          "action": "AI 인물 성비 확인",
+          "example_issue": "직업별 한 성별만 생성",
+          "rule_ids": [
+            "E-01-b",
+            "E-01-e",
+            "D-02-a"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        },
+        {
+          "id": "OFFICIAL-12-09",
+          "number": 9,
+          "title": "관용 표현",
+          "source_text": "관용 표현\n성별 고정 표현\n✕ '엄마 손맛', '아빠처럼 든든'",
+          "action": "성별 고정 표현",
+          "example_issue": "'엄마 손맛', '아빠처럼 든든'",
+          "rule_ids": [
+            "E-01-a",
+            "E-01-b",
+            "E-01-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        },
+        {
+          "id": "OFFICIAL-12-10",
+          "number": 10,
+          "title": "대조 구도",
+          "source_text": "대조 구도\n남녀 대비 장면\n✕ 군대 간 남성 vs 카페의 여성",
+          "action": "남녀 대비 장면",
+          "example_issue": "군대 간 남성 vs 카페의 여성",
+          "rule_ids": [
+            "E-01-a",
+            "E-01-b",
+            "E-01-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://v.daum.net/v/20171025162835368"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://khaosodenglish.com/life/2016/04/11/1460356456/"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "외모로 성별을 추정하지 않는다. 인물 성비나 색상만으로 차별/위반을 확정하지 않고 명시 문구·역할·맥락을 함께 살핀다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-a": "f8ac3109769edacdab363cd193dc9573f32cb37e4aeacad18b1ea00e7550305f",
+        "E-01-a": "b10ac939f74fa530332a48ff5f55c2efd8bdc282eba8a87a549b1015cac48426",
+        "E-01-b": "be68a15e2880985f95ab69d3c7bb59721b75272d6214f76084afb332516ec239",
+        "E-01-c": "1ecca7d843315c039be309e6b3455f93b4dadab3ffb000df2b75460be4862918",
+        "E-01-d": "51b6aaf2cce117cd154ad416ea10fead6f59de8f998e0fe3ad0c820fd1d652d1",
+        "E-01-e": "8c5aaa37e98467e0210b80c6a7b73dae2096ce410986484f8f850ac8ba66dd60"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O13",
+      "number": 13,
+      "title": "집게손",
+      "source_page": 15,
+      "description": "엄지·검지로 집는 손 모양 등 비하 표현으로 해석되는 손동작을 확인합니다",
+      "questions": [
+        "① 엄지와 검지로 무언가를 집는 듯한 손 모양이 없는가?",
+        "② 확대했을 때 손가락 모양이 오해될 여지가 없는가?",
+        "③ 논란이 된 다른 손동작·제스처와 닮지 않았는가?"
+      ],
+      "trigger_terms": [
+        "손",
+        "제스처",
+        "수신호"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "D-03",
+        "P-02"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-13-01",
+          "number": 1,
+          "title": "손가락 끝",
+          "source_text": "손가락 끝\n엄지·검지 끝이 맞닿는가\n✕ 무언가 집는 듯한 손",
+          "action": "엄지·검지 끝이 맞닿는가",
+          "example_issue": "무언가 집는 듯한 손",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-c",
+            "P-02-d",
+            "D-02-c",
+            "D-02-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        },
+        {
+          "id": "OFFICIAL-13-02",
+          "number": 2,
+          "title": "작은 손",
+          "source_text": "작은 손\n작게 그린 손 확대\n✕ 작은 손에서 집게 모양",
+          "action": "작게 그린 손 확대",
+          "example_issue": "작은 손에서 집게 모양",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-c",
+            "D-02-i"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        },
+        {
+          "id": "OFFICIAL-13-03",
+          "number": 3,
+          "title": "소품 쥔 손",
+          "source_text": "소품 쥔 손\n물건 잡는 방식\n✕ 작은 물건을 두 손가락으로",
+          "action": "물건 잡는 방식",
+          "example_issue": "작은 물건을 두 손가락으로",
+          "rule_ids": [
+            "P-02-c",
+            "D-02-d",
+            "D-02-f",
+            "D-02-k"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        },
+        {
+          "id": "OFFICIAL-13-04",
+          "number": 4,
+          "title": "아이콘",
+          "source_text": "아이콘\n아이콘·이모티콘 손 모양\n✕ 집는 손 아이콘",
+          "action": "아이콘·이모티콘 손 모양",
+          "example_issue": "집는 손 아이콘",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-c",
+            "P-02-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        },
+        {
+          "id": "OFFICIAL-13-05",
+          "number": 5,
+          "title": "반복 등장",
+          "source_text": "반복 등장\n여러 장면 같은 손\n✕ 같은 업체 작품 반복",
+          "action": "여러 장면 같은 손",
+          "example_issue": "같은 업체 작품 반복",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        },
+        {
+          "id": "OFFICIAL-13-06",
+          "number": 6,
+          "title": "원화 출처",
+          "source_text": "원화 출처\n업체 원화 작가 확인\n✕ 업체도 모르는 외부 원화",
+          "action": "업체 원화 작가 확인",
+          "example_issue": "업체도 모르는 외부 원화",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-c",
+            "P-02-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        },
+        {
+          "id": "OFFICIAL-13-07",
+          "number": 7,
+          "title": "판정",
+          "source_text": "판정\n의도 없어도 '오해 소지' 표시\n✕ 의도 없다는 이유로 통과",
+          "action": "의도 없어도 '오해 소지' 표시",
+          "example_issue": "의도 없다는 이유로 통과",
+          "rule_ids": [
+            "P-02-c",
+            "P-02-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        },
+        {
+          "id": "OFFICIAL-13-08",
+          "number": 8,
+          "title": "다른 제스처",
+          "source_text": "다른 제스처\n손가락 욕설·특정 수신호\n✕ 중지 등 연상되는 손",
+          "action": "손가락 욕설·특정 수신호",
+          "example_issue": "중지 등 연상되는 손",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-b",
+            "P-02-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        },
+        {
+          "id": "OFFICIAL-13-09",
+          "number": 9,
+          "title": "영상 프레임",
+          "source_text": "영상 프레임\n영상 정지 화면 확인\n✕ 지나가는 장면 속 손",
+          "action": "영상 정지 화면 확인",
+          "example_issue": "지나가는 장면 속 손",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        },
+        {
+          "id": "OFFICIAL-13-10",
+          "number": 10,
+          "title": "AI 생성",
+          "source_text": "AI 생성\nAI 인물 손 확대\n✕ 손가락 수·모양 이상 (20번)",
+          "action": "AI 인물 손 확대",
+          "example_issue": "손가락 수·모양 이상 (20번)",
+          "rule_ids": [
+            "D-02-c",
+            "D-02-d",
+            "D-02-e",
+            "D-02-f",
+            "D-02-g",
+            "D-02-i",
+            "P-02-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://pressian.com/pages/articles/2021081219065225019"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://inews24.com/view/1366490"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "물건 파지·주먹·가림·캐릭터 의도를 확인한다. 엄지/검지 모양만으로 혐오 상징이나 제작 의도를 확정하지 않는다. 형태 관찰과 사회적 해석을 분리한다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-c": "ea10833b80a41fcd8c3eae920f4f8c6ea27a03e61c2bce506ed99f59f5e37040",
+        "D-02-d": "05c8477305ca31eac225ffa8a7c42d2039cbc66acd13969723d96fa6e73aeb3d",
+        "D-02-e": "438237349aa09602273c0f538737de498744ea74a014ee37ac43ee853e28061a",
+        "D-02-f": "e2560a19ac6f6e2824962a1b1bcc61df51ec13b747de61a8cc62719b69c52b29",
+        "D-02-g": "ce1cda7ca56a0cdbe29e7948f58bb83a9440fedc6880fdda25703902601c2842",
+        "D-02-i": "822305cbabe536b1dd6b61ea356b50983ab28b00f81eb884e00d7d80664c7034",
+        "D-02-k": "d7fa4499365cfa72202c405aee623b0fb98f7a874065dbe4ccb3f5e39114a239",
+        "D-03-a": "8c0d999399e0f35dca4b4553f2d9077af958d23b95fa0495a79801c88357dc3d",
+        "D-03-c": "51f73491fba193feca27f2d6ec3907a5d616073c9635a4df706c0e50b2a4aa95",
+        "P-02-a": "82f384d92065d3d4e5e520ff5920391a398374057151cfe9d28e98dbb0eb33b5",
+        "P-02-b": "422fef622a50f9a47974cf0d1bb58deeaa18d4a326e7eb1db453a9f2a87f5170",
+        "P-02-c": "262581e12979575abb9ef473f9b4da73bcbc78c9287c6c98f70a48a355954b42",
+        "P-02-d": "0ca9b6ed7c61c394d343535c8cb8cc7e900bbab41be16f7a8a5d5623630d8e37"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O14",
+      "number": 14,
+      "title": "커뮤니티 은어·비하 코드",
+      "source_page": 16,
+      "description": "온라인 커뮤니티의 혐오·비하 은어와 이를 연상시키는 이미지가 없는지 확인합니다",
+      "questions": [
+        "① 특정 커뮤니티에서 유래한 혐오·비하 은어가 없는가?",
+        "② 특정 지역·성별·세대를 비하하는 상징이 연상되지 않는가?",
+        "③ 유행어·밈을 쓰기 전에 유래를 확인했는가?"
+      ],
+      "trigger_terms": [
+        "문자",
+        "문구",
+        "해시태그",
+        "자막",
+        "밈",
+        "패턴",
+        "그림자"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "E-01",
+        "E-02",
+        "E-03",
+        "E-04",
+        "H-09",
+        "P-01",
+        "P-02"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-14-01",
+          "number": 1,
+          "title": "유래 검색",
+          "source_text": "유래 검색\n유행어가 처음 쓰인 곳\n✕ 뜻만 보고 사용",
+          "action": "유행어가 처음 쓰인 곳",
+          "example_issue": "뜻만 보고 사용",
+          "rule_ids": [
+            "P-02-b",
+            "P-02-d",
+            "P-02-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-14-02",
+          "number": 2,
+          "title": "성별 비하",
+          "source_text": "성별 비하\n성별 갈등 은어\n✕ 허버허버, 오조오억, 드릉드릉",
+          "action": "성별 갈등 은어",
+          "example_issue": "허버허버, 오조오억, 드릉드릉",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-b",
+            "P-02-c",
+            "E-01-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-14-03",
+          "number": 3,
+          "title": "지역 비하",
+          "source_text": "지역 비하\n지역 연상 동물·음식 이미지\n✕ 지역 비하 코드와 겹치는 소재",
+          "action": "지역 연상 동물·음식 이미지",
+          "example_issue": "지역 비하 코드와 겹치는 소재",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-b",
+            "P-02-c",
+            "E-04-a",
+            "E-04-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-14-04",
+          "number": 4,
+          "title": "세대 비하",
+          "source_text": "세대 비하\n세대 비하 표현\n✕ 틀딱, 급식충, 잼민이",
+          "action": "세대 비하 표현",
+          "example_issue": "틀딱, 급식충, 잼민이",
+          "rule_ids": [
+            "E-02-a",
+            "E-02-b",
+            "E-02-c",
+            "E-02-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-14-05",
+          "number": 5,
+          "title": "'~충'",
+          "source_text": "'~충'\n집단을 벌레에 빗댄 말\n✕ 맘충, ○○충",
+          "action": "집단을 벌레에 빗댄 말",
+          "example_issue": "맘충, ○○충",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-b",
+            "P-02-c",
+            "E-03-a",
+            "E-03-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-14-06",
+          "number": 6,
+          "title": "정치 은어",
+          "source_text": "정치 은어\n특정 진영 커뮤니티 표현\n✕ 정치인 비하 합성어",
+          "action": "특정 진영 커뮤니티 표현",
+          "example_issue": "정치인 비하 합성어",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-b",
+            "P-02-c",
+            "P-02-d",
+            "P-01-b"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-14-07",
+          "number": 7,
+          "title": "왜색 밈",
+          "source_text": "왜색 밈\n일본어 밈·말투\n✕ 오이시쿠나레",
+          "action": "일본어 밈·말투",
+          "example_issue": "오이시쿠나레",
+          "rule_ids": [
+            "H-09-b",
+            "H-09-d",
+            "P-02-a",
+            "P-02-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-14-08",
+          "number": 8,
+          "title": "짤·이미지",
+          "source_text": "짤·이미지\n캐릭터·짤의 원래 맥락\n✕ 혐오 커뮤니티 유래 짤",
+          "action": "캐릭터·짤의 원래 맥락",
+          "example_issue": "혐오 커뮤니티 유래 짤",
+          "rule_ids": [
+            "P-02-a",
+            "P-02-b",
+            "P-02-c",
+            "P-02-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-14-09",
+          "number": 9,
+          "title": "AI 결과물",
+          "source_text": "AI 결과물\n연기·그림자 속 형상\n✕ 의도와 다른 형상",
+          "action": "연기·그림자 속 형상",
+          "example_issue": "의도와 다른 형상",
+          "rule_ids": [
+            "D-02-j",
+            "D-02-o",
+            "P-02-a",
+            "P-02-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-14-10",
+          "number": 10,
+          "title": "게시 후",
+          "source_text": "게시 후\n반응 모니터링\n✕ 논란 뒤 늦은 대응",
+          "action": "반응 모니터링",
+          "example_issue": "논란 뒤 늦은 대응",
+          "rule_ids": [
+            "P-02-d",
+            "P-02-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://wikitree.co.kr/articles/1140032"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "용어는 위험 탐색 후보일 뿐 금칙어 목록이 아니다. 승인된 최신 용어집과 실제 문맥·인용/비판·다의성을 확인하며 유래·차별 의도는 자동 확정하지 않는다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-j": "f50e4675e5d92c557d16912b543110ba7a8dd9734edac5c679f36d35eb7a878f",
+        "D-02-o": "7ae459914da64c2fb481f66e9f75e0fdaf050b0e7f5b94de8292bdfa133e5be0",
+        "E-01-d": "51b6aaf2cce117cd154ad416ea10fead6f59de8f998e0fe3ad0c820fd1d652d1",
+        "E-02-a": "ec8dacc927fb887f4068912048b4fc85e39838883553016fc6037d543c6a1a81",
+        "E-02-b": "7cc0d2468106b28065a3449ed7cde03ed0fafdf7dff0ff6d52c63b3364799ff5",
+        "E-02-c": "0a1fbfb0d987a8fa90fdf044439d95d0575bcd7e376b410775728eb3d6956ae5",
+        "E-02-d": "b69d9139c17615561d4c13d706d40533120fb75695fd542b52db261667bda4eb",
+        "E-03-a": "2abf75277dbdf0ea1bd87a80df9462f6121d50bd382c15a006727d6f6b78e65a",
+        "E-03-d": "42724b50525f0151340e61b75d6498fc489c4a9e96806b1a31a98083973b7ae4",
+        "E-04-a": "1070dfc020c75298d53b6b37a5f985624842e4c78d203772fa8970dc7f342a72",
+        "E-04-e": "c922fc3ce903cc65a3ba992d8fb07b594353d35736b625ba00a408101491684a",
+        "H-09-b": "4813fa8c4a219572716a87d1e7683d5eab021eac42ca2cb24c0e9b5dbee61135",
+        "H-09-d": "7119be34d9be6e619f866f743f527eab3edc35ad27b0f037d9015f0c8dd72d84",
+        "P-01-b": "140a1733333c7c304f644bfcf99f9460ce57a21a2f610163919f9c891f4b7c35",
+        "P-02-a": "82f384d92065d3d4e5e520ff5920391a398374057151cfe9d28e98dbb0eb33b5",
+        "P-02-b": "422fef622a50f9a47974cf0d1bb58deeaa18d4a326e7eb1db453a9f2a87f5170",
+        "P-02-c": "262581e12979575abb9ef473f9b4da73bcbc78c9287c6c98f70a48a355954b42",
+        "P-02-d": "0ca9b6ed7c61c394d343535c8cb8cc7e900bbab41be16f7a8a5d5623630d8e37",
+        "P-02-e": "0c8224465b915abfcaf26edfbfbfdf2feaaa50c3326f01c2ad338b4a65ff3910"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O15",
+      "number": 15,
+      "title": "장애 비하·편견 표현",
+      "source_page": 17,
+      "description": "쓰지 않는 용어와, 장애를 '극복 대상'으로 그리는 문장·이미지를 함께 확인합니다",
+      "questions": [
+        "① '장애우'·'정상인'·'정신지체' 등 쓰지 않는 용어가 없는가?",
+        "② 장애를 '극복'하거나 '딛고' 일어설 대상으로 그리지 않았는가?",
+        "③ 장애가 있으면 평범하게 살 수 없다는 전제가 깔려 있지 않은가?"
+      ],
+      "trigger_terms": [
+        "장애",
+        "휠체어",
+        "수어",
+        "보조기",
+        "접근성",
+        "정신",
+        "정상"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "E-05",
+        "E-07"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-15-01",
+          "number": 1,
+          "title": "검색어",
+          "source_text": "검색어\n「장애」「정상」「정신」 찾기\n✕ 위 표의 용어가 남아 있음",
+          "action": "「장애」「정상」「정신」 찾기",
+          "example_issue": "위 표의 용어가 남아 있음",
+          "rule_ids": [
+            "E-05-a",
+            "E-05-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        },
+        {
+          "id": "OFFICIAL-15-02",
+          "number": 2,
+          "title": "호칭",
+          "source_text": "호칭\n'장애인'으로 통일\n✕ 장애자, 불구자",
+          "action": "'장애인'으로 통일",
+          "example_issue": "장애자, 불구자",
+          "rule_ids": [
+            "E-05-a",
+            "E-05-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        },
+        {
+          "id": "OFFICIAL-15-03",
+          "number": 3,
+          "title": "질환명",
+          "source_text": "질환명\n현행 명칭\n✕ 정신분열증 (→ 조현병)",
+          "action": "현행 명칭",
+          "example_issue": "정신분열증 (→ 조현병)",
+          "rule_ids": [
+            "E-05-a",
+            "E-05-b"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        },
+        {
+          "id": "OFFICIAL-15-04",
+          "number": 4,
+          "title": "동정·시혜",
+          "source_text": "동정·시혜\n도움받는 대상으로만 그렸나\n✕ 불쌍한, 도와줘야 할 이웃",
+          "action": "도움받는 대상으로만 그렸나",
+          "example_issue": "불쌍한, 도와줘야 할 이웃",
+          "rule_ids": [
+            "E-05-b",
+            "E-05-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        },
+        {
+          "id": "OFFICIAL-15-05",
+          "number": 5,
+          "title": "비유 관용어",
+          "source_text": "비유 관용어\n장애에 빗댄 관용어\n✕ 눈먼 돈, 꿀 먹은 벙어리",
+          "action": "장애에 빗댄 관용어",
+          "example_issue": "눈먼 돈, 꿀 먹은 벙어리",
+          "rule_ids": [
+            "E-05-a",
+            "E-05-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        },
+        {
+          "id": "OFFICIAL-15-06",
+          "number": 6,
+          "title": "○○장애",
+          "source_text": "○○장애\n부정적 비유로 쓴 '장애'\n✕ 결정장애, 선택장애",
+          "action": "부정적 비유로 쓴 '장애'",
+          "example_issue": "결정장애, 선택장애",
+          "rule_ids": [
+            "E-05-a",
+            "E-05-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        },
+        {
+          "id": "OFFICIAL-15-07",
+          "number": 7,
+          "title": "이미지",
+          "source_text": "이미지\n장애인이 주체로 등장하나\n✕ 휠체어 이용자를 배경으로만",
+          "action": "장애인이 주체로 등장하나",
+          "example_issue": "휠체어 이용자를 배경으로만",
+          "rule_ids": [
+            "E-05-c",
+            "E-05-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        },
+        {
+          "id": "OFFICIAL-15-08",
+          "number": 8,
+          "title": "접근성",
+          "source_text": "접근성\n자막·수어·음성 안내\n✕ 영상에 자막·수어 없음",
+          "action": "자막·수어·음성 안내",
+          "example_issue": "영상에 자막·수어 없음",
+          "rule_ids": [
+            "E-05-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        },
+        {
+          "id": "OFFICIAL-15-09",
+          "number": 9,
+          "title": "재난 안내",
+          "source_text": "재난 안내\n장애 유형별 대피 방법\n✕ \"몸이 불편한 분 외출 금지\"",
+          "action": "장애 유형별 대피 방법",
+          "example_issue": "\"몸이 불편한 분 외출 금지\"",
+          "rule_ids": [
+            "E-07-b",
+            "E-07-c",
+            "E-07-d",
+            "E-05-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        },
+        {
+          "id": "OFFICIAL-15-10",
+          "number": 10,
+          "title": "평범 대비",
+          "source_text": "평범 대비\n'평범·정상'과 맞세우지 않나\n✕ \"장애 전엔 평범하게 살았다\"",
+          "action": "'평범·정상'과 맞세우지 않나",
+          "example_issue": "\"장애 전엔 평범하게 살았다\"",
+          "rule_ids": [
+            "E-05-b",
+            "E-05-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://pressian.com/pages/articles/2021081015102863136"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "명시 문구·접근성·지원 맥락을 확인한다. 외형으로 장애나 질환을 추정하지 않는다. 질환명·인권·규정 최신성은 공식 근거/사람 확인이 필요하다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "E-05-a": "0654cfe16e8f89a7555b7cb6f8a5d782d8fb206b3f5d35d2803f29eafba5b510",
+        "E-05-b": "a8359e6e4acfe92192ba4cd18d257a42c855aebc5a567753637574ff1a9c77dd",
+        "E-05-c": "96b35e2c74cc98053d0ba0bbf4f984c37c7f5960eb36f6f59798687b6b6a9a0d",
+        "E-05-d": "830b80daffc976e0ad3c77c53218d704b79c99bc7ec5032aab0a86c3de1ab82c",
+        "E-07-b": "c74bff5f73bdc4bfb09e52a11157de3cfe44e75aad46858b3c9ef0fd237cb67e",
+        "E-07-c": "c9912cd5aa3b555b786f3cf645a38c75c1bc5c34b5a549b4ffbd4bcfc610d350",
+        "E-07-d": "754533598da91367b7eca959599d93de1db9c7bed25a26926dd8f590b39798d4"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O16",
+      "number": 16,
+      "title": "이주민·다문화",
+      "source_page": 18,
+      "description": "이주민을 상품·결혼 대상으로 그리거나, 국적·피부색 고정관념으로 배제하는 표현이 없는지 확인합니다",
+      "questions": [
+        "① 특정 국적 이주민을 '수입'·결혼 대상 등 수단으로 표현하지 않았는가?",
+        "② '국민'만 대상으로 써서 이주민을 배제하지 않았는가?",
+        "③ 국적·피부색에 따른 고정관념(살색, 위험 인물 등)이 없는가?"
+      ],
+      "trigger_terms": [
+        "다문화",
+        "이주",
+        "외국인",
+        "외국어",
+        "국적",
+        "민족",
+        "인종"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-01",
+        "D-02",
+        "E-03",
+        "E-04",
+        "E-07",
+        "P-02"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-16-01",
+          "number": 1,
+          "title": "행동 배치",
+          "source_text": "행동 배치\n위험·나쁜 행동 인물 구성\n✕ 특정 인종만 '나쁜 예'",
+          "action": "위험·나쁜 행동 인물 구성",
+          "example_issue": "특정 인종만 '나쁜 예'",
+          "rule_ids": [
+            "E-04-a",
+            "E-04-b",
+            "E-04-c",
+            "E-04-d",
+            "E-04-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        },
+        {
+          "id": "OFFICIAL-16-02",
+          "number": 2,
+          "title": "피부색 표현",
+          "source_text": "피부색 표현\n색 이름\n✕ 살색 (→ 살구색)",
+          "action": "색 이름",
+          "example_issue": "살색 (→ 살구색)",
+          "rule_ids": [
+            "E-04-a",
+            "E-04-c",
+            "E-04-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        },
+        {
+          "id": "OFFICIAL-16-03",
+          "number": 3,
+          "title": "호명 범위",
+          "source_text": "호명 범위\n안내 대상 범위\n✕ '국민'만 호명, 이주민 배제",
+          "action": "안내 대상 범위",
+          "example_issue": "'국민'만 호명, 이주민 배제",
+          "rule_ids": [
+            "E-04-a",
+            "E-04-b",
+            "E-04-e",
+            "E-07-b",
+            "E-07-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        },
+        {
+          "id": "OFFICIAL-16-04",
+          "number": 4,
+          "title": "다국어",
+          "source_text": "다국어\n외국인 대상 안내\n✕ 재난 안내를 한국어로만",
+          "action": "외국인 대상 안내",
+          "example_issue": "재난 안내를 한국어로만",
+          "rule_ids": [
+            "E-04-a",
+            "E-04-e",
+            "E-07-b",
+            "E-07-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        },
+        {
+          "id": "OFFICIAL-16-05",
+          "number": 5,
+          "title": "직업 묘사",
+          "source_text": "직업 묘사\n이주민 직업 묘사\n✕ 이주민은 단순노무직으로만",
+          "action": "이주민 직업 묘사",
+          "example_issue": "이주민은 단순노무직으로만",
+          "rule_ids": [
+            "E-04-b",
+            "E-04-c",
+            "E-04-d",
+            "E-04-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        },
+        {
+          "id": "OFFICIAL-16-06",
+          "number": 6,
+          "title": "외모 과장",
+          "source_text": "외모 과장\n피부색·눈 모양 과장\n✕ 분장·과장된 외모",
+          "action": "피부색·눈 모양 과장",
+          "example_issue": "분장·과장된 외모",
+          "rule_ids": [
+            "E-04-c",
+            "E-04-d",
+            "E-04-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        },
+        {
+          "id": "OFFICIAL-16-07",
+          "number": 7,
+          "title": "국가 비하",
+          "source_text": "국가 비하\n국가·민족 비하어\n✕ 특정 국가 비하 은어",
+          "action": "국가·민족 비하어",
+          "example_issue": "특정 국가 비하 은어",
+          "rule_ids": [
+            "E-04-a",
+            "E-04-b",
+            "E-04-e",
+            "P-02-b",
+            "P-02-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        },
+        {
+          "id": "OFFICIAL-16-08",
+          "number": 8,
+          "title": "범죄 연결",
+          "source_text": "범죄 연결\n외국인=범죄 암시\n✕ 단속 안내에 특정 국적 인물만",
+          "action": "외국인=범죄 암시",
+          "example_issue": "단속 안내에 특정 국적 인물만",
+          "rule_ids": [
+            "E-04-b",
+            "E-04-c",
+            "E-04-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        },
+        {
+          "id": "OFFICIAL-16-09",
+          "number": 9,
+          "title": "상품화",
+          "source_text": "상품화\n사람을 가격·할인 대상으로\n✕ '○○ 신부 ○○만 원 할인'",
+          "action": "사람을 가격·할인 대상으로",
+          "example_issue": "'○○ 신부 ○○만 원 할인'",
+          "rule_ids": [
+            "E-04-b",
+            "E-04-c",
+            "E-04-e",
+            "E-03-a",
+            "E-03-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        },
+        {
+          "id": "OFFICIAL-16-10",
+          "number": 10,
+          "title": "수치 근거",
+          "source_text": "수치 근거\n단속·범죄 수치 출처\n✕ 근거 불명확한 수치",
+          "action": "단속·범죄 수치 출처",
+          "example_issue": "근거 불명확한 수치",
+          "rule_ids": [
+            "D-02-m",
+            "D-01-b",
+            "D-01-c",
+            "E-04-b"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://youtube.com/shorts/TBrC1GpmuMg"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://joongang.co.kr/article/24073227"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "외모로 국적·인종·이주 지위를 추정하지 않는다. 국민이라는 호명만으로 배제 의도를 확정하지 않고 실제 대상·문구·문맥을 확인한다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-01-b": "ee5f01367eff1eaef4a97ed935433e31cdfee2602d5cc8e0dc8b59e4deebfe0f",
+        "D-01-c": "6302a04329cb9a1c61effbb0eab120dda4de7f35cb9edffecdbd9dc88c99e106",
+        "D-02-m": "5d4b608ddc4c0abbb70cc7fdfbf0062811ce9dcaba35abcd00c70173cbd459ce",
+        "E-03-a": "2abf75277dbdf0ea1bd87a80df9462f6121d50bd382c15a006727d6f6b78e65a",
+        "E-03-d": "42724b50525f0151340e61b75d6498fc489c4a9e96806b1a31a98083973b7ae4",
+        "E-04-a": "1070dfc020c75298d53b6b37a5f985624842e4c78d203772fa8970dc7f342a72",
+        "E-04-b": "3695609846918f336a787112a36e4b137fa5cf0170597afa63432b1296dfff24",
+        "E-04-c": "6186a0b5623c00471eedee5b11c060316cec8bd88db97d82c112ee2acbacdf33",
+        "E-04-d": "d500fb6ebee3e109dde8902cfa4ec7d38b30f9b7e8add66fb870f229a226b82b",
+        "E-04-e": "c922fc3ce903cc65a3ba992d8fb07b594353d35736b625ba00a408101491684a",
+        "E-07-b": "c74bff5f73bdc4bfb09e52a11157de3cfe44e75aad46858b3c9ef0fd237cb67e",
+        "E-07-c": "c9912cd5aa3b555b786f3cf645a38c75c1bc5c34b5a549b4ffbd4bcfc610d350",
+        "E-07-d": "754533598da91367b7eca959599d93de1db9c7bed25a26926dd8f590b39798d4",
+        "P-02-b": "422fef622a50f9a47974cf0d1bb58deeaa18d4a326e7eb1db453a9f2a87f5170",
+        "P-02-c": "262581e12979575abb9ef473f9b4da73bcbc78c9287c6c98f70a48a355954b42"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O17",
+      "number": 17,
+      "title": "취약계층 권리",
+      "source_page": 19,
+      "description": "노인·장애인 등 재난취약계층의 권리를 제한하거나 차별로 느낄 표현이 없는지 확인합니다",
+      "questions": [
+        "① 특정 계층에만 '금지·자제'를 요구하지 않았는가?",
+        "② 보호를 이유로 이동·참여를 막는 표현이 없는가?",
+        "③ 취약계층에게 필요한 지원·대피 정보를 함께 안내했는가?"
+      ],
+      "trigger_terms": [
+        "대피",
+        "지원",
+        "취약",
+        "장애",
+        "어르신",
+        "노약",
+        "고령",
+        "아동",
+        "구호"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "E-02",
+        "E-03",
+        "E-04",
+        "E-05",
+        "E-07",
+        "H-06"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-17-01",
+          "number": 1,
+          "title": "대상 지정",
+          "source_text": "대상 지정\n제한 문구의 대상\n✕ 특정 계층에만 금지·자제",
+          "action": "제한 문구의 대상",
+          "example_issue": "특정 계층에만 금지·자제",
+          "rule_ids": [
+            "E-07-a",
+            "E-07-b",
+            "E-07-c",
+            "E-07-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-17-02",
+          "number": 2,
+          "title": "명령형",
+          "source_text": "명령형\n금지 대신 권고·지원\n✕ \"외출을 금지해 달라\"",
+          "action": "금지 대신 권고·지원",
+          "example_issue": "\"외출을 금지해 달라\"",
+          "rule_ids": [
+            "E-07-b",
+            "E-07-c",
+            "E-07-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-17-03",
+          "number": 3,
+          "title": "지원 정보",
+          "source_text": "지원 정보\n도움 요청 방법\n✕ 제한만 있고 연락처 없음",
+          "action": "도움 요청 방법",
+          "example_issue": "제한만 있고 연락처 없음",
+          "rule_ids": [
+            "E-07-b",
+            "E-07-c",
+            "E-07-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-17-04",
+          "number": 4,
+          "title": "대피 방법",
+          "source_text": "대피 방법\n거동 불편자 대피 방법\n✕ 계단 대피만 안내",
+          "action": "거동 불편자 대피 방법",
+          "example_issue": "계단 대피만 안내",
+          "rule_ids": [
+            "E-07-b",
+            "E-07-c",
+            "E-05-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-17-05",
+          "number": 5,
+          "title": "수어·자막",
+          "source_text": "수어·자막\n청각장애인 안내\n✕ 특보 영상에 수어 없음",
+          "action": "청각장애인 안내",
+          "example_issue": "특보 영상에 수어 없음",
+          "rule_ids": [
+            "E-05-c",
+            "E-07-b",
+            "E-07-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-17-06",
+          "number": 6,
+          "title": "쉬운 말",
+          "source_text": "쉬운 말\n고령자·아동이 이해하나\n✕ 한자어·전문용어 위주",
+          "action": "고령자·아동이 이해하나",
+          "example_issue": "한자어·전문용어 위주",
+          "rule_ids": [
+            "E-07-a",
+            "E-07-c",
+            "H-06-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-17-07",
+          "number": 7,
+          "title": "글자 크기",
+          "source_text": "글자 크기\n저시력자 가독성\n✕ 작은 글씨·낮은 대비",
+          "action": "저시력자 가독성",
+          "example_issue": "작은 글씨·낮은 대비",
+          "rule_ids": [
+            "D-02-l",
+            "E-05-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-17-08",
+          "number": 8,
+          "title": "외국인",
+          "source_text": "외국인\n외국어 안내\n✕ 한국어 문자만",
+          "action": "외국어 안내",
+          "example_issue": "한국어 문자만",
+          "rule_ids": [
+            "E-04-a",
+            "E-04-e",
+            "E-07-b",
+            "E-07-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-17-09",
+          "number": 9,
+          "title": "호칭",
+          "source_text": "호칭\n존중하는 호칭\n✕ 노인네, 불구자",
+          "action": "존중하는 호칭",
+          "example_issue": "노인네, 불구자",
+          "rule_ids": [
+            "E-02-b",
+            "E-02-c",
+            "E-05-a",
+            "E-05-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-17-10",
+          "number": 10,
+          "title": "동정 어조",
+          "source_text": "동정 어조\n시혜·동정 표현\n✕ \"불쌍한 어르신을 도와주세요\"",
+          "action": "시혜·동정 표현",
+          "example_issue": "\"불쌍한 어르신을 도와주세요\"",
+          "rule_ids": [
+            "E-03-b",
+            "E-03-c",
+            "E-03-d",
+            "E-07-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://v.daum.net/v/20230714001018348"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "제한의 실제 대상·법적 근거·지원 정보를 확인한다. 정당한 대상 제한과 차별적 배제를 구분한다. 외형으로 취약계층을 분류하지 않는다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-l": "d4124fb787c1019b5388a15e7ab0c1467eccf13069481cbf987e9a3a2b67de5f",
+        "E-02-b": "7cc0d2468106b28065a3449ed7cde03ed0fafdf7dff0ff6d52c63b3364799ff5",
+        "E-02-c": "0a1fbfb0d987a8fa90fdf044439d95d0575bcd7e376b410775728eb3d6956ae5",
+        "E-03-b": "a7d8c653fbce05ece5b06ad964551a6ab860900305ed13249b3e90ff3a2548df",
+        "E-03-c": "1da0e0ad163bb8ec7f6b5ec3b18e03542af02f83fd9beb4ef733349f46626d19",
+        "E-03-d": "42724b50525f0151340e61b75d6498fc489c4a9e96806b1a31a98083973b7ae4",
+        "E-04-a": "1070dfc020c75298d53b6b37a5f985624842e4c78d203772fa8970dc7f342a72",
+        "E-04-e": "c922fc3ce903cc65a3ba992d8fb07b594353d35736b625ba00a408101491684a",
+        "E-05-a": "0654cfe16e8f89a7555b7cb6f8a5d782d8fb206b3f5d35d2803f29eafba5b510",
+        "E-05-b": "a8359e6e4acfe92192ba4cd18d257a42c855aebc5a567753637574ff1a9c77dd",
+        "E-05-c": "96b35e2c74cc98053d0ba0bbf4f984c37c7f5960eb36f6f59798687b6b6a9a0d",
+        "E-07-a": "4f3d9a32fed7bd97d1f03efdc74fefc67d86fd8479db7dcb5d921c702c7e06af",
+        "E-07-b": "c74bff5f73bdc4bfb09e52a11157de3cfe44e75aad46858b3c9ef0fd237cb67e",
+        "E-07-c": "c9912cd5aa3b555b786f3cf645a38c75c1bc5c34b5a549b4ffbd4bcfc610d350",
+        "E-07-d": "754533598da91367b7eca959599d93de1db9c7bed25a26926dd8f590b39798d4",
+        "H-06-b": "80d33c4973b8249ecff19d3131f47e34c3531d6ebd885763092809b011e47a9b"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O18",
+      "number": 18,
+      "title": "참사·피해자",
+      "source_page": 20,
+      "description": "실제 재난·참사 장면과 피해자 얼굴이 동의 없이 쓰이지 않았는지 확인합니다",
+      "questions": [
+        "① 실제 참사 현장 영상·사진을 쓰지 않았는가?",
+        "② 피해자·유가족이 식별되는 얼굴·이름이 없는가?",
+        "③ 자료화면의 출처와 사용 동의를 확인했는가?"
+      ],
+      "trigger_terms": [
+        "재난",
+        "사고",
+        "참사",
+        "피해",
+        "추모",
+        "유가족",
+        "재현"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "D-03",
+        "D-04",
+        "H-05",
+        "P-04",
+        "P-05"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-18-01",
+          "number": 1,
+          "title": "실제 장면",
+          "source_text": "실제 장면\n실제 참사 영상·사진인가\n✕ 뉴스 화면 자료영상",
+          "action": "실제 참사 영상·사진인가",
+          "example_issue": "뉴스 화면 자료영상",
+          "rule_ids": [
+            "P-04-a",
+            "P-04-d",
+            "P-05-a"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-18-02",
+          "number": 2,
+          "title": "얼굴",
+          "source_text": "얼굴\n피해자·구조 대상 얼굴\n✕ 모자이크 없는 얼굴",
+          "action": "피해자·구조 대상 얼굴",
+          "example_issue": "모자이크 없는 얼굴",
+          "rule_ids": [
+            "P-05-b",
+            "P-05-c",
+            "P-05-d"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-18-03",
+          "number": 3,
+          "title": "동의",
+          "source_text": "동의\n유가족·당사자 동의\n✕ 동의 없이 사용",
+          "action": "유가족·당사자 동의",
+          "example_issue": "동의 없이 사용",
+          "rule_ids": [
+            "P-05-e",
+            "D-04-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-18-04",
+          "number": 4,
+          "title": "식별 정보",
+          "source_text": "식별 정보\n이름·차량번호·주소\n✕ 번호판·간판 노출",
+          "action": "이름·차량번호·주소",
+          "example_issue": "번호판·간판 노출",
+          "rule_ids": [
+            "P-05-b",
+            "P-05-c",
+            "P-05-d",
+            "P-05-f",
+            "D-04-a",
+            "D-04-b",
+            "D-04-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-18-05",
+          "number": 5,
+          "title": "특정 참사",
+          "source_text": "특정 참사\n최근 참사 연상 장면\n✕ 특정 참사 현장 재현",
+          "action": "최근 참사 연상 장면",
+          "example_issue": "특정 참사 현장 재현",
+          "rule_ids": [
+            "P-04-a",
+            "P-04-b",
+            "P-04-c",
+            "P-04-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-18-06",
+          "number": 6,
+          "title": "게시 시기",
+          "source_text": "게시 시기\n추모 기간 확인\n✕ 참사 기일 즈음 무관한 홍보",
+          "action": "추모 기간 확인",
+          "example_issue": "참사 기일 즈음 무관한 홍보",
+          "rule_ids": [
+            "P-04-c",
+            "P-04-d",
+            "P-04-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-18-07",
+          "number": 7,
+          "title": "어조",
+          "source_text": "어조\n희화·자극적 표현\n✕ 공포 조장 효과음·자막",
+          "action": "희화·자극적 표현",
+          "example_issue": "공포 조장 효과음·자막",
+          "rule_ids": [
+            "P-04-b",
+            "P-04-c",
+            "P-04-e"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-18-08",
+          "number": 8,
+          "title": "스톡 영상",
+          "source_text": "스톡 영상\n스톡 영상 촬영 정보\n✕ 실제 사고 영상이 스톡에 포함",
+          "action": "스톡 영상 촬영 정보",
+          "example_issue": "실제 사고 영상이 스톡에 포함",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-c",
+            "P-04-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-18-09",
+          "number": 9,
+          "title": "해외 재난",
+          "source_text": "해외 재난\n해외 재난 장면\n✕ 국내 재난처럼 오인되는 영상",
+          "action": "해외 재난 장면",
+          "example_issue": "국내 재난처럼 오인되는 영상",
+          "rule_ids": [
+            "H-05-b",
+            "H-05-c",
+            "H-05-d",
+            "P-04-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-18-10",
+          "number": 10,
+          "title": "연출 표시",
+          "source_text": "연출 표시\n재현 장면 표시\n✕ 연출·재현 여부 미표시",
+          "action": "재현 장면 표시",
+          "example_issue": "연출·재현 여부 미표시",
+          "rule_ids": [
+            "P-04-c",
+            "P-04-d",
+            "D-02-n"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://v.daum.net/v/20240508161006216"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://inews24.com/view/2020938"
+          ],
+          "status": "QUARANTINED_FUTURE_EVENT",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "실제 사건/인물인지 이미지로 확정하지 않는다. 재현·교육·추모와 선정적 소비를 구별한다. 동의/권리/식별 위험은 별개이며 개인정보는 마스킹한다. 사례의 미검증 미래 조치는 사용하지 않는다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-n": "ebc69bea4492e6dcd60cd5f44459d044b737cf5b41f419a06ce1dd524984a0f2",
+        "D-03-a": "8c0d999399e0f35dca4b4553f2d9077af958d23b95fa0495a79801c88357dc3d",
+        "D-03-c": "51f73491fba193feca27f2d6ec3907a5d616073c9635a4df706c0e50b2a4aa95",
+        "D-04-a": "7dbc372e267f4b88d7149f7f548233b38247f86bbcc6ebee39fc09fd2daf74e5",
+        "D-04-b": "0e44b6bba34a85a614f3a781993236616421ee1e79ecaf34c9250be43793c43e",
+        "D-04-c": "def5cf0617b6c99248db8668a2678700edd05540a86dea3f1032073947b8ee0f",
+        "D-04-d": "1cb3a0da8eef28c6de0adbabe560ba33481cf593ede6104a191d293abf3695e1",
+        "H-05-b": "9a143ccdbfd65f17a55402ff3c19c9d6bf46afb5caca08c44b04cbc5751decbc",
+        "H-05-c": "a161742e5dd5512f318fa6462ddafe42590767a7502bc76529b9987c0994a82c",
+        "H-05-d": "1757eac1e219954664d2c008e47e25b65c971be0b914afd4bb33988276498f67",
+        "P-04-a": "883cf706bf030b408dc04cd995277ff249ff7a35649ae1f0aae54b867b0d3512",
+        "P-04-b": "fed3a1c5a1ff0ae4c46293f9622bd48d2206f2249d8f9f5fc57dd9d1e317af63",
+        "P-04-c": "e9bb2072ed9027456bc1d41e7a108e2dcb7f7940087f4919b605f62b326cf164",
+        "P-04-d": "d761bdd84a59b33c0c2dc90b21f76e6e20c2eb21af166216c1483640b20b5b02",
+        "P-04-e": "c01c6b9f84616ab4e50adf89331832a75f612b777e57c39cf9e36c777cd7167d",
+        "P-05-a": "4aa1767d13bfd9bfc8f6e6f96451f129566efbfb0b211f253785bc1fa5ad120d",
+        "P-05-b": "612b15f366786138e33f232917112b1f798ccc397389592bf657df2208ea478f",
+        "P-05-c": "6c97ea909dfd9a0a9ae2389ac1004304e9b295d36e2c6e3f018412f0385c1665",
+        "P-05-d": "fde13f35664ae27e6a8633a661f18c50f2590cd5e0d1a2c523f2bdbd6e00dd3c",
+        "P-05-e": "13e40a91aa1d521003541c52a19b47c58fed242bc72f8ea32c032d13dc9b316e",
+        "P-05-f": "ebcb81ace77ccfac0f01e5fc2b131acdaf6078085aedd99102553af85a6989c8"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O19",
+      "number": 19,
+      "title": "오타·표기",
+      "source_page": 21,
+      "description": "맞춤법·띄어쓰기와 기관명·숫자 표기를 확인합니다",
+      "questions": [
+        "① 맞춤법·띄어쓰기 검사를 거쳤는가?",
+        "② 기관명·사업명·숫자가 원자료와 같은가?",
+        "③ 제목·현수막·노면 같은 큰 글씨도 한 글자씩 확인했는가?"
+      ],
+      "trigger_terms": [
+        "TEXT"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-01",
+        "D-02",
+        "H-06"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-19-01",
+          "number": 1,
+          "title": "맞춤법 검사",
+          "source_text": "맞춤법 검사\n한글 맞춤법 검사 실행\n✕ 검사 없이 확정",
+          "action": "한글 맞춤법 검사 실행",
+          "example_issue": "검사 없이 확정",
+          "rule_ids": [
+            "D-02-l",
+            "H-06-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-19-02",
+          "number": 2,
+          "title": "큰 글씨",
+          "source_text": "큰 글씨\n제목·현수막 한 글자씩\n✕ 큰 글씨라 안 봄",
+          "action": "제목·현수막 한 글자씩",
+          "example_issue": "큰 글씨라 안 봄",
+          "rule_ids": [
+            "D-02-l",
+            "H-06-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-19-03",
+          "number": 3,
+          "title": "기관명",
+          "source_text": "기관명\n부처·기관 정식 명칭\n✕ 개편 전 기관명",
+          "action": "부처·기관 정식 명칭",
+          "example_issue": "개편 전 기관명",
+          "rule_ids": [
+            "D-02-l",
+            "D-01-a",
+            "D-01-b"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-19-04",
+          "number": 4,
+          "title": "숫자",
+          "source_text": "숫자\n날짜·금액·주년\n✕ 자릿수·요일 불일치",
+          "action": "날짜·금액·주년",
+          "example_issue": "자릿수·요일 불일치",
+          "rule_ids": [
+            "D-02-l",
+            "D-02-m",
+            "D-01-a",
+            "D-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-19-05",
+          "number": 5,
+          "title": "띄어쓰기",
+          "source_text": "띄어쓰기\n단위·의존명사\n✕ '할수있다', '1 회'",
+          "action": "단위·의존명사",
+          "example_issue": "'할수있다', '1 회'",
+          "rule_ids": [
+            "D-02-l",
+            "H-06-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-19-06",
+          "number": 6,
+          "title": "외래어",
+          "source_text": "외래어\n외래어 표기법\n✕ 컨텐츠, 메세지, 리더쉽",
+          "action": "외래어 표기법",
+          "example_issue": "컨텐츠, 메세지, 리더쉽",
+          "rule_ids": [
+            "D-02-l",
+            "H-06-b"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-19-07",
+          "number": 7,
+          "title": "전문용어",
+          "source_text": "전문용어\n의학·안전 용어\n✕ 심페소생술",
+          "action": "의학·안전 용어",
+          "example_issue": "심페소생술",
+          "rule_ids": [
+            "D-02-l",
+            "D-01-a",
+            "D-01-b"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-19-08",
+          "number": 8,
+          "title": "글자 깨짐",
+          "source_text": "글자 깨짐\nPDF·인쇄 전 확인\n✕ 특수문자·한자 깨짐",
+          "action": "PDF·인쇄 전 확인",
+          "example_issue": "특수문자·한자 깨짐",
+          "rule_ids": [
+            "D-02-l",
+            "H-06-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-19-09",
+          "number": 9,
+          "title": "영문",
+          "source_text": "영문\n영문 철자·로마자\n✕ 지명 로마자 오기",
+          "action": "영문 철자·로마자",
+          "example_issue": "지명 로마자 오기",
+          "rule_ids": [
+            "D-02-l",
+            "H-06-b"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-19-10",
+          "number": 10,
+          "title": "최종본",
+          "source_text": "최종본\n최종 파일과 인쇄본 대조\n✕ 수정 전 파일 납품",
+          "action": "최종 파일과 인쇄본 대조",
+          "example_issue": "수정 전 파일 납품",
+          "rule_ids": [
+            "D-02-l",
+            "D-01-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://v.daum.net/v/20250610100425523"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "보이는 원문을 고치지 않고 전사한다. OCR 실패와 원본 글자 손상·명백한 오탈자·정본 불일치를 분리한다. 1 회 같은 허용 가능한 단위 띄어쓰기나 제목/고유표기는 자동 오타로 단정하지 않는다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-01-a": "1dfea8d25668c9cc5a79ce13df35dcc636989884d8ea8909b51b0623a874f79a",
+        "D-01-b": "ee5f01367eff1eaef4a97ed935433e31cdfee2602d5cc8e0dc8b59e4deebfe0f",
+        "D-01-c": "6302a04329cb9a1c61effbb0eab120dda4de7f35cb9edffecdbd9dc88c99e106",
+        "D-02-l": "d4124fb787c1019b5388a15e7ab0c1467eccf13069481cbf987e9a3a2b67de5f",
+        "D-02-m": "5d4b608ddc4c0abbb70cc7fdfbf0062811ce9dcaba35abcd00c70173cbd459ce",
+        "H-06-b": "80d33c4973b8249ecff19d3131f47e34c3531d6ebd885763092809b011e47a9b"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O20",
+      "number": 20,
+      "title": "AI 생성 결함",
+      "source_page": 22,
+      "description": "생성형 AI로 만든 이미지·영상의 손·글자·상징 오류를 확인합니다",
+      "questions": [
+        "① AI로 만든 이미지·영상인지 제작업체에 확인했는가?",
+        "② 손가락·글자·국기·휘장을 확대해 확인했는가?",
+        "③ 실제 사진을 AI로 보정하면서 사실이 바뀌지 않았는가?"
+      ],
+      "trigger_terms": [
+        "인물",
+        "손",
+        "얼굴",
+        "관절",
+        "제복",
+        "국기",
+        "지도",
+        "그림자",
+        "건물",
+        "문자",
+        "표지",
+        "TEXT"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "D-04",
+        "E-01",
+        "H-04",
+        "H-05",
+        "H-06",
+        "H-07",
+        "P-02"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-20-01",
+          "number": 1,
+          "title": "사용 여부",
+          "source_text": "사용 여부\n업체에 AI 사용 여부 확인\n✕ 업체 미고지",
+          "action": "업체에 AI 사용 여부 확인",
+          "example_issue": "업체 미고지",
+          "rule_ids": [
+            "D-02-a"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        },
+        {
+          "id": "OFFICIAL-20-02",
+          "number": 2,
+          "title": "손가락",
+          "source_text": "손가락\n손가락 수·관절\n✕ 6개·꼬인 손가락",
+          "action": "손가락 수·관절",
+          "example_issue": "6개·꼬인 손가락",
+          "rule_ids": [
+            "D-02-c",
+            "D-02-d",
+            "D-02-e",
+            "D-02-f",
+            "D-02-g",
+            "D-02-h",
+            "D-02-i",
+            "D-02-p"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        },
+        {
+          "id": "OFFICIAL-20-03",
+          "number": 3,
+          "title": "글자",
+          "source_text": "글자\n간판·명찰·현수막 글자\n✕ 읽히지 않는 가짜 한글",
+          "action": "간판·명찰·현수막 글자",
+          "example_issue": "읽히지 않는 가짜 한글",
+          "rule_ids": [
+            "D-02-l",
+            "H-06-b"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        },
+        {
+          "id": "OFFICIAL-20-04",
+          "number": 4,
+          "title": "국기·휘장",
+          "source_text": "국기·휘장\n태극기·배지·계급장\n✕ 괘 없는 태극기, 별 계급장",
+          "action": "태극기·배지·계급장",
+          "example_issue": "괘 없는 태극기, 별 계급장",
+          "rule_ids": [
+            "H-04-a",
+            "H-04-e",
+            "H-04-g",
+            "H-04-h",
+            "H-04-i",
+            "H-07-b",
+            "H-07-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        },
+        {
+          "id": "OFFICIAL-20-05",
+          "number": 5,
+          "title": "배경",
+          "source_text": "배경\n건물·간판 국적\n✕ 중국·일본풍 거리",
+          "action": "건물·간판 국적",
+          "example_issue": "중국·일본풍 거리",
+          "rule_ids": [
+            "H-05-a",
+            "H-05-b",
+            "H-05-c",
+            "H-05-d",
+            "H-05-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        },
+        {
+          "id": "OFFICIAL-20-06",
+          "number": 6,
+          "title": "차량",
+          "source_text": "차량\n번호판·도장\n✕ 외국 번호판",
+          "action": "번호판·도장",
+          "example_issue": "외국 번호판",
+          "rule_ids": [
+            "H-05-a",
+            "H-05-c",
+            "D-02-j",
+            "D-02-l"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        },
+        {
+          "id": "OFFICIAL-20-07",
+          "number": 7,
+          "title": "실제 사진",
+          "source_text": "실제 사진\n실제 사진 AI 보정\n✕ 보정 중 인물 변형",
+          "action": "실제 사진 AI 보정",
+          "example_issue": "보정 중 인물 변형",
+          "rule_ids": [
+            "D-02-h",
+            "D-02-n",
+            "D-04-a"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        },
+        {
+          "id": "OFFICIAL-20-08",
+          "number": 8,
+          "title": "숨은 형상",
+          "source_text": "숨은 형상\n연기·구름·그림자\n✕ 의도와 다른 형상 (14번)",
+          "action": "연기·구름·그림자",
+          "example_issue": "의도와 다른 형상 (14번)",
+          "rule_ids": [
+            "D-02-j",
+            "D-02-o",
+            "P-02-a",
+            "P-02-c"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        },
+        {
+          "id": "OFFICIAL-20-09",
+          "number": 9,
+          "title": "인물 구성",
+          "source_text": "인물 구성\n성별·연령 편향\n✕ 직업별 한 성별만 (12번)",
+          "action": "성별·연령 편향",
+          "example_issue": "직업별 한 성별만 (12번)",
+          "rule_ids": [
+            "E-01-a",
+            "E-01-b",
+            "E-01-e",
+            "D-02-a"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        },
+        {
+          "id": "OFFICIAL-20-10",
+          "number": 10,
+          "title": "없는 장소",
+          "source_text": "없는 장소\n실재하는 장소·시설인가\n✕ 존재하지 않는 건물·명칭",
+          "action": "실재하는 장소·시설인가",
+          "example_issue": "존재하지 않는 건물·명칭",
+          "rule_ids": [
+            "H-05-b",
+            "H-05-c",
+            "H-05-d",
+            "D-02-n"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://fnnews.com/news/202604100716184909"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://thestandard.com.hk/world/article/338091"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "AI 사용 여부는 메타데이터를 우선하며 외형만으로 확정하지 않는다. 가림·주먹·의도된 4지 캐릭터는 예외다. 사실과 실제 제작 이미지의 결함을 구별한다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-a": "f8ac3109769edacdab363cd193dc9573f32cb37e4aeacad18b1ea00e7550305f",
+        "D-02-c": "ea10833b80a41fcd8c3eae920f4f8c6ea27a03e61c2bce506ed99f59f5e37040",
+        "D-02-d": "05c8477305ca31eac225ffa8a7c42d2039cbc66acd13969723d96fa6e73aeb3d",
+        "D-02-e": "438237349aa09602273c0f538737de498744ea74a014ee37ac43ee853e28061a",
+        "D-02-f": "e2560a19ac6f6e2824962a1b1bcc61df51ec13b747de61a8cc62719b69c52b29",
+        "D-02-g": "ce1cda7ca56a0cdbe29e7948f58bb83a9440fedc6880fdda25703902601c2842",
+        "D-02-h": "3084207853404eb42f5170201c5efae70de9170bb45e633ba0fa372b0491a2d4",
+        "D-02-i": "822305cbabe536b1dd6b61ea356b50983ab28b00f81eb884e00d7d80664c7034",
+        "D-02-j": "f50e4675e5d92c557d16912b543110ba7a8dd9734edac5c679f36d35eb7a878f",
+        "D-02-l": "d4124fb787c1019b5388a15e7ab0c1467eccf13069481cbf987e9a3a2b67de5f",
+        "D-02-n": "ebc69bea4492e6dcd60cd5f44459d044b737cf5b41f419a06ce1dd524984a0f2",
+        "D-02-o": "7ae459914da64c2fb481f66e9f75e0fdaf050b0e7f5b94de8292bdfa133e5be0",
+        "D-02-p": "b706b3e4a5e3d1b526f05daf0178838fd61513febe45619a99fe538d85580124",
+        "D-04-a": "7dbc372e267f4b88d7149f7f548233b38247f86bbcc6ebee39fc09fd2daf74e5",
+        "E-01-a": "b10ac939f74fa530332a48ff5f55c2efd8bdc282eba8a87a549b1015cac48426",
+        "E-01-b": "be68a15e2880985f95ab69d3c7bb59721b75272d6214f76084afb332516ec239",
+        "E-01-e": "8c5aaa37e98467e0210b80c6a7b73dae2096ce410986484f8f850ac8ba66dd60",
+        "H-04-a": "58e3eb90fa7f562ec576efdcca2c6fff82e56e43aaff690074bc4cf317592a11",
+        "H-04-e": "041f386842ee0cbbb7613600cf39dd7af70b15455a87c268667fbd01ca497d42",
+        "H-04-g": "43e81ec877229cad5214389f066a94c664091c9cae599b29cf3156b34753ca33",
+        "H-04-h": "3c3ca899799e59b53c9a4e9135a6b4c36aaa6c8537683e5d727c74879181dd11",
+        "H-04-i": "9bf1981052e66eae9f0ba21b8cf0d533a0dfb68806387b8eb5a6d38cba0b2035",
+        "H-05-a": "79b6fbf1cd52265383d783645fda8566e8b5270737f25ccf6102377d073afc2e",
+        "H-05-b": "9a143ccdbfd65f17a55402ff3c19c9d6bf46afb5caca08c44b04cbc5751decbc",
+        "H-05-c": "a161742e5dd5512f318fa6462ddafe42590767a7502bc76529b9987c0994a82c",
+        "H-05-d": "1757eac1e219954664d2c008e47e25b65c971be0b914afd4bb33988276498f67",
+        "H-05-e": "e69c3174e258ac7d7590bb4f2828a69599c48dbc68a030da9f0f564399129466",
+        "H-06-b": "80d33c4973b8249ecff19d3131f47e34c3531d6ebd885763092809b011e47a9b",
+        "H-07-b": "5356e7962e6a089f482e45b45d65c9edfeb727c9e0c25b4d5d014344a71c7364",
+        "H-07-c": "896a6cfd3c68df672db85408769051b4ab46ac10dc01192c09f388494f98b0d8",
+        "P-02-a": "82f384d92065d3d4e5e520ff5920391a398374057151cfe9d28e98dbb0eb33b5",
+        "P-02-c": "262581e12979575abb9ef473f9b4da73bcbc78c9287c6c98f70a48a355954b42"
+      }
+    },
+    {
+      "schema": "chekmi-precheck-item-v1",
+      "id": "O21",
+      "number": 21,
+      "title": "유료 이미지·서체(라이선스)",
+      "source_page": 23,
+      "description": "이미지·서체·음원의 구매·사용 허락 근거(라이선스)를 확인합니다",
+      "questions": [
+        "① 사용한 이미지·서체·음원의 구매·사용 허락 근거가 있는가?",
+        "② 워터마크가 남은 견본 이미지를 쓰지 않았는가?",
+        "③ 외주 제작물의 저작권 책임 조항을 확인했는가?"
+      ],
+      "trigger_terms": [
+        "워터마크",
+        "스톡",
+        "서체",
+        "폰트",
+        "캐릭터",
+        "사진",
+        "일러스트",
+        "음원",
+        "템플릿"
+      ],
+      "source_status": "APPROVED_INTERNAL_REFERENCE",
+      "source_date": "2026-11-03",
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "parent_ids": [
+        "D-02",
+        "D-03",
+        "D-04"
+      ],
+      "tips": [
+        {
+          "id": "OFFICIAL-21-01",
+          "number": 1,
+          "title": "이미지 출처",
+          "source_text": "이미지 출처\n구매 영수증·라이선스\n✕ 검색해서 저장한 이미지",
+          "action": "구매 영수증·라이선스",
+          "example_issue": "검색해서 저장한 이미지",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-b",
+            "D-03-c",
+            "D-03-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-21-02",
+          "number": 2,
+          "title": "워터마크",
+          "source_text": "워터마크\n견본 표시 흔적\n✕ 반투명 스톡 사이트 글자",
+          "action": "견본 표시 흔적",
+          "example_issue": "반투명 스톡 사이트 글자",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-c",
+            "D-02-l"
+          ],
+          "evidence_mode": "VISUAL_CONTEXT",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-21-03",
+          "number": 3,
+          "title": "서체",
+          "source_text": "서체\n공공·상업 사용 가능 서체\n✕ 개인용 무료 서체",
+          "action": "공공·상업 사용 가능 서체",
+          "example_issue": "개인용 무료 서체",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-b",
+            "D-03-c",
+            "D-03-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-21-04",
+          "number": 4,
+          "title": "서체 설치",
+          "source_text": "서체 설치\n업무 PC 설치 서체 출처\n✕ 다른 문서 따라 깔린 서체",
+          "action": "업무 PC 설치 서체 출처",
+          "example_issue": "다른 문서 따라 깔린 서체",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-c"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-21-05",
+          "number": 5,
+          "title": "음원",
+          "source_text": "음원\n영상 배경음악 권리\n✕ 출처 모르는 배경음악",
+          "action": "영상 배경음악 권리",
+          "example_issue": "출처 모르는 배경음악",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-b",
+            "D-03-c",
+            "D-03-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-21-06",
+          "number": 6,
+          "title": "캐릭터",
+          "source_text": "캐릭터\n캐릭터·일러스트 권리\n✕ 유명 캐릭터 무단 사용",
+          "action": "캐릭터·일러스트 권리",
+          "example_issue": "유명 캐릭터 무단 사용",
+          "rule_ids": [
+            "D-03-a",
+            "D-03-b",
+            "D-03-c",
+            "D-03-d"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-21-07",
+          "number": 7,
+          "title": "사용 범위",
+          "source_text": "사용 범위\n라이선스 허용 범위\n✕ 웹용 이미지를 현수막에",
+          "action": "라이선스 허용 범위",
+          "example_issue": "웹용 이미지를 현수막에",
+          "rule_ids": [
+            "D-03-b",
+            "D-03-c",
+            "D-03-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-21-08",
+          "number": 8,
+          "title": "공공누리",
+          "source_text": "공공누리\n공공누리 유형 확인\n✕ 변경 금지 유형을 편집",
+          "action": "공공누리 유형 확인",
+          "example_issue": "변경 금지 유형을 편집",
+          "rule_ids": [
+            "D-03-b",
+            "D-03-c",
+            "D-03-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-21-09",
+          "number": 9,
+          "title": "외주 계약",
+          "source_text": "외주 계약\n저작권 책임·양도 조항\n✕ 권리 소재 불명확",
+          "action": "저작권 책임·양도 조항",
+          "example_issue": "권리 소재 불명확",
+          "rule_ids": [
+            "D-03-c",
+            "D-03-e",
+            "D-03-f"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "HUMAN_OR_OTHER_MEDIA",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        },
+        {
+          "id": "OFFICIAL-21-10",
+          "number": 10,
+          "title": "인물 사진",
+          "source_text": "인물 사진\n초상권 동의\n✕ 모델 동의 없는 인물 사진",
+          "action": "초상권 동의",
+          "example_issue": "모델 동의 없는 인물 사진",
+          "rule_ids": [
+            "D-04-d",
+            "D-03-c",
+            "D-03-e"
+          ],
+          "evidence_mode": "DOCUMENT_OR_VISUAL",
+          "execution_scope": "IMAGE_OR_DOCUMENT",
+          "exceptions": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다."
+        }
+      ],
+      "cases": [
+        {
+          "number": 1,
+          "source_urls": [
+            "https://hangyo.com/news/article.html?no=87947"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        },
+        {
+          "number": 2,
+          "source_urls": [
+            "https://newspim.com/news/view/20190522000586"
+          ],
+          "status": "EXTERNAL_ARTICLE_UNVERIFIED",
+          "runtime_use": false
+        }
+      ],
+      "limitations": "워터마크 관찰과 라이선스·계약·동의를 분리한다. 참고자료 자체는 이용허락 증명서가 아니다. 증빙이 없으면 권리 확인 완료나 침해 확정으로 처리하지 않는다.",
+      "image_role": "ILLUSTRATIVE_CASE",
+      "version": "precheck-2026-11-03-v1",
+      "mapped_rule_hashes": {
+        "D-02-l": "d4124fb787c1019b5388a15e7ab0c1467eccf13069481cbf987e9a3a2b67de5f",
+        "D-03-a": "8c0d999399e0f35dca4b4553f2d9077af958d23b95fa0495a79801c88357dc3d",
+        "D-03-b": "b532c9c29c19f5e67d039d0e828d1d1a534161caf9cdc5217e31db38bfd1a9e3",
+        "D-03-c": "51f73491fba193feca27f2d6ec3907a5d616073c9635a4df706c0e50b2a4aa95",
+        "D-03-d": "39e2f766c87e6adb62be50611bc1fd654ccacb248e8c15c6aefc693f4aefdac4",
+        "D-03-e": "6ff2fca8c42a91e22d5408233e4303e6a179015a9ea3d992afe5de75a65db8f1",
+        "D-03-f": "a8ef59d946245417449e2d8abb705dcb05d889361a1665669707cf4a99f463dd",
+        "D-04-d": "1cb3a0da8eef28c6de0adbabe560ba33481cf593ede6104a191d293abf3695e1"
+      }
+    }
+  ],
+  "anomalies": [
+    {
+      "page": 20,
+      "type": "future_event_date",
+      "case_number": 2,
+      "stated_date": "2026-11-12",
+      "status": "QUARANTINED",
+      "reason": "기준일 2026-11-04 및 발행일 이후 조치이며 외부 확인 전 사실 기준으로 사용하지 않음"
+    },
+    {
+      "type": "guidance_example_conflict",
+      "source": "개발조언.md §6.3",
+      "status": "CORRECTED_FOR_RUNTIME",
+      "reason": "감괘는 음양음(가운데 연속), 리괘는 양음양(가운데 분절). 예시의 가운데 끊김 설명은 실행 기준에 반영하지 않음"
+    },
+    {
+      "page": 21,
+      "type": "permitted_spacing_example",
+      "status": "CONTEXT_REQUIRED",
+      "reason": "숫자+단위 등의 허용 띄어쓰기를 일률 오타로 단정하지 않음"
+    }
+  ]
+}

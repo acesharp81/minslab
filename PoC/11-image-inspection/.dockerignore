@@ -6,3 +6,5 @@ data
 __pycache__
 .pytest_cache
 *.zip
+docs/*.pdf
+docs/췤미_Codex_공식점검자료_증분통합_비용최적화_개발조언.md

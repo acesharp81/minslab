@@ -1,0 +1,32 @@
+[
+  {
+    "site": "kjon",
+    "related_count": 8,
+    "target_id": "structured-topic-ef6b24360db5593a",
+    "target_title": "가축전염병 사전예방 투자와 구제역 백신 개발 여부",
+    "target_visible_and_focused": true,
+    "evidence_open": true,
+    "return_to_official": "PASS",
+    "page_errors": []
+  },
+  {
+    "site": "minslab",
+    "related_count": 8,
+    "target_id": "structured-topic-ef6b24360db5593a",
+    "target_title": "가축전염병 사전예방 투자와 구제역 백신 개발 여부",
+    "target_visible_and_focused": true,
+    "evidence_open": true,
+    "return_to_official": "PASS",
+    "page_errors": []
+  },
+  {
+    "site": "mobile",
+    "related_count": 8,
+    "target_id": "structured-topic-ef6b24360db5593a",
+    "target_title": "가축전염병 사전예방 투자와 구제역 백신 개발 여부",
+    "target_visible_and_focused": true,
+    "evidence_open": true,
+    "return_to_official": "PASS",
+    "page_errors": []
+  }
+]

@@ -13,7 +13,7 @@ KIND='publication_assessment'
 def load(service, ids):
     if not ids:return {}
     with service.sessions() as db:
-        return {r.payload['document_id']:dict(r.payload,assessment_revision_no=r.revision_no)
+        return {r.payload['document_id']:dict(r.payload,assessment_revision_no=r.revision_no,evidence_ref=dict(id=r.entity_id,revision_id=r.id,revision_no=r.revision_no,hash=r.payload_hash,recorded_at=r.recorded_at.isoformat()))
                 for r in db.scalars(select(Revision).where(Revision.kind==KIND,
                     Revision.superseded_at.is_(None),Revision.payload['document_id'].as_string().in_(ids)))}
 
@@ -42,6 +42,10 @@ def save(service, document_id, source_revision_no, review_revision_no, payload):
                 raise ValueError('현재 판본 본문과 일치하는 근거 인용이 필요합니다')
             if fact.get('body_sha256')!=hashlib.sha256(body.encode()).hexdigest():
                 raise ValueError('검증 본문 해시가 변경됐습니다')
+            if text_quality(body,doc.payload.get('name','')) in ('MISSING','INSUFFICIENT','BOILERPLATE'):
+                raise ValueError('상세 대상 본문이 아닌 목록·부족 본문은 근거 검증에 사용할 수 없습니다')
+            if text_quality(body,doc.payload.get('name',''))=='SUMMARY_ONLY' and fact.get('kind')!='CONTEXT':
+                raise ValueError('요약만 있는 자료는 수량·일정의 상세 근거 검증을 먼저 수행하세요')
             if fact.get('kind') not in ('CONTEXT','QUANTITY','DATE') or fact.get('temporality') not in ('REFERENCE','PLANNED','SCHEDULED','REPORTED_ACTUAL'):
                 raise ValueError('사실 유형 및 계획·예정·보도된 사실 구분이 필요합니다')
             if fact['kind']=='QUANTITY' and (not fact.get('unit') or not fact.get('scope')):
@@ -64,9 +68,12 @@ def save(service, document_id, source_revision_no, review_revision_no, payload):
 def redact(text):
     """Suppress personal contact/identifier and roster rows in exported evidence."""
     value=str(text or '')
+    # A complete SHA-256 is technical provenance, not a contact/identity number.
+    # Recursive export redaction also visits digest fields and must preserve them.
+    if re.fullmatch(r'[0-9a-fA-F]{64}',value):return value
     value=re.sub(r'(?<!\d)\d{6}[- ]?[1-4]\d{6}(?!\d)','[개인식별번호 제외]',value)
     value=re.sub(r'(?<!\d)01[016789][- .]?\d{3,4}[- .]?\d{4}(?!\d)','[개인 연락처 제외]',value)
-    value=re.sub(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}','[이메일 제외]',value)
+    value=re.sub(r'[\w.+-]+@[\w.-]+','[이메일 제외]',value)
     lines=[];roster=False
     for line in value.splitlines():
         if (re.search(r'(?:성명|당첨자명|신청자명|입주자명|생년월일)',line) and re.search(r'[|\t]',line)) or re.fullmatch(r'\s*(?:성명|당첨자명|신청자명|입주자명|생년월일)\s*',line):
@@ -76,7 +83,7 @@ def redact(text):
             elif re.search(r'(?:계약|신청|입주)\s*(?:기간|일정|방법)|^\d+[.)]\s',line):roster=False
             else:continue
         lines.append(line)
-    return '\n'.join(lines)
+    return '\n'.join(lines).rstrip('\n')
 
 
 def safe_value(value):
@@ -89,6 +96,7 @@ def safe_value(value):
 def text_quality(text, title=''):
     t=re.sub(r'\s+',' ',str(text or '')).strip()
     if not t:return 'MISSING'
+    if re.search(r'총\s*[\d,]+\s*건.*(?:현재페이지|전체페이지)',t) and re.search(r'번호.{0,20}제목.{0,30}(?:등록일|작성일|담당부서)',t):return 'BOILERPLATE'
     if len(t)<60:return 'INSUFFICIENT'
     if '공고 및 공지는 서울주택' in t and ('본문 바로가기' in t or '우리 아파트 찾기' in t):return 'BOILERPLATE'
     if len(t)<300 and t.count(' - ')>=3 and '□' not in t:return 'SUMMARY_ONLY'
@@ -106,36 +114,71 @@ def text_quality(text, title=''):
     return 'TEXT_AVAILABLE_UNVERIFIED'
 
 
-def evidence(item, source, manual, ai, assessment):
-    revision=item['source_revision_no'];candidates=[]
-    for origin,data,field in [('SOURCE',source,'body_text'),('MANUAL',manual,'body_text'),('AI',ai,'body_text')]:
-        body=(source.get('text') or source.get('full_text') or source.get('body_text') or '') if origin=='SOURCE' else data.get(field,'')
+def evidence(item, source, manual, ai, assessment, csv_mode=False):
+    from .publication_evidence_integrity import (sha, body_kind, assessment_sync, decorate_facts,
+        relation_projection, NORMALIZATION, BODY_FIELDS, identifier)
+    revision=item['source_revision_no'];candidates=[];raw_bodies={}
+    for origin,data in [('SOURCE',source),('MANUAL',manual),('AI',ai)]:
+        body=(source.get('text') or source.get('full_text') or source.get('body_text') or '') if origin=='SOURCE' else data.get('body_text','')
+        raw_bodies[origin]=body
         rev=revision if origin=='SOURCE' else data.get('source_revision_no')
         quality=text_quality(body,item['title']);current=rev==revision
+        kind,target,reason=body_kind(body,quality,item['title'],item.get('evidence_url',''))
+        if kind=='LIST_PAGE':quality='BOILERPLATE'
+        text=redact(body)
+        if csv_mode:
+            from .publication_review_export import cell
+            text=cell(text)
+        ref=data.get('evidence_ref',{})
+        raw_hash=data.get('original_sha256') or data.get('raw_sha256') or (data.get('raw') or {}).get('sha256')
         candidates.append(dict(origin=origin,source_revision_no=rev,current=current,quality=quality,
-            chars=len(body),sha256=hashlib.sha256(body.encode()).hexdigest() if body else None,
-            collected_at=data.get('collected_at'),raw_sha256=data.get('raw_sha256') or data.get('body_sha256'),text=redact(body)))
-    eligible=[c for c in candidates if c['current'] and c['quality'] in ('TEXT_AVAILABLE_UNVERIFIED','SUMMARY_ONLY')]
-    # A targeted manual extraction beats a navigation-heavy automatic HTML body.
+            chars=len(body),exported_chars=len(text),stored_text_sha256=sha(body) if body else None,
+            sha256=sha(text) if body else None,exported_text_sha256=sha(text) if body else None,
+            hash_input_field=BODY_FIELDS[origin],hash_encoding='UTF-8',normalization_version=NORMALIZATION,csv_formula_escaped=csv_mode,
+            hash_timestamp=data.get('collected_at') or ref.get('recorded_at'),
+            evidence_revision_id=ref.get('revision_id'),evidence_ref=ref,raw_sha256=raw_hash,
+            artifact_id=('SHA256:'+raw_hash) if raw_hash else None,
+            collected_at=data.get('collected_at'),document_kind=kind,target_match=target,target_note=reason,
+            fragment_requires_detail_resolution=bool('#' in item.get('evidence_url','') and origin=='AI' and kind in ('LIST_PAGE','PORTAL_SHELL')),
+            text=text))
+    eligible=[c for c in candidates if c['current'] and c['quality'] in ('TEXT_AVAILABLE_UNVERIFIED','SUMMARY_ONLY') and c['target_match']!='MISMATCH']
     chosen=next((c for quality in ('TEXT_AVAILABLE_UNVERIFIED','SUMMARY_ONLY') for origin in ('MANUAL','SOURCE','AI') for c in eligible if c['origin']==origin and c['quality']==quality),None)
     quality=chosen['quality'] if chosen else 'STALE_ONLY' if any(c['chars'] and not c['current'] for c in candidates) else 'INSUFFICIENT' if any(c['chars'] for c in candidates) else 'MISSING'
-    assessment_current=bool(assessment and assessment.get('source_revision_no')==revision and assessment.get('review_revision_no')==item['review_revision_no'])
-    hashes={c['origin']:c['sha256'] for c in candidates if c['current']}
-    assessment_current=assessment_current and all(f.get('body_sha256')==hashes.get(f.get('source_type')) for f in assessment.get('facts',[]))
-    facts=safe_value(assessment.get('facts',[])) if assessment_current else []
+    reasons=assessment_sync(item,assessment,item.get('source_hash'))
+    hashes={c['origin']:c['stored_text_sha256'] for c in candidates if c['current']}
+    for f in assessment.get('facts',[]):
+        if f.get('body_sha256')!=hashes.get(f.get('source_type')):reasons.append('BODY_HASH_CHANGED')
+        elif not f.get('quote') or f['quote'] not in raw_bodies.get(f.get('source_type'),''):reasons.append('QUOTE_MISMATCH')
+    assessment_current=bool(assessment and not reasons)
+    all_facts=decorate_facts(item,assessment,candidates,raw_bodies,item.get('source_hash'),assessment_current,redact)
+    if assessment_current and any(f['verification_status']!='QUOTE_MATCHED' for f in all_facts):
+        reasons.append('QUOTE_EXPORT_UNAVAILABLE');assessment_current=False
+    facts=all_facts if assessment_current else []
+    historical=dict(safe_value(assessment),facts=all_facts,current=assessment_current,needs_revalidation=bool(reasons),revalidation_reasons=sorted(set(reasons))) if assessment else {}
     stage_names=('CONSTRUCTION','SUPPLY','COMPLETION','MOVE_IN')
-    result=dict(document_id=item['id'],source_revision_no=revision,review_revision_no=item['review_revision_no'],
-        effective_text=chosen['text'] if chosen else '',effective_origin=chosen['origin'] if chosen else None,
-        quality=quality,quality_note='문자열·판본 기준 선별이며 첨부 완전성·사실 확정은 별도 확인',
-        candidates=candidates,assessment_current=assessment_current,
+    dates=[f for f in facts if f.get('kind')=='DATE']
+    related=relation_projection(safe_value(assessment.get('related_documents',[])),assessment.get('event_group')) if assessment_current else []
+    linkage=bool(item['status']=='APPROVED' and not item.get('source_changed') and not item.get('link_changed') and (item.get('decision') or {}).get('project_ids'))
+    text=chosen['text'] if chosen else ''
+    result=dict(document_id=item['id'],source_revision_no=revision,source_revision_id=item.get('source_revision_id'),review_revision_no=item['review_revision_no'],
+        effective_text=text,effective_origin=chosen['origin'] if chosen else None,
+        effective_text_sha256=sha(text),hash_input_field='통합유효본문',normalization_version=NORMALIZATION,
+        normalized_text=text,hash_encoding='UTF-8',quality=quality,
+        raw_text_present=any(c['chars'] for c in candidates),usable_detail_body=bool(chosen and chosen['quality']=='TEXT_AVAILABLE_UNVERIFIED'),
+        attachment_verified=False,attachment_verification_note='첨부 메타데이터 존재만으로 첨부 원문 검증을 확정하지 않음',
+        quality_note='본문 유형·문자열·판본 기준 선별이며 첨부 완전성·사실·사업 동일성 확정은 별도 확인',
+        candidates=candidates,assessment_current=assessment_current,needs_revalidation=bool(reasons),revalidation_reasons=sorted(set(reasons)),
         external_recommendation=safe_value(assessment.get('external_recommendation',{})),
-        officer_assessment=safe_value(assessment),facts=facts,
-        stage_dates={stage:[f for f in facts if f.get('stage')==stage and f.get('kind')=='DATE'] for stage in stage_names},
+        officer_assessment=historical,facts=facts,evidence_records=all_facts,
+        evidence_set_id=identifier('ESET',item['id'],[f['evidence_id'] for f in all_facts]),
+        stage_dates={stage:[f for f in dates if f.get('stage')==stage] for stage in stage_names},
+        business_event_dates=[dict(f,event_type=f.get('stage') or 'UNCLASSIFIED') for f in dates],
+        fact_coverage=dict(context=sum(f.get('kind')=='CONTEXT' for f in facts),quantity=sum(f.get('kind')=='QUANTITY' for f in facts),date=len(dates)),
         unknown_fields=assessment.get('unknown_fields',[]) if assessment_current else ['현재 판본의 담당자 구조화 사실 검증'],
-        related_documents=safe_value(assessment.get('related_documents',[])) if assessment_current else [],
-        event_group=assessment.get('event_group') if assessment_current else None,
+        related_documents=related,event_group=assessment.get('event_group') if assessment_current else None,
         aggregate_allowed=False,aggregation_note='참고·모집·정정 사건. 별도 사업 실적 승인 전 합산 금지',
-        linked_project_ids=(item.get('decision') or {}).get('project_ids',[]) if item['status']=='APPROVED' else [],
-        linkage_confirmed=item['status']=='APPROVED' and bool((item.get('decision') or {}).get('project_ids')),
-        privacy_note='개인식별번호·개인 연락처·명단 영역 제외. 첨부 명단 자동 추출 없음 · 내보내기 시 명단 제외')
+        linked_project_ids=(item.get('decision') or {}).get('project_ids',[]) if linkage else [],linkage_confirmed=linkage,
+        verification_stages=dict(DISCOVERED=True,CAPTURED=bool(text),PARSED=bool(facts),QUOTE_MATCHED=bool(facts) and all(f['verification_status']=='QUOTE_MATCHED' for f in facts),
+            SOURCE_CORROBORATED=False,PROJECT_MATCHED=linkage,APPROVED_FOR_LINK=linkage,APPROVED_FOR_METRIC=False),
+        privacy_note='개인식별번호·개인 연락처·명단 영역 제외. 본문 전체 기준으로 인용을 비식별화하고 내보낸 텍스트의 해시·오프셋 제공')
     return result

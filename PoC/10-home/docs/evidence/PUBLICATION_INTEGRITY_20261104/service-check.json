@@ -1,0 +1,38 @@
+{
+  "targets": 111,
+  "missing_targets": 0,
+  "source_snapshot_rows": 111,
+  "statuses": {
+    "HOLD": 39,
+    "REVIEW": 26,
+    "REGISTRATION_REQUIRED": 46
+  },
+  "export_hash_errors": [],
+  "active_facts": 107,
+  "evidence_records_including_history": 111,
+  "quote_matched": 107,
+  "event_groups": 9,
+  "needs_revalidation": [
+    23,
+    30
+  ],
+  "body_missing_or_insufficient": 32,
+  "usable_detail_body": 77,
+  "policy_actual_arrays_unchanged": true,
+  "agent_settings_unchanged": true,
+  "health": {
+    "status": "ok",
+    "service": "home",
+    "scope": "SEOUL_GYEONGGI"
+  },
+  "timings_seconds": {
+    "after.csv": 1.275,
+    "after.json": 1.252,
+    "queue-after.json": 0.389,
+    "policy-after.json": 0.073,
+    "agents-after.json": 0.059,
+    "health-after.json": 0.003
+  },
+  "schema_version": "publication-review-evidence-3",
+  "new_business_approvals": 0
+}

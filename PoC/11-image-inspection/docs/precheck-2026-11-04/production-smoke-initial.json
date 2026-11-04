@@ -1,0 +1,36 @@
+{
+  "job_id": "5383a27877085a62b3ac4e6ae3591968",
+  "run_id": "21e88867a51f476588ef78911f0a24f0",
+  "state": "COMPLETED",
+  "selected": 1,
+  "errors": 0,
+  "typo_fail": true,
+  "tip_ids": [
+    "OFFICIAL-20-03",
+    "OFFICIAL-20-06",
+    "OFFICIAL-19-01",
+    "OFFICIAL-19-02",
+    "OFFICIAL-19-03",
+    "OFFICIAL-19-04",
+    "OFFICIAL-19-05",
+    "OFFICIAL-19-06",
+    "OFFICIAL-19-07",
+    "OFFICIAL-19-08",
+    "OFFICIAL-19-09",
+    "OFFICIAL-19-10"
+  ],
+  "monthly_model_calls": 0,
+  "vision_calls": 0,
+  "calls": [
+    {
+      "model": "gpt-5.4-mini-2026-03-17",
+      "workload": "checklist-analysis",
+      "usage": {
+        "input_tokens": 24189,
+        "output_tokens": 2066
+      },
+      "cost_usd": 0.02743875
+    }
+  ],
+  "report_status": 200
+}

@@ -47,7 +47,7 @@ def compare(patch,reference):
 
 
 def inspect(raw,observation,references,data_dir):
-    ref=next((r for r in references if r.get('status')=='APPROVED' and r.get('image_file') and '태극기' in r['name']),None)
+    ref=next((r for r in references if r.get('status')=='APPROVED' and r.get('kind')!='inspection-guidance' and r.get('image_file') and '태극기' in r['name']),None)
     result={'version':VERSION,'checks':[],'scope':'중앙 태극의 적·청 영역 방향 비교. 국기 뒷면·괘 배치·제작 의도는 별도 검사. 점수는 색상 일치율이며 확률이 아님.'}
     if not ref:return result
     path=Path(data_dir)/'references'/Path(ref['image_file']).name

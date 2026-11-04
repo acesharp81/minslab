@@ -242,6 +242,20 @@ class Usage:
         return result
 
 
+def usage_details(usage,input_tokens,output_tokens):
+    """Reported subsets, never additional tokens or inferred cache hits."""
+    result={}
+    for group,field,name,limit in [('input_tokens_details','cached_tokens','cached_input_tokens',input_tokens),
+                                  ('input_tokens_details','cache_write_tokens','cache_write_tokens',input_tokens),
+                                  ('output_tokens_details','reasoning_tokens','reasoning_tokens',output_tokens)]:
+        details=usage.get(group) or usage.get('prompt_tokens_details' if group=='input_tokens_details' else 'completion_tokens_details') or {}
+        if not isinstance(details,dict) or field not in details:continue
+        try:value=int(details[field])
+        except (TypeError,ValueError):continue
+        if 0<=value<=limit:result[name]=value
+    return result
+
+
 def token_cost(model,usage):
     it=int(usage.get('input_tokens',usage.get('prompt_tokens',0)) or 0)
     ot=int(usage.get('output_tokens',usage.get('completion_tokens',0)) or 0)

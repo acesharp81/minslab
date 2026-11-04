@@ -244,3 +244,15 @@ def test_payload_failure_before_http_releases_reserved_tokens(tmp_path,monkeypat
         Provider(s,meter).call('gpt-5.4',json.dumps({'tasks':[{'region_id':'bad'}]}),[b'bad'],workload='text-ocr')
     assert not caught.value.call_meta['request_sent'] and not caught.value.call_meta['usage_unknown']
     assert meter.events[0][0]['cost_usd']==0
+
+
+def test_cache_and_reasoning_subsets_are_preserved_without_changing_total_budget(tmp_path,monkeypatch):
+    meter=Meter();s=Settings({'DATA_DIR':str(tmp_path),'OPENAI_API_KEY':'test','OPENAI_BASE_URL':'https://example.org/v1'})
+    real=httpx.Client
+    usage={'input_tokens':1000,'output_tokens':200,'input_tokens_details':{'cached_tokens':800},'output_tokens_details':{'reasoning_tokens':50}}
+    response={'status':'completed','usage':usage,'output':[{'type':'message','content':[{'type':'output_text','text':json.dumps(inventory())}]}]}
+    monkeypatch.setattr('app.providers.httpx.Client',lambda **kw:real(transport=httpx.MockTransport(lambda req:httpx.Response(200,json=response))))
+    _,meta=Provider(s,meter).call('gpt-5.4-mini','{}',workload='image-observation')
+    assert meta['usage']['cached_input_tokens']==800 and meta['usage']['reasoning_tokens']==50
+    assert meta['usage']['input_tokens']+meta['usage']['output_tokens']==1200
+    assert meter.events[0][0]['cached_input_tokens']==800 and meta['cost_basis']=='conservative_standard_rate_equivalent'

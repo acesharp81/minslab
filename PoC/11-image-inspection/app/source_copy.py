@@ -9,6 +9,8 @@ import re
 import unicodedata
 from difflib import SequenceMatcher
 from .rules import PACK, validate_batch
+from .text_ocr import valid_rect, overlap
+from .text_routing import object_rects
 
 SCHEMA = 'chekmi-source-copy-v1'
 
@@ -35,6 +37,10 @@ def parse(content):
             raise ValueError('각 원고 항목에 저장된 객체의 label과 해당 영역 전체의 text가 필요합니다.')
         if len(entry['text']) > 2000:
             raise ValueError('원고 한 영역은 2,000자 이내로 입력하세요.')
+        if 'object_id' in entry and (not isinstance(entry['object_id'],str) or not entry['object_id'].strip()):
+            raise ValueError('원고 object_id는 저장된 객체 ID여야 합니다.')
+        if 'rect' in entry and not valid_rect(entry['rect']):
+            raise ValueError('원고 rect는 0~1 범위의 [왼쪽, 위, 오른쪽, 아래]여야 합니다.')
     return doc
 
 
@@ -52,6 +58,10 @@ def bindings(run, image_hash):
             continue
         for entry in doc['entries']:
             targets = [o for o in objects if o.get('label') == entry['label']]
+            if entry.get('object_id'):
+                targets=[o for o in targets if o['id']==entry['object_id']]
+            if entry.get('rect'):
+                targets=[o for o in targets if any(overlap(entry['rect'],r)>.7 for r in object_rects(o))]
             if len(targets) != 1:
                 unresolved.append(dict(reference_id=ref['id'], label=entry['label'], reason='대상 이름이 없거나 여러 곳에 있어 원고 대조 보류')); continue
             matched.append(dict(object=targets[0], expected=normalized(entry['text']), reference_id=ref['id'], parent_ids=ref.get('parent_ids', [])))

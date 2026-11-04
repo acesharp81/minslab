@@ -1,0 +1,23 @@
+[
+  {
+    "site": "kjon",
+    "groups": 14,
+    "ordered_titles_match": true,
+    "print_document_titles_match": true,
+    "page_errors": []
+  },
+  {
+    "site": "minslab",
+    "groups": 14,
+    "ordered_titles_match": true,
+    "print_document_titles_match": true,
+    "page_errors": []
+  },
+  {
+    "site": "mobile",
+    "groups": 14,
+    "ordered_titles_match": true,
+    "print_document_titles_match": true,
+    "page_errors": []
+  }
+]

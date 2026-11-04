@@ -1,0 +1,28 @@
+{
+  "source_count": 1,
+  "source_hash": "31ce6fa3a6b77e523240fdc9ec47c4cfc5318089e4b160979ac99e4a79af157a",
+  "mini": {
+    "accepted": 1,
+    "elapsed_seconds": 2.075,
+    "estimated_cost_usd": "0.0023475"
+  },
+  "terra": {
+    "accepted": 1,
+    "elapsed_seconds": 4.651,
+    "reasoning_effort": "none",
+    "input_tokens": 2008,
+    "output_tokens": 192,
+    "cache_write_tokens": 2005,
+    "cache_retention_reported": false,
+    "cost_at_30m_write_rate_usd": "0.00346925",
+    "conservative_cost_at_12h_write_rate_usd": "0.0059755"
+  },
+  "decision": "KEEP_MINI_REPAIR",
+  "limits": [
+    "One known rejected source, not a benchmark",
+    "Mini and Terra measured at different times",
+    "Source and input construction method are the same; prior Mini request byte hash was not retained",
+    "Provider invoice and cache retention are not available",
+    "Production reports and routing unchanged"
+  ]
+}

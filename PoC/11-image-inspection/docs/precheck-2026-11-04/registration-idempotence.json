@@ -1,0 +1,222 @@
+{
+  "version": "precheck-2026-11-03-v1",
+  "items": [
+    {
+      "item_id": "O01",
+      "reference_id": "ref-7a13bcc2e20b4753b35b8d063e3d668f",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 3,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "8cfd466378cef56ff62bc9ecb1b67c25a1eac2fd17f65878b369d75628e8f8f3"
+    },
+    {
+      "item_id": "O02",
+      "reference_id": "ref-c67f2e19de8949bc984e430054041bd3",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 4,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "a678082af73db5bf18422d8f76e29c2c0a0a99532883ffbec0750cacb42cd538"
+    },
+    {
+      "item_id": "O03",
+      "reference_id": "ref-f144297d13fc423d8d31921356442b59",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 5,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "ca3b822a78190e968f7dc24c5776ab589c3c77db6df0885459292575ca5f3aac"
+    },
+    {
+      "item_id": "O04",
+      "reference_id": "ref-ce369994e5ab4ba68addc44ed40f287f",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 6,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "340cc036f57e34fda29429bba8765afbe637a84b8742d629f620f6af07216169"
+    },
+    {
+      "item_id": "O05",
+      "reference_id": "ref-4a8fbdc381954d0e9bd42b0fc91a02e3",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 7,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "7e948cd5c1299abb0eee41c3c795e31f70bc87e1a40eefbece27fdf5700afbd5"
+    },
+    {
+      "item_id": "O06",
+      "reference_id": "ref-48c26f94313d412e8002fa150630cedf",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 8,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "9744d6d5a3883eea3bd8c59770e079ccce0c1688cc2c80520ad552c79ca8bef0"
+    },
+    {
+      "item_id": "O07",
+      "reference_id": "ref-8f1e735ef4c747fa99cb0869df528c87",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 9,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "24e609c7a2888fbc939f10eba3688888b90ad0c95db5ed203c6fe55563580aee"
+    },
+    {
+      "item_id": "O08",
+      "reference_id": "ref-88a6699a8c024a1d97e1b66176c9472d",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 10,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "db8121fe50e7bcad1727e76c26a6714a784b0ade2bec90c6ce21178424f80a43"
+    },
+    {
+      "item_id": "O09",
+      "reference_id": "ref-69157cd31f4d42fdac71f6fd1fb125c7",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 11,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "33dab024e172f8a9dc1dbeab390f0df95860cb1499dafb9b3fa6a0688e0ea0e2"
+    },
+    {
+      "item_id": "O10",
+      "reference_id": "ref-a8e137b1c69e4dcabbd6479f2f836c35",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 12,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "ba9251c433ee4897c53ed98302983f5f0ba0247dd8d695dc81e37a80f001d405"
+    },
+    {
+      "item_id": "O11",
+      "reference_id": "ref-d964628631584a189d4924464caf4b53",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 13,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "db78e75ce41cd2ac06ca50d82f6ccfa32c2355cbadf50e3801c5348aac48e7d1"
+    },
+    {
+      "item_id": "O12",
+      "reference_id": "ref-4acd86479a254462b180c93d042d6170",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 14,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "729285e403a65568c47ad9de813e52542bb71ae22f3465e557bd3023b588830e"
+    },
+    {
+      "item_id": "O13",
+      "reference_id": "ref-48f74f8873e2408ea61928b77f880cf8",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 15,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "d46a02b53bda78df27fca80f159b18a2fe8d22da7884c2879db73b080a594992"
+    },
+    {
+      "item_id": "O14",
+      "reference_id": "ref-b2aad714703947ef91e8ccca4e56d727",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 16,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "c4ae9daf7ee32f7b92f817843276860c5a2603d3e666b895c3fa2f1d242c4ac6"
+    },
+    {
+      "item_id": "O15",
+      "reference_id": "ref-f62ab0a4d1654832b226e6347d81ed7f",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 17,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "33c4692137afdc62120ed7c4d0c256b383fc4668f7d796c596053d2d5a6a9856"
+    },
+    {
+      "item_id": "O16",
+      "reference_id": "ref-0b750d30586b4c308d5fed62dc8817b6",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 18,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "f3dbd0a2361e1bfe09910f752c0b1ebdbf2f7e54ab8772632beb35428358621f"
+    },
+    {
+      "item_id": "O17",
+      "reference_id": "ref-c5ee6368b9844437b44e051ab8558234",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 19,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "8d73b7491bacb723c3ba9c5aec9f958412310850833d5e55dbbe42f171d98a94"
+    },
+    {
+      "item_id": "O18",
+      "reference_id": "ref-92476ee66f764d14b5af30f8c581c069",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 20,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "dd389fad114068d7d96d851355166724884de232221143b1bf823c27f6a4c8d0"
+    },
+    {
+      "item_id": "O19",
+      "reference_id": "ref-6dc2f37a478f43bfb17690cabcc29a78",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 21,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "5589b982ad47405d573043110d16b9c3b5b5b54d2a5f846ea9acf9b2708dfb50"
+    },
+    {
+      "item_id": "O20",
+      "reference_id": "ref-548ae6dc27294dd9865ba60dcc31f508",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 22,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "b32d04029233c741d3ef9abc4a55795e4c9b6973479c8d2a57a33e44a9060f6e"
+    },
+    {
+      "item_id": "O21",
+      "reference_id": "ref-63f175834b4145559747a2b36936897e",
+      "created": false,
+      "status": "APPROVED",
+      "tips": 10,
+      "source_page": 23,
+      "source_sha256": "6102b8aa25b99849af14f2eba5b3319e6d60c0d436a052af29ea3a604853dc1b",
+      "image_sha256": "6b3a354cdcbba67cbcae75fad15d98126e54f8d5d9b9d3cce55ceb1d019fe0b2"
+    }
+  ],
+  "source_validations": [
+    "PDF SHA-256",
+    "pdftotext raw: 210 source blocks",
+    "pdftotext layout: 210 circled markers",
+    "authenticated PDF/page readback SHA-256"
+  ],
+  "api_model_calls": 0
+}

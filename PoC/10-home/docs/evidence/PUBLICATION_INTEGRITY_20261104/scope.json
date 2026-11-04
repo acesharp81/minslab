@@ -1,0 +1,28 @@
+{
+  "reference_date": "2026-11-04",
+  "report_sha256": "2b03ef1258ab56bb84d41f544924e6b33eb937439b6c25db539d22e369f425b6",
+  "input_scope": "보고서 111개 ID와 운영 DB/CSV 매칭",
+  "original_csv_attached": false,
+  "original_csv_hash_in_report": "82f578ffe592c52ec86ef086bcbca3c027f86e436284b8fd9f06ab4ede810235",
+  "original_binary_equality_verified": false,
+  "reason": "이번 첨부는 검토서 텍스트만 포함. 원본 CSV 두 파일의 바이너리 동일성은 직접 재검증할 수 없어 보고서 주장과 분리.",
+  "snapshot_folder": "/app/data/raw/officer_review/20261104-integrity",
+  "fixed_fixture": "tests/fixtures/publication_integrity_20261104/cases.json",
+  "tests": 262,
+  "tests_scope": "111개 고정 표본 + 증빙/검토/실적/세 에이전트 회귀검사",
+  "independent_web_checks": {
+    "status": "NOT_CONFIRMED",
+    "attempted": [
+      3,
+      9,
+      55
+    ],
+    "results": [
+      "iH timeout",
+      "국토부 redirect loop",
+      "국무조정실 inaccessible"
+    ]
+  },
+  "metric_approval": false,
+  "notes": "원문 문자열·인용·판본 검증과 외부 공식 대조·사업 동일성·실적 승인은 별도"
+}

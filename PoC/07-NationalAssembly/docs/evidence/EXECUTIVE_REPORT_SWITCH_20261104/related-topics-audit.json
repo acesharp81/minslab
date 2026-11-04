@@ -1,0 +1,361 @@
+{
+  "broadcast_id": "a9dadf73-b838-46e1-b0df-090758a11042",
+  "results": [
+    {
+      "group": "ministry_reports",
+      "official_topic": "공공기관 AI 대전환, 변화되는 국민 일상",
+      "source_span_ids": [
+        "report-1"
+      ],
+      "related": [
+        {
+          "id": "structured-topic-ba633936c92114d2",
+          "title": "공공 AI 챔피언 활용과 공공서비스 연계 강화를 통한 공공기관 AI 대전환",
+          "score": 5,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-f2cbf085bf47856d",
+          "title": "모두의 AI 서비스와 공공서비스 MCP API 연계",
+          "score": 1,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-cd9645a8dd64d4ad",
+          "title": "AI가 읽을 수 있는 HWPX 문서 공유 필요성",
+          "score": 0,
+          "relation": "SAVED_PARENT"
+        }
+      ]
+    },
+    {
+      "group": "ministry_reports",
+      "official_topic": "교육혁신선도지역 추진상황",
+      "source_span_ids": [
+        "report-2"
+      ],
+      "related": [
+        {
+          "id": "structured-topic-480b4a1f0a1b0053",
+          "title": "교육혁신선도지역 추진과 지정 결과 발표",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        }
+      ]
+    },
+    {
+      "group": "ministry_reports",
+      "official_topic": "K-가축방역 개선대책",
+      "source_span_ids": [
+        "report-3"
+      ],
+      "related": [
+        {
+          "id": "structured-topic-ef6b24360db5593a",
+          "title": "가축전염병 사전예방 투자와 구제역 백신 개발 여부",
+          "score": 3,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-f91b478d97057220",
+          "title": "백신 접종 후 발생 축소 살처분 관리",
+          "score": 3,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-8319d55e7118952b",
+          "title": "살처분 보상 비용 대비 백신 비용",
+          "score": 3,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-37b11d1755bce170",
+          "title": "가축방역 개선대책 보고 및 추진 방향",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-8727517b56ea5df2",
+          "title": "정부의 사후대응 관행과 사전예방 전환",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-f367c9f19f80f040",
+          "title": "가축전염병 보상비의 연간 지급 규모",
+          "score": 0,
+          "relation": "SAVED_PARENT"
+        },
+        {
+          "id": "structured-topic-fa616b58d22a76ea",
+          "title": "아프리카돼지열병과 조류인플루엔자 발생 상황",
+          "score": 0,
+          "relation": "SAVED_PARENT"
+        },
+        {
+          "id": "structured-topic-50dbc10b0cbd4677",
+          "title": "살처분 보상금과 예방약품 예산 증감",
+          "score": 0,
+          "relation": "SAVED_PARENT"
+        }
+      ]
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "모두발언에서 올해 국정감사가 모두 마무리됐다면서 “각 부․처․청은 국정감사에서 제기된",
+      "source_span_ids": [
+        "president-paragraph-9"
+      ],
+      "related": []
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "사이버 보안 차르",
+      "source_span_ids": [
+        "president-paragraph-18"
+      ],
+      "related": []
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "지난 주말 농어촌 기본소득 시범사업지인 경북 영양과 청송에서 인구 증가와 지역 활력 제고를",
+      "source_span_ids": [
+        "president-paragraph-22"
+      ],
+      "related": []
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "다문화가정의 문화적 차이에 대한 지원은 계속하되, 방치할 경우 공격의 표적이 될 지점을 잘",
+      "source_span_ids": [
+        "president-paragraph-28"
+      ],
+      "related": [
+        {
+          "id": "structured-topic-a445af0f55d1fd25",
+          "title": "다문화가족 보호정책의 필요성과 부작용 예방",
+          "score": 3,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-d44f81745037fa30",
+          "title": "다문화가족 학생의 학교 적응 보완과 지원 확대",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-c10fea58faa61688",
+          "title": "다문화가족 보이지 않는 차별 해소를 위한 관계부처 협업",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-accff4a5a42aa840",
+          "title": "다문화가족 우선 지원 기준의 공정성 및 현장 불합리 개선",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        }
+      ]
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "원민경 성평등가족부 장관이 다문화가정 학생들은 학교 적응이 어려워 그만두는 비율이 높고,",
+      "source_span_ids": [
+        "president-paragraph-30"
+      ],
+      "related": [
+        {
+          "id": "structured-topic-d44f81745037fa30",
+          "title": "다문화가족 학생의 학교 적응 보완과 지원 확대",
+          "score": 6,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-25d642fe9c636df3",
+          "title": "학교 부적응에 따른 학업 중단과 고등교육 진학률 저하",
+          "score": 3,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-c10fea58faa61688",
+          "title": "다문화가족 보이지 않는 차별 해소를 위한 관계부처 협업",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-accff4a5a42aa840",
+          "title": "다문화가족 우선 지원 기준의 공정성 및 현장 불합리 개선",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-a445af0f55d1fd25",
+          "title": "다문화가족 보호정책의 필요성과 부작용 예방",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        }
+      ]
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "최교진 교육부 장관",
+      "source_span_ids": [
+        "president-paragraph-32"
+      ],
+      "related": [
+        {
+          "id": "structured-topic-da7c399b22a9d465",
+          "title": "학교 교육과정의 인공지능 역량 강화 교육 현황",
+          "score": 3,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-6f2eabb910bbad21",
+          "title": "인공지능 교육의 법정 수업 시수 확보 여부",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-f303d78afe36048d",
+          "title": "인공지능의 위험성·통제선 교육 필요성",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-78acdcd7f0770cb6",
+          "title": "인공지능 교육 시수 배치를 위한 교육과정 개정 준비",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-966065d5f28ae0f5",
+          "title": "학년별 최소 지침과 미디어 리터러시 결합 교육 마련",
+          "score": 0,
+          "relation": "SAVED_PARENT"
+        }
+      ]
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "팩트체크 사업을 하는 대학이 있는지 물은 뒤 가짜뉴스의 폐해에 대한 경각심도 중요하고",
+      "source_span_ids": [
+        "president-paragraph-34"
+      ],
+      "related": [
+        {
+          "id": "structured-topic-b1d996be1f6dbb0b",
+          "title": "가짜뉴스·허위보도 예방을 위한 사실 확인과 팩트체크 교육 필요",
+          "score": 5,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-73926ffb57e70f95",
+          "title": "가짜뉴스·허위보도 예방과 따옴표 보도 책임 기준",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-7c2eb90873b7cb18",
+          "title": "팩트체크 관련 형사고소와 피해 회복의 한계",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-e250a86c0f06f327",
+          "title": "팩트체크 관련 피해자 해당 여부",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-2dd07a1920a90faa",
+          "title": "팩트체크 관련 피해자 해당성",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        }
+      ]
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "K-브랜드 정부인증제도 국내외 홍보 및 협력 방안",
+      "source_span_ids": [
+        "president-paragraph-38"
+      ],
+      "related": [
+        {
+          "id": "structured-topic-87ab5046055b3402",
+          "title": "K브랜드 정부인증제도 국내외 홍보와 협력 요청",
+          "score": 8,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-e6763faca1c443ac",
+          "title": "K 브랜드 홍보 방식의 매체 활용과 개선",
+          "score": 3,
+          "relation": "TOPIC_TEXT"
+        },
+        {
+          "id": "structured-topic-0bd62a38f0c69966",
+          "title": "K브랜드 정체성 재정립과 내년 예산 확보",
+          "score": 2,
+          "relation": "TOPIC_TEXT"
+        }
+      ]
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "국무회의를 시청하던 국민 댓글 중 첫 아이 난임 치료 건강보험 차수 제한 폐지 요청을 들은",
+      "source_span_ids": [
+        "president-paragraph-40"
+      ],
+      "related": []
+    },
+    {
+      "group": "presidential_directives",
+      "official_topic": "수도권 신도시에 대한 광역 교통 대책을 준비하고 있는지, 주택공급에 차질은 없는지를 꼼꼼히",
+      "source_span_ids": [
+        "president-paragraph-46"
+      ],
+      "related": []
+    },
+    {
+      "group": "deliberated_agendas",
+      "official_topic": "풍수해·지진재해보험법 일부개정법률안",
+      "source_span_ids": [
+        "agenda-1"
+      ],
+      "related": []
+    },
+    {
+      "group": "deliberated_agendas",
+      "official_topic": "해외진출기업의 국내복귀 지원에 관한 법률 시행령 일부개정령안",
+      "source_span_ids": [
+        "agenda-2"
+      ],
+      "related": []
+    },
+    {
+      "group": "deliberated_agendas",
+      "official_topic": "고용상 연령차별금지 및 고령자고용촉진에 관한 법률 시행령 일부개정령안",
+      "source_span_ids": [
+        "agenda-3"
+      ],
+      "related": []
+    },
+    {
+      "group": "deliberated_agendas",
+      "official_topic": "택시운송사업의 발전에 관한 법률 시행령 일부개정령안",
+      "source_span_ids": [
+        "agenda-4"
+      ],
+      "related": []
+    },
+    {
+      "group": "deliberated_agendas",
+      "official_topic": "행정규제기본법 시행령 일부개정령안",
+      "source_span_ids": [
+        "agenda-5"
+      ],
+      "related": []
+    }
+  ]
+}

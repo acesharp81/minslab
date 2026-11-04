@@ -33,7 +33,7 @@ const PublicationReviews = {};
   $('pr-export-current').textContent=exportLabel+' CSV · '+num(rows.length)+'건';
   $('pr-export-current').disabled=exporting;$('pr-export-all').disabled=exporting;$('pr-export-json').disabled=exporting;
   $('pr-result').textContent='조회 '+rows.length+'건 / 전체 '+data.total+'건 · 우선순위는 제목 기반 검토 제안이며 사업 동일성 확정이 아닙니다.';
-  $('pr-list').innerHTML=rows.map(r=>'<button type="button" class="pr-item" data-pr-id="'+e(r.id)+'" aria-pressed="'+(selected===r.id)+'"><span class="pr-item-top"><span class="pr-priority p'+r.priority+'">'+(r.priority<4?'우선 '+r.priority:'참고')+'</span><span class="pr-state">'+e(r.status_label)+'</span></span><strong>'+e(r.title)+'</strong><small>'+e(r.source_date)+' · '+e(r.authority==='OFFICIAL'?'공식 자료':'언론 자료')+'</small><span>'+e(r.guidance?.decision||r.review_topic)+'</span>'+(r.source_changed?'<em>원문 새 판본 · 재검토 필요</em>':'')+'</button>').join('')||'<p class="pr-empty">조건에 맞는 자료가 없습니다.</p>';
+  $('pr-list').innerHTML=rows.map(r=>'<button type="button" class="pr-item" data-pr-id="'+e(r.id)+'" aria-pressed="'+(selected===r.id)+'"><span class="pr-item-top"><span class="pr-priority p'+r.priority+'">'+(r.priority<4?'우선 '+r.priority:'참고')+'</span><span class="pr-state">'+e(r.status_label)+'</span></span><strong>'+e(r.title)+'</strong><small>'+e(r.source_date)+' · '+e(r.authority==='OFFICIAL'?'공식 자료':'언론 자료')+'</small><span>'+e(r.guidance?.decision||r.review_topic)+'</span>'+(r.source_changed?'<em>원문 새 판본 · 재검토 필요</em>':r.evidence_revalidation_required?'<em>근거 검증 이전 판본 · 재검토 필요</em>':'')+'</button>').join('')||'<p class="pr-empty">조건에 맞는 자료가 없습니다.</p>';
   $('pr-list').querySelectorAll('[data-pr-id]').forEach(b=>b.onclick=()=>{if(!canLeave())return;selected=b.dataset.prId;dirty=false;renderList();renderDetail();});
   host().querySelectorAll('[data-pr-status]').forEach(b=>b.setAttribute('aria-pressed',String(filter===b.dataset.prStatus)));
  }
@@ -63,6 +63,8 @@ const PublicationReviews = {};
   root.innerHTML=`<div class="pr-detail-top"><span class="pr-priority p${r.priority}">${r.priority<4?'우선순위 '+r.priority:'참고 분류'}</span><span>${e(r.status_label)}</span></div>
    <h3 tabindex="-1">${e(r.title)}</h3><p class="pr-meta">${e(r.source_name)} · 게시일 ${e(r.source_date)} · 원문 판본 ${r.source_revision_no}</p>
    ${AICollection.analysis(r.ai_analysis)}
+   ${typeof HoldReview!=='undefined'?HoldReview.render(r.cross_review):''}
+   ${r.evidence_revalidation_required?'<p class="pr-effect"><strong>근거 검증 재확인 필요</strong> · 현재 원문과 과거 검증 판본이 다릅니다. 기존 판단은 보존하며 현재 검증 완료로 승계하지 않습니다.</p>':''}
    ${r.assessment?`<details class="pr-basis"><summary>담당자 근거 재검증${r.assessment.stale?' · 이전 판본':''}</summary><p>${e(r.assessment.reason)}</p><small>${e(r.assessment.actor)} · ${e(r.assessment.assessed_at)}</small><p>외부 모델은 담당자 업무 보조로 활용했습니다. 상세 인용·사건 관계는 근거 JSON에서 확인하세요.</p><p>${e((r.assessment.unknown_fields||[]).join(' · '))}</p></details>`:''}
    <section class="pr-question"><span class="pr-kicker">이번 자료에서 결정할 한 가지</span><h4>${e(g.decision)}</h4><p>${e(g.why)}</p><small>${e(g.basis)}</small>
     ${r.link_changed?'<p><strong>다른 화면에서 연결이 변경됐습니다.</strong> 현재 연결 상태를 다시 확인하세요.</p>':''}

@@ -1,0 +1,8 @@
+{
+  "loading_return": "PASS",
+  "late_response_does_not_replace_official": "PASS",
+  "load_failure_keeps_switch": "PASS",
+  "retry_restores_unofficial": "PASS",
+  "missing_capture_disabled": "PASS",
+  "page_errors": []
+}

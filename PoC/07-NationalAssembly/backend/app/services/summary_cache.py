@@ -3,10 +3,12 @@ from __future__ import annotations
 import time
 from collections import deque
 from typing import Any
+from datetime import datetime, timedelta, timezone
 
 import requests
 
 from ..db.summary_repository import SummaryRepository
+from ..db.openai_daily_budget import DailyTokenLimitReached
 from .mistral_budget import (
     DEFAULT_INPUT_USD_PER_MILLION,
     DEFAULT_MONTHLY_CREDIT_USD,
@@ -187,6 +189,15 @@ def cache_missing_summaries(connection: Any, broadcast_id: Any,
                                or (item.get("live_insight") or {}).get("topic")]
             if not generated_items:
                 raise ValueError("summary_response_has_no_complete_items")
+        except (DailyTokenLimitReached, DailyRequestLimitReached, MonthlyTokenLimitReached):
+            now = datetime.now(timezone.utc)
+            reset = (now+timedelta(days=1)).replace(hour=0,minute=0,second=0,microsecond=0)
+            for item in missing:
+                repository.record_failure(broadcast_id,item['content_hash'],provider=client.provider,
+                    model=client.model,prompt_version=client.prompt_version,error='BUDGET_WAIT',
+                    retry_hours=(reset-now).total_seconds()/3600)
+            connection.commit()
+            raise
         except requests.HTTPError as exc:
             status_code = exc.response.status_code if exc.response is not None else 0
             if status_code != 400:

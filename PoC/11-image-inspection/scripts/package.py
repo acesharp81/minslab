@@ -4,7 +4,7 @@ import zipfile
 root=Path(__file__).resolve().parents[1];out=root/'data'/'chekmi-poc11-source.zip';out.parent.mkdir(exist_ok=True)
 files=['README.md','.env.example','.gitignore','.dockerignore','requirements.txt','requirements-dev.txt','requirements.lock','requirements-ocr.txt','requirements-ocr.lock','pytest.ini','Dockerfile','compose.yaml','project.json']
 for folder in ('app','web','rules','scripts','docs','tests','samples','deploy'):
-    files += [str(p.relative_to(root)) for p in (root/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix not in ('.pyc','.zip')]
+    files += [str(p.relative_to(root)) for p in (root/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts and p.suffix not in ('.pyc','.zip','.pdf') and p.name!='췤미_Codex_공식점검자료_증분통합_비용최적화_개발조언.md']
 with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED) as z:
     for f in files:
         p=root/f

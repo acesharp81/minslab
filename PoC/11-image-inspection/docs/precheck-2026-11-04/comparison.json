@@ -1,0 +1,4726 @@
+{
+  "images": 7,
+  "cases": [
+    {
+      "image": "QA_01_flag_symbols.json",
+      "rule_id": "H-04-e",
+      "semantic_rule": "H-04-e",
+      "target": "대형 태극 문양 색상 상하 반전",
+      "expected": "FAIL",
+      "control-a_strict": "FAIL",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "중앙 태극이 위 파랑·아래 빨강의 수평 분할이라 기준 S곡선 방향과 다릅니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "FAIL",
+      "guidance-b_semantic": "FAIL",
+      "guidance-b_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "좌측 도안은 태극이 수평 이등분 원형으로 보여 공식 S곡선 방향과 다릅니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "FAIL",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "중앙 태극이 위 파랑·아래 빨강의 수평 분할이라 기준 S곡선 방향과 다릅니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "FAIL",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "좌측 도안은 태극이 수평 이등분 원형으로 보여 공식 S곡선 방향과 다릅니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_01_flag_symbols.json",
+      "rule_id": "H-04-h",
+      "semantic_rule": "H-04-h",
+      "target": "대형 태극기의 오른쪽 위 괘",
+      "expected": "FAIL",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "NO_LOCATION",
+      "control-a_reasons": [],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "NO_LOCATION",
+      "control-final_reasons": [],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "NO_LOCATION",
+      "guidance-final_reasons": []
+    },
+    {
+      "image": "QA_01_flag_symbols.json",
+      "rule_id": "H-04-h",
+      "semantic_rule": "H-04-h",
+      "target": "대형 태극기 왼쪽 아래 괘",
+      "expected": "FAIL",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "NO_LOCATION",
+      "control-a_reasons": [],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "NO_LOCATION",
+      "control-final_reasons": [],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "NO_LOCATION",
+      "guidance-final_reasons": []
+    },
+    {
+      "image": "QA_01_flag_symbols.json",
+      "rule_id": "H-04-n",
+      "semantic_rule": "D-02-l",
+      "target": "기관명 오탈자",
+      "expected": "FAIL",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 원본 관찰과 독립 재판독이 같은 원문을 확인했습니다.",
+          "rects": [
+            [
+              0.695,
+              0.723,
+              0.856875,
+              0.79
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "REVIEW",
+      "guidance-b_semantic": "FAIL",
+      "guidance-b_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 원본 관찰과 독립 재판독이 같은 원문을 확인했습니다.",
+          "rects": [
+            [
+              0.695,
+              0.723,
+              0.856875,
+              0.79
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 원본 관찰과 독립 재판독이 같은 원문을 확인했습니다.",
+          "rects": [
+            [
+              0.695,
+              0.723,
+              0.856875,
+              0.79
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "REVIEW",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 원본 관찰과 독립 재판독이 같은 원문을 확인했습니다.",
+          "rects": [
+            [
+              0.695,
+              0.723,
+              0.856875,
+              0.79
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_01_flag_symbols.json",
+      "rule_id": "H-04-i",
+      "semantic_rule": "H-04-i",
+      "target": "소형 정면 태극기 배열",
+      "expected": "PASS",
+      "control-a_strict": "FAIL",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "사분면 배치는 맞지만 각 괘가 사선 회전 없이 수평이라 기준과 다릅니다.",
+          "rects": [
+            [
+              0.7915625,
+              0.35425,
+              0.8436718750000001,
+              0.40637500000000004
+            ],
+            [
+              0.8436718750000001,
+              0.35425,
+              0.89578125,
+              0.40637500000000004
+            ],
+            [
+              0.7915625,
+              0.40637500000000004,
+              0.8436718750000001,
+              0.4585
+            ],
+            [
+              0.8436718750000001,
+              0.40637500000000004,
+              0.89578125,
+              0.4585
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "FAIL",
+      "guidance-b_semantic": "FAIL",
+      "guidance-b_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "우측 소형 도안은 네 괘가 모두 수평으로 놓여 기준의 방향 배치와 다릅니다.",
+          "rects": [
+            [
+              0.7915625,
+              0.35425,
+              0.8436718750000001,
+              0.40637500000000004
+            ],
+            [
+              0.8436718750000001,
+              0.35425,
+              0.89578125,
+              0.40637500000000004
+            ],
+            [
+              0.7915625,
+              0.40637500000000004,
+              0.8436718750000001,
+              0.4585
+            ],
+            [
+              0.8436718750000001,
+              0.40637500000000004,
+              0.89578125,
+              0.4585
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "FAIL",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "사분면 배치는 맞지만 각 괘가 사선 회전 없이 수평이라 기준과 다릅니다.",
+          "rects": [
+            [
+              0.7915625,
+              0.35425,
+              0.8436718750000001,
+              0.40637500000000004
+            ],
+            [
+              0.8436718750000001,
+              0.35425,
+              0.89578125,
+              0.40637500000000004
+            ],
+            [
+              0.7915625,
+              0.40637500000000004,
+              0.8436718750000001,
+              0.4585
+            ],
+            [
+              0.8436718750000001,
+              0.40637500000000004,
+              0.89578125,
+              0.4585
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "FAIL",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "우측 소형 도안은 네 괘가 모두 수평으로 놓여 기준의 방향 배치와 다릅니다.",
+          "rects": [
+            [
+              0.7915625,
+              0.35425,
+              0.8436718750000001,
+              0.40637500000000004
+            ],
+            [
+              0.8436718750000001,
+              0.35425,
+              0.89578125,
+              0.40637500000000004
+            ],
+            [
+              0.7915625,
+              0.40637500000000004,
+              0.8436718750000001,
+              0.4585
+            ],
+            [
+              0.8436718750000001,
+              0.40637500000000004,
+              0.89578125,
+              0.4585
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_02_hands.json",
+      "rule_id": "D-02-e",
+      "semantic_rule": "D-02-e",
+      "target": "A 손가락 6개",
+      "expected": "FAIL",
+      "control-a_strict": "PASS",
+      "control-a_semantic": "PASS",
+      "control-a_reasons": [
+        {
+          "status": "PASS",
+          "reason": "보이는 손가락 수가 비정상적으로 많아 보이지 않는다.",
+          "rects": [
+            [
+              0.08333333333333333,
+              0.5,
+              0.16666666666666666,
+              0.5833333333333334
+            ],
+            [
+              0.16666666666666666,
+              0.5833333333333334,
+              0.25,
+              0.6666666666666666
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "PASS",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "인물 A 손은 추가 손가락 중복이 보이지 않는다.",
+          "rects": [
+            [
+              0.08333333333333333,
+              0.5,
+              0.16666666666666666,
+              0.5833333333333334
+            ],
+            [
+              0.16666666666666666,
+              0.5833333333333334,
+              0.25,
+              0.6666666666666666
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "PASS",
+      "control-final_semantic": "PASS",
+      "control-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "보이는 손가락 수가 비정상적으로 많아 보이지 않는다.",
+          "rects": [
+            [
+              0.08333333333333333,
+              0.5,
+              0.16666666666666666,
+              0.5833333333333334
+            ],
+            [
+              0.16666666666666666,
+              0.5833333333333334,
+              0.25,
+              0.6666666666666666
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "PASS",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "인물 A 손은 추가 손가락 중복이 보이지 않는다.",
+          "rects": [
+            [
+              0.08333333333333333,
+              0.5,
+              0.16666666666666666,
+              0.5833333333333334
+            ],
+            [
+              0.16666666666666666,
+              0.5833333333333334,
+              0.25,
+              0.6666666666666666
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_02_hands.json",
+      "rule_id": "D-02-e",
+      "semantic_rule": "D-02-e",
+      "target": "B 손가락 분기",
+      "expected": "FAIL",
+      "control-a_strict": "FAIL",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "대각선으로 겹친 추가 손가락형 요소가 보여 중복/비정상 분기가 의심된다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "FAIL",
+      "guidance-b_semantic": "FAIL",
+      "guidance-b_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "인물 B 손에 대각선으로 겹친 추가 손가락형 요소가 보여 중복·비정상 결합으로 보인다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "FAIL",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "대각선으로 겹친 추가 손가락형 요소가 보여 중복/비정상 분기가 의심된다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "FAIL",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "인물 B 손에 대각선으로 겹친 추가 손가락형 요소가 보여 중복·비정상 결합으로 보인다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_02_hands.json",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "target": "B 카드 제목 오탈자",
+      "expected": "FAIL",
+      "control-a_strict": "FAIL",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "독립 철자 검사: ‘힘께’는 표준어 ‘함께’의 철자 오기입니다.",
+          "rects": [
+            [
+              0.4225,
+              0.817,
+              0.54875,
+              0.858
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "FAIL",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "독립 철자 검사: ‘힘께’는 표준어 ‘함께’의 철자 오기입니다.",
+          "rects": [
+            [
+              0.4225,
+              0.817,
+              0.54875,
+              0.858
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "FAIL",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "하단 문구 첫 음절이 ‘힘’으로 보여 일반 표기 ‘함께’와 달라 보인다.",
+          "rects": [
+            [
+              0.4225,
+              0.817,
+              0.54875,
+              0.858
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_02_hands.json",
+      "rule_id": "D-02-e",
+      "semantic_rule": "D-02-e",
+      "target": "C 정상 손",
+      "expected": "PASS",
+      "control-a_strict": "PASS",
+      "control-a_semantic": "PASS",
+      "control-a_reasons": [
+        {
+          "status": "PASS",
+          "reason": "추가 손가락 중복이나 분기 이상이 보이지 않는다.",
+          "rects": [
+            [
+              0.75,
+              0.5,
+              0.8333333333333334,
+              0.5833333333333334
+            ],
+            [
+              0.75,
+              0.5833333333333334,
+              0.8333333333333334,
+              0.6666666666666666
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "PASS",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "인물 C 손은 뚜렷한 추가 손가락 중복이 보이지 않는다.",
+          "rects": [
+            [
+              0.75,
+              0.5,
+              0.8333333333333334,
+              0.5833333333333334
+            ],
+            [
+              0.75,
+              0.5833333333333334,
+              0.8333333333333334,
+              0.6666666666666666
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "PASS",
+      "control-final_semantic": "PASS",
+      "control-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "추가 손가락 중복이나 분기 이상이 보이지 않는다.",
+          "rects": [
+            [
+              0.75,
+              0.5,
+              0.8333333333333334,
+              0.5833333333333334
+            ],
+            [
+              0.75,
+              0.5833333333333334,
+              0.8333333333333334,
+              0.6666666666666666
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "PASS",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "인물 C 손은 뚜렷한 추가 손가락 중복이 보이지 않는다.",
+          "rects": [
+            [
+              0.75,
+              0.5,
+              0.8333333333333334,
+              0.5833333333333334
+            ],
+            [
+              0.75,
+              0.5833333333333334,
+              0.8333333333333334,
+              0.6666666666666666
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_02_hands.json",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "target": "C 정상 문구",
+      "expected": "PASS",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "NO_LOCATION",
+      "control-a_reasons": [],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "NO_LOCATION",
+      "control-final_reasons": [],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "NO_LOCATION",
+      "guidance-final_reasons": []
+    },
+    {
+      "image": "QA_03_ocr_readability.json",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "target": "기관명 오탈자",
+      "expected": "FAIL",
+      "control-a_strict": "FAIL",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 독립 재판독은 미확정이며 원본 글자 확인이 필요합니다.",
+          "rects": [
+            [
+              0.08875,
+              0.34,
+              0.459375,
+              0.411
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "FAIL",
+      "guidance-b_semantic": "FAIL",
+      "guidance-b_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 독립 재판독은 미확정이며 원본 글자 확인이 필요합니다.",
+          "rects": [
+            [
+              0.08875,
+              0.34,
+              0.459375,
+              0.411
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "FAIL",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 독립 재판독은 미확정이며 원본 글자 확인이 필요합니다.",
+          "rects": [
+            [
+              0.08875,
+              0.34,
+              0.459375,
+              0.411
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "FAIL",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 독립 재판독은 미확정이며 원본 글자 확인이 필요합니다.",
+          "rects": [
+            [
+              0.08875,
+              0.34,
+              0.459375,
+              0.411
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_03_ocr_readability.json",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "target": "본문 흐림(실물 가독성 저하)",
+      "expected": "FAIL",
+      "control-a_strict": "FAIL",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "문자 획 품질: □: 한 줄 전체에서 획이 퍼져 음절 수조차 안정적으로 셀 수 없습니다. 초성·중성·종성의 분리와 모음 짧은 획 방향을 확인할 수 없어 개별 글자를 특정하지 못했습니다.",
+          "rects": [
+            [
+              0.1975,
+              0.64175,
+              0.2653125,
+              0.6585
+            ],
+            [
+              0.2653125,
+              0.64175,
+              0.333125,
+              0.6585
+            ],
+            [
+              0.333125,
+              0.64175,
+              0.4009375,
+              0.6585
+            ],
+            [
+              0.4009375,
+              0.64175,
+              0.46875,
+              0.6585
+            ]
+          ]
+        },
+        {
+          "status": "FAIL",
+          "reason": "원본 문자 영역의 획 경계가 넓게 번져 있습니다. OCR 인식 실패와 별개로 원본 픽셀에서 가독성 저하를 측정했습니다.",
+          "rects": [
+            [
+              0.101875,
+              0.639,
+              0.558125,
+              0.686
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "FAIL",
+      "guidance-b_semantic": "FAIL",
+      "guidance-b_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "문자 획 품질: □: 한 줄 전체에서 획이 퍼져 음절 수조차 안정적으로 셀 수 없습니다. 초성·중성·종성의 분리와 모음 짧은 획 방향을 확인할 수 없어 개별 글자를 특정하지 못했습니다.",
+          "rects": [
+            [
+              0.1975,
+              0.64175,
+              0.2653125,
+              0.6585
+            ],
+            [
+              0.2653125,
+              0.64175,
+              0.333125,
+              0.6585
+            ],
+            [
+              0.333125,
+              0.64175,
+              0.4009375,
+              0.6585
+            ],
+            [
+              0.4009375,
+              0.64175,
+              0.46875,
+              0.6585
+            ]
+          ]
+        },
+        {
+          "status": "FAIL",
+          "reason": "원본 문자 영역의 획 경계가 넓게 번져 있습니다. OCR 인식 실패와 별개로 원본 픽셀에서 가독성 저하를 측정했습니다.",
+          "rects": [
+            [
+              0.101875,
+              0.639,
+              0.558125,
+              0.686
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "FAIL",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "문자 획 품질: □: 한 줄 전체에서 획이 퍼져 음절 수조차 안정적으로 셀 수 없습니다. 초성·중성·종성의 분리와 모음 짧은 획 방향을 확인할 수 없어 개별 글자를 특정하지 못했습니다.",
+          "rects": [
+            [
+              0.1975,
+              0.64175,
+              0.2653125,
+              0.6585
+            ],
+            [
+              0.2653125,
+              0.64175,
+              0.333125,
+              0.6585
+            ],
+            [
+              0.333125,
+              0.64175,
+              0.4009375,
+              0.6585
+            ],
+            [
+              0.4009375,
+              0.64175,
+              0.46875,
+              0.6585
+            ]
+          ]
+        },
+        {
+          "status": "FAIL",
+          "reason": "원본 문자 영역의 획 경계가 넓게 번져 있습니다. OCR 인식 실패와 별개로 원본 픽셀에서 가독성 저하를 측정했습니다.",
+          "rects": [
+            [
+              0.101875,
+              0.639,
+              0.558125,
+              0.686
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "FAIL",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "문자 획 품질: □: 한 줄 전체에서 획이 퍼져 음절 수조차 안정적으로 셀 수 없습니다. 초성·중성·종성의 분리와 모음 짧은 획 방향을 확인할 수 없어 개별 글자를 특정하지 못했습니다.",
+          "rects": [
+            [
+              0.1975,
+              0.64175,
+              0.2653125,
+              0.6585
+            ],
+            [
+              0.2653125,
+              0.64175,
+              0.333125,
+              0.6585
+            ],
+            [
+              0.333125,
+              0.64175,
+              0.4009375,
+              0.6585
+            ],
+            [
+              0.4009375,
+              0.64175,
+              0.46875,
+              0.6585
+            ]
+          ]
+        },
+        {
+          "status": "FAIL",
+          "reason": "원본 문자 영역의 획 경계가 넓게 번져 있습니다. OCR 인식 실패와 별개로 원본 픽셀에서 가독성 저하를 측정했습니다.",
+          "rects": [
+            [
+              0.101875,
+              0.639,
+              0.558125,
+              0.686
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_03_ocr_readability.json",
+      "rule_id": "D-01-c",
+      "semantic_rule": "D-01-c",
+      "target": "신청 마감일 정본 불일치",
+      "expected": "FAIL",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "NO_LOCATION",
+      "control-a_reasons": [],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "NO_LOCATION",
+      "control-final_reasons": [],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "NO_LOCATION",
+      "guidance-final_reasons": []
+    },
+    {
+      "image": "QA_03_ocr_readability.json",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "target": "정상 신청방법 안내",
+      "expected": "PASS",
+      "control-a_strict": "PASS",
+      "control-a_semantic": "PASS",
+      "control-a_reasons": [
+        {
+          "status": "PASS",
+          "reason": "신청 방법 문구의 음절과 콜론이 모두 선명해 문자 결함이 없다.",
+          "rects": [
+            [
+              0.17671874999999998,
+              0.792,
+              0.234140625,
+              0.80875
+            ],
+            [
+              0.234140625,
+              0.792,
+              0.2915625,
+              0.80875
+            ],
+            [
+              0.2915625,
+              0.792,
+              0.348984375,
+              0.80875
+            ],
+            [
+              0.348984375,
+              0.792,
+              0.40640624999999997,
+              0.80875
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "PASS",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'신청 방법 : 주민센터 방문 또는 온라인 접수'는 선명하고 자모가 분리되어 읽힙니다.",
+          "rects": [
+            [
+              0.095625,
+              0.788,
+              0.448125,
+              0.832
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "PASS",
+      "control-final_semantic": "PASS",
+      "control-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "신청 방법 문구의 음절과 콜론이 모두 선명해 문자 결함이 없다.",
+          "rects": [
+            [
+              0.17671874999999998,
+              0.792,
+              0.234140625,
+              0.80875
+            ],
+            [
+              0.234140625,
+              0.792,
+              0.2915625,
+              0.80875
+            ],
+            [
+              0.2915625,
+              0.792,
+              0.348984375,
+              0.80875
+            ],
+            [
+              0.348984375,
+              0.792,
+              0.40640624999999997,
+              0.80875
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "PASS",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'신청 방법 : 주민센터 방문 또는 온라인 접수'는 선명하고 자모가 분리되어 읽힙니다.",
+          "rects": [
+            [
+              0.095625,
+              0.788,
+              0.448125,
+              0.832
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_04_map_place.json",
+      "rule_id": "H-03-b",
+      "semantic_rule": "H-03-b",
+      "target": "지도 동해/서해 위치 반전",
+      "expected": "FAIL",
+      "control-a_strict": "PASS",
+      "control-a_semantic": "PASS",
+      "control-a_reasons": [
+        {
+          "status": "PASS",
+          "reason": "동해·독도 명칭이 선명하게 보이고 OCR 판독도 일치한다.",
+          "rects": [
+            [
+              0.13289062499999998,
+              0.542,
+              0.1771875,
+              0.55875
+            ],
+            [
+              0.13289062499999998,
+              0.55875,
+              0.1771875,
+              0.5755
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "PASS",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "‘동해’가 선명하게 표기되어 OCR과 시각 판독이 일치한다.",
+          "rects": [
+            [
+              0.13289062499999998,
+              0.542,
+              0.1771875,
+              0.55875
+            ],
+            [
+              0.13289062499999998,
+              0.55875,
+              0.1771875,
+              0.5755
+            ]
+          ]
+        },
+        {
+          "status": "PASS",
+          "reason": "‘서해’가 선명하게 표기되어 OCR과 시각 판독이 일치한다.",
+          "rects": [
+            [
+              0.369609375,
+              0.542,
+              0.4165625,
+              0.55875
+            ],
+            [
+              0.4165625,
+              0.542,
+              0.463515625,
+              0.55875
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "PASS",
+      "control-final_semantic": "PASS",
+      "control-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "동해·독도 명칭이 선명하게 보이고 OCR 판독도 일치한다.",
+          "rects": [
+            [
+              0.13289062499999998,
+              0.542,
+              0.1771875,
+              0.55875
+            ],
+            [
+              0.13289062499999998,
+              0.55875,
+              0.1771875,
+              0.5755
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "PASS",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "‘동해’가 선명하게 표기되어 OCR과 시각 판독이 일치한다.",
+          "rects": [
+            [
+              0.13289062499999998,
+              0.542,
+              0.1771875,
+              0.55875
+            ],
+            [
+              0.13289062499999998,
+              0.55875,
+              0.1771875,
+              0.5755
+            ]
+          ]
+        },
+        {
+          "status": "PASS",
+          "reason": "‘서해’가 선명하게 표기되어 OCR과 시각 판독이 일치한다.",
+          "rects": [
+            [
+              0.369609375,
+              0.542,
+              0.4165625,
+              0.55875
+            ],
+            [
+              0.4165625,
+              0.542,
+              0.463515625,
+              0.55875
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_04_map_place.json",
+      "rule_id": "H-03-c",
+      "semantic_rule": "H-03-c",
+      "target": "독도 위치 잘못 표시",
+      "expected": "FAIL",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "NO_LOCATION",
+      "control-a_reasons": [],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "NO_LOCATION",
+      "control-final_reasons": [],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "NO_LOCATION",
+      "guidance-final_reasons": []
+    },
+    {
+      "image": "QA_04_map_place.json",
+      "rule_id": "H-05-c",
+      "semantic_rule": "H-05-c",
+      "target": "서울 장소명과 배경 형태 모순",
+      "expected": "REVIEW",
+      "control-a_strict": "REVIEW",
+      "control-a_semantic": "REVIEW",
+      "control-a_reasons": [
+        {
+          "status": "REVIEW",
+          "reason": "장소명 표기와 배경 그래픽 사이에 타국 단서 충돌은 보이지 않는다. · 문맥·권리 또는 불확실한 관찰은 사람 검토 필요",
+          "rects": [
+            [
+              0.75,
+              0.5,
+              0.8333333333333334,
+              0.5833333333333334
+            ],
+            [
+              0.75,
+              0.5833333333333334,
+              0.8333333333333334,
+              0.6666666666666666
+            ],
+            [
+              0.75,
+              0.6666666666666666,
+              0.8333333333333334,
+              0.75
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "REVIEW",
+      "control-final_semantic": "REVIEW",
+      "control-final_reasons": [
+        {
+          "status": "REVIEW",
+          "reason": "장소명 표기와 배경 그래픽 사이에 타국 단서 충돌은 보이지 않는다. · 문맥·권리 또는 불확실한 관찰은 사람 검토 필요",
+          "rects": [
+            [
+              0.75,
+              0.5,
+              0.8333333333333334,
+              0.5833333333333334
+            ],
+            [
+              0.75,
+              0.5833333333333334,
+              0.8333333333333334,
+              0.6666666666666666
+            ],
+            [
+              0.75,
+              0.6666666666666666,
+              0.8333333333333334,
+              0.75
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "NO_LOCATION",
+      "guidance-final_reasons": []
+    },
+    {
+      "image": "QA_04_map_place.json",
+      "rule_id": "H-03-a",
+      "semantic_rule": "H-03-a",
+      "target": "지도의 방향 확인 가능한가",
+      "expected": "PASS",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "NO_LOCATION",
+      "control-a_reasons": [],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "NO_LOCATION",
+      "control-final_reasons": [],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "NO_LOCATION",
+      "guidance-final_reasons": []
+    },
+    {
+      "image": "QA_06_privacy_signs.json",
+      "rule_id": "D-04-a",
+      "semantic_rule": "D-04-a",
+      "target": "가상 이름표 식별 및 분류",
+      "expected": "PASS",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "NO_LOCATION",
+      "control-a_reasons": [],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "NO_LOCATION",
+      "control-final_reasons": [],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "NO_LOCATION",
+      "guidance-final_reasons": []
+    },
+    {
+      "image": "QA_06_privacy_signs.json",
+      "rule_id": "D-04-a",
+      "semantic_rule": "D-04-a",
+      "target": "가상 전화번호 탐지",
+      "expected": "PASS",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "NO_LOCATION",
+      "control-a_reasons": [],
+      "guidance-b_strict": "REVIEW",
+      "guidance-b_semantic": "REVIEW",
+      "guidance-b_reasons": [
+        {
+          "status": "REVIEW",
+          "reason": "문의 전화번호가 보이지만 보고서상 마스킹되어 식별값 노출이 확인되지 않는다. · 문맥·권리 또는 불확실한 관찰은 사람 검토 필요",
+          "rects": [
+            [
+              0.3333333333333333,
+              0.3333333333333333,
+              0.4166666666666667,
+              0.4166666666666667
+            ],
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "NO_LOCATION",
+      "control-final_reasons": [],
+      "guidance-final_strict": "REVIEW",
+      "guidance-final_semantic": "REVIEW",
+      "guidance-final_reasons": [
+        {
+          "status": "REVIEW",
+          "reason": "문의 전화번호가 보이지만 보고서상 마스킹되어 식별값 노출이 확인되지 않는다. · 문맥·권리 또는 불확실한 관찰은 사람 검토 필요",
+          "rects": [
+            [
+              0.3333333333333333,
+              0.3333333333333333,
+              0.4166666666666667,
+              0.4166666666666667
+            ],
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_06_privacy_signs.json",
+      "rule_id": "D-04-a",
+      "semantic_rule": "D-04-a",
+      "target": "가상 차표 문자 탐지",
+      "expected": "PASS",
+      "control-a_strict": "NO_LOCATION",
+      "control-a_semantic": "NO_LOCATION",
+      "control-a_reasons": [],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "NO_LOCATION",
+      "guidance-b_reasons": [],
+      "control-final_strict": "NO_LOCATION",
+      "control-final_semantic": "NO_LOCATION",
+      "control-final_reasons": [],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "NO_LOCATION",
+      "guidance-final_reasons": []
+    },
+    {
+      "image": "QA_06_privacy_signs.json",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "target": "대피 안내 띄어쓰기",
+      "expected": "FAIL",
+      "control-a_strict": "FAIL",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "독립 철자 검사: 동사 활용형 ‘대피하는’ 뒤의 명사 ‘곳’은 띄어 써야 한다.",
+          "rects": [
+            [
+              0.731875,
+              0.424,
+              0.853125,
+              0.478
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "FAIL",
+      "guidance-b_semantic": "FAIL",
+      "guidance-b_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "독립 철자 검사: 동사 활용형 ‘대피하는’ 뒤의 명사 ‘곳’은 띄어 써야 한다.",
+          "rects": [
+            [
+              0.731875,
+              0.424,
+              0.853125,
+              0.478
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "FAIL",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "독립 철자 검사: 동사 활용형 ‘대피하는’ 뒤의 명사 ‘곳’은 띄어 써야 한다.",
+          "rects": [
+            [
+              0.731875,
+              0.424,
+              0.853125,
+              0.478
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "FAIL",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "독립 철자 검사: 동사 활용형 ‘대피하는’ 뒤의 명사 ‘곳’은 띄어 써야 한다.",
+          "rects": [
+            [
+              0.731875,
+              0.424,
+              0.853125,
+              0.478
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "rule_id": "D-02-e",
+      "semantic_rule": "D-02-e",
+      "target": "정상 손가락 5개",
+      "expected": "PASS",
+      "control-a_strict": "PASS",
+      "control-a_semantic": "PASS",
+      "control-a_reasons": [
+        {
+          "status": "PASS",
+          "reason": "손가락 5개가 보이며 여섯 번째 손가락, 분기, 중복 접합 같은 비정상 구조는 보이지 않습니다.",
+          "rects": [
+            [
+              0.187734375,
+              0.520875,
+              0.2503125,
+              0.5834999999999999
+            ],
+            [
+              0.2503125,
+              0.520875,
+              0.312890625,
+              0.5834999999999999
+            ],
+            [
+              0.187734375,
+              0.5834999999999999,
+              0.2503125,
+              0.646125
+            ],
+            [
+              0.2503125,
+              0.5834999999999999,
+              0.312890625,
+              0.646125
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "PASS",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "손가락은 5개로 보이며 여섯 번째 손가락이나 분기·중복 구조가 없다.",
+          "rects": [
+            [
+              0.187734375,
+              0.520875,
+              0.2503125,
+              0.5834999999999999
+            ],
+            [
+              0.2503125,
+              0.520875,
+              0.312890625,
+              0.5834999999999999
+            ],
+            [
+              0.187734375,
+              0.5834999999999999,
+              0.2503125,
+              0.646125
+            ],
+            [
+              0.2503125,
+              0.5834999999999999,
+              0.312890625,
+              0.646125
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "PASS",
+      "control-final_semantic": "PASS",
+      "control-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "손가락 5개가 보이며 여섯 번째 손가락, 분기, 중복 접합 같은 비정상 구조는 보이지 않습니다.",
+          "rects": [
+            [
+              0.187734375,
+              0.520875,
+              0.2503125,
+              0.5834999999999999
+            ],
+            [
+              0.2503125,
+              0.520875,
+              0.312890625,
+              0.5834999999999999
+            ],
+            [
+              0.187734375,
+              0.5834999999999999,
+              0.2503125,
+              0.646125
+            ],
+            [
+              0.2503125,
+              0.5834999999999999,
+              0.312890625,
+              0.646125
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "PASS",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "손가락은 5개로 보이며 여섯 번째 손가락이나 분기·중복 구조가 없다.",
+          "rects": [
+            [
+              0.187734375,
+              0.520875,
+              0.2503125,
+              0.5834999999999999
+            ],
+            [
+              0.2503125,
+              0.520875,
+              0.312890625,
+              0.5834999999999999
+            ],
+            [
+              0.187734375,
+              0.5834999999999999,
+              0.2503125,
+              0.646125
+            ],
+            [
+              0.2503125,
+              0.5834999999999999,
+              0.312890625,
+              0.646125
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "rule_id": "H-04-i",
+      "semantic_rule": "H-04-i",
+      "target": "정상 단순화 태극기",
+      "expected": "PASS",
+      "control-a_strict": "PASS",
+      "control-a_semantic": "PASS",
+      "control-a_reasons": [
+        {
+          "status": "PASS",
+          "reason": "괘 배치가 좌상 건·우상 감·좌하 리·우하 곤의 정면 기준과 맞는다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "PASS",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "좌상 건, 우상 감, 좌하 리, 우하 곤의 배치가 기준과 일치합니다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "PASS",
+      "control-final_semantic": "PASS",
+      "control-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "괘 배치가 좌상 건·우상 감·좌하 리·우하 곤의 정면 기준과 맞는다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "PASS",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "좌상 건, 우상 감, 좌하 리, 우하 곤의 배치가 기준과 일치합니다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "rule_id": "H-04-n",
+      "semantic_rule": "D-02-l",
+      "target": "행정안전부 정확한 기관명",
+      "expected": "PASS",
+      "control-a_strict": "PASS",
+      "control-a_semantic": "REVIEW",
+      "control-a_reasons": [
+        {
+          "status": "REVIEW",
+          "reason": "대상은 관찰됐지만 이 행동에 대한 모델 판정이 누락됐습니다. 정상·오류 모두 미확정입니다.",
+          "rects": [
+            [
+              0.5,
+              0.6666666666666666,
+              0.5833333333333334,
+              0.75
+            ],
+            [
+              0.5833333333333334,
+              0.6666666666666666,
+              0.6666666666666666,
+              0.75
+            ],
+            [
+              0.6666666666666666,
+              0.6666666666666666,
+              0.75,
+              0.75
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "NO_LOCATION",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'행정안전부'가 선명하고 철자 일치가 확인된다.",
+          "rects": [
+            [
+              0.538125,
+              0.711,
+              0.66625,
+              0.77
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "PASS",
+      "control-final_semantic": "REVIEW",
+      "control-final_reasons": [
+        {
+          "status": "REVIEW",
+          "reason": "대상은 관찰됐지만 이 행동에 대한 모델 판정이 누락됐습니다. 정상·오류 모두 미확정입니다.",
+          "rects": [
+            [
+              0.5,
+              0.6666666666666666,
+              0.5833333333333334,
+              0.75
+            ],
+            [
+              0.5833333333333334,
+              0.6666666666666666,
+              0.6666666666666666,
+              0.75
+            ],
+            [
+              0.6666666666666666,
+              0.6666666666666666,
+              0.75,
+              0.75
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "NO_LOCATION",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'행정안전부'가 선명하고 철자 일치가 확인된다.",
+          "rects": [
+            [
+              0.538125,
+              0.711,
+              0.66625,
+              0.77
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "target": "선명한 날짜 텍스트",
+      "expected": "PASS",
+      "control-a_strict": "REVIEW",
+      "control-a_semantic": "REVIEW",
+      "control-a_reasons": [
+        {
+          "status": "REVIEW",
+          "reason": "대상은 관찰됐지만 이 행동에 대한 모델 판정이 누락됐습니다. 정상·오류 모두 미확정입니다.",
+          "rects": [
+            [
+              0.56765625,
+              0.792,
+              0.625,
+              0.80875
+            ],
+            [
+              0.625,
+              0.792,
+              0.68234375,
+              0.80875
+            ],
+            [
+              0.68234375,
+              0.792,
+              0.7396875,
+              0.80875
+            ],
+            [
+              0.625,
+              0.80875,
+              0.68234375,
+              0.8255
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "PASS",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'신청 기간: 11월 1일~30일'이 명확하며 날짜·기호 오류가 없다.",
+          "rects": [
+            [
+              0.539375,
+              0.792,
+              0.729375,
+              0.831
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "REVIEW",
+      "control-final_semantic": "REVIEW",
+      "control-final_reasons": [
+        {
+          "status": "REVIEW",
+          "reason": "대상은 관찰됐지만 이 행동에 대한 모델 판정이 누락됐습니다. 정상·오류 모두 미확정입니다.",
+          "rects": [
+            [
+              0.56765625,
+              0.792,
+              0.625,
+              0.80875
+            ],
+            [
+              0.625,
+              0.792,
+              0.68234375,
+              0.80875
+            ],
+            [
+              0.68234375,
+              0.792,
+              0.7396875,
+              0.80875
+            ],
+            [
+              0.625,
+              0.80875,
+              0.68234375,
+              0.8255
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "PASS",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'신청 기간: 11월 1일~30일'이 명확하며 날짜·기호 오류가 없다.",
+          "rects": [
+            [
+              0.539375,
+              0.792,
+              0.729375,
+              0.831
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "rule_id": "H-07-b",
+      "semantic_rule": "H-07-b",
+      "target": "가상 표식 획 누락",
+      "expected": "FAIL",
+      "control-a_strict": "FAIL",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "정면 단색 원형 문양의 내부 분리 도형: 기준 4개 / 원본 3개. 구성 요소가 다릅니다.",
+          "rects": [
+            [
+              0.17875,
+              0.341,
+              0.349375,
+              0.614
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "FAIL",
+      "guidance-b_semantic": "FAIL",
+      "guidance-b_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "정면 단색 원형 문양의 내부 분리 도형: 기준 4개 / 원본 3개. 구성 요소가 다릅니다.",
+          "rects": [
+            [
+              0.17875,
+              0.341,
+              0.349375,
+              0.614
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "FAIL",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "정면 단색 원형 문양의 내부 분리 도형: 기준 4개 / 원본 3개. 구성 요소가 다릅니다.",
+          "rects": [
+            [
+              0.17875,
+              0.341,
+              0.349375,
+              0.614
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "FAIL",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "FAIL",
+          "reason": "정면 단색 원형 문양의 내부 분리 도형: 기준 4개 / 원본 3개. 구성 요소가 다릅니다.",
+          "rects": [
+            [
+              0.17875,
+              0.341,
+              0.349375,
+              0.614
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "target": "안젼한 하루 오탈자",
+      "expected": "FAIL",
+      "control-a_strict": "FAIL",
+      "control-a_semantic": "FAIL",
+      "control-a_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'안전한 하루'는 선명하게 보이고 문자 품질상 결함은 관찰되지 않는다.",
+          "rects": [
+            [
+              0.556875,
+              0.325,
+              0.71375,
+              0.391
+            ]
+          ]
+        },
+        {
+          "status": "FAIL",
+          "reason": "형태 대조에서 '전' 음절이 '젼'으로 확인되어 원문 철자가 '안젼한 하루'로 드러난다.",
+          "rects": [
+            [
+              0.556875,
+              0.325,
+              0.71375,
+              0.391
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "REVIEW",
+      "guidance-b_semantic": "REVIEW",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "강조 문구는 선명하게 읽히며 원문 전사상 오탈자가 보이지 않는다.",
+          "rects": [
+            [
+              0.57265625,
+              0.3415,
+              0.619609375,
+              0.35825
+            ],
+            [
+              0.619609375,
+              0.3415,
+              0.6665625,
+              0.35825
+            ],
+            [
+              0.6665625,
+              0.3415,
+              0.713515625,
+              0.35825
+            ],
+            [
+              0.619609375,
+              0.35825,
+              0.6665625,
+              0.375
+            ]
+          ]
+        },
+        {
+          "status": "REVIEW",
+          "reason": "강조 문구는 재판독에서 '안전한 하루'와 '안젼한 하루'가 충돌해 OCR 불일치가 남아 있다.",
+          "rects": [
+            [
+              0.556875,
+              0.325,
+              0.71375,
+              0.391
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "FAIL",
+      "control-final_semantic": "FAIL",
+      "control-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'안전한 하루'는 선명하게 보이고 문자 품질상 결함은 관찰되지 않는다.",
+          "rects": [
+            [
+              0.556875,
+              0.325,
+              0.71375,
+              0.391
+            ]
+          ]
+        },
+        {
+          "status": "FAIL",
+          "reason": "형태 대조에서 '전' 음절이 '젼'으로 확인되어 원문 철자가 '안젼한 하루'로 드러난다.",
+          "rects": [
+            [
+              0.556875,
+              0.325,
+              0.71375,
+              0.391
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "FAIL",
+      "guidance-final_semantic": "FAIL",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "강조 문구는 선명하게 읽히며 원문 전사상 오탈자가 보이지 않는다.",
+          "rects": [
+            [
+              0.57265625,
+              0.3415,
+              0.619609375,
+              0.35825
+            ],
+            [
+              0.619609375,
+              0.3415,
+              0.6665625,
+              0.35825
+            ],
+            [
+              0.6665625,
+              0.3415,
+              0.713515625,
+              0.35825
+            ],
+            [
+              0.619609375,
+              0.35825,
+              0.6665625,
+              0.375
+            ]
+          ]
+        },
+        {
+          "status": "FAIL",
+          "reason": "독립 철자 검사: ‘젼’은 표준어 ‘전’의 오기로, ‘안젼한’은 일반 단어의 명백한 철자 오류다.",
+          "rects": [
+            [
+              0.556875,
+              0.325,
+              0.71375,
+              0.391
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "rule_id": "H-07-b",
+      "semantic_rule": "H-07-b",
+      "target": "참고용 정상 표식",
+      "expected": "PASS",
+      "control-a_strict": "PASS",
+      "control-a_semantic": "PASS",
+      "control-a_reasons": [
+        {
+          "status": "PASS",
+          "reason": "정면 단색 원형 문양의 내부 분리 도형: 기준 4개 / 원본 4개. 각 도형의 형태·상대 배치가 일치합니다.",
+          "rects": [
+            [
+              0.58625,
+              0.666,
+              0.66875,
+              0.798
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "PASS",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "정면 단색 원형 문양의 내부 분리 도형: 기준 4개 / 원본 4개. 각 도형의 형태·상대 배치가 일치합니다.",
+          "rects": [
+            [
+              0.58625,
+              0.666,
+              0.66875,
+              0.798
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "PASS",
+      "control-final_semantic": "PASS",
+      "control-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "정면 단색 원형 문양의 내부 분리 도형: 기준 4개 / 원본 4개. 각 도형의 형태·상대 배치가 일치합니다.",
+          "rects": [
+            [
+              0.58625,
+              0.666,
+              0.66875,
+              0.798
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "PASS",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "정면 단색 원형 문양의 내부 분리 도형: 기준 4개 / 원본 4개. 각 도형의 형태·상대 배치가 일치합니다.",
+          "rects": [
+            [
+              0.58625,
+              0.666,
+              0.66875,
+              0.798
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "rule_id": "D-02-l",
+      "semantic_rule": "D-02-l",
+      "target": "안전한 동행 문구",
+      "expected": "PASS",
+      "control-a_strict": "PASS",
+      "control-a_semantic": "PASS",
+      "control-a_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'안전한 동행'은 획 손상 없이 읽히며 오자나 부호 오류가 없다.",
+          "rects": [
+            [
+              0.145625,
+              0.739,
+              0.260625,
+              0.788
+            ]
+          ]
+        }
+      ],
+      "guidance-b_strict": "PASS",
+      "guidance-b_semantic": "PASS",
+      "guidance-b_reasons": [
+        {
+          "status": "PASS",
+          "reason": "하단 문구 '안전한 동행'은 자획이 분명하고 추가 교정이 필요하지 않다.",
+          "rects": [
+            [
+              0.145625,
+              0.739,
+              0.260625,
+              0.788
+            ]
+          ]
+        }
+      ],
+      "control-final_strict": "PASS",
+      "control-final_semantic": "PASS",
+      "control-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "'안전한 동행'은 획 손상 없이 읽히며 오자나 부호 오류가 없다.",
+          "rects": [
+            [
+              0.145625,
+              0.739,
+              0.260625,
+              0.788
+            ]
+          ]
+        }
+      ],
+      "guidance-final_strict": "PASS",
+      "guidance-final_semantic": "PASS",
+      "guidance-final_reasons": [
+        {
+          "status": "PASS",
+          "reason": "하단 문구 '안전한 동행'은 자획이 분명하고 추가 교정이 필요하지 않다.",
+          "rects": [
+            [
+              0.145625,
+              0.739,
+              0.260625,
+              0.788
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "metrics": {
+    "control-a_strict": {
+      "cases": 30,
+      "expected": {
+        "FAIL": 15,
+        "PASS": 14,
+        "REVIEW": 1
+      },
+      "predicted": {
+        "FAIL": 9,
+        "NO_LOCATION": 10,
+        "PASS": 9,
+        "REVIEW": 2
+      },
+      "fail_recall": 0.5333,
+      "false_positive_rate": 0.0714,
+      "normal_pass_rate": 0.5,
+      "required_review_accuracy": 1.0,
+      "review_rate": 0.0667,
+      "error_or_omission_rate": 0.3333
+    },
+    "control-a_semantic": {
+      "cases": 30,
+      "expected": {
+        "FAIL": 15,
+        "PASS": 14,
+        "REVIEW": 1
+      },
+      "predicted": {
+        "FAIL": 10,
+        "NO_LOCATION": 9,
+        "PASS": 8,
+        "REVIEW": 3
+      },
+      "fail_recall": 0.6,
+      "false_positive_rate": 0.0714,
+      "normal_pass_rate": 0.4286,
+      "required_review_accuracy": 1.0,
+      "review_rate": 0.1,
+      "error_or_omission_rate": 0.3
+    },
+    "guidance-b_strict": {
+      "cases": 30,
+      "expected": {
+        "FAIL": 15,
+        "PASS": 14,
+        "REVIEW": 1
+      },
+      "predicted": {
+        "FAIL": 7,
+        "NO_LOCATION": 11,
+        "REVIEW": 3,
+        "PASS": 9
+      },
+      "fail_recall": 0.4,
+      "false_positive_rate": 0.0714,
+      "normal_pass_rate": 0.5,
+      "required_review_accuracy": 0.0,
+      "review_rate": 0.1,
+      "error_or_omission_rate": 0.3667
+    },
+    "guidance-b_semantic": {
+      "cases": 30,
+      "expected": {
+        "FAIL": 15,
+        "PASS": 14,
+        "REVIEW": 1
+      },
+      "predicted": {
+        "FAIL": 8,
+        "NO_LOCATION": 10,
+        "PASS": 10,
+        "REVIEW": 2
+      },
+      "fail_recall": 0.4667,
+      "false_positive_rate": 0.0714,
+      "normal_pass_rate": 0.5714,
+      "required_review_accuracy": 0.0,
+      "review_rate": 0.0667,
+      "error_or_omission_rate": 0.3333
+    },
+    "control-final_strict": {
+      "cases": 30,
+      "expected": {
+        "FAIL": 15,
+        "PASS": 14,
+        "REVIEW": 1
+      },
+      "predicted": {
+        "FAIL": 9,
+        "NO_LOCATION": 10,
+        "PASS": 9,
+        "REVIEW": 2
+      },
+      "fail_recall": 0.5333,
+      "false_positive_rate": 0.0714,
+      "normal_pass_rate": 0.5,
+      "required_review_accuracy": 1.0,
+      "review_rate": 0.0667,
+      "error_or_omission_rate": 0.3333
+    },
+    "control-final_semantic": {
+      "cases": 30,
+      "expected": {
+        "FAIL": 15,
+        "PASS": 14,
+        "REVIEW": 1
+      },
+      "predicted": {
+        "FAIL": 10,
+        "NO_LOCATION": 9,
+        "PASS": 8,
+        "REVIEW": 3
+      },
+      "fail_recall": 0.6,
+      "false_positive_rate": 0.0714,
+      "normal_pass_rate": 0.4286,
+      "required_review_accuracy": 1.0,
+      "review_rate": 0.1,
+      "error_or_omission_rate": 0.3
+    },
+    "guidance-final_strict": {
+      "cases": 30,
+      "expected": {
+        "FAIL": 15,
+        "PASS": 14,
+        "REVIEW": 1
+      },
+      "predicted": {
+        "FAIL": 9,
+        "NO_LOCATION": 10,
+        "REVIEW": 2,
+        "PASS": 9
+      },
+      "fail_recall": 0.5333,
+      "false_positive_rate": 0.0714,
+      "normal_pass_rate": 0.5,
+      "required_review_accuracy": 0.0,
+      "review_rate": 0.0667,
+      "error_or_omission_rate": 0.3333
+    },
+    "guidance-final_semantic": {
+      "cases": 30,
+      "expected": {
+        "FAIL": 15,
+        "PASS": 14,
+        "REVIEW": 1
+      },
+      "predicted": {
+        "FAIL": 10,
+        "NO_LOCATION": 9,
+        "PASS": 10,
+        "REVIEW": 1
+      },
+      "fail_recall": 0.6,
+      "false_positive_rate": 0.0714,
+      "normal_pass_rate": 0.5714,
+      "required_review_accuracy": 0.0,
+      "review_rate": 0.0333,
+      "error_or_omission_rate": 0.3
+    }
+  },
+  "usage": {
+    "control-a": {
+      "calls": 56,
+      "input_tokens": 1230929,
+      "output_tokens": 127959,
+      "cost_usd": 1.4990122500000003,
+      "unknown_calls": 0,
+      "prompt_bytes": 3220142
+    },
+    "guidance-b": {
+      "calls": 56,
+      "input_tokens": 1333957,
+      "output_tokens": 127765,
+      "cost_usd": 1.57541025,
+      "unknown_calls": 0,
+      "prompt_bytes": 3528165
+    },
+    "spelling-common": {
+      "calls": 7,
+      "input_tokens": 5578,
+      "output_tokens": 5300,
+      "cost_usd": 0.0280335,
+      "unknown_calls": 0,
+      "prompt_bytes": 7278
+    }
+  },
+  "latency": {
+    "control-a": {
+      "p50_seconds": 48.59,
+      "p95_seconds": 53.866
+    },
+    "guidance-b": {
+      "p50_seconds": 46.49,
+      "p95_seconds": 53.881
+    },
+    "spelling-common": {
+      "p50_seconds": 4.99,
+      "p95_seconds": 6.039
+    }
+  },
+  "runs": [
+    {
+      "image": "QA_01_flag_symbols.json",
+      "arm": "control-a",
+      "run_id": "daca0fcef78246468bde73aab3b5e94a",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 52.97,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "e84de4c21a5b6fa3ed78e477a970d555760b7dfd7851086e2f728ad3a729aa95"
+      }
+    },
+    {
+      "image": "QA_01_flag_symbols.json",
+      "arm": "guidance-b",
+      "run_id": "e6f0b56cff104472afc59d195b04927c",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 46.49,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "e84de4c21a5b6fa3ed78e477a970d555760b7dfd7851086e2f728ad3a729aa95"
+      }
+    },
+    {
+      "image": "QA_01_flag_symbols.json",
+      "arm": "spelling-common",
+      "run_id": "d3e19068f7ac43ff992fa4d616655004",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 6.21,
+      "calls": 1,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/precheck.py": "6deafd4c6d2b7562850a4b7bd3a80b4ff39806e45579a67f65add4b48d50b700",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/engine.py": "e3aaeaa639d60480011de8b382474046463ba42672aa6033a9938633db138c09",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/spelling_audit.py": "85a3df25f5729496c76158cf562002888c32754fbb6607b0b97519e2fd0f3931",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f"
+      }
+    },
+    {
+      "image": "QA_02_hands.json",
+      "arm": "control-a",
+      "run_id": "74fd74c13a1a4864afa2e72ae9f265af",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 48.59,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_02_hands.json",
+      "arm": "guidance-b",
+      "run_id": "29c060d292d44679bb550ed8d9a1efda",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 51.41,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_02_hands.json",
+      "arm": "spelling-common",
+      "run_id": "54cd60998f8c492aa6501902ff620907",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 4.3,
+      "calls": 1,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/precheck.py": "6deafd4c6d2b7562850a4b7bd3a80b4ff39806e45579a67f65add4b48d50b700",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/engine.py": "e3aaeaa639d60480011de8b382474046463ba42672aa6033a9938633db138c09",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/spelling_audit.py": "85a3df25f5729496c76158cf562002888c32754fbb6607b0b97519e2fd0f3931",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f"
+      }
+    },
+    {
+      "image": "QA_03_ocr_readability.json",
+      "arm": "control-a",
+      "run_id": "d36c4e211b4b41bcbf683c4a2695158e",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 40.58,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_03_ocr_readability.json",
+      "arm": "guidance-b",
+      "run_id": "4aa5857b840f4d68ab5907c07e2dcabf",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 44.98,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_03_ocr_readability.json",
+      "arm": "spelling-common",
+      "run_id": "5e6c3f9f81f341ef8d25daa5a020053a",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 4.45,
+      "calls": 1,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/precheck.py": "6deafd4c6d2b7562850a4b7bd3a80b4ff39806e45579a67f65add4b48d50b700",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/engine.py": "e3aaeaa639d60480011de8b382474046463ba42672aa6033a9938633db138c09",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/spelling_audit.py": "85a3df25f5729496c76158cf562002888c32754fbb6607b0b97519e2fd0f3931",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f"
+      }
+    },
+    {
+      "image": "QA_04_map_place.json",
+      "arm": "control-a",
+      "run_id": "1239669cc3fe40a7800847b0797ec178",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 54.25,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_04_map_place.json",
+      "arm": "guidance-b",
+      "run_id": "48fb8207eb144ec59aeac79118eae12f",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 50.68,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_04_map_place.json",
+      "arm": "spelling-common",
+      "run_id": "b1bd14aafb5745e78de25a1631ff1c49",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 4.99,
+      "calls": 1,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/precheck.py": "6deafd4c6d2b7562850a4b7bd3a80b4ff39806e45579a67f65add4b48d50b700",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/engine.py": "e3aaeaa639d60480011de8b382474046463ba42672aa6033a9938633db138c09",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/spelling_audit.py": "85a3df25f5729496c76158cf562002888c32754fbb6607b0b97519e2fd0f3931",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f"
+      }
+    },
+    {
+      "image": "QA_06_privacy_signs.json",
+      "arm": "control-a",
+      "run_id": "6a1193b19b8f412abd26befce783a3ca",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 42.13,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_06_privacy_signs.json",
+      "arm": "guidance-b",
+      "run_id": "f6bc77aa2bf24529a54fcbdea99d1c7e",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 39.87,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_06_privacy_signs.json",
+      "arm": "spelling-common",
+      "run_id": "490b78f04ea24fef8fb93e38686f33ad",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 3.19,
+      "calls": 1,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/precheck.py": "6deafd4c6d2b7562850a4b7bd3a80b4ff39806e45579a67f65add4b48d50b700",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/engine.py": "e3aaeaa639d60480011de8b382474046463ba42672aa6033a9938633db138c09",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/spelling_audit.py": "ae9307d27096c63605078a35f4078920c34c695e20656ea2f07536d9fcf29cdb",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f"
+      }
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "arm": "control-a",
+      "run_id": "bdb915d33a6c4c12993dcd54436a6d5d",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 51.81,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "arm": "guidance-b",
+      "run_id": "dffef2b279fa4ec687fc1a0a42cfd407",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 54.94,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "e902b556188c4eb3e067343debd4f68a52c37155130d1c39fbec42a0d2c05bad",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "arm": "spelling-common",
+      "run_id": "5850df833ed846d0a353570c62fa6c5a",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 5.64,
+      "calls": 1,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/precheck.py": "6deafd4c6d2b7562850a4b7bd3a80b4ff39806e45579a67f65add4b48d50b700",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/engine.py": "beed8f32954a55996fb4f98e93fd77cff05a54efd9f06e5d79ee715bb0facf1e",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/spelling_audit.py": "ae9307d27096c63605078a35f4078920c34c695e20656ea2f07536d9fcf29cdb",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f"
+      }
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "arm": "control-a",
+      "run_id": "d6986152bac2417180289bc1d0ba584d",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 44.89,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "arm": "guidance-b",
+      "run_id": "1c33c8e549a54e378e337f7743fb7ee3",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 43.9,
+      "calls": 8,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/engine.py": "e163f5cb5fd19331d68bedac8f36000418d4a73c7b58fe784f9c289d2bce7d25",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/precheck.py": "f80fe5720d4b052489f4d0dce09a279645d9e8089fddc565944797027c67318f",
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/spelling_audit.py": "2785ddb03cc5b86f5025c6a84b5a08446da670a67f0bbad4209e7530c7b2ca66",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622"
+      }
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "arm": "spelling-common",
+      "run_id": "2cb79018443e41118f789b27b3fd99c5",
+      "selected": 156,
+      "errors": 0,
+      "seconds": 5.14,
+      "calls": 1,
+      "stopped_reason": null,
+      "observation_reused": true,
+      "source_hashes": {
+        "app/providers.py": "b9c07affd03b473d09a056907c3bfdd2616a8d4f8f9a2881615f9149aa425ceb",
+        "app/text_location.py": "b451dd9b0944d9b1b68dc22a7f93d1b7a79bb03b0e4aea75eea8344389c8a82a",
+        "app/observations.py": "6ecfc92e63f13bff734ad277d9c4b8bc162fbeae8688f0787496fc9854a79b90",
+        "app/storage.py": "7a86ead745d05220a3d2f7faa51b98c6ace136dd7b074ce7e27b101b54e1de01",
+        "app/text_selection.py": "1cf501f1f37c6d481903391f848d524dcf5630fa1336186b8f28792dcd72e8d9",
+        "app/precheck.py": "6deafd4c6d2b7562850a4b7bd3a80b4ff39806e45579a67f65add4b48d50b700",
+        "app/rule_editor.py": "7461fcef5499ef7cb48b33a884764e36254f2805e23ec8bdf4a697ab6874afbc",
+        "app/engine.py": "beed8f32954a55996fb4f98e93fd77cff05a54efd9f06e5d79ee715bb0facf1e",
+        "app/isolated_glyphs.py": "f2be108863bb5a67582db5ceba3af5bad8537397383f94e61020fd8c2b04497c",
+        "app/pixel_confirm.py": "4180311c7d3000ca18f9efdedce831ecc677fb8abb13e9ab3d9194c4c6deb839",
+        "app/emblem_geometry.py": "25f27f4a80c5034735a8120bd74158d4027deb7caea0532a0dd44227e8031ef4",
+        "app/checklist_report.py": "4d2336639bdb20394e05f7133017fb7ae77436bff2c2f51909f6f1ae31f68e19",
+        "app/main.py": "81ae0625b671d8fa8a4e00647b1ac3a591e4b1393eda41f9b9b7fdd089b5ed57",
+        "app/token_budget.py": "05608347374855383bbca1ceae61c3c747ae78e05777aa0f22c82ef39155f3bd",
+        "app/source_copy.py": "6ea7cc284257f90e4441a4adf1e4667da0fb4a619066447ae8e437ceb1174583",
+        "app/evidence_guards.py": "8db4909edabd707f5709936a7097dfb6289589e933fbdf143a12ee93f22ed8ac",
+        "app/naver_ocr.py": "0c63fdd3150abcfdbb4628fb341931ac4e83d7bb2eae743e4108a7900498b680",
+        "app/taegeukgi.py": "e77e34cc8e7f178864de4cb124208b2d00bb64cd5e1ff8b43164b465219b9d71",
+        "app/text_ocr.py": "6b7b93b2c409b88bfecd224881a7fb566b1e787eafe380a51c108e09156070af",
+        "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "app/imaging.py": "78269520e68ad8591638b17dcf98cf3c3c032d76c32767aa144452a7ee6e6a78",
+        "app/symbol_geometry.py": "6823c94aec7631b0c18267f74a0dd67b6b1e0e237695410d12b3cc0e6be88064",
+        "app/spelling_audit.py": "ae9307d27096c63605078a35f4078920c34c695e20656ea2f07536d9fcf29cdb",
+        "app/pixel_text.py": "5562ceeb91dae87c48b519375f3e283a56dcc43033f355c83f81a28c2856b500",
+        "app/verification.py": "a031fa24251bbb8d627aea54ab0221eae6469db06704782506afe6d3a869c622",
+        "app/glyph_audit.py": "85d28a60a3eea4e32d0fb9cb72998065f2c6d2800fa600651a05fded96e8c3aa",
+        "app/config.py": "336034872a517c9d932559bdc0fe72b5b7489679cc87e45b4868bed9232d2431",
+        "app/usage.py": "1f44a18b2a28363cfd57745ee900f8004273daf4b0c3f86acf495a09f035376c",
+        "app/rules.py": "62be961f8d2c033a9ad91844ffe0a667a61e628ccb542e8b46b9fbae3121cf6f"
+      }
+    }
+  ],
+  "unlabelled": [
+    {
+      "image": "QA_01_flag_symbols.json",
+      "arm": "control-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-06-b",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 원본 관찰과 독립 재판독이 같은 원문을 확인했습니다.",
+          "rects": [
+            [
+              0.695,
+              0.723,
+              0.856875,
+              0.79
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-07-a",
+          "reason": "좌측 태극기 유사 도안은 중앙 태극과 일부 괘 배치가 공식 기준과 다릅니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-07-a",
+          "reason": "우측 소형 태극기 유사 도안도 중앙 태극 방향과 일부 괘 구성이 기준과 다릅니다.",
+          "rects": [
+            [
+              0.7915625,
+              0.35425,
+              0.8436718750000001,
+              0.40637500000000004
+            ],
+            [
+              0.8436718750000001,
+              0.35425,
+              0.89578125,
+              0.40637500000000004
+            ],
+            [
+              0.7915625,
+              0.40637500000000004,
+              0.8436718750000001,
+              0.4585
+            ],
+            [
+              0.8436718750000001,
+              0.40637500000000004,
+              0.89578125,
+              0.4585
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-e",
+          "reason": "중앙 태극이 S곡선 맞물림 없이 수평 분할로 보여 기준 방향성과 다릅니다.",
+          "rects": [
+            [
+              0.7915625,
+              0.35425,
+              0.8436718750000001,
+              0.40637500000000004
+            ],
+            [
+              0.8436718750000001,
+              0.35425,
+              0.89578125,
+              0.40637500000000004
+            ],
+            [
+              0.7915625,
+              0.40637500000000004,
+              0.8436718750000001,
+              0.4585
+            ],
+            [
+              0.8436718750000001,
+              0.40637500000000004,
+              0.89578125,
+              0.4585
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-f",
+          "reason": "흰 바탕과 검은 괘는 맞지만 중앙 태극 색이 기준과 반대로 보입니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-h",
+          "reason": "우상단과 좌하단 괘의 세 줄 구성/분절 패턴이 기준과 다르게 관찰됩니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-i",
+          "reason": "괘의 사분면 위치는 보이나 모두 수평으로 놓여 기준 정면 도안의 방향과 다릅니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-m",
+          "reason": "전체 국기와 함께 중앙 태극 및 일부 괘의 문제 위치가 확인됩니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_01_flag_symbols.json",
+      "arm": "guidance-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-04-e",
+          "reason": "우측 소형 도안도 태극이 위 빨강·아래 파랑의 직선 분할이라 기준 방향과 다릅니다.",
+          "rects": [
+            [
+              0.7915625,
+              0.35425,
+              0.8436718750000001,
+              0.40637500000000004
+            ],
+            [
+              0.8436718750000001,
+              0.35425,
+              0.89578125,
+              0.40637500000000004
+            ],
+            [
+              0.7915625,
+              0.40637500000000004,
+              0.8436718750000001,
+              0.4585
+            ],
+            [
+              0.8436718750000001,
+              0.40637500000000004,
+              0.89578125,
+              0.4585
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-f",
+          "reason": "좌측 도안은 흰 바탕은 맞지만 태극 색 배치가 기준과 달라 색 구성도 불일치합니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-h",
+          "reason": "좌측 도안은 우상단과 좌하단 괘가 기준 패턴과 다르게 관찰됩니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-i",
+          "reason": "좌측 도안은 일부 괘의 배치·방향이 기준 정면 도안과 다릅니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-m",
+          "reason": "좌측 전체 국기 박스에 태극 방향과 일부 괘 패턴 오류가 함께 보입니다.",
+          "rects": [
+            [
+              0.270625,
+              0.5205,
+              0.333125,
+              0.583
+            ],
+            [
+              0.333125,
+              0.5205,
+              0.395625,
+              0.583
+            ],
+            [
+              0.270625,
+              0.583,
+              0.333125,
+              0.6455
+            ],
+            [
+              0.333125,
+              0.583,
+              0.395625,
+              0.6455
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-06-b",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 원본 관찰과 독립 재판독이 같은 원문을 확인했습니다.",
+          "rects": [
+            [
+              0.695,
+              0.723,
+              0.856875,
+              0.79
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_02_hands.json",
+      "arm": "control-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-06-b",
+          "reason": "하단 문구가 '힘께 만드는 미래'로 보여 일반 표기 '함께'와 어긋난다.",
+          "rects": [
+            [
+              0.4225,
+              0.817,
+              0.54875,
+              0.858
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-d",
+          "reason": "검지·중지 위로 대각선 손가락형 분절이 겹쳐 손 구조가 부자연스럽다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-g",
+          "reason": "대각선 손가락형 분절이 손바닥에 자연스럽게 이어지지 않아 연결이 부자연스럽다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-j",
+          "reason": "손가락형 분절이 겹쳐 보여 부자연스러운 중복 접합으로 읽힌다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-k",
+          "reason": "추가 손가락형 요소가 손바닥 위로 비정상적으로 얹혀 기능적 관계가 어색하다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_02_hands.json",
+      "arm": "guidance-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-06-b",
+          "reason": "'힘께'는 일반 표기상 '함께'로 보이는 명백한 철자 오류다.",
+          "rects": [
+            [
+              0.4225,
+              0.817,
+              0.54875,
+              0.858
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-g",
+          "reason": "인물 B 손에서 대각선 손가락형 분절이 손바닥과 자연스럽게 이어지지 않아 연결 이상이 보인다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-j",
+          "reason": "인물 B 손에서 중복된 손가락형 분절이 겹쳐 보여 부자연스런 중복 대상이다.",
+          "rects": [
+            [
+              0.4166666666666667,
+              0.4166666666666667,
+              0.5,
+              0.5
+            ],
+            [
+              0.5,
+              0.4166666666666667,
+              0.5833333333333334,
+              0.5
+            ],
+            [
+              0.4166666666666667,
+              0.3333333333333333,
+              0.5,
+              0.4166666666666667
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-l",
+          "reason": "하단 안내문 첫 단어가 ‘책미!’로 판독되어 익숙한 문구와 다르게 보인다.",
+          "rects": [
+            [
+              0.08333333333333333,
+              0.9166666666666666,
+              0.16666666666666666,
+              1.0
+            ],
+            [
+              0.16666666666666666,
+              0.9166666666666666,
+              0.25,
+              1.0
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_03_ocr_readability.json",
+      "arm": "control-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-06-b",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 독립 재판독은 미확정이며 원본 글자 확인이 필요합니다.",
+          "rects": [
+            [
+              0.08875,
+              0.34,
+              0.459375,
+              0.411
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-06-b",
+          "reason": "문자 획 품질: □: 한 줄 전체에서 획이 퍼져 음절 수조차 안정적으로 셀 수 없습니다. 초성·중성·종성의 분리와 모음 짧은 획 방향을 확인할 수 없어 개별 글자를 특정하지 못했습니다.",
+          "rects": [
+            [
+              0.1975,
+              0.64175,
+              0.2653125,
+              0.6585
+            ],
+            [
+              0.2653125,
+              0.64175,
+              0.333125,
+              0.6585
+            ],
+            [
+              0.333125,
+              0.64175,
+              0.4009375,
+              0.6585
+            ],
+            [
+              0.4009375,
+              0.64175,
+              0.46875,
+              0.6585
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-06-b",
+          "reason": "원본 문자 영역의 획 경계가 넓게 번져 있습니다. OCR 인식 실패와 별개로 원본 픽셀에서 가독성 저하를 측정했습니다.",
+          "rects": [
+            [
+              0.101875,
+              0.639,
+              0.558125,
+              0.686
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-m",
+          "reason": "기준 원고는 마감일 11월 30일인데 이미지 문구는 11월 20일로 보여 수치 불일치가 있다.",
+          "rects": [
+            [
+              0.1975,
+              0.5085,
+              0.2653125,
+              0.52525
+            ],
+            [
+              0.2653125,
+              0.5085,
+              0.333125,
+              0.52525
+            ],
+            [
+              0.333125,
+              0.5085,
+              0.4009375,
+              0.52525
+            ],
+            [
+              0.4009375,
+              0.5085,
+              0.46875,
+              0.52525
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_03_ocr_readability.json",
+      "arm": "guidance-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-06-b",
+          "reason": "원문 명칭 “행정안정부”는 공식 명칭 “행정안전부”와 다릅니다. 독립 재판독은 미확정이며 원본 글자 확인이 필요합니다.",
+          "rects": [
+            [
+              0.08875,
+              0.34,
+              0.459375,
+              0.411
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-06-b",
+          "reason": "문자 획 품질: □: 한 줄 전체에서 획이 퍼져 음절 수조차 안정적으로 셀 수 없습니다. 초성·중성·종성의 분리와 모음 짧은 획 방향을 확인할 수 없어 개별 글자를 특정하지 못했습니다.",
+          "rects": [
+            [
+              0.1975,
+              0.64175,
+              0.2653125,
+              0.6585
+            ],
+            [
+              0.2653125,
+              0.64175,
+              0.333125,
+              0.6585
+            ],
+            [
+              0.333125,
+              0.64175,
+              0.4009375,
+              0.6585
+            ],
+            [
+              0.4009375,
+              0.64175,
+              0.46875,
+              0.6585
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-06-b",
+          "reason": "원본 문자 영역의 획 경계가 넓게 번져 있습니다. OCR 인식 실패와 별개로 원본 픽셀에서 가독성 저하를 측정했습니다.",
+          "rects": [
+            [
+              0.101875,
+              0.639,
+              0.558125,
+              0.686
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_04_map_place.json",
+      "arm": "control-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-03-c",
+          "reason": "지도 강조 범위 대조: 같은 녹색으로 칠해진 육지는 중앙의 큰 반도형 1개, 왼쪽 아래 원형 섬 1개, 오른쪽 아래 타원형 섬 1개다. 기준 자료에서는 대표 남쪽 큰 섬은 한반도 남서쪽에, 동쪽 해역의 도서는 한반도 동쪽에 위치한다. 대상의 별도 섬 좌우 배치와 주변 지명 배치는 기준과 맞지 않아 전체 지리 문맥이 좌우 반전된 듯 보인다.",
+          "rects": [
+            [
+              0.25,
+              0.5,
+              0.375,
+              0.625
+            ],
+            [
+              0.375,
+              0.5,
+              0.5,
+              0.625
+            ],
+            [
+              0.25,
+              0.625,
+              0.375,
+              0.75
+            ],
+            [
+              0.375,
+              0.625,
+              0.5,
+              0.75
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-j",
+          "reason": "지도에서 동해·서해·독도 배치가 기준 문맥과 맞지 않아 지리 요소의 위치 오류가 관찰된다.",
+          "rects": [
+            [
+              0.25,
+              0.5,
+              0.375,
+              0.625
+            ],
+            [
+              0.375,
+              0.5,
+              0.5,
+              0.625
+            ],
+            [
+              0.25,
+              0.625,
+              0.375,
+              0.75
+            ],
+            [
+              0.375,
+              0.625,
+              0.5,
+              0.75
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-o",
+          "reason": "지도 그래픽의 좌우 배치가 기준과 어긋나 시각 구조와 사실 문맥이 함께 불일치한다.",
+          "rects": [
+            [
+              0.25,
+              0.5,
+              0.375,
+              0.625
+            ],
+            [
+              0.375,
+              0.5,
+              0.5,
+              0.625
+            ],
+            [
+              0.25,
+              0.625,
+              0.375,
+              0.75
+            ],
+            [
+              0.375,
+              0.625,
+              0.5,
+              0.75
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_04_map_place.json",
+      "arm": "guidance-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-03-c",
+          "reason": "지도 강조 범위 대조: 같은 녹색으로 칠해진 육지는 중앙의 큰 반도형 1개, 왼쪽 아래 원형 섬 1개, 오른쪽 아래 타원형 섬 1개다. 기준 자료에서는 대표 남쪽 큰 섬은 한반도 남서쪽에, 동쪽 해역의 도서는 한반도 동쪽에 위치한다. 대상의 별도 섬 좌우 배치와 주변 지명 배치는 기준과 맞지 않아 전체 지리 문맥이 좌우 반전된 듯 보인다.",
+          "rects": [
+            [
+              0.25,
+              0.5,
+              0.375,
+              0.625
+            ],
+            [
+              0.375,
+              0.5,
+              0.5,
+              0.625
+            ],
+            [
+              0.25,
+              0.625,
+              0.375,
+              0.75
+            ],
+            [
+              0.375,
+              0.625,
+              0.5,
+              0.75
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_06_privacy_signs.json",
+      "arm": "control-final",
+      "unlabelled_failures": []
+    },
+    {
+      "image": "QA_06_privacy_signs.json",
+      "arm": "guidance-final",
+      "unlabelled_failures": []
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "arm": "control-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-04-e",
+          "reason": "중앙 태극이 S자 곡선이 아닌 위·아래 직선 분할 원으로 보여 방향 구성이 공식 도안과 다르다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-m",
+          "reason": "문제가 있는 중앙 태극 부분이 확인되어 공식 참고 도안과 함께 수정 대상이다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_08_all_pass.json",
+      "arm": "guidance-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-04-e",
+          "reason": "중앙 태극이 S자 곡선이 아닌 상하 수평 분할 원으로 보여 방향이 기준과 다릅니다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        },
+        {
+          "rule_id": "H-04-m",
+          "reason": "태극 중심 문양 오류가 확인되어 문제 국기 박스와 해당 태극 부분을 함께 기록해야 합니다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-j",
+          "reason": "태극기 중앙 문양이 S자 곡선 대신 위·아래 직선 분할 원으로 그려져 공식 도안과 다르다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        },
+        {
+          "rule_id": "D-02-l",
+          "reason": "첫 토큰이 전사 '체미!'와 달리 시각 관찰은 '책미!'로 보여 OCR 불일치가 있다.",
+          "rects": []
+        },
+        {
+          "rule_id": "D-02-o",
+          "reason": "그래픽 구조 오류는 태극 문양의 직선 분할로 확인되며, 사실 환각과는 별개로 시각 결함이다.",
+          "rects": [
+            [
+              0.6875,
+              0.4375,
+              0.75,
+              0.5
+            ],
+            [
+              0.75,
+              0.4375,
+              0.8125,
+              0.5
+            ],
+            [
+              0.6875,
+              0.5,
+              0.75,
+              0.5625
+            ],
+            [
+              0.75,
+              0.5,
+              0.8125,
+              0.5625
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "arm": "control-final",
+      "unlabelled_failures": []
+    },
+    {
+      "image": "QA_10_emblem.json",
+      "arm": "guidance-final",
+      "unlabelled_failures": [
+        {
+          "rule_id": "H-06-b",
+          "reason": "우측 상단 문구의 전사와 획 대조가 달라 ‘전’이 ‘젼’으로 확인됐다.",
+          "rects": [
+            [
+              0.556875,
+              0.325,
+              0.71375,
+              0.391
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "accounting": [
+    {
+      "model": "gpt-5.4-mini",
+      "state": "COMPLETED",
+      "calls": 135,
+      "tokens_and_reservations": 3263010.0
+    }
+  ],
+  "acceptance_guard_passed": true,
+  "acceptance_scope": "Labelled FAIL recall and normal-case FAIL rate only; review coverage and location regressions remain documented.",
+  "limitations": [
+    "Paired same saved scene readings, references and current rules; no new full-image reading in this A/B.",
+    "Single run per arm on known regression fixtures; cannot isolate model variability or claim statistical significance.",
+    "Spelling-common uses identical literal inputs, is called once per image, and is applied to both arms without additional calls.",
+    "Raw and final scores are separate; final arms include evidence-based spelling and geometry changes, no answer labels.",
+    "Semantic scores map agency-name H-04-n labels to D-02-l; strict rule-ID metrics are also reported.",
+    "NO_LOCATION includes coarse-grid and evidence-connection problems, not only missing detections.",
+    "Labelled normal-case false-positive rate excludes unlabelled FAILs, which are preserved for qualitative review.",
+    "p95 is sample interpolation for analysis with reused observations; not end-to-end upload latency.",
+    "USD is standard-rate equivalent for daily-quota models, not verified provider billing.",
+    "21/210 mapping completeness is distinct from execution/detection coverage. These seven fixtures do not cover all 210 tips."
+  ],
+  "targeted_smoke": {
+    "files": [
+      "QA_08_all_pass.json",
+      "QA_10_emblem.json"
+    ],
+    "metrics": {
+      "cases": 8,
+      "expected": {
+        "PASS": 6,
+        "FAIL": 2
+      },
+      "predicted": {
+        "PASS": 5,
+        "NO_LOCATION": 1,
+        "FAIL": 2
+      },
+      "fail_recall": 1.0,
+      "false_positive_rate": 0.0,
+      "normal_pass_rate": 0.8333,
+      "required_review_accuracy": null,
+      "review_rate": 0.0,
+      "error_or_omission_rate": 0.125
+    },
+    "usage": {
+      "gpt-5.4-mini": {
+        "calls": 16,
+        "input_tokens": 391556,
+        "output_tokens": 39966,
+        "cost_usd": 0.4735140000000001,
+        "unknown": 0
+      }
+    },
+    "runs": [
+      {
+        "image": "QA_08_all_pass.json",
+        "selected": 156,
+        "completed_actions": 156,
+        "analysis_errors": [],
+        "budget_deferred": [],
+        "stopped_reason": null,
+        "elapsed_seconds": 59.54,
+        "reused_observation": {
+          "run_id": "c4227b6d9b8c4d79acf663dda2a6c022"
+        },
+        "inherited_analysis": null,
+        "error_rows": 0,
+        "evaluation_repairs": []
+      },
+      {
+        "image": "QA_10_emblem.json",
+        "selected": 156,
+        "completed_actions": 156,
+        "analysis_errors": [],
+        "budget_deferred": [],
+        "stopped_reason": null,
+        "elapsed_seconds": 48.71,
+        "reused_observation": {
+          "run_id": "604bb5747bf64d12bd8a0505fc882a95"
+        },
+        "inherited_analysis": null,
+        "error_rows": 0,
+        "evaluation_repairs": []
+      }
+    ],
+    "limitations": [
+      "REVIEW is not FAIL detection.",
+      "Rule/status/ROI matches are provisional: a wrong explanation can still overlap a labelled box; qualitative audit is required.",
+      "Case matching requires the exact provided rule ID and ROI; document_required cases allow nonvisual document reviews.",
+      "Text coverage is labelled-region detection, not character accuracy or all-text OCR recall.",
+      "H-04-n agency-name cases differ from the current national-name-only rule; reported separately during adjudication.",
+      "Unlabelled FAIL is not automatically a false positive.",
+      "No user-reported or hand-positioned supplemental findings count toward model accuracy.",
+      "Two selected regression fixtures, not a representative holdout or all-210-tip evaluation.",
+      "This is the final per-tip target-scoping smoke test; the seven-image A/B precedes that narrowing."
+    ]
+  }
+}

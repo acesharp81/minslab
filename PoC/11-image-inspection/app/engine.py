@@ -15,7 +15,7 @@ from .providers import Provider
 from .usage import Usage
 from .imaging import labeled
 from .observations import clean_inventory, legacy_inventory, Decisions, required_object_checks
-from . import taegeukgi, rule_editor, verification, text_ocr, symbol_geometry, evidence_guards, emblem_geometry, glyph_audit, text_location, isolated_glyphs, source_copy, pixel_text, pixel_confirm, spelling_audit
+from . import taegeukgi, rule_editor, verification, text_ocr, symbol_geometry, evidence_guards, emblem_geometry, glyph_audit, text_location, isolated_glyphs, source_copy, pixel_text, pixel_confirm, spelling_audit, precheck, anatomy, text_routing
 
 
 def resized(raw):
@@ -66,7 +66,7 @@ class Engine:
             refs=[r for r in self.store.references() if r['status']=='APPROVED' and (not r.get('effective_to') or r['effective_to']>=now()[:10]) and (not r.get('effective_from') or r['effective_from']<=now()[:10])]
             cache_data={'image':job['image']['normalized_sha256'],'metadata':job['metadata'],'rules':selected,'pack':pack,
                         'refs':refs,'options':{k:v for k,v in options.items() if k not in ('force','consent')},
-                        'effort':self.s.get('REASONING_EFFORT','low'),'detail':self.s.get('IMAGE_DETAIL','high'),'prompt_version':'original-checklist-v39-spelling','ocr_settings':{k:self.s.get(k) for k in ('SPELLING_AUDIT_ENABLED','PIXEL_CONFIRM_ENABLED','PIXEL_TEXT_ENABLED','PIXEL_TEXT_MAX_REGIONS','TEXT_BALANCED_SELECTION','GLYPH_AUDIT_ENABLED','GLYPH_AUDIT_MODEL','GLYPH_AUDIT_MAX_REGIONS','ISOLATED_GLYPH_ENABLED','ISOLATED_GLYPH_SCALE','OCR_ENABLED','OCR_MAX_REGIONS','OCR_VISION_MAX_REGIONS','OCR_VISION_SCALE','VERIFICATION_REASONING_EFFORT','OCR_REASONING_EFFORT','OCR_HIGH_EFFORT_RECHECK','NAVER_OCR_ENABLED')}}
+                        'effort':self.s.get('REASONING_EFFORT','low'),'detail':self.s.get('IMAGE_DETAIL','high'),'prompt_version':'original-checklist-v44-hand-text-routing','ocr_settings':{k:self.s.get(k) for k in ('PRECHECK_GUIDANCE_ENABLED','SPELLING_AUDIT_ENABLED','PIXEL_CONFIRM_ENABLED','PIXEL_TEXT_ENABLED','PIXEL_TEXT_MAX_REGIONS','TEXT_BALANCED_SELECTION','GLYPH_AUDIT_ENABLED','GLYPH_AUDIT_MODEL','GLYPH_AUDIT_MAX_REGIONS','ISOLATED_GLYPH_ENABLED','ISOLATED_GLYPH_SCALE','TEXT_ROUTING_RECHECK_ENABLED','TEXT_ROUTING_MAX_REGIONS','OCR_ENABLED','OCR_MAX_REGIONS','OCR_VISION_MAX_REGIONS','OCR_VISION_SCALE','VERIFICATION_REASONING_EFFORT','OCR_REASONING_EFFORT','OCR_HIGH_EFFORT_RECHECK','NAVER_OCR_ENABLED')}}
             cache_key=hashlib.sha256(json.dumps(cache_data,sort_keys=True).encode()).hexdigest()
             inherited=copy.deepcopy(job['runs'][-1]['results']) if job['runs'] else [placeholder(r) for r in steps]
             # Crops are supplementary: preserve the whole-image result and mark the scope.
@@ -97,7 +97,7 @@ class Engine:
                 for old in self.store.jobs():
                     for prior in reversed(old.get('runs',[])):
                         if prior['cache_key']==cache_key and prior.get('finished_at') and not any(r['status'] in ('ERROR','NOT_RUN') for r in prior['results']):
-                            run.update(results=copy.deepcopy(prior['results']),analysis=copy.deepcopy(prior['analysis']),observation=copy.deepcopy(prior.get('observation')),observation_model=prior.get('observation_model'),verification=copy.deepcopy(prior.get('verification',{})),analysis_observation=copy.deepcopy(prior.get('analysis_observation')),text_coverage=copy.deepcopy(prior.get('text_coverage')),source_copy=copy.deepcopy(prior.get('source_copy')),text_ocr=copy.deepcopy(prior.get('text_ocr')),glyph_audit=copy.deepcopy(prior.get('glyph_audit')),pixel_text=copy.deepcopy(prior.get('pixel_text')),spelling_audit=copy.deepcopy(prior.get('spelling_audit')),structural_checks=copy.deepcopy(prior.get('structural_checks')),progress=len(selected),finished_at=now(),reused_from={'job_id':old['id'],'run_id':prior['id']})
+                            run.update(results=copy.deepcopy(prior['results']),analysis=copy.deepcopy(prior['analysis']),observation=copy.deepcopy(prior.get('observation')),observation_model=prior.get('observation_model'),verification=copy.deepcopy(prior.get('verification',{})),analysis_observation=copy.deepcopy(prior.get('analysis_observation')),text_coverage=copy.deepcopy(prior.get('text_coverage')),source_copy=copy.deepcopy(prior.get('source_copy')),text_ocr=copy.deepcopy(prior.get('text_ocr')),glyph_audit=copy.deepcopy(prior.get('glyph_audit')),pixel_text=copy.deepcopy(prior.get('pixel_text')),spelling_audit=copy.deepcopy(prior.get('spelling_audit')),precheck_guidance=copy.deepcopy(prior.get('precheck_guidance')),structural_checks=copy.deepcopy(prior.get('structural_checks')),progress=len(selected),finished_at=now(),reused_from={'job_id':old['id'],'run_id':prior['id']})
                             job['runs'].append(run);job['state']='COMPLETED';self.store.save(job);return job
             job['runs'].append(run);job['state']='QUEUED';self.store.save(job)
             self.pool.submit(self.execute,jid,run['id']);return job
@@ -149,6 +149,8 @@ class Engine:
             payload={'metadata':job['metadata'],'text_quality_policy':{'sensitivity':options.get('text_sensitivity','strict'),'instruction':'문자 전사 성공과 획/외형 품질을 각각 검사. 읽을 수 있는 뭉개진 글자도 별도 기록.'},'grid':{'rows':8 if grid else 12,'cols':8 if grid else 12,'origin':'좌상단 R01C01; 가로 열, 세로 행; 이미지 전체를 균등 분할한 가상 격자'},
                      'scope':'첫 이미지는 확대 원본, 두 번째는 위치 참고용 8x8 격자' if grid else '첫 이미지는 전체 원본, 두 번째는 위치 참고용 12x12 격자',
                      'inspection_checklist':[{'id':p['id'],'title':p['title'],'original':p['original']} for p in pack['parents']], 'reviewer_guidance':pack.get('guidance','')}
+            if self.s.flag('PRECHECK_GUIDANCE_ENABLED',True):
+                payload['reference_discovery_topics']=precheck.discovery(run['reference_snapshot'])
             for attempt in range(2):
                 try:
                     data,meta=self.provider.call(options['vision_model'],json.dumps(payload,ensure_ascii=False),images,workload='image-observation')
@@ -164,9 +166,15 @@ class Engine:
             run['calls'].append(meta);run['observation']=clean_inventory(data,grid);run['observation_model']=options['vision_model']
             run['observation_created_at']=now()
             run['elapsed_seconds']=round(time.monotonic()-started,2);self.checkpoint(jid,run)
+        precheck.prepare(self,job,run)
         if not grid and not run.get('observation_reused_from') and self.s.flag('OCR_ENABLED',False):
             run['phase']='TEXT_OCR';self.checkpoint(jid,run)
             text_ocr.run_text_ocr(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+        if not grid and set(run['selected']).intersection(pixel_text.TEXT_RULES) and self.s.flag('PIXEL_TEXT_ENABLED',True):
+            run['phase']='TEXT_OCR';self.checkpoint(jid,run)
+            raw=(self.s.data/jid/'image.png').read_bytes()
+            pixel_text.run_check(self,job,run,raw)
+            text_routing.recheck(self,job,run,raw)
         if not grid and (not run.get('observation_reused_from') or options.get('recheck_object_ids')):
             run['phase']='VERIFYING';self.checkpoint(jid,run)
             verification.run_verification(self,job,run,(self.s.data/jid/'image.png').read_bytes())
@@ -176,7 +184,6 @@ class Engine:
             if self.s.flag('ISOLATED_GLYPH_ENABLED',False):isolated_glyphs.run_isolated(self,job,run,(self.s.data/jid/'image.png').read_bytes())
         if not grid and set(run['selected']).intersection(pixel_text.TEXT_RULES) and self.s.flag('PIXEL_TEXT_ENABLED',True):
             run['phase']='TEXT_OCR';self.checkpoint(jid,run)
-            pixel_text.run_check(self,job,run,(self.s.data/jid/'image.png').read_bytes())
             if self.s.flag('PIXEL_CONFIRM_ENABLED',True):pixel_confirm.confirm(self,job,run,(self.s.data/jid/'image.png').read_bytes())
         if not grid:source_copy.inspect(run,(self.s.data/jid/'image.png').read_bytes())
         run['analysis_observation']=verification.effective_observation(run)
@@ -199,7 +206,9 @@ class Engine:
             analysis_observation=text_ocr.analysis_observation(run,ids)
             prompt={'observation':analysis_observation,'text_ocr':text_ocr.compact_evidence(run) if parent_ids.intersection({'H-06','D-02'}) else None,'verification':run.get('verification',{}),'text_coverage':run.get('text_coverage',{}),'text_quality_policy':{'sensitivity':options.get('text_sensitivity','standard')},'original_checklist':[p for p in pack['parents'] if p['id'] in parent_ids],'structural_checks':run.get('structural_checks') if 'H-04' in parent_ids else None,'reviewer_guidance':pack.get('guidance',''), 'metadata':job['metadata'],
                     'rules':[{'rule_id':rid,'parent_id':steps[rid]['parent_id'],'action':steps[rid]['objective'],'required_references':steps[rid]['reference_requirements']} for rid in ids],
-                    'approved_references':[{k:v for k,v in r.items() if k!='image_file'} for r in run['reference_snapshot'] if parent_ids.intersection(r['parent_ids'])]}
+                    'approved_references':[{k:v for k,v in r.items() if k not in ('image_file','document_file')} for r in run['reference_snapshot'] if parent_ids.intersection(r['parent_ids']) and not precheck.is_guidance(r)]}
+            guidance=precheck.compact(run,ids,analysis_observation)
+            if guidance:prompt['inspection_guidance']={'policy':precheck.POLICY,'items':guidance}
             prompt['required_object_checks']=required_object_checks(analysis_observation,prompt['rules'])
             return self.provider.call(model,json.dumps(prompt,ensure_ascii=False),workload='checklist-analysis')
         # Two concurrent text requests; each batch keeps whole parent questions intact.
@@ -336,7 +345,7 @@ class Engine:
             found=text_location.protect(run,found)
             found=pixel_text.protect(run,found,ids)
             found=spelling_audit.protect(run,found,ids)
-        return found
+        return precheck.annotate(run,anatomy.protect(run,found),ids)
 
     def mock(self,job,ids,grid):
         # Only our own synthetic fixture has scripted observations; arbitrary uploads get REVIEW.

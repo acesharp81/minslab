@@ -1,0 +1,29 @@
+[
+  {
+    "site": "kjon",
+    "official_title": "제47회 국무회의 브리핑",
+    "provisional_metrics": "대상 주제\n31\n도출 과제\n35\n근거 발언\n181",
+    "summary_groups": 32,
+    "roundtrip": "PASS",
+    "inner_summary_switch": "PASS",
+    "page_errors": []
+  },
+  {
+    "site": "minslab",
+    "official_title": "제47회 국무회의 브리핑",
+    "provisional_metrics": "대상 주제\n31\n도출 과제\n35\n근거 발언\n181",
+    "summary_groups": 32,
+    "roundtrip": "PASS",
+    "inner_summary_switch": "PASS",
+    "page_errors": []
+  },
+  {
+    "site": "mobile",
+    "official_title": "제47회 국무회의 브리핑",
+    "provisional_metrics": "대상 주제\n31\n도출 과제\n35\n근거 발언\n181",
+    "summary_groups": 32,
+    "roundtrip": "PASS",
+    "inner_summary_switch": "PASS",
+    "page_errors": []
+  }
+]

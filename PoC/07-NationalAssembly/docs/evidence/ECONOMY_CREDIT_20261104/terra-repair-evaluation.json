@@ -1,0 +1,47 @@
+{
+  "model": "gpt-6.1-terra",
+  "requested": 1,
+  "accepted": 1,
+  "elapsed_seconds": 4.651,
+  "usage": {
+    "request_id": "chatcmpl-EgSQWtQNl9TLkM3WrgAMK9G3CZhoj",
+    "model": "gpt-6.1-terra",
+    "finish_reason": "stop",
+    "usage": {
+      "prompt_tokens": 2008,
+      "completion_tokens": 192,
+      "total_tokens": 2200,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 2005,
+        "audio_tokens": 0
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "audio_tokens": 0,
+        "accepted_prediction_tokens": 0,
+        "rejected_prediction_tokens": 0
+      }
+    },
+    "workload": "assembly_summaries"
+  },
+  "reasoning_effort": "none",
+  "request_sha256": "00fcdb3740733c47c3b410042dbda8903ef438fa85071b0da2bb85a6a94859af",
+  "estimated_cost_usd": "0.0059755",
+  "items": [
+    {
+      "content_hash": "31ce6fa3a6b77e523240fdc9ec47c4cfc5318089e4b160979ac99e4a79af157a",
+      "summary": "대통령실 법률비서관이 처음으로 NSC에 참여한 뒤 서해 피격사건 수사 결론이 바뀌었다고 주장했다. 대규모 수사와 압수수색에도 이재명 대통령이 10원 한 푼 받았다는 사실은 드러나지 않았고 기소 사실에도 없다고 말했다.",
+      "live_insight": {
+        "topic": "서해 피격사건 수사 결론 변경과 이재명 대통령 수사",
+        "topic_key": "서해 피격사건 수사 이재명",
+        "role": "STATEMENT",
+        "task": null,
+        "owners": [],
+        "status": "PROVISIONAL",
+        "task_kind": "NONE",
+        "task_evidence_quote": ""
+      }
+    }
+  ]
+}
