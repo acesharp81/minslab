@@ -7,7 +7,7 @@ from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from app.adapters.national_assembly.base import SourcePayload
 from app.adapters.national_assembly.base import AdapterError
@@ -18,6 +18,52 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 
 class LiveMonitorTests(unittest.TestCase):
+    def test_scheduled_resumption_keeps_existing_broadcast_active(self):
+        listing = json.loads((FIXTURES / 'synthetic_assembly_live_list.json').read_text())
+        for row in listing['xlist']:
+            row.update(xcgcd='', xstat='0')
+        listing['xlist'][0].update(xcgcd='SIM-RECESS-001', xdesc='20:00 속개예정')
+        class Sink:
+            active = None
+            def observe_broadcast(self, _):
+                raise AssertionError('Recess does not invent a new on-air broadcast')
+            def finish_poll(self, ids, at):
+                self.active = ids
+        sink = Sink()
+        def fetch(key, url):
+            return SourcePayload(key, json.dumps(listing).encode(), 'application/json',
+                                 datetime.now(timezone.utc), url, 200)
+        with tempfile.TemporaryDirectory() as directory, patch(
+                'app.ingestion.live_monitor.fetch_public_source', side_effect=fetch):
+            probe_assembly_live_once(Path(directory)/'raw', Path(directory)/'status.json', sink)
+        self.assertEqual(sink.active, ['SIM-RECESS-001'])
+
+    def test_official_pause_status_variants_and_real_end(self):
+        from app.services.watch_lifecycle import official_recess_status
+        for value in ['정회', '정회 중', '계속 예정', '20:00 속개예정', '14:30 재개 예정']:
+            with self.subTest(value=value):
+                self.assertTrue(official_recess_status(value))
+        for value in ['', '종료', '생중계 없음', '산회', '취소', '속개예정 취소']:
+            with self.subTest(value=value):
+                self.assertFalse(official_recess_status(value))
+
+    def test_known_ended_meeting_can_recover_from_official_resumption_notice(self):
+        from app.db.live_repository import LiveRepository
+        connection = Mock();connection.execute.return_value.fetchone.return_value = ('known-bid',)
+        repo = LiveRepository(connection)
+        repo._upsert_document = Mock(return_value='document')
+        repo._upsert_source_version = Mock(return_value='source-version')
+        now = datetime.now(timezone.utc)
+        items = [{'meeting_external_id': 'SIM-RECESS-001', 'status_text': '20:00 속개예정'}]
+        with patch('app.db.watch_lifecycle_repository.WatchLifecycleRepository') as watch:
+            repo.observe_watch_status(items, now, Mock())
+            watch.return_value.observe_official.assert_called_once_with(items, now, 'source-version')
+        sql, args = connection.execute.call_args_list[0].args
+        self.assertIn("lifecycle_status='LIVE',ended_at=NULL", sql)
+        self.assertIn("lifecycle_status='ENDED'", sql)
+        self.assertEqual(args, ('source-version', now, 'assembly.webcast.go.kr', 'SIM-RECESS-001'))
+        self.assertIn('live_broadcast_source_versions', connection.execute.call_args_list[1].args[0])
+
     def test_monitor_retries_after_source_failure(self):
         with tempfile.TemporaryDirectory() as directory:
             settings = SimpleNamespace(

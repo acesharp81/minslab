@@ -1,0 +1,21 @@
+{
+  "review": {
+    "profile": "report-parent-review/1",
+    "status": "READY",
+    "fingerprint": "fad68b00aff476cd1af1844a968dff8545393abd94de5d9d2bf2a34b7c3d5afa",
+    "source_group_count": 31,
+    "display_group_count": 13,
+    "method": "SUMMARY_ONLY_PARENT_REVIEW",
+    "full_source_sent": false
+  },
+  "groups_before": 31,
+  "groups_after": 13,
+  "topics": 66,
+  "tasks": 35,
+  "summary_cards": 71,
+  "topics_unchanged": true,
+  "tasks_unchanged": true,
+  "summary_cards_unchanged": true,
+  "child_membership_preserved": true,
+  "summary_group_count": 14
+}

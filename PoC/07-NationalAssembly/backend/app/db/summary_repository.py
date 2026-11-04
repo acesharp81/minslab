@@ -416,7 +416,8 @@ class SummaryRepository:
                 """,
                 (
                     uuid.uuid4(), broadcast_id, item["source_speaker_label"],
-                    item["content_hash"], item["summary"], provider, model,
+                    item["content_hash"], item["summary"], provider,
+                    item.get('_summary_model') if item.get('_summary_model') in {'gpt-6-luna','gpt-5.4-mini'} else model,
                     prompt_version, item["original_char_count"],
                     item["segment_count"], Jsonb(usage_metadata or {}),
                     Jsonb(item.get("live_insight") or {}),

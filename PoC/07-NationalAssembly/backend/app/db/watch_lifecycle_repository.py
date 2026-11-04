@@ -15,6 +15,7 @@ from ..services.watch_lifecycle import (
     declaration_kind,
     rank_topics,
     topic_projection,
+    official_recess_status,
 )
 from .summary_repository import SummaryRepository
 
@@ -102,7 +103,7 @@ class WatchLifecycleRepository:
             text = str(item.get("status_text") or "").replace(" ", "")
             state = (
                 "RECESS"
-                if ("계속예정" in text or text.startswith("정회"))
+                if official_recess_status(text)
                 else "LIVE"
                 if item.get("is_live")
                 else None

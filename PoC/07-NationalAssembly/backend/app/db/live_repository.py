@@ -173,8 +173,29 @@ class LiveRepository:
 
     def observe_watch_status(self, items: list[dict[str, Any]], observed_at: datetime, source: SourceVersionInput) -> None:
         from .watch_lifecycle_repository import WatchLifecycleRepository
+        from ..services.watch_lifecycle import official_recess_status
         document_id = self._upsert_document(source, self.source_system)
         version_id = self._upsert_source_version(document_id, source)
+        for item in items:
+            if not item.get('meeting_external_id') or not official_recess_status(item.get('status_text')):
+                continue
+            # Recover a mistakenly ended known meeting from explicit official
+            # evidence. A new meeting is never fabricated from a pause notice.
+            row = self.connection.execute(
+                """UPDATE live_broadcasts SET lifecycle_status='LIVE',ended_at=NULL,
+                    capture_status=CASE WHEN caption_websocket_url IS NOT NULL THEN 'RETRY_WAIT'
+                        WHEN media_stream_url IS NOT NULL THEN 'AUDIO_READY' ELSE 'UNAVAILABLE' END,
+                    capture_lease_owner=NULL,capture_lease_expires_at=NULL,
+                    review_status='PENDING',review_lease_owner=NULL,review_lease_expires_at=NULL,
+                    latest_source_document_version_id=%s,last_seen_at=%s,updated_at=now()
+                    WHERE source_system=%s AND external_id=%s AND lifecycle_status='ENDED'
+                    RETURNING id""",
+                (version_id, observed_at, self.source_system, str(item['meeting_external_id'])),
+            ).fetchone()
+            if row:
+                self.connection.execute(
+                    """INSERT INTO live_broadcast_source_versions(broadcast_id,source_document_version_id,observed_at)
+                       VALUES(%s,%s,%s) ON CONFLICT DO NOTHING""", (row[0],version_id,observed_at))
         WatchLifecycleRepository(self.connection).observe_official(items, observed_at, version_id)
 
     def finish_poll(

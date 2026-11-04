@@ -11,6 +11,15 @@ from .live_topic_lineage import build_live_topic_clusters
 TOPIC_GRACE = timedelta(minutes=5)
 
 
+def official_recess_status(text: str) -> bool:
+    """Official pause/resumption notices keep the same meeting unfinished."""
+    compact = re.sub(r'\s+', '', str(text or ''))
+    if any(word in compact for word in ('종료', '산회', '폐회', '취소')):
+        return False
+    return (compact.startswith('정회') or
+            any(word in compact for word in ('계속예정', '속개예정', '재개예정')))
+
+
 def closed_for_summary(
     utterances: list[dict[str, Any]], *, lifecycle: str,
     now: datetime, boundary: bool = False,

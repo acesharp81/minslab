@@ -6,6 +6,24 @@ from unittest import mock
 from app.services.summary_cache import cache_missing_summaries
 
 
+def test_exhausted_budget_persists_next_utc_reset_without_losing_evidence():
+    from app.db.openai_daily_budget import DailyTokenLimitReached
+    from datetime import datetime, timezone, timedelta
+    repo=mock.Mock();repo.existing_hashes.return_value=set();repo.deferred_hashes.return_value=set()
+    connection=mock.Mock()
+    client=mock.Mock(provider='openai',model='gpt-5.4-mini',prompt_version='fixture')
+    client.summarize.side_effect=DailyTokenLimitReached('limit')
+    with mock.patch('app.services.summary_cache.SummaryRepository',return_value=repo):
+        import pytest
+        with pytest.raises(DailyTokenLimitReached):
+            cache_missing_summaries(connection,'meeting',[{'content_hash':'pending','text':'긴 발언 '*60}],client)
+    args=repo.record_failure.call_args
+    assert args.args==('meeting','pending') and args.kwargs['error']=='BUDGET_WAIT'
+    due=datetime.now(timezone.utc)+timedelta(hours=args.kwargs['retry_hours'])
+    assert due.hour==0 and due.minute==0
+    connection.commit.assert_called()
+
+
 class SummaryCacheTests(unittest.TestCase):
     def test_cached_content_is_not_sent_to_gemini_again(self):
         utterance = {

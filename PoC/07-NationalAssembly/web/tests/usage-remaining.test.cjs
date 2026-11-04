@@ -30,3 +30,12 @@ test('Terra is a fraction of the monthly $100, not of its $8 opening balance',()
  const p=payload();p.shared_budget={models:[{id:'gpt-5.4',label:'GPT 5.4',unit:'tokens',limit:1000000,remaining:1234},{id:'solar-pro4',label:'Solar',unit:'USD',limit:110,remaining:109.7}]};
  const c=cards(p);assert.ok(Math.abs(c[2].percent-.1234)<1e-10);assert.match(c[2].title,/PoC7·PoC10·PoC11/);assert.equal(c.length,5);assert.ok(c.every(item=>item.id!=='solar'));
 });
+
+ test('monthly fallback keeps its actual model and sublimit despite the central daily balance',()=>{
+ const p=payload();p.workload_groups[0].models[0]={id:'realtime-credit',label:'GPT-6 Luna',model:'gpt-6-luna',provider:'OpenAI',remaining:19.99,limit:20,unit:'USD',period:'CREDIT_GRANT',billing_route:'MONTHLY_CREDIT_SPILLOVER'};
+ p.shared_budget={models:[{id:'gpt-5.4-mini',label:'GPT-5.4 mini',unit:'tokens',limit:10000000,remaining:0}]};
+ const c=cards(p);assert.equal(c[0].id,'mini');assert.equal(c[0].name,'GPT-6 Luna');assert.equal(c[0].label,'(월) $19.99');assert.match(c[0].title,/소한도/);assert.equal(c.length,5);
+ p.workload_groups[0].models[0]=payload().workload_groups[0].models[0];
+ p.shared_budget.models[0].remaining=10000000;
+ assert.equal(cards(p)[0].name,'GPT-5.4 mini');assert.equal(cards(p)[0].label,'(일) 1,000만');
+});

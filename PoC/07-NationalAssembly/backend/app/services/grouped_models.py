@@ -81,7 +81,7 @@ class GroupedOpenAIClient(OpenAIMeetingBriefClient):
                     code = str(error.get('code') or error.get('type') or '')
                 except (ValueError, AttributeError):
                     code = ''
-                quota = code in {'insufficient_quota','billing_hard_limit_reached','monthly_budget_exceeded','usage_limit_reached'}
+                quota = code in {'insufficient_quota','billing_hard_limit_reached','monthly_budget_exceeded','usage_limit_reached','credit_balance_exhausted'}
                 now = datetime.now(timezone.utc)
                 period = credit_period(self.settings)
                 until = datetime.fromisoformat(period[2]) if quota and period else now + timedelta(seconds=90)
@@ -179,6 +179,11 @@ def pool(settings: Any, workload: str = 'general') -> list[Any]:
     if settings.openrouter_api_key:
         result.append(OpenRouterMeetingBriefClient(settings.openrouter_api_key,
             model=settings.meeting_brief_model, base_url=settings.openrouter_base_url))
+    if settings.openai_api_key and getattr(settings, 'openai_realtime_credit_enabled', False):
+        from .realtime_credit import credit_client
+        result.append(credit_client(settings))
+        if settings.openai_realtime_credit_model != 'gpt-5.4-mini':
+            result.append(credit_client(settings, 'gpt-5.4-mini'))
     return result
 
 
@@ -233,8 +238,20 @@ def usage_groups(settings: Any, connection: Any, *, router_left: int, router_lim
         'opening_remaining_usd':allowance if active else None,
         'remaining':max(0, allowance-float(sum(grant or (0,0,0)))) if active else None,
         'expires_at':expiry, 'renewal_basis':'USER_CONFIGURED_MONTH_START_KST' if settings.openai_credit_month_start_renewal else 'USER_CONFIGURED_MONTH_END_KST'}
+    realtime_entry = entries['mini']
+    if getattr(settings, 'openai_realtime_credit_enabled', False):
+        paid['shared_with_realtime_credit'] = True
+        if entries['mini']['remaining'] < 8000 and router_left <= 0:
+            from .realtime_credit import remaining_credit
+            remaining, cap = remaining_credit(settings, connection)
+            model = settings.openai_realtime_credit_model
+            realtime_entry = {'id':'realtime-credit','label':'GPT-6 Luna' if model=='gpt-6-luna' else 'GPT-5.4 mini',
+                'model':model,'provider':'OpenAI','remaining':remaining,'limit':cap,'unit':'USD',
+                'period':'CREDIT_GRANT','scope':'POC7_REALTIME_CREDIT_SUBLIMIT','expires_at':expiry,
+                'free_daily_model':'GPT-5.4 mini','free_daily_remaining':entries['mini']['remaining'],
+                'billing_route':'MONTHLY_CREDIT_SPILLOVER'}
     return [
-        {'id':'realtime','label':'실시간 부분요약','models':[entries['mini'],
+        {'id':'realtime','label':'실시간 부분요약','models':[realtime_entry,
             {'id':'openrouter','label':({'nvidia/nemotron-3.5-super-vl:free':'Nemo3.5 VL','dots-studio/dots-3-note-preview:free':'Dots3 Note'}.get(settings.llm_model,settings.llm_model.rsplit('/',1)[-1].split(':')[0][:10])),'model':settings.llm_model,'provider':'OpenRouter','remaining':router_left,'limit':router_limit,
              'unit':'requests','scope':'SHARED_GATEWAY','period':'DAILY_UTC'}]},
         {'id':'integration','label':'통합+공식자료 대조','models':[entries['main'],paid]},

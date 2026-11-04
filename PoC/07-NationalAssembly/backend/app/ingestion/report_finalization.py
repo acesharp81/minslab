@@ -16,6 +16,16 @@ from . import topic_structure_worker, structure_review_worker, ontology_review_w
 VERSION = 'meeting-finalization/1'
 
 
+def finish_parent_review(broadcast_id: Any, state: dict[str, Any]) -> dict[str, Any]:
+    from .report_parent_review_worker import process_one as review_parents
+    outcome = review_parents(broadcast_id)
+    if outcome.get('status') in {'READY', 'CACHED', 'RETAINED'}:
+        return {**state, 'parent_review_status': outcome['status']}
+    return {'status': 'DEFERRED', 'phase': 'FINALIZING',
+            'retry_after': outcome.get('retry_after') or (datetime.now(timezone.utc)+timedelta(minutes=15)).isoformat(),
+            'last_result': outcome.get('status')}
+
+
 def initial_state() -> dict[str, Any]:
     return {'version': VERSION, 'status': 'PENDING', 'phase': 'STRUCTURING'}
 
@@ -108,6 +118,12 @@ def process_one(broadcast_id: Any, *, request_limit: int = 4, batch_limit: int =
                 return {'broadcast_id': str(broadcast_id), **state}
             if state.get('status') == 'COMPLETED':
                 return {'status': 'CACHED', 'broadcast_id': str(broadcast_id)}
+            pending = ontology_review_worker.pending_items(structure, []) if structure else []
+            ready = assess(structure, progress, pending)
+            if ready['status'] == 'COMPLETED':
+                active_phase = 'FINALIZING'
+                save({'status': 'PROCESSING', 'phase': 'FINALIZING'})
+                return save(finish_parent_review(broadcast_id, ready))
             save({'status': 'PROCESSING', 'phase': 'STRUCTURING'})
             outcome = topic_structure_worker.process_one(broadcast_id, request_limit=request_limit, repair=True)
             item, structure, progress, prior = _load(broadcast_id)
@@ -128,6 +144,10 @@ def process_one(broadcast_id: Any, *, request_limit: int = 4, batch_limit: int =
                 outcome = structured_narrative_worker.process_one(broadcast_id, batch_limit=batch_limit)
                 item, structure, progress, prior = _load(broadcast_id)
                 state = assess(structure, progress, pending)
+            if state['status'] == 'COMPLETED':
+                active_phase = 'FINALIZING'
+                save({'status': 'PROCESSING', 'phase': 'FINALIZING'})
+                return save(finish_parent_review(broadcast_id, state))
             if state['status'] != 'COMPLETED' and made_progress(outcome):
                 state.update(status='PROCESSING')
             elif state['status'] != 'COMPLETED':

@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Any
 from uuid import uuid4
 from psycopg.types.json import Jsonb
-from ..services.live_discussion_classification import PROFILE, digest, project_classification
+from ..services.live_discussion_classification import PROFILE, digest, project_classification, canonicalize_state
 
 
 class LiveDiscussionRepository:
@@ -11,7 +11,7 @@ class LiveDiscussionRepository:
 
     def latest(self, broadcast_id: Any) -> dict[str, Any]:
         row=self.connection.execute('SELECT state FROM live_discussion_classifications WHERE broadcast_id=%s AND profile=%s ORDER BY created_at DESC LIMIT 1',(broadcast_id,PROFILE)).fetchone()
-        return row[0] if row else {'groups':{},'assignments':{}}
+        return canonicalize_state(row[0]) if row else {'groups':{},'assignments':{}}
 
     def save(self, broadcast_id: Any, state: dict[str, Any], request: dict[str, Any], response: dict[str, Any], client: Any, metadata: dict[str, Any]) -> None:
         self.connection.execute('INSERT INTO live_discussion_classifications (id,broadcast_id,profile,input_hash,state,request_snapshot,response,provider,model,usage_metadata) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING',

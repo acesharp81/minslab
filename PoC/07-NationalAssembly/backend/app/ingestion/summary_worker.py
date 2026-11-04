@@ -76,6 +76,13 @@ def process_available(
                     lifecycle_status = 'LIVE'
                     OR (lifecycle_status = 'ENDED'
                         AND (ended_at >= now() - interval '1 hour' OR EXISTS (
+                            SELECT 1 FROM transcript_utterance_summary_failures f
+                            WHERE f.broadcast_id=live_broadcasts.id AND f.last_error='BUDGET_WAIT'
+                              AND f.retry_after<=now() AND NOT EXISTS (
+                                SELECT 1 FROM transcript_utterance_summaries done
+                                WHERE done.broadcast_id=f.broadcast_id AND done.content_hash=f.content_hash
+                                  AND done.prompt_version=f.prompt_version)
+                        ) OR EXISTS (
                             SELECT 1 FROM watch_topic_episodes episode
                             JOIN watch_sessions session ON session.id=episode.session_id
                             WHERE session.broadcast_id=live_broadcasts.id

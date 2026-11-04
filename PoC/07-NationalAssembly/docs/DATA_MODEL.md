@@ -395,3 +395,10 @@ PoC7·PoC10·PoC11은 기존 `openai_group_daily_usage`(mini/main, UTC 일자)�
 ### 이관 후 부분 백업 주의
 
 기존 `meeting_brief_revisions`, `meeting_topic_structure_batches`, `official_transcript_utterances`, `official_utterance_annotations`는 이제 뷰다. 이 이름만 `pg_dump -t`로 지정하면 실제 공유 데이터는 포함되지 않는다. 전체 DB custom dump를 권장하며, 부분 백업을 만들 때는 대응하는 entries/attempts/rows와 bodies/requests/payloads, 진행 상태·이력 및 스키마 함수·뷰를 함께 포함해야 한다. 원문 버전/출처 참조까지 복원하려면 그 참조 테이블도 필요하다.
+
+
+## 2026-11-04 월 예비 모델과 한도 보류 상태
+
+신규 테이블·스키마 변경은 없다. 월 예비 Luna·Mini 요청은 기존 `shared_model_reservations`에 project=`poc7`, budget_kind=`credit`, 해당 grant ID·실제 model로 예약·정산한다. `openai_credit_grant_usage`의 같은 행을 잠가 전체 공유 잔액과 실시간 소한도·통합용 보호 잔액을 함께 확인한다. Mini 유료 예약은 `force_credit`로 일일 무료 장부와 구분한다. 저장 요약에는 실제 생성 모델을 기록한다.
+
+`transcript_utterance_summary_failures.last_error=BUDGET_WAIT`는 다음 일일 리셋까지 요약이 미뤄진 원문 해시다. 기존 재시도 시각에 다음 UTC 00:00(KST 09:00)을 기록한다. 분류 상태 JSON의 `_budget_wait.retry_after`도 같은 재개 시각을 사용한다. 종료된 방송의 미완료 해시만 재개 선택에 포함하고, 정상 분류의 저장 해시와 일치하는 대기는 BUDGET_RESUMED로 해제한다. 기존 분류 원문·이력 행은 덮어쓰지 않는다.

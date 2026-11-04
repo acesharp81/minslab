@@ -12,6 +12,59 @@ PROFILE = 'live-discussion-classification/1.0'
 BATCH_SIZE = 80
 
 
+def resolve_group_id(state: dict[str, Any], gid: str) -> str:
+    aliases = {**(state.get('group_repair') or {}).get('source_group_mapping', {}),
+               **state.get('group_aliases', {})}
+    seen = set()
+    while gid in aliases and aliases[gid] != gid and gid not in seen:
+        seen.add(gid)
+        gid = aliases[gid]
+    return gid
+
+
+def canonicalize_state(state: dict[str, Any]) -> dict[str, Any]:
+    """Reuse reviewed policy-parent rules locally; never call a model.
+
+    Existing source assignments keep all hashes/cursors. Only a registered
+    policy's parent IDs are coalesced, and retired IDs remain as aliases.
+    Generic agency/procedure/budget words are not enough for a merge.
+    """
+    from .report_parent_groups import compact_report_parents
+    groups = state.get('groups', {})
+    if len(groups) < 2:
+        return state
+    membership: dict[str, list[str]] = {gid: [] for gid in groups}
+    for uid, item in state.get('assignments', {}).items():
+        if item['group_id'] in membership:
+            membership[item['group_id']].append(uid)
+    projected = compact_report_parents({'topic_groups': [
+        {'id': gid, **g, 'topic_ids': membership[gid]} for gid, g in groups.items()]})
+    output = projected['topic_groups']
+    if len(output) == len(groups):
+        return state
+    result = deepcopy(state)
+    replacements, merged = {}, {}
+    for group in output:
+        sources = group.get('source_groups') or [group]
+        source_ids = [g['id'] for g in sources]
+        canonical = min(source_ids, key=lambda gid: (
+            min((state['assignments'][uid].get('first_cursor') or 0 for uid in membership[gid]), default=10**18), gid))
+        scope = groups[canonical]['scope']
+        if len(sources) > 1:
+            scope = f"{group['title']}에 관한 질의·답변·재원·집행·자료 요구·후속 조치. 기존 논의 범위: {scope}"[:240]
+        merged[canonical] = {'title': group['title'], 'scope': scope}
+        replacements.update({gid: canonical for gid in source_ids})
+    aliases = result.setdefault('group_aliases', {})
+    aliases.update({gid: canonical for gid, canonical in replacements.items() if gid != canonical})
+    for gid in list(aliases):
+        aliases[gid] = resolve_group_id(result, aliases[gid])
+    result['groups'] = merged
+    for item in result.get('assignments', {}).values():
+        item['group_id'] = replacements.get(item['group_id'], item['group_id'])
+    result['local_grouping'] = {'method': 'SHARED_POLICY_PARENT_RULES', 'additional_model_calls': 0}
+    return result
+
+
 def procedure_conflict(task: Any, title: str) -> bool:
     return bool(task and re.search(r'개회|회의\s*진행|질의\s*순서|정회\s*안내', title))
 
@@ -50,15 +103,15 @@ def build_prompt(request: dict[str, Any]) -> str:
     visible = [{k:v for k,v in row.items() if k not in {'utterance_id','fingerprint','content_hash','first_cursor','last_cursor','segment_ids','revision_ids'}} for row in request['turns']]
     return ('국회 실시간 발언 요약을 같은 정책 사안의 논의 단위로 분류하라. 발언마다 새 주제를 만들지 마라. '
             '같은 사건·정책에 관한 질의, 답변, 반박, 통계 설명, 자료 요구, 후속 과제는 표현이 달라도 한 주제다. '
-            '예: 정신질환 수용자 증가/치료감호 청구율/치료시설 확충 질의와 답변은 정신질환 범죄자 치료·관리 제도라는 한 논의다. '
-            '여론조사 사건의 자금 흐름/증거 판단/상소/판결문 비교 요구도 같은 사건 논의다. '
+            '예: 치료감호 청구율과 치료시설 확충은 정신질환 범죄자 치료·관리로 묶는다. '
             '단, 같은 기관이란 이유로 서로 다른 사건·정책을 합치지 마라. 국감 개회에 중수청 수사·선관위·소방 논의를 합치면 안 된다. '
             '앞뒤 순서와 문맥을 읽고 짧은 동의·부인·이어진 답변도 해당 사안에 연결하라. '
             '순수 개회·선서·질의순서·정회 안내는 중립적인 회의 진행 주제로 분류하되 실제 자료요구는 해당 정책사안에 둬라. '
             'task가 있는 발언은 개회·회의 진행·질의순서 안내 주제에 배정하면 안 된다. 투표지 검증 요청은 선거 검증 사안에 연결한다. '
             '기존 catalog에 같은 사안이 있으면 반드시 그 id를 재사용하라. 새 사안만 new-1,new-2 등의 id로 만든다. '
             'title은 발언 한 문장의 제목이 아닌 공통 사안의 중립적인 한국어 제목, scope는 그 사안의 포함 범위다. '
-            '기존 id의 title/scope는 변경하지 말고 그대로 반환하라. 기존 사안의 질의·답변을 새 세부 제목으로 분리하지 마라. '
+            '기존 id의 title/scope는 유지하라. scope는 예시 범위이며 같은 정책의 재원·집행·후속조치를 배제하는 조건이 아니다. '
+            '새 scope도 한 발언에 한정하지 말고 공통 사안 범위로 작성하라. 기존 질의·답변을 새 세부 제목으로 분리하지 마라. '
             'target=true인 id를 정확히 한 번씩 모든 groups의 utterance_ids에 배정하라. target=false는 문맥용이며 배정하면 안 된다. '
             '입력에 없는 주제·사실·과제를 만들거나 발언을 생략하지 마라. 적절한 주제 수를 미리 정하지 마라. '
             '출력은 groups 배열만 포함한 JSON이다.\n' + json.dumps({'catalog':request['catalog'], 'context_only':[r for r in visible if not r['target']], 'targets':[r for r in visible if r['target']]},ensure_ascii=False))
@@ -75,7 +128,7 @@ def response_schema() -> dict[str, Any]:
 def apply_classification(broadcast_id: str, state: dict[str, Any], request: dict[str, Any], response: dict[str, Any]) -> dict[str, Any]:
     expected = {r['id']:r for r in request['turns'] if r['target']}
     context_ids = {r['id'] for r in request['turns'] if not r['target']}
-    result = deepcopy(state or {'groups':{},'assignments':{}})
+    result = deepcopy(canonicalize_state(state or {'groups':{},'assignments':{}}))
     groups = result.setdefault('groups', {}); assignments = result.setdefault('assignments', {})
     seen: set[str] = set(); group_ids: set[str] = set()
     if not isinstance(response.get('groups'), list):
@@ -94,11 +147,18 @@ def apply_classification(broadcast_id: str, state: dict[str, Any], request: dict
         if gid in group_ids or not title or len(title)>100 or not scope or len(scope)>240 or re.search(r'[\u3400-\u9fff]',title+scope):
             raise ValueError('INVALID_GROUP')
         group_ids.add(gid)
-        if gid in groups:
+        resolved = resolve_group_id(result, gid)
+        if resolved in groups:
             # Stable title and scope cannot drift to absorb unrelated subjects.
-            canonical = gid
+            canonical = resolved
         elif re.fullmatch(r'new-[1-9][0-9]*', gid):
             canonical = str(uuid5(NAMESPACE_URL, f'{PROFILE}:{broadcast_id}:{title}:{scope}'))
+            canonical = resolve_group_id(result, canonical)
+            # A reviewed catalog can retain a prior real ID for the same label.
+            same = [key for key, value in groups.items()
+                    if (value['title'].strip(), value['scope'].strip()) == (title, scope)]
+            if canonical not in groups and len(same) == 1:
+                canonical = same[0]
             groups.setdefault(canonical, {'title':title,'scope':scope})
         else:
             raise ValueError('UNKNOWN_GROUP_ID')
@@ -113,7 +173,7 @@ def apply_classification(broadcast_id: str, state: dict[str, Any], request: dict
     if seen != set(expected):
         raise ValueError('MISSING_TURN')
     # Unused groups can remain in the catalog for stable future reuse.
-    return result
+    return canonicalize_state(result)
 
 
 def project_classification(turns: list[dict[str, Any]], state: dict[str, Any]) -> None:

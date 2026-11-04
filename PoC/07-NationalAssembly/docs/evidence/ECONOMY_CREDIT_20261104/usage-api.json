@@ -1,0 +1,513 @@
+{
+  "provider": "combined",
+  "workload_groups": [
+    {
+      "id": "realtime",
+      "label": "실시간 부분요약",
+      "models": [
+        {
+          "id": "mini",
+          "label": "GPT-5.4 mini",
+          "remaining": 681550,
+          "limit": 10000000,
+          "unit": "tokens",
+          "scope": "POC7_10_11_SHARED",
+          "period": "DAILY_UTC",
+          "request_count": 1624,
+          "input_tokens": 8537642,
+          "output_tokens": 780808,
+          "total_tokens": 9318450,
+          "unknown_tokens": 0,
+          "reserved_tokens": 0
+        },
+        {
+          "id": "openrouter",
+          "label": "Nemo3.5 VL",
+          "model": "nvidia/nemotron-3.5-super-vl:free",
+          "provider": "OpenRouter",
+          "remaining": 0,
+          "limit": 950,
+          "unit": "requests",
+          "scope": "SHARED_GATEWAY",
+          "period": "DAILY_UTC"
+        }
+      ]
+    },
+    {
+      "id": "integration",
+      "label": "통합+공식자료 대조",
+      "models": [
+        {
+          "id": "main",
+          "label": "GPT-5.4",
+          "remaining": 334897,
+          "limit": 1000000,
+          "unit": "tokens",
+          "scope": "POC7_10_11_SHARED",
+          "period": "DAILY_UTC",
+          "request_count": 44,
+          "input_tokens": 424679,
+          "output_tokens": 240424,
+          "total_tokens": 665103,
+          "unknown_tokens": 0,
+          "reserved_tokens": 0
+        },
+        {
+          "id": "terra",
+          "label": "6.1 Terra",
+          "unit": "USD",
+          "period": "CREDIT_GRANT",
+          "scope": "POC7_10_11_SHARED",
+          "status": "AVAILABLE",
+          "limit": 100.0,
+          "opening_remaining_usd": 100.0,
+          "remaining": 98.66128465,
+          "expires_at": "2026-12-01T00:00:00+09:00",
+          "renewal_basis": "USER_CONFIGURED_MONTH_START_KST",
+          "shared_with_realtime_credit": true
+        }
+      ]
+    },
+    {
+      "id": "audio",
+      "label": "음성",
+      "models": [
+        {
+          "id": "mistral",
+          "label": "Mistral",
+          "remaining": 9.6635656,
+          "limit": 10.0,
+          "unit": "USD",
+          "scope": "POC7_ALLOCATION",
+          "period": "MONTHLY"
+        }
+      ]
+    }
+  ],
+  "shared_budget": {
+    "models": [
+      {
+        "id": "gpt-5.4-mini",
+        "label": "GPT 5.4 mini",
+        "unit": "tokens",
+        "limit": 10000000,
+        "used": 9318450,
+        "reserved": 0,
+        "unknown": 0,
+        "remaining": 681550,
+        "expires_at": "2026-11-05T00:00:00+00:00",
+        "status": "AVAILABLE",
+        "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+        "note": "공용 일일 토큰 · 입력+출력 · 한국시간 매일 09시 초기화"
+      },
+      {
+        "id": "gpt-5.4",
+        "label": "GPT 5.4",
+        "unit": "tokens",
+        "limit": 1000000,
+        "used": 665103,
+        "reserved": 0,
+        "unknown": 0,
+        "remaining": 334897,
+        "expires_at": "2026-11-05T00:00:00+00:00",
+        "status": "AVAILABLE",
+        "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+        "note": "공용 일일 토큰 · 입력+출력 · 한국시간 매일 09시 초기화"
+      },
+      {
+        "id": "openai-shared",
+        "label": "OpenAI 공용 크레딧",
+        "unit": "USD",
+        "limit": 100.0,
+        "current_period_allowance": 100.0,
+        "opening_used": 0.0,
+        "tracked_used": 1.33871535,
+        "used": 1.33871535,
+        "reserved": 0.0,
+        "unknown": 0.0,
+        "remaining": 98.66128465,
+        "expires_at": "2026-12-01T00:00:00+09:00",
+        "status": "AVAILABLE",
+        "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+        "note": "공용 월 $100 · 매월 1일 한국시간 00시 갱신 · 최초 잔액에서 후속 사용·예약·미확정 차감"
+      },
+      {
+        "id": "solar-pro4",
+        "label": "Solar Pro 4",
+        "unit": "USD",
+        "limit": null,
+        "current_period_allowance": null,
+        "opening_used": 0.0,
+        "tracked_used": 1.7615943,
+        "used": 1.7615943,
+        "reserved": 0.0,
+        "unknown": 0.0411384,
+        "remaining": null,
+        "expires_at": null,
+        "status": "UNLIMITED",
+        "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+        "note": "사용자 확인 무제한 키 · 공용 사용량만 기록 · 비용은 공개 단가 환산 추정치",
+        "input_tokens": 2639737,
+        "output_tokens": 808061,
+        "request_count": 357
+      }
+    ],
+    "checked_at": "2026-11-04T09:58:51.550295+00:00",
+    "scope": "PoC7 · PoC10 · PoC11 공통 원장",
+    "note": "세 서비스의 사용·예약·미확정 사용량을 함께 차감합니다. 외부 호출과 제공사 실제 청구 잔액은 포함하지 않는 시스템 추정치입니다."
+  },
+  "usage_scope": "PoC7·PoC10·PoC11 공용 운영 예산 · 제공사 실제 잔액 아님",
+  "auxiliary_models": [],
+  "provider_label": "Mini + OpenRouter 부분요약 · GPT-5.4 + Terra 통합 · Mistral 음성",
+  "model": "nvidia/nemotron-3.5-super-vl:free · voxtral-mini-latest",
+  "used": 950,
+  "limit": 1000,
+  "operational_limit": 950,
+  "unit": "requests",
+  "period": "DAILY",
+  "request_count": 950,
+  "usage_percent": 95.0,
+  "resets_at": "2026-11-05T09:00:00+09:00",
+  "status": "AVAILABLE",
+  "model_count": 6,
+  "platform_count": 3,
+  "models": [
+    {
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "vendor_label": "NVIDIA",
+      "access_label": "OpenRouter 경유",
+      "configured": true,
+      "workloads": [
+        "발언 요약",
+        "실시간 부분요약 경쟁 풀",
+        "회의 보고서 생성"
+      ],
+      "today_request_count": 950,
+      "today_total_tokens": 0,
+      "monthly_request_count": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "audio_request_count": 0,
+      "audio_seconds": 0.0,
+      "cost_usd": 0.0,
+      "statuses": {
+        "COMPLETED": 948,
+        "FAILED": 2
+      }
+    },
+    {
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "vendor_label": "NVIDIA",
+      "access_label": "OpenRouter 경유",
+      "configured": true,
+      "workloads": [
+        "관심주제 브리핑"
+      ],
+      "today_request_count": 0,
+      "today_total_tokens": 0,
+      "monthly_request_count": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "audio_request_count": 0,
+      "audio_seconds": 0.0,
+      "cost_usd": 0.0,
+      "statuses": {}
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.4",
+      "vendor_label": "OpenAI",
+      "access_label": "OpenAI 직접",
+      "configured": true,
+      "workloads": [
+        "통합·주제별 보고서·고난도 검증",
+        "회의 보고서 생성"
+      ],
+      "today_request_count": 0,
+      "today_total_tokens": 0,
+      "monthly_request_count": 6,
+      "input_tokens": 8896,
+      "output_tokens": 7371,
+      "total_tokens": 16267,
+      "audio_request_count": 0,
+      "audio_seconds": 0.0,
+      "cost_usd": 0.0,
+      "statuses": {}
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "vendor_label": "OpenAI",
+      "access_label": "OpenAI 직접",
+      "configured": true,
+      "workloads": [
+        "실시간 부분요약·일반 구조화"
+      ],
+      "today_request_count": 0,
+      "today_total_tokens": 0,
+      "monthly_request_count": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "audio_request_count": 0,
+      "audio_seconds": 0.0,
+      "cost_usd": 0.0,
+      "statuses": {}
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6.1-terra",
+      "vendor_label": "OpenAI",
+      "access_label": "OpenAI 직접",
+      "configured": true,
+      "workloads": [
+        "통합 실패 보완 · 월 배정액 이내"
+      ],
+      "today_request_count": 0,
+      "today_total_tokens": 0,
+      "monthly_request_count": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "audio_request_count": 0,
+      "audio_seconds": 0.0,
+      "cost_usd": 0.0,
+      "statuses": {}
+    },
+    {
+      "provider": "mistral",
+      "model": "voxtral-mini-latest",
+      "vendor_label": "Mistral AI",
+      "access_label": "Mistral 직접",
+      "configured": true,
+      "workloads": [
+        "음성 전사"
+      ],
+      "today_request_count": 0,
+      "today_total_tokens": 0,
+      "monthly_request_count": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "audio_request_count": 114,
+      "audio_seconds": 6728.688,
+      "cost_usd": 0.336434,
+      "statuses": {}
+    }
+  ],
+  "providers": [
+    {
+      "provider": "nvidia",
+      "period": "MONTHLY",
+      "limit": null,
+      "models": []
+    },
+    {
+      "provider": "openrouter",
+      "period": "DAILY",
+      "used": 950,
+      "limit": 1000,
+      "operational_limit": 950,
+      "usage_percent": 95.0,
+      "resets_at": "2026-11-05T09:00:00+09:00",
+      "official_limit": 1000,
+      "completed": 948,
+      "failed": 2,
+      "remaining": 50,
+      "operational_remaining": 0,
+      "combined_projects": true,
+      "breakdown": [
+        {
+          "project": "poc7",
+          "workload": "meeting_brief",
+          "model": "nvidia/nemotron-3.5-super-vl:free",
+          "status": "COMPLETED",
+          "count": 1
+        },
+        {
+          "project": "poc7",
+          "workload": "utterance_summary",
+          "model": "nvidia/nemotron-3.5-super-vl:free",
+          "status": "COMPLETED",
+          "count": 947
+        },
+        {
+          "project": "poc7",
+          "workload": "utterance_summary",
+          "model": "nvidia/nemotron-3.5-super-vl:free",
+          "status": "FAILED",
+          "count": 2
+        }
+      ],
+      "models": [
+        {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3.5-super-vl:free",
+          "vendor_label": "NVIDIA",
+          "access_label": "OpenRouter 경유",
+          "configured": true,
+          "workloads": [
+            "발언 요약",
+            "실시간 부분요약 경쟁 풀",
+            "회의 보고서 생성"
+          ],
+          "today_request_count": 950,
+          "today_total_tokens": 0,
+          "monthly_request_count": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "audio_request_count": 0,
+          "audio_seconds": 0.0,
+          "cost_usd": 0.0,
+          "statuses": {
+            "COMPLETED": 948,
+            "FAILED": 2
+          }
+        },
+        {
+          "provider": "openrouter",
+          "model": "nvidia/nemotron-3-super-120b-a12b:free",
+          "vendor_label": "NVIDIA",
+          "access_label": "OpenRouter 경유",
+          "configured": true,
+          "workloads": [
+            "관심주제 브리핑"
+          ],
+          "today_request_count": 0,
+          "today_total_tokens": 0,
+          "monthly_request_count": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "audio_request_count": 0,
+          "audio_seconds": 0.0,
+          "cost_usd": 0.0,
+          "statuses": {}
+        }
+      ]
+    },
+    {
+      "provider": "openai",
+      "period": "DAILY",
+      "unit": "tokens",
+      "model": "gpt-5.4",
+      "used": 0,
+      "limit": 1000000,
+      "remaining": 1000000,
+      "usage_percent": 0.0,
+      "resets_at": "2026-11-05T09:00:00+09:00",
+      "request_count": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "unknown_tokens": 0,
+      "reserved_tokens": 0,
+      "models": [
+        {
+          "provider": "openai",
+          "model": "gpt-5.4",
+          "vendor_label": "OpenAI",
+          "access_label": "OpenAI 직접",
+          "configured": true,
+          "workloads": [
+            "통합·주제별 보고서·고난도 검증",
+            "회의 보고서 생성"
+          ],
+          "today_request_count": 0,
+          "today_total_tokens": 0,
+          "monthly_request_count": 6,
+          "input_tokens": 8896,
+          "output_tokens": 7371,
+          "total_tokens": 16267,
+          "audio_request_count": 0,
+          "audio_seconds": 0.0,
+          "cost_usd": 0.0,
+          "statuses": {}
+        },
+        {
+          "provider": "openai",
+          "model": "gpt-5.4-mini",
+          "vendor_label": "OpenAI",
+          "access_label": "OpenAI 직접",
+          "configured": true,
+          "workloads": [
+            "실시간 부분요약·일반 구조화"
+          ],
+          "today_request_count": 0,
+          "today_total_tokens": 0,
+          "monthly_request_count": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "audio_request_count": 0,
+          "audio_seconds": 0.0,
+          "cost_usd": 0.0,
+          "statuses": {}
+        },
+        {
+          "provider": "openai",
+          "model": "gpt-6.1-terra",
+          "vendor_label": "OpenAI",
+          "access_label": "OpenAI 직접",
+          "configured": true,
+          "workloads": [
+            "통합 실패 보완 · 월 배정액 이내"
+          ],
+          "today_request_count": 0,
+          "today_total_tokens": 0,
+          "monthly_request_count": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "audio_request_count": 0,
+          "audio_seconds": 0.0,
+          "cost_usd": 0.0,
+          "statuses": {}
+        }
+      ]
+    },
+    {
+      "provider": "mistral",
+      "period": "MONTHLY",
+      "request_count": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "total_tokens": 0,
+      "audio_request_count": 114,
+      "audio_seconds": 6728.688,
+      "audio_cost_usd": 0.3364344,
+      "cost_usd": 0.336434,
+      "credit_usd": 10.0,
+      "usage_percent": 3.36,
+      "resets_at": "2026-12-01T09:00:00+09:00",
+      "transcription_model": "voxtral-mini-latest",
+      "models": [
+        {
+          "provider": "mistral",
+          "model": "voxtral-mini-latest",
+          "vendor_label": "Mistral AI",
+          "access_label": "Mistral 직접",
+          "configured": true,
+          "workloads": [
+            "음성 전사"
+          ],
+          "today_request_count": 0,
+          "today_total_tokens": 0,
+          "monthly_request_count": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "total_tokens": 0,
+          "audio_request_count": 114,
+          "audio_seconds": 6728.688,
+          "cost_usd": 0.336434,
+          "statuses": {}
+        }
+      ]
+    }
+  ]
+}

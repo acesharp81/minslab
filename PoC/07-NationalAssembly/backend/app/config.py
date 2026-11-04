@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     openai_advanced_model: str = "gpt-6.1-terra"
     openai_mini_daily_token_limit: int = 10_000_000
     openai_daily_token_limit: int = 1_000_000
+    openai_realtime_credit_enabled: bool = False
+    openai_realtime_credit_model: str = 'gpt-6-luna'
+    openai_realtime_credit_monthly_limit_usd: float = 20.0
+    openai_realtime_credit_protected_usd: float = 20.0
     # Confirmed credit grant; never fabricate a reset or assume the cash balance is free.
     shared_solar_grant_id: str = "solar-202610-shared"
     shared_solar_budget_usd: float = 110.0

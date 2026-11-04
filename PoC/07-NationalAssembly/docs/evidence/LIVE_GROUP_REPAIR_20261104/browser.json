@@ -1,0 +1,30 @@
+[
+  {
+    "site": "kjon",
+    "broadcast_id": "e79d3383-55ae-428d-821f-96d15ce35294",
+    "metrics": "핵심 주제\n25\n도출 과제\n6\n근거 발언\n152",
+    "visible_topic_count": 25,
+    "page_errors": []
+  },
+  {
+    "site": "kjon",
+    "broadcast_id": "1d00ebf4-24da-4443-9eb9-907864e59829",
+    "metrics": "핵심 주제\n39\n도출 과제\n24\n근거 발언\n866",
+    "visible_topic_count": 39,
+    "page_errors": []
+  },
+  {
+    "site": "minslab",
+    "broadcast_id": "e79d3383-55ae-428d-821f-96d15ce35294",
+    "metrics": "핵심 주제\n25\n도출 과제\n6\n근거 발언\n152",
+    "visible_topic_count": 25,
+    "page_errors": []
+  },
+  {
+    "site": "minslab",
+    "broadcast_id": "1d00ebf4-24da-4443-9eb9-907864e59829",
+    "metrics": "핵심 주제\n39\n도출 과제\n24\n근거 발언\n866",
+    "visible_topic_count": 39,
+    "page_errors": []
+  }
+]

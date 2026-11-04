@@ -36,6 +36,18 @@ def ledger():
 def card(c,s,id):return next(x for x in b.snapshot(c,s)['models'] if x['id']==id)
 
 
+def test_credit_spillover_does_not_change_daily_free_ledger(ledger):
+    connect,s=ledger
+    with connect() as c:
+        b.reserve(c,s,'paid-mini-spillover','poc7','gpt-5.4-mini',1000,100,force_credit=True)
+        b.settle(c,'paid-mini-spillover',1000,100,.0012)
+        b.reserve(c,s,'paid-luna-spillover','poc7','gpt-6-luna',1000,100)
+        b.settle(c,'paid-luna-spillover',1000,100,.00015)
+        assert OpenAIGroupBudget(c,'mini').today()['total_tokens']==0
+        used=c.execute('SELECT spent_usd,reserved_usd FROM openai_credit_grant_usage WHERE grant_id=%s',('test',)).fetchone()
+        assert float(used[0])==pytest.approx(.00135) and used[1]==0
+
+
 def test_native7_and_http10_11_admit_atomically_and_idempotently(ledger):
     connect,s=ledger
     with connect() as c:

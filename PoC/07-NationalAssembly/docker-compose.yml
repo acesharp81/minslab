@@ -1,3 +1,9 @@
+x-realtime-credit-env: &realtime-credit-env
+  OPENAI_REALTIME_CREDIT_ENABLED: ${OPENAI_REALTIME_CREDIT_ENABLED:-false}
+  OPENAI_REALTIME_CREDIT_MODEL: ${OPENAI_REALTIME_CREDIT_MODEL:-gpt-6-luna}
+  OPENAI_REALTIME_CREDIT_MONTHLY_LIMIT_USD: ${OPENAI_REALTIME_CREDIT_MONTHLY_LIMIT_USD:-20}
+  OPENAI_REALTIME_CREDIT_PROTECTED_USD: ${OPENAI_REALTIME_CREDIT_PROTECTED_USD:-20}
+
 services:
   api:
     build:
@@ -7,6 +13,7 @@ services:
       RAW_DATA_DIR: /app/data/raw
       PROCESSED_DATA_DIR: /app/data/processed
       AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
+      <<: *realtime-credit-env
       MODEL_WORKLOAD_GROUPS_ENABLED: ${MODEL_WORKLOAD_GROUPS_ENABLED:-false}
       OPENAI_MINI_MODEL: ${OPENAI_MINI_MODEL:-gpt-5.4-mini}
       OPENAI_INTEGRATION_MODEL: ${OPENAI_INTEGRATION_MODEL:-gpt-5.4}
@@ -254,6 +261,7 @@ services:
     build:
       context: ./backend
     environment:
+      <<: *realtime-credit-env
       MODEL_WORKLOAD_GROUPS_ENABLED: ${MODEL_WORKLOAD_GROUPS_ENABLED:-false}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
@@ -319,6 +327,7 @@ services:
       OPENAI_DAILY_TOKEN_LIMIT: ${OPENAI_DAILY_TOKEN_LIMIT:-1000000}
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
+      <<: *realtime-credit-env
       MODEL_WORKLOAD_GROUPS_ENABLED: ${MODEL_WORKLOAD_GROUPS_ENABLED:-false}
       OPENAI_MINI_MODEL: ${OPENAI_MINI_MODEL:-gpt-5.4-mini}
       OPENAI_INTEGRATION_MODEL: ${OPENAI_INTEGRATION_MODEL:-gpt-5.4}
@@ -353,6 +362,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
+      <<: *realtime-credit-env
       MODEL_WORKLOAD_GROUPS_ENABLED: ${MODEL_WORKLOAD_GROUPS_ENABLED:-false}
       OPENAI_MINI_MODEL: ${OPENAI_MINI_MODEL:-gpt-5.4-mini}
       OPENAI_INTEGRATION_MODEL: ${OPENAI_INTEGRATION_MODEL:-gpt-5.4}
@@ -428,6 +438,7 @@ services:
       OPENAI_DAILY_TOKEN_LIMIT: ${OPENAI_DAILY_TOKEN_LIMIT:-1000000}
       DATABASE_URL: ${DATABASE_URL:-postgresql://national_assembly:national_assembly@db:5432/national_assembly}
       AI_ENRICHMENT_ENABLED: ${AI_ENRICHMENT_ENABLED:-false}
+      <<: *realtime-credit-env
       MODEL_WORKLOAD_GROUPS_ENABLED: ${MODEL_WORKLOAD_GROUPS_ENABLED:-false}
       OPENAI_MINI_MODEL: ${OPENAI_MINI_MODEL:-gpt-5.4-mini}
       OPENAI_INTEGRATION_MODEL: ${OPENAI_INTEGRATION_MODEL:-gpt-5.4}
