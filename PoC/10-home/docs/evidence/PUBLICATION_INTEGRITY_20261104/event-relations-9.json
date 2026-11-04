@@ -1,0 +1,137 @@
+[
+  {
+    "event_group": "EVENT_c910fddc078273c9",
+    "numbers": [
+      38,
+      46
+    ],
+    "document_ids": [
+      "DOC_c376a31aa41653eedddfeb37",
+      "DOC_a9976cc349ebf3ce3a49d4fa"
+    ],
+    "relation_type": "SAME_PROJECT_EVENT",
+    "verification": "문서 본문·기존 검토 이력 대조. 첨부 동일성·업무 승인과 별도",
+    "attachment_hash_compared": false,
+    "merge_or_aggregate": false
+  },
+  {
+    "event_group": "EVENT_8b16f5713a6258f8",
+    "numbers": [
+      41,
+      44
+    ],
+    "document_ids": [
+      "DOC_28c9b02a51a12b5d94a48e8b",
+      "DOC_7c796689341c8300f637f925"
+    ],
+    "relation_type": "RELATED_POLICY",
+    "verification": "문서 본문·기존 검토 이력 대조. 첨부 동일성·업무 승인과 별도",
+    "attachment_hash_compared": false,
+    "merge_or_aggregate": false
+  },
+  {
+    "event_group": "EVENT_8de15cf189283ed7",
+    "numbers": [
+      49,
+      88
+    ],
+    "document_ids": [
+      "DOC_d4d13a30f2c839f796e75a4a",
+      "DOC_f8e418dd1c6c6d46a0e25af0"
+    ],
+    "relation_type": "REVISION_OF",
+    "verification": "문서 본문·기존 검토 이력 대조. 첨부 동일성·업무 승인과 별도",
+    "attachment_hash_compared": false,
+    "merge_or_aggregate": false
+  },
+  {
+    "event_group": "EVENT_6bd9187d3b4259d6",
+    "numbers": [
+      54,
+      62
+    ],
+    "document_ids": [
+      "DOC_44f955e78461e38a119375fc",
+      "DOC_d98a343b6622dbaf5f19c72a"
+    ],
+    "relation_type": "SAME_PROJECT_EVENT",
+    "verification": "문서 본문·기존 검토 이력 대조. 첨부 동일성·업무 승인과 별도",
+    "attachment_hash_compared": false,
+    "merge_or_aggregate": false
+  },
+  {
+    "event_group": "EVENT_51edcbf7e8f4a94a",
+    "numbers": [
+      66,
+      69
+    ],
+    "document_ids": [
+      "DOC_2cba9efabc660d44351a98bf",
+      "DOC_9a919afbea477288c4285a21"
+    ],
+    "relation_type": "SAME_RECRUITMENT_ROUND",
+    "verification": "문서 본문·기존 검토 이력 대조. 첨부 동일성·업무 승인과 별도",
+    "attachment_hash_compared": false,
+    "merge_or_aggregate": false
+  },
+  {
+    "event_group": "EVENT_d7506d935dc8f87b",
+    "numbers": [
+      77,
+      83
+    ],
+    "document_ids": [
+      "DOC_7bd95211951a0c7a192755b7",
+      "DOC_40313ee5ee575ee5f833b9fd"
+    ],
+    "relation_type": "SAME_PROJECT_EVENT",
+    "verification": "문서 본문·기존 검토 이력 대조. 첨부 동일성·업무 승인과 별도",
+    "attachment_hash_compared": false,
+    "merge_or_aggregate": false
+  },
+  {
+    "event_group": "EVENT_5613411a74a50976",
+    "numbers": [
+      78,
+      79
+    ],
+    "document_ids": [
+      "DOC_8ac246e6296d2a37d2db8da8",
+      "DOC_c9bb50e13584cd02ea718861"
+    ],
+    "relation_type": "FOLLOW_UP_TO",
+    "verification": "문서 본문·기존 검토 이력 대조. 첨부 동일성·업무 승인과 별도",
+    "attachment_hash_compared": false,
+    "merge_or_aggregate": false
+  },
+  {
+    "event_group": "EVENT_cbad9c210f0be323",
+    "numbers": [
+      89,
+      90
+    ],
+    "document_ids": [
+      "DOC_085f9f04d44a8a5950fb0da1",
+      "DOC_222ffa5be20f991296201e98"
+    ],
+    "relation_type": "FOLLOW_UP_TO",
+    "verification": "문서 본문·기존 검토 이력 대조. 첨부 동일성·업무 승인과 별도",
+    "attachment_hash_compared": false,
+    "merge_or_aggregate": false
+  },
+  {
+    "event_group": "EVENT_241fd8cf1d77f298",
+    "numbers": [
+      108,
+      109
+    ],
+    "document_ids": [
+      "DOC_2e43ecfb6fe69f45bf6dc69f",
+      "DOC_80cc5ac55e3dc29c0f4463f5"
+    ],
+    "relation_type": "DUPLICATE_PUBLICATION",
+    "verification": "문서 본문·기존 검토 이력 대조. 첨부 동일성·업무 승인과 별도",
+    "attachment_hash_compared": false,
+    "merge_or_aggregate": false
+  }
+]

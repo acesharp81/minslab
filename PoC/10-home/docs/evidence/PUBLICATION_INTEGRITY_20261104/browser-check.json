@@ -1,0 +1,15 @@
+{
+  "stale_review_warning_visible": true,
+  "cross_review_visible": true,
+  "json_download_schema": "publication-review-evidence-3",
+  "download_count": 1,
+  "desktop": {
+    "width": 1440,
+    "scroll": 1440
+  },
+  "mobile": {
+    "width": 390,
+    "scroll": 390
+  },
+  "page_errors": []
+}

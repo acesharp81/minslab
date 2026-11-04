@@ -59,7 +59,7 @@ def queue(service, include_options=True):
             if any(normalized(term) in normalized(project['name']) for term in t['terms'])]
    items.append(dict(id=doc.entity_id,source_id=doc.source_id,source_name=next(s['name'] for s in SOURCES if s['id']==doc.source_id),
        title=p.get('name'),source_date=p.get('source_date'),evidence_url=public_url(p.get('evidence_url')),authority=authority(p.get('evidence_url')),
-       source_revision_no=doc.revision_no,review_revision_no=old.revision_no if old else 0,
+       source_revision_no=doc.revision_no,source_revision_id=doc.id,source_hash=doc.payload_hash,review_revision_no=old.revision_no if old else 0,
        status=state,status_label=STATES[state],source_changed=stale,link_changed=link_changed,decision=decision,candidates=matches,guidance=guidance(p.get('name',''),matches,t['priority']) if include_options else None,**t))
   for item in items:
    if item['id'] in supplements:item['supplement']=supplement_summary(supplements[item['id']],item['source_revision_no'])
@@ -70,7 +70,15 @@ def queue(service, include_options=True):
     if item['id'] in assessments:
      a=assessments[item['id']]
      item['assessment']={k:a.get(k) for k in ('actor','assessed_at','reason','external_recommendation','related_documents','event_group','unknown_fields')}
-     item['assessment']['stale']=a.get('source_revision_no')!=item['source_revision_no'] or a.get('review_revision_no')!=item['review_revision_no']
+     from .publication_evidence_integrity import assessment_sync
+     reasons=assessment_sync(item,a,item['source_hash'])
+     item['assessment']['stale']=bool(reasons)
+     item['assessment']['revalidation_reasons']=reasons
+     item['evidence_revalidation_required']=bool(reasons)
+   from .hold_review import load as load_cross_reviews
+   cross_reviews=load_cross_reviews(service,[d.entity_id for d in docs])
+   for item in items:
+    if item['id'] in cross_reviews:item['cross_review']={k:v for k,v in cross_reviews[item['id']].items() if k not in ('refs','evidence_checks')}
    from .ai_collection import annotations
    ai=annotations(service,[d.entity_id for d in docs])
    for item in items:

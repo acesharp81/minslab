@@ -106,7 +106,7 @@ def discovery(service, store, run, fetcher):
 def annotations(service, document_ids):
     if not document_ids: return {}
     with service.sessions() as db:
-        return {r.payload['document_id']:r.payload for r in db.scalars(select(Revision).where(
+        return {r.payload['document_id']:dict(r.payload,evidence_ref=dict(id=r.entity_id,revision_id=r.id,revision_no=r.revision_no,hash=r.payload_hash,recorded_at=r.recorded_at.isoformat())) for r in db.scalars(select(Revision).where(
             Revision.kind==KIND,Revision.superseded_at.is_(None),Revision.payload['document_id'].as_string().in_(document_ids)))}
 
 
