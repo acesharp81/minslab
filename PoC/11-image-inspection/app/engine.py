@@ -40,7 +40,7 @@ class Engine:
         self.s,self.store=s,store;rule_editor.initialize(store);self.usage=Usage(s,store);self.provider=Provider(s,self.usage)
         self.pool=ThreadPoolExecutor(max_workers=1);self.lock=threading.RLock()
         # Interrupted jobs keep completed batches, unfinished steps are explicit errors.
-        for job in store.jobs():
+        for job in store.active_jobs():
             if job.get('state') in ('QUEUED','RUNNING'):
                 job['state']='INTERRUPTED'
                 for r in job['runs'][-1]['results']:
@@ -50,7 +50,7 @@ class Engine:
         with self.lock:
             job=self.store.get(jid)
             if job['state'] in ('QUEUED','RUNNING'):raise ValueError('이미 검사 중입니다.')
-            if sum(x.get('state') in ('QUEUED','RUNNING') for x in self.store.jobs())>=4:raise ValueError('검사 대기열이 가득 찼습니다.')
+            if self.store.active_count()>=4:raise ValueError('검사 대기열이 가득 찼습니다.')
             pack=rule_editor.current(self.store)['pack'];steps={r['rule_id']:r for r in pack['steps']}
             source=None
             if options.get('reuse_observation_run_id'):

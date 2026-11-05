@@ -181,7 +181,7 @@ def create_app(settings=None):
     @app.get('/api/jobs')
     def jobs(request:Request):
         actor(request)
-        return [{k:j[k] for k in ('id','metadata','created_at','state','demo')} for j in store.jobs()]
+        return store.summaries()
     def save_image(raw,filename,mime,metadata,demo=False):
         try:normalized,info=normalize(raw,filename,mime,s.integer('MAX_IMAGE_PIXELS',24000000))
         except ValueError as exc:raise HTTPException(400,str(exc))
@@ -201,9 +201,22 @@ def create_app(settings=None):
         actor(request)
         return save_image((ROOT/'samples/demo.png').read_bytes(),'demo.png','image/png',{'title':'합성 샘플 · 지역 안전 캠페인','department':'시연 부서','media_type':'카드뉴스','release_date':'','context':'실제 판정이 아닌 고정된 기능 시연'},True)
     @app.get('/api/jobs/{jid}')
-    def detail(jid:str,request:Request):actor(request);return public_job(getjob(jid))
+    def detail(jid:str,request:Request,view:str='full',run_id:str|None=None):
+        actor(request)
+        if view not in ('full','latest'):raise HTTPException(400,'지원하지 않는 조회 방식입니다.')
+        job=store.view(jid,run_id) if view=='latest' else getjob(jid)
+        if not job:raise HTTPException(404,'검사 자료 또는 버전을 찾을 수 없습니다.')
+        return public_job(job)
+    @app.get('/api/jobs/{jid}/versions')
+    def versions(jid:str,request:Request):
+        actor(request);rows=store.versions(jid)
+        if rows is None:raise HTTPException(404,'검사 자료를 찾을 수 없습니다.')
+        return rows
     @app.get('/api/jobs/{jid}/image')
-    def image(jid:str,request:Request):actor(request);getjob(jid);return FileResponse(s.data/jid/'image.png',media_type='image/png')
+    def image(jid:str,request:Request):
+        actor(request)
+        if not store.exists(jid):raise HTTPException(404,'검사 자료를 찾을 수 없습니다.')
+        return FileResponse(s.data/jid/'image.png',media_type='image/png')
     @app.get('/api/jobs/{jid}/runs/{run_id}/references/{rid}/image')
     def snapshot_reference_image(jid:str,run_id:str,rid:str,request:Request):
         actor(request)

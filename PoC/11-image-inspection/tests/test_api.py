@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from PIL import Image
 from app.config import Settings
 from app.main import create_app
+from app.rules import PACK
 
 @pytest.fixture
 def client(tmp_path):
@@ -12,6 +13,21 @@ def client(tmp_path):
 
 def login(c,role='admin'):
     assert c.post('/api/login',json={'role':role,'password':'admin-test' if role=='admin' else 'review-test'}).status_code==200
+
+
+def test_history_summary_and_compact_view_keep_full_report_and_auth(client):
+    assert client.get('/api/jobs/missing/versions').status_code==401
+    login(client);j=client.post('/api/demo').json();store=client.app.state.engine.store
+    saved=store.get(j['id']);run=dict(id='v1',created_at=saved['created_at'],options={'mode':'live','vision_model':'gpt-5.4','analysis_model':'gpt-5.4-mini'},scope='FULL_IMAGE',observation={'objects':[]},results=[],reviews=[],analysis=[],selected=[],rule_pack=PACK)
+    saved['runs']=[run,{**run,'id':'v2'}];store.save(saved)
+    client.app.state.engine.store.jobs=lambda:(_ for _ in ()).throw(AssertionError('List API must not load full histories'))
+    listing=client.get('/api/jobs').json();assert listing[0]['run_count']==2 and 'runs' not in listing[0]
+    versions=client.get(f'/api/jobs/{j["id"]}/versions').json();assert [v['id'] for v in versions]==['v1','v2']
+    latest=client.get(f'/api/jobs/{j["id"]}?view=latest').json();assert [r['id'] for r in latest['runs']]==['v2']
+    old=client.get(f'/api/jobs/{j["id"]}?view=latest&run_id=v1').json();assert old['runs'][0]['id']=='v1'
+    assert len(client.get(f'/api/jobs/{j["id"]}').json()['runs'])==2
+    assert len(client.get(f'/api/jobs/{j["id"]}/report').json()['runs'])==2
+    assert client.get(f'/api/jobs/{j["id"]}?view=latest&run_id=missing').status_code==404
 
 def test_snapshot_reference_image_is_authenticated_and_run_scoped(client):
     login(client)
