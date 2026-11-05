@@ -14,8 +14,20 @@ from .source_authority import authority
 KST = ZoneInfo('Asia/Seoul')
 KEYWORDS = ('주택','분양','임대','착공','준공','입주','재개발','재건축','모아타운','모아주택','신도시','택지','주거','도심복합','공공복합')
 
+SCOPE_RULE_VERSION='housing-scope-20261105'
+
+def scope_exclusion(title):
+    """Narrow exclusions; mixed housing-project stories stay in human review."""
+    if re.search(r'(?:채용|구인)\s*(?:공고|모집)|희망돌보미.*채용',title):return 'STAFF_RECRUITMENT'
+    housing_project=re.search(r'주택\s*(?:건설|공급|분양)|아파트|공동주택|재개발|재건축|택지',title)
+    if housing_project:return None
+    if re.search(r'발전소.*(?:철골|입주|안전다짐|행사)',title):return 'NON_HOUSING_POWER_FACILITY'
+    if re.search(r'가스公|가스공사',title) and re.search(r'교육여건|교육환경',title):return 'NON_HOUSING_EDUCATION_SUPPORT'
+    return None
+
 def housing_title(title):
     # Agency name alone must not make an unrelated LH news item a housing item.
+    if scope_exclusion(title):return False
     value=re.sub(r'한국토지주택공사\s*\(LH\)|한국토지주택공사|경기주택도시공사|인천도시공사','',title)
     return any(word in value for word in KEYWORDS)
 
@@ -124,8 +136,11 @@ def collect(source, fetcher):
             if row['source_object_id'] in found and found[row['source_object_id']]!=row:
                 raise ValueError('동일 기사 식별자의 피드 내용 상충')
             found[row['source_object_id']]=row
-    start=(today()-timedelta(days=30)).isoformat();end=today().isoformat();records=[]
+    start=(today()-timedelta(days=30)).isoformat();end=today().isoformat();records=[];excluded=[]
     for key,row in sorted(found.items()):
+        reason=scope_exclusion(row['name'])
+        if start<=row['source_date']<=end and reason:
+            excluded.append(dict(row,reason_code=reason,rule_version=SCOPE_RULE_VERSION,reviewable=True))
         if not start<=row['source_date']<=end or not housing_title(row['name']):continue
         records.append(('document_evidence',key,dict(row,sample_kind='document_evidence',
             base_date=row['source_date'],date_precision='DAY',document_role='PUBLICATION_DISCOVERY',
@@ -137,6 +152,7 @@ def collect(source, fetcher):
             unit_basis='주택 관련 신규 게시물 탐색 후보 · 원문·사업·시점 대조와 승인 전 실적 가산 없음')))
     return records,dict(incremental=True,complete_query=True,complete_population=False,
         discovery_only=True,provided=len(found),fetched=len(records),feed_counts=counts,
+        scope_exclusions=excluded,scope_rule_version=SCOPE_RULE_VERSION,
         latest_published=max((r[2]['source_date'] for r in records),default=None),
         actual_events_created=0,period_start=start,period_end=end,
         scope_note='등록 공식 게시판 최신 페이지 또는 언론사 RSS 현재 항목 중 최근30일 주택 키워드. 과거 전수·모든 언론사 탐색 아님. 원문 링크 검토 후보로 보존; 호수/실적 자동 추출 없음.')

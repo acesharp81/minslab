@@ -12,6 +12,8 @@ from ..domain.ministry import canonical_ministry_name, normalize_ministry_mentio
 
 from psycopg.types.json import Jsonb
 
+from .topic_structure_repository import TopicStructureRepository
+
 from ..services.official_brief_integration import semantic_tokens
 
 
@@ -58,6 +60,8 @@ def _topic_relevant_content(
             return True
         if len(tokens) == 1:
             token = next(iter(tokens))
+            if not alias_query and token in content_tokens:
+                return True
             occurrences = len(re.findall(
                 rf"(?<![0-9A-Za-z가-힣]){re.escape(token)}(?![0-9A-Za-z가-힣])",
                 normalized_content,
@@ -231,26 +235,27 @@ class TopicReportRepository:
             """
             SELECT broadcast.id, COALESCE(broadcast.title, '회의 제목 미확인'),
                    broadcast.institution, broadcast.committee_name,
-                   COALESCE(broadcast.ended_at, broadcast.detected_at),
+                   broadcast.detected_at,
                    brief.brief,
                    COALESCE(integration.integrated_brief, '{}'::jsonb),
-                   integration.status
+                   integration.status, brief.id
             FROM live_broadcasts broadcast
             JOIN LATERAL (
-                SELECT meeting_brief.brief
+                SELECT meeting_brief.id, meeting_brief_payload(meeting_brief.id, meeting_brief.brief) AS brief
                 FROM meeting_briefs meeting_brief
                 WHERE meeting_brief.broadcast_id = broadcast.id
-                ORDER BY (meeting_brief.provider = 'mistral') DESC,
+                ORDER BY (meeting_brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')) DESC,
                          meeting_brief.generated_at DESC, meeting_brief.id DESC
                 LIMIT 1
             ) brief ON true
             LEFT JOIN LATERAL (
                 SELECT item.integrated_brief, item.status
                 FROM meeting_official_integrations item
-                WHERE item.broadcast_id = broadcast.id AND item.status = 'READY'
+                WHERE item.broadcast_id = broadcast.id AND item.meeting_brief_id = brief.id
+                  AND item.status = 'READY'
                 ORDER BY item.generated_at DESC, item.id DESC LIMIT 1
             ) integration ON true
-            WHERE COALESCE(broadcast.ended_at, broadcast.detected_at)::date
+            WHERE (broadcast.detected_at AT TIME ZONE 'Asia/Seoul')::date
                   BETWEEN %s AND %s
               AND (
                     broadcast.institution <> 'LEGISLATURE'
@@ -260,7 +265,7 @@ class TopicReportRepository:
                 'poc07.demo', 'poc07.test', 'poc07.replay.local', 'poc07.replay.kakao'
               )
               AND (%s::text IS NULL OR broadcast.institution = %s)
-            ORDER BY COALESCE(broadcast.ended_at, broadcast.detected_at) DESC
+            ORDER BY broadcast.detected_at DESC
             """,
             (
                 period_start,
@@ -276,90 +281,108 @@ class TopicReportRepository:
         normalized_topic = _normalized(topic)
         normalized_ministry = _normalized(ministry)
         evidence: list[dict[str, Any]] = []
-        meeting_count = 0
+        structures = TopicStructureRepository(self.connection)
         for row in rows:
             (
                 broadcast_id, meeting_title, source_institution, committee_name,
-                meeting_at, provisional_brief, integrated_brief, integration_status,
+                meeting_at, provisional_brief, integrated_brief, integration_status, brief_id,
             ) = row
-            selected = (
-                dict(integrated_brief)
-                if integration_status == "READY" and integrated_brief
-                else dict(provisional_brief or {})
-            )
-            authority = "OFFICIAL_INTEGRATED" if integration_status == "READY" else "PROVISIONAL"
-            tasks = [item for item in selected.get("tasks", []) if isinstance(item, dict)]
-            topics = [item for item in selected.get("topics", []) if isinstance(item, dict)]
-            matched_meeting = False
-            for index, item in enumerate(topics):
-                topic_id = str(item.get("id") or f"topic-{index + 1}")
-                linked_tasks = [
-                    task for task in tasks
-                    if str(task.get("topic_id") or "") == topic_id
-                ]
-                ministries = list(dict.fromkeys(
-                    str(value).strip()
-                    for value in (
-                        list(item.get("ministries") or [])
-                        + [owner for task in linked_tasks for owner in task.get("ministries") or []]
+            structured = structures.ready_current({
+                "brief_id": brief_id, "broadcast_id": broadcast_id,
+                "brief": provisional_brief or {},
+            })
+            versions = []
+            if integration_status == "READY" and integrated_brief:
+                versions.append((dict(integrated_brief), "OFFICIAL_INTEGRATED"))
+            if structured:
+                versions.append((structured, "PROVISIONAL"))
+            elif not versions:
+                versions.append((dict(provisional_brief or {}), "PROVISIONAL"))
+            # Keep authority separate: a detailed LIVE issue never becomes official
+            # just because the same meeting also has an official comparison.
+            seen_topic_ids = set()
+            for selected, authority in versions:
+                tasks = [item for item in selected.get("tasks", []) if isinstance(item, dict)]
+                topics = [item for item in selected.get("topics", []) if isinstance(item, dict)]
+                summaries = {
+                    str(card["source_structured_topic_id"]): card
+                    for card in (selected.get("report_summary") or {}).get("topics", [])
+                    if card.get("source_structured_topic_id")
+                }
+                for index, item in enumerate(topics):
+                    topic_id = str(item.get("id") or f"topic-{index + 1}")
+                    if topic_id in seen_topic_ids:
+                        continue
+                    card = summaries.get(topic_id) or {}
+                    linked_tasks = [
+                        task for task in tasks
+                        if topic_id in {
+                            str(value) for value in [task.get("topic_id"), *(task.get("related_topic_ids") or [])]
+                            if value
+                        }
+                    ]
+                    ministries = list(dict.fromkeys(
+                        str(value).strip()
+                        for value in (
+                            list(item.get("ministries") or [])
+                            + [owner for task in linked_tasks for owner in task.get("ministries") or []]
+                        )
+                        if str(value).strip()
+                    ))
+                    title = " ".join(str(item.get("title") or "").split())
+                    summary = " ".join(str(card.get("summary") or item.get("summary") or "").split())
+                    task_text = " ".join(
+                        " ".join(str(task.get("title") or "").split())
+                        for task in linked_tasks
                     )
-                    if str(value).strip()
-                ))
-                title = " ".join(str(item.get("title") or "").split())
-                summary = " ".join(str(item.get("summary") or "").split())
-                task_text = " ".join(
-                    " ".join(str(task.get("title") or "").split())
-                    for task in linked_tasks
-                )
-                haystack = " ".join((
-                    meeting_title, committee_name or "", title, summary,
-                    task_text, " ".join(ministries),
-                ))
-                haystack_normalized = _normalized(haystack)
-                haystack_tokens = semantic_tokens(haystack)
-                topic_overlap = len(query_tokens & haystack_tokens) / max(1, len(query_tokens))
-                ministry_haystack = normalize_ministry_mentions(haystack) if ministry_tokens else haystack
-                ministry_overlap = len(ministry_tokens & semantic_tokens(ministry_haystack)) / max(1, len(ministry_tokens))
-                exact_topic = bool(normalized_topic and normalized_topic in haystack_normalized)
-                exact_ministry = bool(
-                    normalized_ministry and normalized_ministry in _normalized(ministry_haystack)
-                )
-                if normalized_topic and not _topic_relevant_content(
-                    topic, title, summary, task_text,
-                ):
-                    continue
-                score = round(
-                    topic_overlap * 0.55 + ministry_overlap * 0.25
-                    + (0.15 if exact_topic else 0.0)
-                    + (0.05 if exact_ministry else 0.0),
-                    4,
-                )
-                if score <= 0 or (
-                    normalized_ministry and not (ministry_overlap or exact_ministry)
-                ):
-                    continue
-                matched_meeting = True
-                evidence.append({
-                    "id": f"{broadcast_id}:{topic_id}",
-                    "broadcast_id": str(broadcast_id),
-                    "meeting_title": str(meeting_title),
-                    "meeting_at": meeting_at.isoformat(),
-                    "institution": source_institution,
-                    "committee_name": committee_name,
-                    "authority_status": authority,
-                    "topic_title": title,
-                    "summary": summary,
-                    "ministries": ministries,
-                    "tasks": [{
-                        "title": " ".join(str(task.get("title") or "").split()),
-                        "status": str(task.get("status") or "CANDIDATE"),
-                        "ministries": list(task.get("ministries") or []),
-                    } for task in linked_tasks],
-                    "mention_count": _topic_mention_count(item, linked_tasks),
-                    "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
-                    "score": score,
-                })
-            meeting_count += int(matched_meeting)
+                    haystack = " ".join((
+                        meeting_title, committee_name or "", title, summary,
+                        task_text, " ".join(ministries),
+                    ))
+                    haystack_normalized = _normalized(haystack)
+                    haystack_tokens = semantic_tokens(haystack)
+                    topic_overlap = len(query_tokens & haystack_tokens) / max(1, len(query_tokens))
+                    ministry_haystack = normalize_ministry_mentions(haystack) if ministry_tokens else haystack
+                    ministry_overlap = len(ministry_tokens & semantic_tokens(ministry_haystack)) / max(1, len(ministry_tokens))
+                    exact_topic = bool(normalized_topic and normalized_topic in haystack_normalized)
+                    exact_ministry = bool(
+                        normalized_ministry and normalized_ministry in _normalized(ministry_haystack)
+                    )
+                    if normalized_topic and not _topic_relevant_content(
+                        topic, title, summary, task_text,
+                    ):
+                        continue
+                    score = round(
+                        topic_overlap * 0.55 + ministry_overlap * 0.25
+                        + (0.15 if exact_topic else 0.0)
+                        + (0.05 if exact_ministry else 0.0),
+                        4,
+                    )
+                    if score <= 0 or (
+                        normalized_ministry and not (ministry_overlap or exact_ministry)
+                    ):
+                        continue
+                    seen_topic_ids.add(topic_id)
+                    evidence.append({
+                        "id": f"{broadcast_id}:{topic_id}",
+                        "broadcast_id": str(broadcast_id),
+                        "meeting_title": str(meeting_title),
+                        "meeting_at": meeting_at.isoformat(),
+                        "institution": source_institution,
+                        "committee_name": committee_name,
+                        "authority_status": authority,
+                        "topic_title": title,
+                        "summary": summary,
+                        "ministries": ministries,
+                        "tasks": [{
+                            "title": " ".join(str(task.get("title") or "").split()),
+                            "status": str(task.get("status") or "CANDIDATE"),
+                            "ministries": list(task.get("ministries") or []),
+                        } for task in linked_tasks],
+                        "mention_count": _topic_mention_count(item, linked_tasks),
+                        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+                        "score": score,
+                    })
         if institution in (None, "EXECUTIVE") and official_executive_items:
             match_rows = self.connection.execute(
                 """
@@ -390,7 +413,7 @@ class TopicReportRepository:
             "selection_limited": len(evidence) < total_count,
             "meeting_count": meeting_count,
             "evidence_set_hash": _evidence_hash(evidence),
-            "search_method": "STRUCTURED_TITLE_FIRST_TOPIC_RELEVANCE_V5",
+            "search_method": "CURRENT_REPORT_STRUCTURED_TOPIC_RELEVANCE_V6",
             "llm_calls": 0,
         }
 
@@ -652,6 +675,11 @@ class TopicReportRepository:
             lines.append(f"- 소관 부처: {item['ministry']}")
         if item.get("topic"):
             lines.append(f"- 주제: {item['topic']}")
+        scope_status = (item.get("evidence_scope") or {}).get("status")
+        if scope_status in {"PENDING", "UNAVAILABLE"}:
+            lines += ["> 저장된 보고서와 근거 전체를 수록합니다. " + (
+                "같은 조건의 추가 자료 확인은 진행 중입니다." if scope_status == "PENDING"
+                else "추가 자료 조회가 지연되어 현재 저장본을 제공합니다."), ""]
         lines += [
             f"- 기간: {item['period_start']} ~ {item['period_end']}",
             f"- 작성 모델: {item['provider']} / {item['model']}", "",

@@ -1,0 +1,18 @@
+{
+  "reference_date": "2026-11-05",
+  "original_csv_attached": false,
+  "report_attachment_sha256": "9f71a594c5e881d6081969984d5b53a5c6311acaaa9531e12437cee58df7ef64",
+  "snapshot_scope": "전달 의견서 141개 ID를 운영 DB·CSV와 대조. 원본 CSV 파일 자체는 이번 첨부에 없음.",
+  "external_model_role": "사용자 위임 업무담당자의 업무 보조; 독립 외부검증 완료와 구분",
+  "report_hash_difference": "11월4일 CRLF 원본 2b03ef…를 LF로만 바꾸면 4b5e16… 완전 일치",
+  "new_excluded": [
+    "DOC_5632ccdffbe03dabe243c2d3",
+    "DOC_83d060516aeca3212b5de6dd",
+    "DOC_972a8973cf9199db4d0f1876"
+  ],
+  "old_decisions_changed": 0,
+  "registry_scope": "현재 시스템의 사업 원장 455건; 외부 법정 원장 전수확인 아님",
+  "unresolved_current_source_reviews": 2,
+  "new_business_approvals": 0,
+  "metric_units_added": 0
+}

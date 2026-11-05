@@ -60,6 +60,8 @@ def reserve(c: Any, settings: Any, event_id: str, project: str, model: str,
             period, value, _ = current
             cap = Decimal(str(value)); table = 'openai_credit_grant_usage'
         ir, out = (Decimal(v) for v in RATES[model])
+        if model == "gpt-6-luna" and input_bound > 272_000:
+            ir *= 2
         amount = (Decimal(input_bound)*ir*(1 if kind == 'solar' else Decimal('2.5')) + Decimal(output_bound)*out)/1_000_000
         # table is from the fixed allowlist above, never request data.
         if kind == 'solar' and settings.shared_solar_unlimited:

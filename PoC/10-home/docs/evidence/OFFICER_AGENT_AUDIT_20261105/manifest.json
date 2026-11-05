@@ -1,0 +1,12 @@
+{
+  "backend/ai_agent_workflows.py": "df91e4aeed75782f9ceb4c8dd093b6711588477be4adf209c8a85c0238a8c75f",
+  "backend/ai_officer_review.py": "ca4ddb2ec33e4074ccdbed85179af8f17fa098be63f09399bebd04ea40216bd6",
+  "backend/ai_officer_evidence.py": "576abcf5be9d61e2f9e4e84e0807441e0506a9fc398d9898a387b3e1c3b27b7c",
+  "backend/ai_agents_store.py": "e606ba2ed4686e0315e6a5b767dd914d551899335fe351a46ff85ef69066bb20",
+  "backend/ai_collection_store.py": "2f92e39c276a6ec905430bfbe4fb5baaf381684f95c13704663a1ba8e636c516",
+  "backend/ai_collection_progress.py": "b36d39e20eda62ffff540fc358a3d2dec47d672d7c334aa3eb2eca2396982318",
+  "backend/ai_collection_worker.py": "36f4fa4ee586d98f209b541a4f8a654fb96d6c6fdccd7f24117b116754cf089c",
+  "web/assets/ai-collection.js": "c44554d9a3016584a92d22bcc3b494d8be2082c71e00d358c87befffc737656a",
+  "web/assets/ai-collection.css": "04574ded5d6fa1960cad7559f5171428bb064ab718ad60d89478fa7b14eb3bfb",
+  "tests/test_ai_officer_review.py": "e8f7c3f1a4678480b84ec8096306473375a4d5ee92051d96be3477abad2b477a"
+}

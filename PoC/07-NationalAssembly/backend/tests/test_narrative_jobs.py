@@ -61,7 +61,7 @@ def test_scheduled_priority_reads_database_without_worker_file_mount(monkeypatch
     from datetime import datetime, date, time, timezone
     @contextmanager
     def connect(_):
-        yield SimpleNamespace(execute=lambda q: SimpleNamespace(fetchone=lambda: (False,)))
+        yield SimpleNamespace(execute=lambda q, params=None: SimpleNamespace(fetchone=lambda: (False,)))
     monkeypatch.setattr(jobs, 'connect', connect)
     monkeypatch.setattr(jobs, 'get_settings', lambda: SimpleNamespace(database_url='fixture'))
     monkeypatch.setattr(jobs, 'ScheduleRepository', lambda c: SimpleNamespace(list_schedule_for_date=lambda d: [

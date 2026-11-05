@@ -41,7 +41,7 @@ def register(service, row, rid):
         return doc.entity_id, outcome=='new'
 
 
-def search_rows(raw):
+def search_rows(raw, max_age_days=30, allow_undated=False):
     if len(raw)>3_000_000 or b'<!DOCTYPE' in raw.upper() or b'<!ENTITY' in raw.upper():
         raise ValueError('검색 피드 검증 실패')
     root=ET.fromstring(raw)
@@ -54,11 +54,15 @@ def search_rows(raw):
             url=(parse_qs(p.query).get('url') or [''])[0]
         try:
             url=canonical(url)
-            published=parsedate_to_datetime(item.findtext('pubDate') or '')
-            if not published.tzinfo: published=published.replace(tzinfo=timezone.utc)
-            if not datetime.now(timezone.utc)-timedelta(days=30)<=published<=datetime.now(timezone.utc)+timedelta(days=1): continue
+            raw_date=item.findtext('pubDate') or ''
+            published=parsedate_to_datetime(raw_date) if raw_date else None
+            if published:
+                if not published.tzinfo: published=published.replace(tzinfo=timezone.utc)
+                if published>datetime.now(timezone.utc)+timedelta(days=1):continue
+                if max_age_days is not None and published<datetime.now(timezone.utc)-timedelta(days=max_age_days):continue
+            elif not allow_undated:continue
         except (ValueError,TypeError,OverflowError): continue
-        rows.append(dict(name=item.findtext('title') or url,evidence_url=url,source_date=published.date().isoformat()))
+        rows.append(dict(name=item.findtext('title') or url,evidence_url=url,source_date=published.date().isoformat() if published else None))
     return rows
 
 
@@ -76,7 +80,7 @@ def discovery(service, store, run, fetcher):
             for _,_,row in rows:
                 did,created=register(service,row,run['id'])
                 if created: store.event(run['id'],'DISCOVERED',document_id=did,title=row['name'])
-            store.event(run['id'],'SOURCE',source=source['name'],found=len(rows))
+            store.event(run['id'],'SOURCE',source=source['name'],found=len(rows),scope_exclusions=stats.get('scope_exclusions',[]))
         except Exception as error:
             store.event(run['id'],'SOURCE_ERROR',source=source['name'],error=type(error).__name__,
                         message='목록 수집 실패 · 기존 자료 보존, 원문 경로 확인 필요')
@@ -89,6 +93,11 @@ def discovery(service, store, run, fetcher):
                 url='https://www.bing.com/news/search?'+urlencode(dict(q=query,format='rss',setlang='ko-KR'))
                 rows=search_rows(fetcher.get(url,'xml'))
                 for row in rows:
+                    from .publication_watch import scope_exclusion,SCOPE_RULE_VERSION
+                    reason=scope_exclusion(row['name'])
+                    if reason:
+                        store.event(run['id'],'SCOPE_EXCLUDED',title=row['name'],url=row['evidence_url'],reason_code=reason,rule_version=SCOPE_RULE_VERSION)
+                        continue
                     did,created=register(service,row,run['id'])
                     if created: store.event(run['id'],'DISCOVERED',document_id=did,title=row['name'])
                 store.event(run['id'],'SEARCH',query=query,found=len(rows))
@@ -162,9 +171,20 @@ def process_run(service, store, run, fetcher=None, analyzer=evaluate, discover=d
             if not store.alive(rid): raise InterruptedError()
             store.scanned(doc['id'])
             try:
+                from .publication_watch import scope_exclusion,SCOPE_RULE_VERSION
+                reason=scope_exclusion(doc.get('name',''))
+                if reason:
+                    store.event(rid,'SCOPE_EXCLUDED',document_id=doc['id'],title=doc.get('name'),reason_code=reason,rule_version=SCOPE_RULE_VERSION)
+                    skipped+=1;finished=True
+                    continue
                 raw=fetcher.get(doc['evidence_url'])
                 from .algorithm_review import extract_approved
-                (title,body,truncated),applied_rule=extract_approved(store,fetcher.last.get('url') or doc['evidence_url'],raw)
+                try:
+                    (title,body,truncated),applied_rule=extract_approved(store,fetcher.last.get('url') or doc['evidence_url'],raw)
+                except ValueError:
+                    from .publication_capture import capture
+                    (title,body,truncated),_=capture(raw,fetcher.last.get('url') or doc['evidence_url'],fetcher)
+                    applied_rule=None
                 if applied_rule:
                     fetcher.last=dict(fetcher.last,extraction_rule=applied_rule)
                     store.event(rid,'EXTRACTION_RULE',document_id=doc['id'],**applied_rule)

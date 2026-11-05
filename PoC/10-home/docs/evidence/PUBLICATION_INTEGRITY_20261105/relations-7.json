@@ -1,0 +1,121 @@
+[
+  {
+    "event_group_id": "EVENT_09b741881976955b",
+    "numbers": [
+      7,
+      26
+    ],
+    "document_ids": [
+      "DOC_12b143ac0bc7e2746571473a",
+      "DOC_b710c8beef01dcc25540acaa"
+    ],
+    "relation_type": "REPORTS_ON",
+    "status": "CANDIDATE",
+    "identity_confirmed": false,
+    "merge_allowed": false,
+    "aggregate_allowed": false,
+    "reason": "공식/보도 원문·단지·모집유형 대조. 동일 자산과 같은 공고는 구분; 법정 사업ID/첨부 완전 일치 미확정"
+  },
+  {
+    "event_group_id": "EVENT_fbc3da66c9677bfc",
+    "numbers": [
+      12,
+      15
+    ],
+    "document_ids": [
+      "DOC_3af1497f1c3e38152ac9fc9b",
+      "DOC_615eb72853b1976bd67f0bdc"
+    ],
+    "relation_type": "REPORTS_ON",
+    "status": "CANDIDATE",
+    "identity_confirmed": false,
+    "merge_allowed": false,
+    "aggregate_allowed": false,
+    "reason": "공식/보도 원문·단지·모집유형 대조. 동일 자산과 같은 공고는 구분; 법정 사업ID/첨부 완전 일치 미확정"
+  },
+  {
+    "event_group_id": "EVENT_0807d79603ea37c4",
+    "numbers": [
+      17,
+      13
+    ],
+    "document_ids": [
+      "DOC_72ede1d5786c54ba6a273031",
+      "DOC_5205f8233241c76059054cb5"
+    ],
+    "relation_type": "REPORTS_ON",
+    "status": "CANDIDATE",
+    "identity_confirmed": false,
+    "merge_allowed": false,
+    "aggregate_allowed": false,
+    "reason": "공식/보도 원문·단지·모집유형 대조. 동일 자산과 같은 공고는 구분; 법정 사업ID/첨부 완전 일치 미확정"
+  },
+  {
+    "event_group_id": "EVENT_2885b361102f5629",
+    "numbers": [
+      8,
+      27
+    ],
+    "document_ids": [
+      "DOC_1d1b76910c7f256872b7bfdf",
+      "DOC_c7b545d8d4673e856edb8272"
+    ],
+    "relation_type": "SAME_MARKETING_EVENT",
+    "status": "CANDIDATE",
+    "identity_confirmed": false,
+    "merge_allowed": false,
+    "aggregate_allowed": false,
+    "reason": "공식/보도 원문·단지·모집유형 대조. 동일 자산과 같은 공고는 구분; 법정 사업ID/첨부 완전 일치 미확정"
+  },
+  {
+    "event_group_id": "EVENT_9606c1329804f288",
+    "numbers": [
+      28,
+      122
+    ],
+    "document_ids": [
+      "DOC_d408fbc3814896a5e4b1a440",
+      "DOC_62b5e068d783c9a64e8a4bfa"
+    ],
+    "relation_type": "REVISION_OF",
+    "status": "CANDIDATE",
+    "identity_confirmed": false,
+    "merge_allowed": false,
+    "aggregate_allowed": false,
+    "reason": "공식/보도 원문·단지·모집유형 대조. 동일 자산과 같은 공고는 구분; 법정 사업ID/첨부 완전 일치 미확정"
+  },
+  {
+    "event_group_id": "EVENT_a2cea3cf2fddbc94",
+    "numbers": [
+      10,
+      25
+    ],
+    "document_ids": [
+      "DOC_2e05f8a89a4879d89f987cfc",
+      "DOC_b119fad2693b695410db10d7"
+    ],
+    "relation_type": "SAME_ASSET_DIFFERENT_RECRUITMENT",
+    "status": "CANDIDATE",
+    "identity_confirmed": false,
+    "merge_allowed": false,
+    "aggregate_allowed": false,
+    "reason": "공식/보도 원문·단지·모집유형 대조. 동일 자산과 같은 공고는 구분; 법정 사업ID/첨부 완전 일치 미확정"
+  },
+  {
+    "event_group_id": "EVENT_5936422cc925da6f",
+    "numbers": [
+      2,
+      3
+    ],
+    "document_ids": [
+      "DOC_c1e0735a4fd133445a58f02a",
+      "DOC_7cc26f88094ea91514a10bf2"
+    ],
+    "relation_type": "FOLLOW_UP_TO",
+    "status": "CANDIDATE",
+    "identity_confirmed": false,
+    "merge_allowed": false,
+    "aggregate_allowed": false,
+    "reason": "공식/보도 원문·단지·모집유형 대조. 동일 자산과 같은 공고는 구분; 법정 사업ID/첨부 완전 일치 미확정"
+  }
+]

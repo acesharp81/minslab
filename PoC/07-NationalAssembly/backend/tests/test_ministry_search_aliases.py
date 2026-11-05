@@ -1,7 +1,7 @@
 from copy import deepcopy
 from datetime import date, datetime, timezone
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from app.domain.ministry import (
     MINISTRY_ALIASES, canonical_ministry_name, normalize_ministry_mentions,
@@ -28,7 +28,9 @@ class MinistrySearchAliasTests(TestCase):
         self.assertEqual(normalize_ministry_mentions('농식품부문 투자'), '농식품부문 투자')
         self.assertEqual(normalize_ministry_mentions('국가행안부'), '국가행안부')
 
-    def test_repository_matches_both_directions_without_altering_source(self):
+    @patch('app.db.topic_report_repository.TopicStructureRepository')
+    def test_repository_matches_both_directions_without_altering_source(self, structures):
+        structures.return_value.ready_current.return_value = None
         brief = {'topics': [
             {'id': 'short', 'title': '안전 정책', 'summary': '행안부에서 재난 대응을 검토한다.'},
             {'id': 'full', 'title': '재난 대응', 'summary': '행정안전부가 안전 대책을 마련한다.'},
@@ -40,7 +42,7 @@ class MinistrySearchAliasTests(TestCase):
         connection = Mock()
         connection.execute.return_value.fetchall.return_value = [(
             'meeting-1', '위원회 회의', 'LEGISLATURE', '위원회',
-            datetime(2026, 10, 19, tzinfo=timezone.utc), brief, {}, 'PENDING',
+            datetime(2026, 10, 19, tzinfo=timezone.utc), brief, {}, 'PENDING', 'brief-1',
         )]
         repository = TopicReportRepository(connection)
         results = []

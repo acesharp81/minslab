@@ -1,0 +1,9 @@
+{
+  "passed": 29,
+  "subtests_passed": 6,
+  "external_model_calls": 0,
+  "new_input_limit_bytes": 512000,
+  "parent_output_limit_tokens": 20000,
+  "parent_request_timeout_seconds": 300,
+  "ordinary_summary_output_limit_tokens": 8000
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "site": "kjon",
+    "width": 1440,
+    "three_columns": true,
+    "gap": 8.0,
+    "document_topics": 529,
+    "report_md_chars": 239075,
+    "full_md_chars": 493585,
+    "unofficial_default": true,
+    "scroll_pages": [
+      [
+        5,
+        10
+      ],
+      [
+        10,
+        15
+      ]
+    ],
+    "page_errors": []
+  },
+  {
+    "site": "minslab",
+    "width": 390,
+    "three_columns": true,
+    "gap": 8.0,
+    "document_topics": 529,
+    "report_md_chars": 239095,
+    "full_md_chars": 493585,
+    "unofficial_default": true,
+    "scroll_pages": [
+      [
+        5,
+        10
+      ],
+      [
+        10,
+        15
+      ]
+    ],
+    "page_errors": []
+  },
+  {
+    "official_rows": 150,
+    "two_pages_complete": true,
+    "default_official": true,
+    "switch_back_cached": true,
+    "official_md_label": true
+  }
+]

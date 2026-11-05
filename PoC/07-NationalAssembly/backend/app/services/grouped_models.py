@@ -18,6 +18,9 @@ from ..db.openai_group_budget import OpenAIGroupBudget
 from ..db.summary_repository import token_usage_from_metadata
 from .meeting_brief import OpenAIMeetingBriefClient, OpenRouterMeetingBriefClient
 from .model_workloads import INTEGRATION_SCHEMAS
+from .openrouter_quota import gateway_usage, GatewayQuotaUnavailable
+
+MONTHLY_CREDIT_POLICY = 'monthly-credit-routing/20261105'
 
 INTEGRATION = INTEGRATION_SCHEMAS | {'live_topic_mapping', 'topic_report',
     'gukjeongbomi_topic_report', 'official_brief_delta', 'gukjeongbomi_official_change_report'}
@@ -117,7 +120,17 @@ def quota_client(settings: Any, group: str) -> OpenAIMeetingBriefClient:
                 error.skip_input_count = True
                 raise error
             with connect(settings.database_url) as c:
-                return OpenAIGroupBudget(c, group).reserve(tokens, cap)
+                budget = OpenAIGroupBudget(c, group)
+                try:
+                    return budget.reserve(tokens, cap)
+                except DailyTokenLimitReached as exc:
+                    usage = budget.today()
+                    exc.remaining_tokens = max(0, cap-usage['total_tokens']-usage['unknown_tokens']-usage['reserved_tokens'])
+                    raise
+        if not getattr(settings, 'openai_monthly_credit_fallback_enabled', True):
+            error = DailyTokenLimitReached('MONTHLY_CREDIT_DISABLED')
+            error.skip_input_count = True
+            raise error
         period = credit_period(settings)
         if period is None:
             error = DailyTokenLimitReached('PROMOTIONAL_CREDIT_UNCONFIRMED_OR_EXPIRED')
@@ -172,14 +185,19 @@ def quota_client(settings: Any, group: str) -> OpenAIMeetingBriefClient:
 def pool(settings: Any, workload: str = 'general') -> list[Any]:
     if workload in {'integration', 'verification'}:
         result = [quota_client(settings, 'main')] if settings.openai_api_key else []
-        if settings.openai_api_key and credit_active(settings):
+        if settings.openai_api_key and getattr(settings, 'openai_monthly_credit_fallback_enabled', True) and credit_active(settings):
             result.append(quota_client(settings, 'paid'))
         return result
     result = [quota_client(settings, 'mini')] if settings.openai_api_key else []
     if settings.openrouter_api_key:
-        result.append(OpenRouterMeetingBriefClient(settings.openrouter_api_key,
-            model=settings.meeting_brief_model, base_url=settings.openrouter_base_url))
-    if settings.openai_api_key and getattr(settings, 'openai_realtime_credit_enabled', False):
+        try:
+            router_usage = gateway_usage(settings)
+        except GatewayQuotaUnavailable:
+            router_usage = None  # Unknown capacity still tries the free route.
+        if router_usage is None or router_usage['used'] < min(950, router_usage['limit']):
+            result.append(OpenRouterMeetingBriefClient(settings.openrouter_api_key,
+                model=settings.meeting_brief_model, base_url=settings.openrouter_base_url))
+    if settings.openai_api_key and getattr(settings, 'openai_monthly_credit_fallback_enabled', True) and getattr(settings, 'openai_realtime_credit_enabled', False):
         from .realtime_credit import credit_client
         result.append(credit_client(settings))
         if settings.openai_realtime_credit_model != 'gpt-5.4-mini':
@@ -239,17 +257,8 @@ def usage_groups(settings: Any, connection: Any, *, router_left: int, router_lim
         'remaining':max(0, allowance-float(sum(grant or (0,0,0)))) if active else None,
         'expires_at':expiry, 'renewal_basis':'USER_CONFIGURED_MONTH_START_KST' if settings.openai_credit_month_start_renewal else 'USER_CONFIGURED_MONTH_END_KST'}
     realtime_entry = entries['mini']
-    if getattr(settings, 'openai_realtime_credit_enabled', False):
+    if getattr(settings, 'openai_realtime_credit_enabled', False) and getattr(settings, 'openai_monthly_credit_fallback_enabled', True):
         paid['shared_with_realtime_credit'] = True
-        if entries['mini']['remaining'] < 8000 and router_left <= 0:
-            from .realtime_credit import remaining_credit
-            remaining, cap = remaining_credit(settings, connection)
-            model = settings.openai_realtime_credit_model
-            realtime_entry = {'id':'realtime-credit','label':'GPT-6 Luna' if model=='gpt-6-luna' else 'GPT-5.4 mini',
-                'model':model,'provider':'OpenAI','remaining':remaining,'limit':cap,'unit':'USD',
-                'period':'CREDIT_GRANT','scope':'POC7_REALTIME_CREDIT_SUBLIMIT','expires_at':expiry,
-                'free_daily_model':'GPT-5.4 mini','free_daily_remaining':entries['mini']['remaining'],
-                'billing_route':'MONTHLY_CREDIT_SPILLOVER'}
     return [
         {'id':'realtime','label':'실시간 부분요약','models':[realtime_entry,
             {'id':'openrouter','label':({'nvidia/nemotron-3.5-super-vl:free':'Nemo3.5 VL','dots-studio/dots-3-note-preview:free':'Dots3 Note'}.get(settings.llm_model,settings.llm_model.rsplit('/',1)[-1].split(':')[0][:10])),'model':settings.llm_model,'provider':'OpenRouter','remaining':router_left,'limit':router_limit,

@@ -149,6 +149,14 @@ def test_existing_completed_fingerprint_is_preserved_without_manual_retry():
  assert work.fingerprint(doc,dict(analysis,human_retry=1),models)!=expected
 
 
+def test_officer_evidence_changes_do_not_invalidate_algorithm_diagnoses():
+ doc={'source_revision_no':3,'review_revision_no':2};analysis={'body_sha256':'abc','candidate_versions':[('project',1)]};models=['solar-pro4',None]
+ first=dict(analysis,evidence_epoch='before');second=dict(analysis,evidence_epoch='after')
+ assert work.fingerprint(doc,first,models)==work.fingerprint(doc,second,models)
+ assert work.fingerprint(doc,first,models,role='officer')!=work.fingerprint(doc,second,models,role='officer')
+ assert work.fingerprint(doc,first,models)!=work.fingerprint(doc,first,models,role='officer')
+
+
 def test_duplicate_prior_document_does_not_count_twice(env):
  service,store,did,_=env;d=seed(env);f=Fetch(store);f.get(d['source']['url'])
  with service.sessions.begin() as db:

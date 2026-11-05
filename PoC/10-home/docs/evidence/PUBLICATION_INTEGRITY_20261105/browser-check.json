@@ -1,0 +1,15 @@
+{
+  "report_original_download_sha256": "9f71a594c5e881d6081969984d5b53a5c6311acaaa9531e12437cee58df7ef64",
+  "structured_facts": 4,
+  "attachment_status_visible": true,
+  "scope_excluded_visible": true,
+  "desktop": {
+    "width": 1440,
+    "scroll": 1440
+  },
+  "mobile": {
+    "width": 390,
+    "scroll": 390
+  },
+  "page_errors": []
+}

@@ -6,3 +6,5 @@
 .mr-count.OFFICER,.mr-badge.OFFICER{background:#e5f5e9;border-color:#bcdcc7;color:#26603b}@media(max-width:800px){.mr-counts{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 .mr-counts{grid-template-columns:repeat(5,minmax(0,1fr))}.mr-count.EXCLUDED,.mr-badge.EXCLUDED{background:#edf0f2;border-color:#cbd3d8;color:#58646b}.mr-decision{border-top:1px solid #d9e4e9;padding-top:12px}@media(max-width:1000px){.mr-counts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.mr-evidence small{display:block;overflow-wrap:anywhere}

@@ -156,3 +156,19 @@ def test_home_gateway_requires_auth_and_pins_approved_free_model(monkeypatch):
     monkeypatch.setattr(g,'_cached',lambda *a,**kw:(200,b'{"cached":true}'))
     response=client.post('/api/v1/chat/completions',headers=headers,json={'model':'nvidia/nemotron-3.5-super-vl:free'})
     assert response.status_code==200 and response.json()['cached']
+
+
+def test_monthly_100_is_one_atomic_cap_across_three_concurrent_projects(ledger):
+    connect,s=ledger;s=s.model_copy(update={'openai_credit_budget_usd':100})
+    with connect() as c:
+        c.execute('INSERT INTO openai_credit_grant_usage(grant_id,spent_usd,unknown_usd) VALUES(%s,%s,%s)',('test',99.8,.1))
+    def attempt(project):
+        try:
+            with connect() as c:return b.reserve(c,s,'monthly-cap-'+project,project,'gpt-6-luna',200000,20000)
+        except b.BudgetUnavailable:return None
+    with ThreadPoolExecutor(max_workers=3) as pool:results=list(pool.map(attempt,['poc7','poc10','poc11']))
+    assert sum(result is not None for result in results)==1
+    with connect() as c:
+        used=c.execute('SELECT spent_usd+unknown_usd+reserved_usd,reserved_usd FROM openai_credit_grant_usage WHERE grant_id=%s',('test',)).fetchone()
+        assert float(used[0])==pytest.approx(99.965) and float(used[1])==pytest.approx(.065)
+        assert c.execute('SELECT COUNT(*) FROM shared_model_reservations').fetchone()[0]==1

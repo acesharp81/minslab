@@ -40,7 +40,7 @@ def summarize(run, checkpoint, calls, counts, at=None):
         # Subtract confirmed tokens already spent on the current unfinished item.
         current_tokens = max(0,tokens['confirmed_tokens']-sample_tokens)
         estimate = max(0,math.ceil(sample_tokens/done*remaining-current_tokens))
-    return dict(stage=stage,current=p.get('current',''),model=p.get('model'),
+    return dict(business_outcomes=p.get('business_outcomes'),queue_total=p.get('queue_total'),queue_remaining=p.get('queue_remaining'),model_calls=len(calls),stage=stage,current=p.get('current',''),model=p.get('model'),
                 completed=completed,total=target,unit='sources' if source_stage else 'documents',percent=percent,
                 documents_done=done,documents_total=total,documents_remaining=remaining,
                 documents_skipped=p.get('documents_skipped',counts.get('UNCHANGED',0)),

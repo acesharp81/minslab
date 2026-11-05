@@ -16,9 +16,16 @@ def background_defer_reason(*, now: datetime | None = None) -> str | None:
     settings = get_settings()
     current = now or datetime.now(timezone.utc)
     with connect(settings.database_url) as c:
-        active = c.execute("SELECT EXISTS (SELECT 1 FROM live_broadcasts "
-            "WHERE source_system IN ('assembly.webcast.go.kr','ktv.go.kr') "
-            "AND (lifecycle_status='LIVE' OR (lifecycle_status='ENDED' AND ended_at>=now()-interval '15 minutes')))").fetchone()[0]
+        # A capture lease/updated_at can refresh forever after a source vanishes.
+        # Priority requires recent observed source/caption activity; this does
+        # not declare a quiet or recessed meeting ended.
+        active = c.execute("""SELECT EXISTS (SELECT 1 FROM live_broadcasts
+            WHERE source_system IN ('assembly.webcast.go.kr','ktv.go.kr') AND (
+                (lifecycle_status='LIVE' AND
+                    GREATEST(last_caption_received_at,last_seen_at,detected_at)
+                        >= %s - interval '15 minutes')
+                OR (lifecycle_status='ENDED' AND ended_at >= %s - interval '15 minutes')))
+            """, (current, current)).fetchone()[0]
         if active:
             return 'LIVE_OR_RECENT_MEETING'
         entries = ScheduleRepository(c).list_schedule_for_date(current.astimezone(ZoneInfo('Asia/Seoul')).date())

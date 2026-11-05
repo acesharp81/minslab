@@ -160,12 +160,18 @@ def evidence(item, source, manual, ai, assessment, csv_mode=False):
     related=relation_projection(safe_value(assessment.get('related_documents',[])),assessment.get('event_group')) if assessment_current else []
     linkage=bool(item['status']=='APPROVED' and not item.get('source_changed') and not item.get('link_changed') and (item.get('decision') or {}).get('project_ids'))
     text=chosen['text'] if chosen else ''
+    attachments=[]
+    for origin,data in [('SOURCE',source),('MANUAL',manual),('AI',ai)]:
+        for a in data.get('attachments') or (data.get('raw') or {}).get('attachments') or []:
+            attachments.append(dict(a,origin=origin,file_state=a.get('file_state') or ('UNVERIFIED' if a.get('sha256') else 'MISSING'),verification_status='UNVERIFIED'))
     result=dict(document_id=item['id'],source_revision_no=revision,source_revision_id=item.get('source_revision_id'),review_revision_no=item['review_revision_no'],
         effective_text=text,effective_origin=chosen['origin'] if chosen else None,
         effective_text_sha256=sha(text),hash_input_field='통합유효본문',normalization_version=NORMALIZATION,
         normalized_text=text,hash_encoding='UTF-8',quality=quality,
         raw_text_present=any(c['chars'] for c in candidates),usable_detail_body=bool(chosen and chosen['quality']=='TEXT_AVAILABLE_UNVERIFIED'),
-        attachment_verified=False,attachment_verification_note='첨부 메타데이터 존재만으로 첨부 원문 검증을 확정하지 않음',
+        attachment_verified=False,attachment_verification_note='첨부 실물·텍스트 추출과 내용 검증 완료는 별도',
+        attachment_inventory=attachments,attachment_inventory_state='PRESENT' if attachments else 'UNVERIFIED',
+        attachment_absence_confirmed=False,
         quality_note='본문 유형·문자열·판본 기준 선별이며 첨부 완전성·사실·사업 동일성 확정은 별도 확인',
         candidates=candidates,assessment_current=assessment_current,needs_revalidation=bool(reasons),revalidation_reasons=sorted(set(reasons)),
         external_recommendation=safe_value(assessment.get('external_recommendation',{})),

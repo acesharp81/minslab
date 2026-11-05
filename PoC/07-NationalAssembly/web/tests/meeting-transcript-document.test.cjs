@@ -37,3 +37,13 @@ test('empty or segment-only snapshots work without fabricating speech', () => {
   assert.equal(rows.length, 1);
   assert.equal(rows[0].text, '실제 원문');
 });
+
+
+test('official MD keeps source sequence without inventing capture times or a LIVE authority label', () => {
+  const md = context.meetingTranscriptMarkdown('회의', [{sequence:101,speaker:'김 위원',text:'공식 원문 전체',time:''}], 'https://example.test/', 'official');
+  assert.ok(md.includes('공식 자료 발언'));
+  assert.ok(md.includes('공식 발언 101'));
+  assert.ok(md.includes('공식 원문 전체'));
+  assert.ok(!md.includes('LIVE/STT'));
+  assert.ok(!md.includes('시간 미기록'));
+});

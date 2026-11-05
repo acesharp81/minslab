@@ -22,7 +22,7 @@ def summary(payload, source_revision_no):
     return {k: v for k, v in payload.items() if k in (
         'source_revision_no', 'collected_at', 'summary', 'actor')} | {
         'stale': payload['source_revision_no'] != source_revision_no,
-        'attachments': [{k: a[k] for k in ('name','url','sha256') if k in a}
+        'attachments': [{k: a[k] for k in ('name','url','sha256','file_state','verification_status','text_extracted') if k in a}
                         for a in payload.get('attachments', [])]}
 
 

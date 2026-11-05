@@ -1,0 +1,326 @@
+[
+  {
+    "site": "desktop",
+    "width": 1440,
+    "panels": [
+      {
+        "control": "주제 연결·원문 처리 내역",
+        "style": {
+          "padding": "0px",
+          "description": {
+            "padding": "12px 14px",
+            "margin": "0px",
+            "color": "rgb(71, 84, 103)",
+            "font": "12px"
+          },
+          "rows": []
+        }
+      },
+      {
+        "control": "실시간 논의 재분석 후 원문 불명확 1묶음",
+        "style": {
+          "padding": "0px",
+          "description": {
+            "padding": "12px 14px",
+            "margin": "0px",
+            "color": "rgb(71, 84, 103)",
+            "font": "12px"
+          },
+          "rows": [
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": []
+            }
+          ]
+        }
+      },
+      {
+        "control": "재분석 후 원문 불명확 1건",
+        "style": {
+          "padding": "0px",
+          "description": {
+            "padding": "12px 14px",
+            "margin": "0px",
+            "color": "rgb(71, 84, 103)",
+            "font": "12px"
+          },
+          "rows": [
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "control": "회의 진행·의례 원문 74건",
+        "style": {
+          "padding": "0px",
+          "description": {
+            "padding": "12px 14px",
+            "margin": "0px",
+            "color": "rgb(71, 84, 103)",
+            "font": "12px"
+          },
+          "rows": [
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "single_expansion": true,
+    "original_links_work": true,
+    "page_errors": []
+  },
+  {
+    "site": "mobile",
+    "width": 390,
+    "panels": [
+      {
+        "control": "주제 연결·원문 처리 내역",
+        "style": {
+          "padding": "0px",
+          "description": {
+            "padding": "12px 14px",
+            "margin": "0px",
+            "color": "rgb(71, 84, 103)",
+            "font": "12px"
+          },
+          "rows": []
+        }
+      },
+      {
+        "control": "실시간 논의 재분석 후 원문 불명확 1묶음",
+        "style": {
+          "padding": "0px",
+          "description": {
+            "padding": "12px 14px",
+            "margin": "0px",
+            "color": "rgb(71, 84, 103)",
+            "font": "12px"
+          },
+          "rows": [
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": []
+            }
+          ]
+        }
+      },
+      {
+        "control": "재분석 후 원문 불명확 1건",
+        "style": {
+          "padding": "0px",
+          "description": {
+            "padding": "12px 14px",
+            "margin": "0px",
+            "color": "rgb(71, 84, 103)",
+            "font": "12px"
+          },
+          "rows": [
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "control": "회의 진행·의례 원문 74건",
+        "style": {
+          "padding": "0px",
+          "description": {
+            "padding": "12px 14px",
+            "margin": "0px",
+            "color": "rgb(71, 84, 103)",
+            "font": "12px"
+          },
+          "rows": [
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            },
+            {
+              "padding": "12px 14px",
+              "color": "rgb(71, 84, 103)",
+              "size": "12px",
+              "weight": "400",
+              "p": [
+                {
+                  "color": "rgb(71, 84, 103)",
+                  "weight": "400",
+                  "margin": "4px 0px 0px"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "single_expansion": true,
+    "original_links_work": true,
+    "page_errors": []
+  }
+]

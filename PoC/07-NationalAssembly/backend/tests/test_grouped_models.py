@@ -107,3 +107,37 @@ def test_shared_card_uses_monthly_denominator_without_restoring_spent_balance(mo
     assert card['opening_used']==92 and card['used']==93.8
     assert card['remaining']==pytest.approx(5.596)
     assert '매월 1일' in card['note']
+
+
+def test_confirmed_router_exhaustion_is_skipped_and_reset_restores_free_route(monkeypatch):
+    state={'used':950,'limit':950}
+    monkeypatch.setattr(gm,'gateway_usage',lambda _:state)
+    s=config(model_workload_groups_enabled=True)
+    assert [c.provider for c in gm.pool(s)]==['openai']
+    state['used']=0
+    assert [c.provider for c in gm.pool(s)]==['openai','openrouter']
+    monkeypatch.setattr(gm,'gateway_usage',lambda _:None)
+    assert [c.provider for c in gm.pool(s)]==['openai','openrouter']
+
+
+def test_explicit_monthly_switch_disables_paid_integration_and_general_routes(monkeypatch):
+    monkeypatch.setattr(gm,'credit_active',lambda _:True)
+    monkeypatch.setattr(gm,'gateway_usage',lambda _:None)
+    s=config(openai_monthly_credit_fallback_enabled=False,openai_realtime_credit_enabled=True)
+    assert [c.model for c in gm.pool(s,'integration')]==['gpt-5.4']
+    assert [c.provider for c in gm.pool(s)]==['openai','openrouter']
+
+
+def test_free_mini_usage_stays_visible_during_monthly_fallback_and_after_reset(monkeypatch):
+    from types import SimpleNamespace
+    left={'mini':13500,'main':14000}
+    monkeypatch.setattr(gm,'OpenAIGroupBudget',lambda c,group:SimpleNamespace(today=lambda:{'total_tokens':gm.daily_limit(s,group)-left[group],'unknown_tokens':0,'reserved_tokens':0}))
+    s=config(openai_realtime_credit_enabled=True)
+    c=Mock();c.execute.return_value.fetchone.return_value=(5,0,0)
+    for remaining,router_left in [(13500,0),(0,0),(10000000,950)]:
+        left['mini']=remaining
+        groups=gm.usage_groups(s,c,router_left=router_left,router_limit=950,mistral_left=9)
+        entry=groups[0]['models'][0]
+        assert entry['id']=='mini' and entry['label']=='GPT-5.4 mini'
+        assert entry['remaining']==remaining and entry['unit']=='tokens' and entry['period']=='DAILY_UTC'
+        assert groups[1]['models'][1]['shared_with_realtime_credit']

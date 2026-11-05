@@ -1,0 +1,67 @@
+[
+  {
+    "service": "/poc07-national-assembly-api",
+    "image": "poc07-monthly-credit-ui:20261105",
+    "running": true,
+    "restarts": 0,
+    "settings": {
+      "MODEL_WORKLOAD_GROUPS_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_MONTHLY_LIMIT_USD": "100",
+      "OPENAI_REALTIME_CREDIT_PROTECTED_USD": "0",
+      "OPENAI_MONTHLY_CREDIT_FALLBACK_ENABLED": "true"
+    }
+  },
+  {
+    "service": "/poc07-national-assembly-summary-worker",
+    "image": "poc07-monthly-credit:20261105",
+    "running": true,
+    "restarts": 0,
+    "settings": {
+      "MODEL_WORKLOAD_GROUPS_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_MONTHLY_LIMIT_USD": "100",
+      "OPENAI_REALTIME_CREDIT_PROTECTED_USD": "0",
+      "OPENAI_MONTHLY_CREDIT_FALLBACK_ENABLED": "true"
+    }
+  },
+  {
+    "service": "/poc07-national-assembly-meeting-brief-worker",
+    "image": "poc07-monthly-credit:20261105",
+    "running": true,
+    "restarts": 0,
+    "settings": {
+      "MODEL_WORKLOAD_GROUPS_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_MONTHLY_LIMIT_USD": "100",
+      "OPENAI_REALTIME_CREDIT_PROTECTED_USD": "0",
+      "OPENAI_MONTHLY_CREDIT_FALLBACK_ENABLED": "true"
+    }
+  },
+  {
+    "service": "/poc07-national-assembly-topic-report-worker",
+    "image": "poc07-monthly-credit:20261105",
+    "running": true,
+    "restarts": 0,
+    "settings": {
+      "MODEL_WORKLOAD_GROUPS_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_MONTHLY_LIMIT_USD": "100",
+      "OPENAI_REALTIME_CREDIT_PROTECTED_USD": "0",
+      "OPENAI_MONTHLY_CREDIT_FALLBACK_ENABLED": "true"
+    }
+  },
+  {
+    "service": "/poc07-national-assembly-official-integration-worker",
+    "image": "poc07-monthly-credit:20261105",
+    "running": true,
+    "restarts": 0,
+    "settings": {
+      "MODEL_WORKLOAD_GROUPS_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_ENABLED": "true",
+      "OPENAI_REALTIME_CREDIT_MONTHLY_LIMIT_USD": "100",
+      "OPENAI_REALTIME_CREDIT_PROTECTED_USD": "0",
+      "OPENAI_MONTHLY_CREDIT_FALLBACK_ENABLED": "true"
+    }
+  }
+]

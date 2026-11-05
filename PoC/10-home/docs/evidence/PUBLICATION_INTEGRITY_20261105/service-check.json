@@ -1,0 +1,48 @@
+{
+  "targets": 141,
+  "original_111_states_unchanged": true,
+  "new_documents": 30,
+  "new_bodies": 27,
+  "new_active_facts": 33,
+  "active_facts": 140,
+  "historical_facts": 4,
+  "hash_errors": 0,
+  "quote_errors": 0,
+  "states": {
+    "REGISTRATION_REQUIRED": 46,
+    "REVIEW": 53,
+    "EXCLUDED": 3,
+    "HOLD": 39
+  },
+  "quality": {
+    "SUMMARY_ONLY": 2,
+    "TEXT_AVAILABLE_UNVERIFIED": 104,
+    "MISSING": 31,
+    "INSUFFICIENT": 4
+  },
+  "registry_compared_rows": 455,
+  "registry_pending_documents": 46,
+  "policy_actuals_unchanged": true,
+  "agent_settings_unchanged": true,
+  "actual_units_added": 0,
+  "report_hash_proof": {
+    "20261104": {
+      "byte_sha256": "2b03ef1258ab56bb84d41f544924e6b33eb937439b6c25db539d22e369f425b6",
+      "lf_sha256": "4b5e160733e420d434d7d490e61a6f1140ba9fd8ab9c7a96d929fd87e467d9ed"
+    },
+    "20261105": {
+      "byte_sha256": "9f71a594c5e881d6081969984d5b53a5c6311acaaa9531e12437cee58df7ef64",
+      "lf_sha256": "b1875f0523af49f735f4a6bc6674e8c26a38a50f54d1411892d04bca9eeaf3bb"
+    }
+  },
+  "timings_seconds": {
+    "after.csv": 2.394,
+    "after.json": 3.263,
+    "report-20261104.txt": 0.004,
+    "report-20261105.txt": 0.003,
+    "policy-after.json": 0.069,
+    "agents-after.json": 0.02,
+    "health-after.json": 0.011,
+    "open.csv": 1.71
+  }
+}

@@ -32,3 +32,7 @@
 @media(max-width:600px){.ai-agent-console{padding:12px}.ai-quota-detail>summary{grid-template-columns:repeat(2,minmax(0,1fr))}.ai-agent-toolbar a{white-space:normal}.ai-worker-title{flex-wrap:wrap}}
 .ai-quota-detail>summary{display:grid}.ai-quota-amount{white-space:normal}.ai-common-form textarea{white-space:pre-wrap}
 .ai-shared-budget{width:760px;max-width:100%;box-sizing:border-box}.ai-quota-heading{white-space:normal}
+
+.ai-officer-outcomes{padding:12px 15px;margin:12px 0;background:#f1f7f4;border:1px solid #d3e4d9;border-radius:9px;font-size:12px;line-height:1.7;overflow-wrap:anywhere}.ai-officer-outcomes p{margin:6px 0}
+
+.ai-missing-evidence{padding:10px 14px;margin:8px 0;background:#fff8e9;border-left:3px solid #b88832;border-radius:5px;overflow-wrap:anywhere}.ai-missing-evidence p{margin:5px 0}.ai-final-verdict{color:#176c55}

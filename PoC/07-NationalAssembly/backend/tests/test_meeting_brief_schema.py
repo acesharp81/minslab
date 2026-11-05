@@ -175,7 +175,8 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn(
             "const supplementarySections = lineageUnmappedPanel ? [lineageUnmappedPanel] : []", script
         )
-        self.assertIn("sourceView.append(actions, workspace)", script)
+        self.assertIn("sourceView.append(renderMeetingSupplementarySections(", script)
+        self.assertIn("sourceView.append(workspace)", script)
         self.assertNotIn("meeting-task-section", script)
         self.assertIn(".meeting-topic-task-row", styles)
         self.assertIn(".meeting-topic-task-detail", styles)

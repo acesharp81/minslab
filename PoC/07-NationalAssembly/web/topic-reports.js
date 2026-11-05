@@ -111,6 +111,16 @@
     if (clearPreview) previewContainer.replaceChildren();
   }
 
+  function clearSelectedReport() {
+    window.clearTimeout(state.timer);
+    state.timer = null;
+    state.activeId = "";
+    state.lastReadyId = "";
+    resultContainer.replaceChildren();
+    resultContainer.hidden = true;
+    renderHistory(state.historyItems);
+  }
+
   function validatedCriteria() {
     const values = criteria();
     if (!values.ministry && !values.topic) {
@@ -187,7 +197,9 @@
         node("small", "", scope + " · " + item.period_start + " ~ " + item.period_end),
       );
       button.addEventListener("click", () => {
+        if (state.timer) window.clearTimeout(state.timer);
         state.activeId = String(item.report_id);
+        message.textContent = "저장된 보고서를 불러오는 중입니다.";
         renderHistory(state.historyItems);
         loadReport(item.report_id);
       });
@@ -372,6 +384,13 @@
   function meetingReportHref(source) {
     const url = new URL(window.location.href);
     url.searchParams.set("report", String(source.broadcast_id || ""));
+    const target = meetingReportSourceTarget(source);
+    url.searchParams.delete("report-topic");
+    url.searchParams.delete("report-view");
+    if (target) {
+      url.searchParams.set("report-topic", target.topicId);
+      url.searchParams.set("report-view", target.view);
+    }
     url.hash = "reports";
     return `${url.pathname}${url.search}${url.hash}`;
   }
@@ -401,21 +420,28 @@
       // 보고서 탭의 '최신 회의 자동 열기'를 거치지 않고 선택한 회의만 연다.
       initialWorkspaceAutoSelectionPending = false;
       latestMeetingReportState.pending = false;
+      window.history.replaceState(window.history.state, "", meetingReportHref(source));
       activateWorkspaceTab("reports");
       if (row) row.click();
-      else if (executive) expandExecutiveBriefing(executive, null);
+      else if (executive) expandExecutiveBriefing(executive, null, {
+        focusTopicId: meetingReportSourceTarget(source)?.topicId,
+      });
       else expandMeetingBrief({
         broadcast_id: broadcastId,
         title: source.meeting_title,
         committee_name: source.committee_name,
         institution: source.institution,
+        institution_label: source.institution === "EXECUTIVE" ? "국무회의" : "국회",
+        detected_at: source.meeting_at,
         meeting_brief: { brief_status: "READY" },
       }, null);
-      const expanded = document.querySelector("#liveExpanded");
-      expanded?.scrollIntoView({ behavior: "smooth", block: "start" });
-      const heading = document.querySelector("#liveExpandedTitle");
-      heading?.setAttribute("tabindex", "-1");
-      heading?.focus({ preventScroll: true });
+      if (!meetingReportSourceTarget(source)) {
+        const expanded = document.querySelector("#liveExpanded");
+        expanded?.scrollIntoView({ behavior: "smooth", block: "start" });
+        const heading = document.querySelector("#liveExpandedTitle");
+        heading?.setAttribute("tabindex", "-1");
+        heading?.focus({ preventScroll: true });
+      }
     } catch (error) {
       if (request !== meetingNavigationRequest) return;
       message.textContent = error.message;
@@ -571,7 +597,9 @@
     const heading = node("summary", "");
     heading.append(node("strong", "", "세부 논의와 요구 과제 전체"),
       node("span", "", `근거 ${evidence.length}건 · 기록된 과제 ${taskCount}건`));
-    section.append(heading, node("p", "topic-report-source-details-note", item.evidence_scope?.status === "UNAVAILABLE"
+    section.append(heading, node("p", "topic-report-source-details-note", item.evidence_scope?.status === "PENDING"
+      ? "저장된 보고서와 근거를 먼저 표시했습니다. 같은 조건의 추가 자료를 확인하고 있습니다."
+      : item.evidence_scope?.status === "UNAVAILABLE"
       ? "현재 보고서의 저장 근거만 표시합니다. 검색 범위 보완 자료 조회에 실패했으므로 전체 검색 범위를 대조하지 못했습니다. 잠시 후 다시 열어 주세요."
       : "보고서 저장 근거와 같은 조건에서 추가 확인한 근거의 요약·요구 과제를 모두 수록합니다. 검색 범위 보완 근거는 기존 AI 요약에 소급해서 반영된 내용이 아니므로 별도로 표시합니다."));
     const list = node("div", "topic-report-source-details-list");
@@ -877,6 +905,7 @@
   }
 
   async function preview() {
+    clearSelectedReport();
     if (!form.reportValidity()) return;
     const values = validatedCriteria();
     if (!values) return;
@@ -885,6 +914,7 @@
     try {
       const response = await api("api/topic-reports/search", { method: "POST", body: JSON.stringify(values) });
       const payload = await response.json();
+      if (criteriaKey() !== criteriaKey(values)) return;
       renderPreview(payload);
       state.previewCriteriaKey = criteriaKey(values);
       createButton.disabled = !payload.count || payload.report_input?.compatible === false;
@@ -895,6 +925,7 @@
       }
       message.textContent = payload.count ? "검색 결과를 확인한 뒤 보고서를 작성할 수 있습니다." : "조건에 맞는 회의 자료가 없습니다.";
     } catch (error) {
+      if (criteriaKey() !== criteriaKey(values)) return;
       resetSearchResult();
       message.textContent = error.message;
     }
@@ -921,16 +952,62 @@
     }
   }
 
+  function refreshReportScope(item) {
+    if (state.activeId !== String(item.report_id)) return;
+    state.timer = window.setTimeout(async () => {
+      try {
+        const response = await api(`api/topic-reports/${encodeURIComponent(item.report_id)}/scope`);
+        const scope = await response.json();
+        if (state.activeId !== String(item.report_id)) return;
+        if (scope.evidence_scope?.status === "PENDING") {
+          refreshReportScope(item);
+          return;
+        }
+        const updated = {...item, ...scope};
+        const previous = resultContainer.querySelector(".topic-report-source-details");
+        const replacement = reportSourceDetails(updated);
+        if (previous && replacement) {
+          replacement.open = previous.open;
+          previous.replaceWith(replacement);
+        }
+      } catch (_) {
+        if (state.activeId !== String(item.report_id)) return;
+        const note = resultContainer.querySelector(".topic-report-source-details-note");
+        if (note) note.textContent = "저장된 보고서와 근거는 모두 표시했습니다. 추가 자료 확인이 지연되어 다음에 다시 열면 이어서 확인합니다.";
+      }
+    }, 2000);
+  }
+
   async function loadReport(id) {
     try {
       const response = await api(`api/topic-reports/${encodeURIComponent(id)}`);
-      renderReport(await response.json());
+      const item = await response.json();
+      if (state.activeId !== String(id)) return;
+      renderReport(item);
+      message.textContent = "";
+      if (item.status === "READY" && item.evidence_scope?.status === "PENDING") refreshReportScope(item);
     } catch (error) {
+      if (state.activeId !== String(id)) return;
       message.textContent = error.message;
     }
   }
 
 
+
+  document.addEventListener("topic-report-preset", (event) => {
+    const preset = event.detail;
+    if (!preset?.period_start || !["EXECUTIVE", "LEGISLATURE"].includes(preset.institution)) return;
+    clearSelectedReport();
+    mount.querySelector("#topicReportMinistry").value = "";
+    mount.querySelector("#topicReportTopic").value = "";
+    mount.querySelector("#topicReportStart").value = preset.period_start;
+    mount.querySelector("#topicReportEnd").value = preset.period_end;
+    mount.querySelector("#topicReportInstitution").value = preset.institution;
+    resetSearchResult();
+    message.textContent = `${preset.period_start} · ${preset.institution === "EXECUTIVE" ? "국무회의" : "국회"}로 설정했습니다. 주제나 소관 부처를 입력한 뒤 ‘자료 검색’을 눌러 주세요.`;
+    form.scrollIntoView({block: "center"});
+    mount.querySelector("#topicReportTopic").focus({preventScroll: true});
+  });
 
   loadHistory();
   mount.querySelector("#topicReportPreview").addEventListener("click", preview);

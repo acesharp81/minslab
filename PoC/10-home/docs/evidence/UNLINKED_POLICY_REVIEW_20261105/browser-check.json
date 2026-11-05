@@ -1,0 +1,22 @@
+{
+  "csv_rows": 98,
+  "categories": {
+    "B": 3,
+    "A": 3,
+    "C": 39,
+    "D": 53
+  },
+  "all_unassigned": true,
+  "approved_actuals": 0,
+  "raw_permit_ids": 51,
+  "stale_reviews": 0,
+  "desktop": {
+    "width": 1440,
+    "scroll": 1440
+  },
+  "mobile": {
+    "width": 390,
+    "scroll": 390
+  },
+  "page_errors": []
+}

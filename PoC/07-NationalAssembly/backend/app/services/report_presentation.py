@@ -125,7 +125,8 @@ def narrative_projection(brief: dict[str, Any]) -> dict[str, Any]:
     result = compact_report_parents(result)
     attach_narrative_tasks(result, brief)
     result['presentation_version'] = 'meeting-summary/3'
-    return result
+    from .report_parent_review import order_procedural_last
+    return order_procedural_last(result)
 
 
 def attach_narrative_tasks(narrative: dict[str, Any], brief: dict[str, Any]) -> None:

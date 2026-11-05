@@ -1,0 +1,8 @@
+{
+  "passed": 126,
+  "warnings": 1,
+  "command": "PYTHONPATH=PoC/10-home /tmp/home-review1102-venv/bin/python -m pytest tests/test_ai_officer_decisions.py tests/test_ai_agents.py tests/test_ai_officer_review.py tests/test_stage_reconciliation.py tests/test_ai_collection.py tests/test_publication_capture.py -q --disable-warnings --maxfail=1",
+  "javascript_syntax": "passed",
+  "git_diff_check": "passed",
+  "deployed_hash_match_files": 5
+}

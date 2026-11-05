@@ -53,15 +53,18 @@ def credit_client(settings: Any, model: str | None = None) -> GroupedOpenAIClien
     model = model or settings.openai_realtime_credit_model
     if model not in MODELS:
         raise ValueError('UNREVIEWED_REALTIME_CREDIT_MODEL')
-    def reserve(tokens: int):
+    def reserve(tokens: int, schema_name: str = ""):
         period = credit_period(settings)
         if period is None:
             raise unavailable('PROMOTIONAL_CREDIT_UNCONFIRMED_OR_EXPIRED')
         grant, allowance, _ = period
         cap = min(Decimal(str(settings.openai_realtime_credit_monthly_limit_usd)), Decimal(str(allowance)))
         protected = max(Decimal('0'), Decimal(str(settings.openai_realtime_credit_protected_usd)))
-        ib, ob = max(1, tokens-8_000), min(tokens, 8_000)
+        output_bound = 20_000 if schema_name in {"meeting_brief", "discussion_structure_consolidation", "meeting_parent_review"} else 8_000
+        ib, ob = max(1, tokens-output_bound), min(tokens, output_bound)
         ir, out = map(Decimal, RATES[model])
+        if model == "gpt-6-luna" and ib > 272_000:
+            ir *= 2
         amount = (ib*ir*Decimal('2.5')+ob*out)/1_000_000
         event = 'poc7-realtime-credit:'+str(uuid4())
         with connect(settings.database_url) as c:
@@ -86,7 +89,8 @@ def credit_client(settings: Any, model: str | None = None) -> GroupedOpenAIClien
                           usage['output_tokens'] if known else None,
                           float(usage_cost(model, metadata)) if known else (0.0 if rejected else None), rejected)
     client = GroupedOpenAIClient(settings.openai_api_key, model=model, base_url=settings.openai_base_url,
-                                reserve_tokens=reserve, settle_tokens=settle)
+                                reserve_tokens=reserve, settle_tokens=settle,
+                                reserve_for_workload=lambda tokens, schema: reserve(tokens, schema))
     client.settings = settings
     client.reasoning_effort = 'none'
     return client
@@ -116,7 +120,7 @@ class RealtimeMiniClient:
             self.model = free.model
             return answer, usage
         except DailyTokenLimitReached as exc:
-            if 'COOLDOWN' in str(exc) or not router_exhausted(self.settings):
+            if not self.settings.openai_monthly_credit_fallback_enabled or 'COOLDOWN' in str(exc) or not router_exhausted(self.settings):
                 raise
             paid = credit_client(self.settings)
             answer, usage = paid._post(instruction, schema, schema_name)

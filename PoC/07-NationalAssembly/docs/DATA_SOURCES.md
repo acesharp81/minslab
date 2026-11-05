@@ -137,3 +137,8 @@
 ## 관심주제 정회 판정 (2026-10-22)
 
 기존 `assembly_live_list` parser의 `status_text`(원본 xdesc), `meeting_external_id`와 `is_live`를 재사용한다. `정회`/`계속예정`을 발견하면 해당 회의 ID가 매칭되는 경우에만 경계를 만들며 원본 응답과 SourceDocumentVersion을 보존한다. 확정 자막의 의장·위원장 정회/산회 선포는 revision ID를 별도 근거로 저장한다. 새 endpoint나 추정 갱신주기는 추가하지 않는다.
+
+
+## 2026-11-05 — 주제별 검색의 현재 보고서 읽기 투영
+
+검색은 현재 선택된 `meeting_brief_payload`와 원본 해시가 일치하는 통합 완료 구조화 잠정본을 사용한다. 저장된 완성 요약은 `source_structured_topic_id`로 세부 쟁점에 연결한다. 공식 통합본은 현재 brief에 속한 결과를 별도 OFFICIAL_INTEGRATED 근거로 반환하며, 구조화 잠정 근거는 PROVISIONAL을 유지한다. 공식 국무회의 배포 자료의 기존 검색 경로도 유지한다. 검색 날짜는 방송 시작 감지 시각의 한국 날짜로 조회한다. 원본·분석 응답을 변경하거나 새 모델 분석을 호출하지 않는다.

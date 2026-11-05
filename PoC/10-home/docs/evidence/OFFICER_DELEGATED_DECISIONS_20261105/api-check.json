@@ -1,0 +1,13 @@
+{
+  "verdict_counts": {
+    "YES": 7,
+    "NO": 76,
+    "HOLD": 271
+  },
+  "csv_roundtrip": true,
+  "health": {
+    "status": "ok",
+    "service": "home",
+    "scope": "SEOUL_GYEONGGI"
+  }
+}

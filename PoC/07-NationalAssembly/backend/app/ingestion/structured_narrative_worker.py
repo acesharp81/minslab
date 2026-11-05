@@ -184,8 +184,11 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                 results = list(pool.map(run_batch, batches[:batch_limit]))
             with connect(settings.database_url) as c:
                 final = TopicStructureRepository(c).ready_current(item)
-            return {'status': final['narrative_coverage']['status'], 'broadcast_id': label,
-                    'coverage': final['narrative_coverage'], 'batches': results}
+            outcome = {'status': final['narrative_coverage']['status'], 'broadcast_id': label,
+                       'coverage': final['narrative_coverage'], 'batches': results}
+            if results and all(r.get('status') == 'LIVE_DEFERRED' for r in results):
+                outcome.update(status='LIVE_DEFERRED', reason=results[0].get('reason'))
+            return outcome
         finally:
             lease.execute('SELECT pg_advisory_unlock(hashtext(%s))', (lock,))
 

@@ -44,6 +44,32 @@ class ParentReviewTests(unittest.TestCase):
         self.assertEqual(r['report_summary']['topic_groups'][-1]['topic_ids'], ['extra'])
         self.assertEqual(r['topic_structure']['parent_count'], 1)
 
+    def test_procedural_last_preserves_content_and_places_retained_tasks_before_procedure(self):
+        b = fixture(); original = deepcopy(b)
+        response = {'groups': [
+            {'title': '회의 진행', 'summary': '개회와 발언 시간 안내.', 'kind': 'PROCEDURAL', 'member_ids': ['G001']},
+            {'title': '교육 정책', 'summary': '학교 지침 논의.', 'kind': 'POLICY', 'member_ids': ['G002']}]}
+        result = project(b, request_for(b, {}), response)
+        self.assertEqual(result['topic_groups'][-1]['topic_ids'], ['t1'])
+        self.assertEqual(result['report_summary']['topic_groups'][-1]['topic_ids'], ['s1'])
+        self.assertEqual(result['report_summary']['topic_groups'][1]['topic_ids'], ['extra'])
+        self.assertEqual(b, original)
+        self.assertEqual(result['topics'], b['topics'])
+        self.assertEqual(result['tasks'], b['tasks'])
+        self.assertEqual(result['report_summary']['topics'], b['report_summary']['topics'])
+
+    def test_legacy_procedure_sort_is_conservative_stable_and_idempotent(self):
+        from app.services.report_parent_review import order_procedural_last, procedural_group
+        for title in ['회의 진행 및 개회·정회·산회', '회의 운영', '발언 순서 안내']:
+            self.assertTrue(procedural_group({'title': title}), title)
+        for title in ['의사진행 제도 개선', '자료 제출 요구', '예산안 심사 및 의결', '증인 채택 및 수사 독립성']:
+            self.assertFalse(procedural_group({'title': title}), title)
+        b = fixture(); b['topic_groups'][0]['title'] = '회의 진행'
+        result = order_procedural_last(b)
+        self.assertEqual(result['topic_groups'][-1]['id'], 'g1')
+        self.assertEqual(result['report_summary']['topic_groups'][-1]['topic_ids'], ['s1'])
+        self.assertEqual(order_procedural_last(result), result)
+
     def test_reject_missing_duplicate_and_unknown_ids(self):
         req = request_for(fixture(), {})
         for ids in [[], ['G001'], ['G001', 'G001', 'G002'], ['G001', 'G999']]:
@@ -98,7 +124,7 @@ class ParentReviewTests(unittest.TestCase):
 
 
 class ParentWorkerTests(unittest.TestCase):
-    def run_worker(self, brief=None, history=None, error=None):
+    def run_worker(self, brief=None, history=None, error=None, monthly=False):
         from app.ingestion import report_parent_review_worker as worker
         from contextlib import ExitStack
         with ExitStack() as stack:
@@ -112,6 +138,9 @@ class ParentWorkerTests(unittest.TestCase):
             stack.enter_context(patch.object(worker, 'MeetingBriefRepository')).return_value.latest.return_value = {'brief_id': 'b'}
             settings = stack.enter_context(patch.object(worker, 'get_settings')).return_value
             settings.openai_api_key = 'test'
+            settings.openai_monthly_credit_fallback_enabled=monthly
+            settings.openai_advanced_model='gpt-6.1-terra'
+            stack.enter_context(patch.object(worker,'credit_active',return_value=monthly))
             factory = stack.enter_context(patch.object(worker, 'quota_client'))
             client = factory.return_value
             client.provider = 'openai'; client.model = 'gpt-5.4'
@@ -149,12 +178,110 @@ class ParentWorkerTests(unittest.TestCase):
         result, repo, factory = self.run_worker(history=history)
         self.assertEqual(result['status'], 'RETAINED'); factory.assert_not_called()
 
+    def test_daily_exhaustion_uses_verified_terra_monthly_credit(self):
+        from app.db.openai_daily_budget import DailyTokenLimitReached
+        from app.ingestion import report_parent_review_worker as worker
+        # Build both clients with the real factory contract, no network requests.
+        from contextlib import ExitStack
+        with ExitStack() as stack:
+            connection=stack.enter_context(patch.object(worker,'connect'))
+            c=connection.return_value.__enter__.return_value
+            c.execute.return_value.fetchone.side_effect=[(True,),('ENDED',)]
+            repo=stack.enter_context(patch.object(worker,'TopicStructureRepository')).return_value
+            repo.ready_current.return_value=fixture();repo.snapshot.return_value={}
+            from datetime import datetime,timedelta,timezone
+            req=request_for(fixture(),{})
+            repo.batches.return_value=[{'request':req,'index':900000,'attempt':1,'error':'DAILY_TOKEN_LIMIT',
+                'usage':{'retry_after':(datetime.now(timezone.utc)+timedelta(hours=2)).isoformat()}}]
+            stack.enter_context(patch.object(worker,'MeetingBriefRepository')).return_value.latest.return_value={'brief_id':'b'}
+            settings=stack.enter_context(patch.object(worker,'get_settings')).return_value
+            settings.openai_api_key='fixture';settings.openai_monthly_credit_fallback_enabled=True
+            settings.openai_advanced_model='gpt-6.1-terra'
+            stack.enter_context(patch.object(worker,'credit_active',return_value=True))
+            main=MagicMock(provider='openai',model='gpt-5.4');main._post.side_effect=DailyTokenLimitReached('daily')
+            paid=MagicMock(provider='openai',model='gpt-6.1-terra');paid._post.return_value=(answer(),{'usage':{'total_tokens':100}})
+            factory=stack.enter_context(patch.object(worker,'quota_client',side_effect=[main,paid]))
+            result=worker.process_one('b')
+            self.assertEqual(result['status'],'READY');self.assertEqual(result['usage']['billing_route'],'MONTHLY_CREDIT')
+            self.assertEqual([x.args[1] for x in factory.call_args_list],['main','paid'])
+            paid._post.assert_called_once();self.assertEqual(repo.record.call_args.args[-1],None)
+
+    def test_monthly_mode_does_not_bypass_provider_cooldown(self):
+        from app.db.openai_daily_budget import DailyTokenLimitReached
+        result,repo,factory=self.run_worker(error=DailyTokenLimitReached('PROVIDER_COOLDOWN'),monthly=True)
+        self.assertEqual(result['status'],'DEFERRED');factory.assert_called_once()
+
+    def test_quality_failure_uses_verified_paid_model_on_next_attempt(self):
+        req=request_for(fixture(),{})
+        result,repo,factory=self.run_worker(monthly=True,history=[{'request':req,'index':900000,'attempt':1,
+            'error':'PARENT_REVIEW_PARTITION','usage':{}}])
+        self.assertEqual(result['status'],'READY');self.assertEqual(factory.call_args.args[1],'paid')
+
+    def test_incomplete_narrative_does_not_call_model(self):
+        b=fixture();b['narrative_coverage']['status']='PENDING'
+        result,repo,factory=self.run_worker(brief=b)
+        self.assertEqual(result['status'],'NARRATIVE_PENDING')
+        factory.assert_not_called();repo.record.assert_not_called()
+
+    def test_large_complete_report_is_not_truncated_or_silently_retained(self):
+        from app.db.openai_daily_budget import DailyTokenLimitReached
+        from app.services.report_parent_review import MAX_INPUT_BYTES
+        b=fixture();b['topic_groups']=[];b['report_summary']['topics']=[]
+        for i in range(520):
+            b['topic_groups'].append({'id':f'g{i}','title':f'정책 분야 {i}','topic_ids':[f't{i}']})
+            b['report_summary']['topics'].append({'id':f's{i}','source_structured_topic_id':f't{i}',
+                'title':f'세부 쟁점 {i}','summary':('관계기관 간 정책 추진 현황과 개선 방안을 논의했다. '*5)+f'마지막번호{i}'})
+        result,repo,factory=self.run_worker(brief=b,error=DailyTokenLimitReached('limit'))
+        self.assertEqual(result['status'],'DEFERRED')
+        instruction=factory.return_value._post.call_args.args[0]
+        self.assertGreater(len(instruction.encode()),180_000)
+        self.assertLess(len(instruction.encode()),MAX_INPUT_BYTES)
+        self.assertIn('마지막번호519',instruction)
+        factory.return_value._post.assert_called_once()
+        b['report_summary']['topics'][0]['summary']='x'*MAX_INPUT_BYTES
+        result,repo,factory=self.run_worker(brief=b)
+        self.assertEqual(result['status'],'RETAINED');self.assertEqual(result['reason'],'INPUT_LIMIT')
+        factory.assert_not_called()
+
     def test_finalization_waits_for_parent_pass(self):
         from app.ingestion.report_finalization import finish_parent_review
         with patch('app.ingestion.report_parent_review_worker.process_one', return_value={'status': 'DEFERRED'}):
             self.assertEqual(finish_parent_review('b', {'status': 'COMPLETED'})['phase'], 'FINALIZING')
         with patch('app.ingestion.report_parent_review_worker.process_one', return_value={'status': 'READY'}):
             self.assertEqual(finish_parent_review('b', {'status': 'COMPLETED'})['status'], 'COMPLETED')
+        for outcome in [{'status':'RETAINED','reason':'INPUT_LIMIT'},{'status':'CACHED','reason':'RETRY_LIMIT'}]:
+            with patch('app.ingestion.report_parent_review_worker.process_one',return_value=outcome):
+                self.assertEqual(finish_parent_review('b',{'status':'COMPLETED'})['status'],'DEFERRED')
+
+
+class ParentRequestBudgetTests(unittest.TestCase):
+    def test_known_insufficient_daily_headroom_skips_input_count_endpoint(self):
+        from app.services.meeting_brief import OpenAIMeetingBriefClient
+        from app.db.openai_daily_budget import DailyTokenLimitReached
+        error=DailyTokenLimitReached('daily');error.remaining_tokens=14000
+        with patch('app.services.meeting_brief.requests.post') as post:
+            client=OpenAIMeetingBriefClient('fixture',model='gpt-5.4',base_url='https://fixture.invalid',
+                reserve_tokens=MagicMock(side_effect=error),settle_tokens=MagicMock())
+            with self.assertRaises(DailyTokenLimitReached):client._post('대주제 및 요약',{},'meeting_parent_review')
+            post.assert_not_called()
+
+    def test_editorial_output_allowance_is_reserved_and_normal_summary_is_unchanged(self):
+        from app.services.meeting_brief import OpenAIMeetingBriefClient
+        import json
+        for name,output,timeout in [('meeting_parent_review',20000,300.0),('assembly_summaries',8000,120.0)]:
+            with self.subTest(name=name),patch('app.services.meeting_brief.requests.post') as post:
+                post.return_value.status_code=200
+                post.return_value.json.return_value={'choices':[{'message':{'content':'{}'},'finish_reason':'stop'}],
+                    'usage':{'prompt_tokens':10,'completion_tokens':10}}
+                reserve=MagicMock(return_value='day');settle=MagicMock()
+                client=OpenAIMeetingBriefClient('fixture',model='gpt-5.4',base_url='https://fixture.invalid',
+                    reserve_tokens=reserve,settle_tokens=settle)
+                client._post('회의 요약',{},name)
+                body=post.call_args.kwargs['json'];self.assertEqual(body['max_completion_tokens'],output)
+                self.assertEqual(post.call_args.kwargs['timeout'],timeout)
+                estimate=len(json.dumps(body,ensure_ascii=False).encode())+output+2048
+                reserve.assert_called_once_with(estimate)
+                self.assertEqual(settle.call_args.args[1],estimate)
 
 
 if __name__ == '__main__':

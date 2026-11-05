@@ -1843,7 +1843,7 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
         self, prompt: str, schema: dict[str, Any], schema_name: str,
         model_override: str | None = None,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
-        max_output_tokens = 20_000 if schema_name in {"meeting_brief", "discussion_structure_consolidation"} else 8_000
+        max_output_tokens = 20_000 if schema_name in {"meeting_brief", "discussion_structure_consolidation", "meeting_parent_review"} else 8_000
         body = {
             "model": model_override or self.model,
             "messages": [
@@ -1868,7 +1868,9 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
         try:
             usage_date = reserve(estimate)
         except DailyTokenLimitReached as exc:
-            if getattr(exc, 'skip_input_count', False):
+            remaining = getattr(exc, 'remaining_tokens', None)
+            if getattr(exc, 'skip_input_count', False) or (remaining is not None and remaining < max_output_tokens + 8_193):
+                # Even a one-token input cannot fit the counted-request margin.
                 raise
             # UTF-8 bytes can overstate Korean prompt tokens substantially.
             # Count the identical prompt and schema through OpenAI's official
@@ -1912,7 +1914,7 @@ class OpenAIMeetingBriefClient(OpenRouterMeetingBriefClient):
                     "Accept": "application/json",
                 },
                 json=body,
-                timeout=(300.0 if schema_name in {"meeting_brief", "discussion_structure_consolidation"} else self.timeout_seconds),
+                timeout=(300.0 if schema_name in {"meeting_brief", "discussion_structure_consolidation", "meeting_parent_review"} else self.timeout_seconds),
             )
             if response.status_code >= 400:
                 if response.status_code in {400,401,403,404,429}:

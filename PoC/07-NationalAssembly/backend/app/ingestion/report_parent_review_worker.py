@@ -12,7 +12,7 @@ from ..db.connection import connect
 from ..db.meeting_brief_repository import MeetingBriefRepository
 from ..db.topic_structure_repository import TopicStructureRepository
 from ..db.openai_daily_budget import DailyTokenLimitReached
-from ..services.grouped_models import quota_client
+from ..services.grouped_models import quota_client, credit_active, MONTHLY_CREDIT_POLICY
 from ..services.report_parent_review import (
     PROFILE, BATCH_START, MAX_INPUT_BYTES, request_for, prompt, schema, project,
 )
@@ -51,14 +51,17 @@ def process_one(broadcast_id: Any) -> dict[str, Any]:
             prior = [h for h in history if h['request'] == request]
             latest = prior[-1] if prior else {}
             retry = (latest.get('usage') or {}).get('retry_after')
-            if retry and datetime.fromisoformat(retry) > datetime.now(timezone.utc):
+            monthly = bool(settings.openai_monthly_credit_fallback_enabled and credit_active(settings))
+            # Wake budget-only waits from the previous daily-only routing once.
+            legacy_daily_wait = latest.get("error") == "DAILY_TOKEN_LIMIT" and (latest.get("usage") or {}).get("budget_policy") != MONTHLY_CREDIT_POLICY
+            if retry and datetime.fromisoformat(retry) > datetime.now(timezone.utc) and not (monthly and legacy_daily_wait):
                 return {'status': 'DEFERRED', 'retry_after': retry}
             index = prior[0]['index'] if prior else max([BATCH_START-1] + [h['index'] for h in history]) + 1
             attempt = max([0] + [h['attempt'] for h in prior]) + 1
             instruction = prompt(request)
             input_bytes = len(instruction.encode())
             errors = sum(bool(h.get('error')) and h.get('error') != 'DAILY_TOKEN_LIMIT' for h in prior)
-            reason = ('SINGLE_PARENT' if len(request['groups']) < 2 else
+            reason = ('NO_GROUPS' if not request['groups'] else
                       'INPUT_LIMIT' if input_bytes > MAX_INPUT_BYTES else
                       'RETRY_LIMIT' if errors >= 3 else None)
             if reason:
@@ -68,11 +71,21 @@ def process_one(broadcast_id: Any) -> dict[str, Any]:
                 return {'status': 'RETAINED', 'reason': reason}
             if not settings.openai_api_key:
                 return {'status': 'NO_PROVIDER', 'retry_after': retry_at(daily=True)}
-            client = quota_client(settings, 'main')  # No paid/Terra fallback.
+            # Main daily tokens first; verified Terra handles paid/quality escalation.
+            paid_first = monthly and errors > 0
+            client = quota_client(settings, 'paid' if paid_first else 'main')
+            skipped_models = []
             response, usage, error = {}, {}, None
             start = time.monotonic()
             try:
-                response, usage = client._post(instruction, schema(), 'meeting_parent_review')
+                try:
+                    response, usage = client._post(instruction, schema(), 'meeting_parent_review')
+                except DailyTokenLimitReached as exc:
+                    if not monthly or paid_first or 'COOLDOWN' in str(exc):
+                        raise
+                    skipped_models.append({'model':client.model,'reason':'DAILY_TOKEN_LIMIT','additional_model_calls':0})
+                    client = quota_client(settings, 'paid')
+                    response, usage = client._post(instruction, schema(), 'meeting_parent_review')
                 result = project(brief, request, response)  # Exact partition + both display coverages.
             except DailyTokenLimitReached as exc:
                 error = 'DAILY_TOKEN_LIMIT'
@@ -84,7 +97,10 @@ def process_one(broadcast_id: Any) -> dict[str, Any]:
                 usage['retry_after'] = retry_at()
             usage = {**usage, 'provider': client.provider, 'model': client.model,
                      'attempted_model': client.model, 'elapsed_seconds': round(time.monotonic()-start, 3),
-                     'input_bytes': input_bytes, 'full_source_sent': False}
+                     'input_bytes': input_bytes, 'full_source_sent': False,
+                     'budget_policy': MONTHLY_CREDIT_POLICY if monthly else 'DAILY_ONLY',
+                     'skipped_models': skipped_models,
+                     'billing_route': 'MONTHLY_CREDIT' if client.model == settings.openai_advanced_model else 'DAILY_FREE'}
             with connect(settings.database_url) as c:
                 TopicStructureRepository(c).record(sid, index, attempt, request, response, usage, error)
             if error:

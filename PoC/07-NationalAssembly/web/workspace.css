@@ -711,6 +711,13 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 .meeting-brief-metrics div { min-width: 86px; padding: 12px 14px; text-align: center; background: #f9fafb; }
 .meeting-brief-metrics dt { color: var(--ws-muted); font-size: 11px; }
 .meeting-brief-metrics dd { margin: 3px 0 0; color: #101828; font-size: 21px; font-weight: 800; }
+.meeting-brief-search-control { display:grid; grid-template-rows:minmax(68px,1fr) auto; align-self:stretch; gap:14px; }
+.meeting-topic-search-button { align-self:center; justify-self:center; display:inline-flex; align-items:center; justify-content:center; gap:10px; width:192px; max-width:100%; min-height:68px; padding:14px 20px; border:1px solid #bfd0ed; border-radius:9px; background:#f2f6ff; color:#24579b; font-size:22px; font-weight:800; cursor:pointer; white-space:nowrap; }
+.meeting-topic-search-button::before { content:""; flex:0 0 24px; width:24px; height:24px; background:currentColor; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='2' stroke-linecap='round' d='m21 21-5-5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z'/%3E%3C/svg%3E") center/contain no-repeat; }
+.meeting-topic-search-button:hover { border-color:#709adb; background:#e6efff; }
+.meeting-topic-search-button:focus-visible { outline:3px solid #82a9ef; outline-offset:3px; }
+.meeting-topic-search-button:disabled { color:#98a2b3; background:#f9fafb; cursor:default; }
+@media print { .meeting-topic-search-button { display:none; } }
 .meeting-report-tools { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
 .meeting-report-tools button,.meeting-report-tools a { display:inline-flex; align-items:center; min-height:32px; padding:0 11px; border:1px solid #cad8eb; border-radius:8px; background:#fff; color:#28548c; font-size:11px; font-weight:800; text-decoration:none; cursor:pointer; }
 .meeting-report-tools button:hover,.meeting-report-tools a:hover { border-color:#7da8e7; background:#f3f7fd; }
@@ -909,6 +916,7 @@ footer { width: min(1440px, calc(100% - 48px)); margin: 0 auto 36px; padding: 18
 .executive-related-discussions button { border: 0; background: transparent; padding: 4px 0; color: #234f9b; font: inherit; font-size: 13px; text-align: left; cursor: pointer; overflow-wrap: anywhere; }
 .executive-related-discussions button:hover { text-decoration: underline; }
 .meeting-brief-view .is-linked-target { outline: 2px solid #486ff5; outline-offset: 2px; scroll-margin-top: 100px; }
+.meeting-topic-navigation-note { margin:0; padding:12px 20px; color:#66501b; background:#fff7df; font-size:13px; }
 .meeting-source-view { min-height: 360px; }
 .meeting-result-workspace { grid-template-columns: minmax(0,1fr) minmax(340px,.72fr); align-items: start; }
 .meeting-evidence-button[aria-pressed="true"], .meeting-speaker-points > button[aria-pressed="true"], .meeting-result-task[aria-pressed="true"] { border-color: #7c83ef; background: #eef0ff; }
@@ -1811,12 +1819,25 @@ body.meeting-report-print-mode .meeting-topic-group:not([open]) > :not(summary) 
 .meeting-supplementary-controls > button[aria-expanded="true"]::before { content:"▾"; }
 .meeting-supplementary-controls > button:hover { color:#344054; text-decoration:underline; text-underline-offset:3px; }
 .meeting-supplementary-controls > button:focus-visible { outline:2px solid #426ba0; outline-offset:3px; }
-.meeting-supplementary .meeting-supplementary-content { margin:8px 0 0; padding-top:12px; border:1px solid #e1e6ee; border-radius:8px; background:#fff; }
+/* 보조 원문 패널은 설명·항목·원문의 공통 간격과 서체를 사용한다. */
+.meeting-supplementary .meeting-supplementary-content { margin:8px 0; padding:0; overflow:hidden; border:1px solid #e1e6ee; border-radius:8px; color:#475467; background:#fff; font-size:12px; font-weight:400; line-height:1.7; overflow-wrap:anywhere; }
 .meeting-supplementary-content[hidden] { display:none; }
-.meeting-supplementary-content > p { color:#667085; }
-.meeting-supplementary-content > .meeting-evidence-button { width:100%; text-align:left; border:0; border-top:1px solid #eef1f5; border-radius:0; background:#fff; }
-.meeting-supplementary-content > .meeting-evidence-button strong { color:#344054; }
-.meeting-supplementary-content > ul { border-color:#e1e6ee; }
+.meeting-supplementary .meeting-supplementary-content > p { margin:0; padding:12px 14px; color:#475467; background:#f8fafc; font-size:12px; font-weight:400; line-height:1.7; }
+.meeting-supplementary .meeting-supplementary-content > p + p { padding-top:0; }
+.meeting-supplementary .meeting-supplementary-content button { display:block; width:100%; min-height:0; margin:0; padding:12px 14px; border:0; border-top:1px solid #e9edf3; border-radius:0; color:#475467; background:#fff; font:inherit; line-height:1.7; text-align:left; white-space:normal; overflow-wrap:anywhere; cursor:pointer; }
+.meeting-supplementary .meeting-supplementary-content button:hover { background:#f8fafc; }
+.meeting-supplementary .meeting-supplementary-content button[aria-pressed="true"] { background:#f1f5f9; box-shadow:inset 3px 0 #94a3b8; }
+.meeting-supplementary .meeting-supplementary-content button:focus-visible { outline:2px solid #64748b; outline-offset:-3px; }
+.meeting-supplementary .meeting-supplementary-content strong { display:block; margin:0; color:#344054; font-size:12px; font-weight:650; line-height:1.6; }
+.meeting-supplementary .meeting-supplementary-content :is(button, section) p { margin:4px 0 0; color:#475467; font-size:12px; font-weight:400; line-height:1.7; }
+.meeting-supplementary .meeting-supplementary-content small { display:block; margin-top:6px; color:#667085; font-size:11px; font-weight:400; line-height:1.6; }
+.meeting-supplementary .meeting-supplementary-content > ul { margin:0; padding:0; border-color:#e9edf3; list-style:none; }
+.meeting-supplementary .meeting-supplementary-content li { display:block; padding:0; border-color:#e9edf3; }
+.meeting-supplementary .meeting-supplementary-content li > button { border:0; }
+.meeting-supplementary .meeting-supplementary-content section { gap:4px; padding:12px 14px; border-color:#e9edf3; background:#fff; }
+.meeting-supplementary .meeting-supplementary-content section button { margin-top:8px; padding:10px 12px; border:1px solid #e9edf3; border-radius:6px; }
+.meeting-supplementary .meeting-supplementary-content summary { padding:10px 14px; color:#475467; font-size:12px; font-weight:600; line-height:1.6; }
+.meeting-supplementary .meeting-supplementary-content button:hover strong { color:#344054; text-decoration:none; }
 @media (max-width:760px) { .meeting-supplementary { margin:10px 14px 0; } }
 .meeting-live-resolution section { display:grid; gap:8px; padding:12px 15px; border-top:1px solid #f2d995; background:#fff; overflow-wrap:anywhere; }
 .meeting-live-resolution section > strong { font-size:13px; }
@@ -2001,3 +2022,44 @@ body.meeting-report-print-mode .meeting-source-quotes { display: none; }
 
 /* Preserve compact model rows on narrow headers without vertical wrapping. */
 @media (max-width: 1250px) { .ai-usage-grouped .ai-usage-group { padding-inline: 4px; } }
+
+/* 근거 대화만 접고 과제는 항상 노출한다. */
+/* 보조 펼침 링크: 문장 끝에 이어지며 본문보다 한 단계 낮은 시각적 강조. */
+.meeting-inline-evidence-toggle { display:inline-flex; align-items:center; gap:4px; min-height:24px; margin-inline-start:6px; padding:0 2px; border:0; border-radius:3px; color:#52647d; background:transparent; font:inherit; font-size:12px; font-weight:500; line-height:1.5; vertical-align:baseline; white-space:nowrap; cursor:pointer; }
+.meeting-inline-evidence-count { font-weight:650; font-variant-numeric:tabular-nums; }
+.meeting-inline-evidence-toggle svg { width:14px; height:14px; flex:none; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; transition:transform 150ms ease; }
+.meeting-inline-evidence-toggle[aria-expanded="true"] svg { transform:rotate(180deg); }
+.meeting-inline-evidence-toggle:hover { color:#2457a7; }
+.meeting-inline-evidence-toggle:hover .meeting-inline-evidence-label { text-decoration:underline; text-underline-offset:3px; }
+.meeting-inline-evidence-toggle:focus-visible { outline:2px solid #2457a7; outline-offset:3px; }
+@media (prefers-reduced-motion:reduce) { .meeting-inline-evidence-toggle svg { transition:none; } }
+.meeting-speaker-points[hidden] { display:none; }
+
+/* 보고서 도구와 통계를 같은 3열 폭에 맞춘다. */
+.meeting-brief-search-control.has-report-actions { width:330px; max-width:100%; align-self:start; grid-template-rows:auto auto; gap:8px; }
+.meeting-primary-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); overflow:hidden; border:1px solid #d8e2f0; border-radius:10px; background:#f8faff; }
+.meeting-primary-actions > button { display:flex; align-items:center; justify-content:center; gap:0; width:auto; min-width:0; min-height:44px; margin:0; padding:9px 4px; border:0; border-right:1px solid #d8e2f0; border-radius:0; background:transparent; color:#315786; font-size:12px; font-weight:700; line-height:1.4; white-space:nowrap; cursor:pointer; box-shadow:none; }
+.meeting-primary-actions > button:last-child { border-right:0; }
+.meeting-primary-actions > button:hover { background:#edf3fc; }
+.meeting-primary-actions > button:focus-visible { outline:2px solid #2457a7; outline-offset:-3px; }
+.meeting-primary-actions > button:disabled { opacity:.55; cursor:wait; }
+.meeting-primary-actions svg, .meeting-primary-actions > button::before { display:none; }
+.meeting-brief-search-control.has-report-actions .meeting-brief-metrics { grid-template-columns:repeat(3,minmax(0,1fr)); border-radius:10px; }
+.meeting-brief-search-control.has-report-actions .meeting-brief-metrics div { min-width:0; padding:8px 4px; }
+.meeting-report-tools:empty { display:none; }
+.meeting-brief-hero:has(.has-report-actions) { align-items:start; gap:18px; padding-top:18px; padding-bottom:18px; }
+@media(max-width:800px) { .meeting-brief-search-control.has-report-actions { width:100%; } .meeting-brief-hero:has(.has-report-actions) { gap:12px; } }
+@media print { .meeting-primary-actions { display:none; } }
+
+.meeting-transcript-switch { display:flex; flex-shrink:0; gap:4px; margin:10px 20px; padding:3px; border:1px solid #dbe3ef; border-radius:8px; align-self:flex-start; background:#f5f7fb; }
+.meeting-transcript-switch[hidden] { display:none; }
+.meeting-transcript-switch button { border:0; border-radius:5px; padding:8px 12px; color:#52647d; background:transparent; font-size:12px; font-weight:650; cursor:pointer; }
+.meeting-transcript-switch button[aria-pressed="true"] { color:#2457a7; background:#fff; box-shadow:0 1px 3px #1720331a; }
+.meeting-transcript-switch button:focus-visible { outline:2px solid #2457a7; outline-offset:1px; }
+
+/* 원문 처리 내역과 보조 설명을 주제표 아래 한 줄에 모은다. */
+.meeting-source-view > .meeting-supplementary { margin:0; padding:4px 30px; border-bottom:1px solid var(--ws-line); background:#fff; }
+.meeting-source-view > .meeting-supplementary .meeting-supplementary-controls { flex-wrap:nowrap; gap:16px; min-height:26px; overflow-x:auto; white-space:nowrap; scrollbar-width:thin; }
+.meeting-source-view > .meeting-supplementary .meeting-supplementary-controls > button { flex:0 0 auto; padding:3px 0; font-size:11px; }
+.meeting-supplementary-hint { flex:0 0 auto; color:#7b879b; font-size:11px; line-height:1.5; }
+@media(max-width:760px) { .meeting-source-view > .meeting-supplementary { padding:4px 14px; } }

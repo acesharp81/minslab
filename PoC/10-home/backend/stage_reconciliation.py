@@ -189,7 +189,7 @@ def annotate_events(rows):
             r['auto_eligible']=False;r['status']='HOLD';r['review_reasons'].append('같은 사업·단계의 다른 일자/물량 후보 존재 · 원천 사건 대조 필요')
 
 
-def decide(service, pid, revision_no, project_revision_no, profile_revision_no, mapping_revision_no, action, actor, reason, checked=False, replace_confirmed=False, automatic=False):
+def decide(service, pid, revision_no, project_revision_no, profile_revision_no, mapping_revision_no, action, actor, reason, checked=False, replace_confirmed=False, automatic=False, delegated=False):
     if not actor.strip() or len(reason.strip())<5:raise ValueError('담당자와 5자 이상의 사유가 필요합니다')
     if action not in ('APPLY','DISMISS'):raise ValueError('승인/제외 동작을 확인하세요')
     if action=='APPLY' and not checked:raise ValueError('원문·동일 사업·물량·날짜 의미를 확인하세요')
@@ -213,7 +213,13 @@ def decide(service, pid, revision_no, project_revision_no, profile_revision_no, 
             if automatic:
                 others=list(db.scalars(select(Revision).where(Revision.kind==KIND,Revision.superseded_at.is_(None),Revision.payload['project_id'].as_string()==p['project_id'])))
                 if any(x.entity_id!=pid and x.payload.get('stage')==p['stage'] and x.payload.get('status') in LIVE and any(x.payload['proposed'].get(k)!=p['proposed'].get(k) for k in ('event_date','units')) for x in others):raise ValueError('동일 사업·단계의 상이한 후보 근거 검토 필요')
-            if automatic and not check['auto_eligible']:raise ValueError('자동 반영 조건 미충족')
+            if delegated:
+                # Project facts and policy attribution are independent. Unassigned projects
+                # may receive proven facts; they remain absent from policy totals.
+                allowed={'정책 귀속 미확정 · 담당자 확인 필요'}
+                remaining=[r for r in check['review_reasons'] if r not in allowed]
+                if remaining:raise ValueError(' / '.join(remaining))
+            elif automatic and not check['auto_eligible']:raise ValueError('자동 반영 조건 미충족')
             if old and not old.get('inferred') and not check['already_reflected'] and not replace_confirmed:raise ValueError('기존 확정 실적 정정 확인이 필요합니다')
             if not check['already_reflected']:
                 value=deepcopy(old_profile) or dict(project_id=p['project_id'],overrides={},approvals={})

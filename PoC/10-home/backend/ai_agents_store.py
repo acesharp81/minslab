@@ -7,6 +7,7 @@ def init(store):
  CREATE TABLE IF NOT EXISTS agent_settings(role TEXT PRIMARY KEY,payload TEXT NOT NULL);
  CREATE TABLE IF NOT EXISTS agent_results(id TEXT PRIMARY KEY,role TEXT NOT NULL,subject TEXT NOT NULL,
     fingerprint TEXT NOT NULL,run_id TEXT NOT NULL,state TEXT NOT NULL,payload TEXT NOT NULL,created REAL NOT NULL);
+ CREATE INDEX IF NOT EXISTS agent_results_run ON agent_results(run_id);
  CREATE INDEX IF NOT EXISTS agent_results_subject ON agent_results(role,subject,created DESC);
  ''')
 
@@ -82,3 +83,27 @@ def economics(store):
      estimated_saving_percent=None if unknown or not baseline else round((1-actual/baseline)*100,1),
      note='동일 1차 토큰을 정밀 모델로 단독 처리한 가정 대비 · 품질 동일성/청구액 보장 아님 · 무료/무제한 혜택 제외'))
  return results
+
+
+def continue_officer(store,current):
+ """Drain unvisited inputs in <=5 nightly batches; never chain manual/failed runs."""
+ from .operations_window import night_open
+ if not night_open(current):return None
+ config=settings(store)['officer']
+ if not config['enabled'] or current.hour<config['hour_kst']:return None
+ day='officer:'+current.date().isoformat()
+ keys=[day]+[day+':batch:'+str(i) for i in range(2,6)]
+ with store.db() as db:
+  rows={r['schedule_day']:dict(r) for r in db.execute('SELECT id,schedule_day,status FROM runs WHERE schedule_day IN (?,?,?,?,?)',keys)}
+  if not rows:return None
+  index=max(i for i,key in enumerate(keys) if key in rows)
+  last=rows[keys[index]]
+  if index==4 or last['status'] not in ('COMPLETED','PARTIAL'):return None
+  progress=db.execute('SELECT payload FROM run_progress WHERE run_id=?',(last['id'],)).fetchone()
+  p=json.loads(progress[0]) if progress else {}
+  if not p.get('queue_remaining') or not p.get('documents_done') or (p.get('business_outcomes') or {}).get('analysis_failed'):return None
+ result=enqueue(store,'officer',keys[index+1])
+ if result and not result.get('already_running'):
+  store.event(result['id'],'OFFICER_CONTINUATION',previous_run_id=last['id'],batch=index+2,max_batches=5,
+      reason='이전 실행의 미검토 자료를 야간 시간·공유 예산 안에서 이어서 검토')
+ return result

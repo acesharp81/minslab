@@ -23,6 +23,8 @@ def tick(service, store):
             day=current.date().isoformat()
             try: enqueue(store,role,day if role=='collection' else role+':'+day)
             except ValueError: continue
+    from .ai_agents_store import continue_officer
+    continue_officer(store,current)
     run=store.claim(allow_scheduled=night_open(current))
     if run:
         if run['config'].get('agent_role','collection')=='collection':process_run(service,store,run)

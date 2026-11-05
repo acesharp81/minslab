@@ -10,7 +10,7 @@ from typing import Any
 
 PROFILE = 'report-parent-review/1'
 BATCH_START = 900000
-MAX_INPUT_BYTES = 180_000
+MAX_INPUT_BYTES = 512_000
 
 
 def digest(value: Any) -> str:
@@ -83,7 +83,11 @@ def prompt(request: dict[str, Any]) -> str:
         '해당 정책 옆의 영상·시연 묶음으로 배치하고, 동음 약어는 문맥으로 판단한다. '
         '근거가 부족하면 추측하지 말고 기존 묶음을 유지한다. 제목은 한국어 80자 이내, '
         'summary는 해당 묶음의 논의 범위를 설명하는 한국어 한두 문장(300자 이내)이다. '
-        '출력 kind는 POLICY, ILLUSTRATION, OTHER 중 하나다.\n'
+        '개회·정회·속개·산회 안내, 발언 순서·시간 배정, 인사 등 회의 운영만 다룬 묶음은 '
+        'kind=PROCEDURAL로 구분해 모든 실질 논의 뒤 맨 아래에 배치한다. '
+        '정책 관련 의사진행 발언이나 자료 제출 요구, 법안 심사·의결 내용은 절차만으로 취급하지 않는다. '
+        '정책과 운영 발언이 섞인 묶음은 POLICY로 유지한다. '
+        '출력 kind는 POLICY, ILLUSTRATION, OTHER, PROCEDURAL 중 하나다.\n'
         + json.dumps(request['groups'], ensure_ascii=False, separators=(',', ':'))
     )
 
@@ -92,7 +96,7 @@ def schema() -> dict[str, Any]:
     return {'type': 'object', 'properties': {'groups': {'type': 'array', 'items': {
         'type': 'object', 'properties': {
             'title': {'type': 'string'}, 'summary': {'type': 'string'},
-            'kind': {'type': 'string', 'enum': ['POLICY', 'ILLUSTRATION', 'OTHER']},
+            'kind': {'type': 'string', 'enum': ['POLICY', 'ILLUSTRATION', 'OTHER', 'PROCEDURAL']},
             'member_ids': {'type': 'array', 'items': {'type': 'string'}}},
         'required': ['title', 'summary', 'kind', 'member_ids'], 'additionalProperties': False}}},
         'required': ['groups'], 'additionalProperties': False}
@@ -111,7 +115,7 @@ def validate(request: dict[str, Any], response: dict[str, Any]) -> None:
         if (not isinstance(title, str) or not 1 <= len(title.strip()) <= 80
                 or not isinstance(summary, str) or not 1 <= len(summary.strip()) <= 300
                 or not isinstance(ids, list) or not ids or not all(isinstance(i, str) for i in ids)
-                or group.get('kind') not in {'POLICY', 'ILLUSTRATION', 'OTHER'}):
+                or group.get('kind') not in {'POLICY', 'ILLUSTRATION', 'OTHER', 'PROCEDURAL'}):
             raise ValueError('PARENT_REVIEW_FORMAT')
         actual.extend(ids)
         titles.append(re.sub(r'\s+', '', title))
@@ -141,6 +145,40 @@ def apply(brief: dict[str, Any], responses: list, snapshot: dict[str, Any]) -> d
             continue
         return project(brief, request, answer)
     return brief
+
+
+def procedural_group(group: dict[str, Any]) -> bool:
+    """Recognize explicit review classification or unambiguous legacy headings.
+
+    Do not classify by incidental summary words: a policy debate may mention
+    an adjournment, request documents or discuss parliamentary procedure.
+    """
+    if group.get('kind') == 'PROCEDURAL':
+        return True
+    text = re.sub(r'[\s·ㆍ,/:()\-–]+', '', str(group.get('title') or ''))
+    if not text:
+        return False
+    return re.fullmatch(
+        r'(?:(?:회의|국정감사|감사)(?:진행|운영|절차)|개회|개의|개회선언|정회|속개|산회|폐회|'
+        r'의사진행|발언순서|발언시간|시간배정|참석자소개|인사말|출석확인|안내|선언|및|와|과)+', text
+    ) is not None
+
+
+def order_procedural_last(brief: dict[str, Any]) -> dict[str, Any]:
+    """Stable display ordering; preserve IDs, original text and model history."""
+    result = deepcopy(brief)
+    groups = result.get('topic_groups', [])
+    groups.sort(key=procedural_group)
+    procedural_ids = {tid for group in groups if procedural_group(group) for tid in group.get('topic_ids', [])}
+    summary = result.get('report_summary') or {}
+    topics = {t['id']: t for t in summary.get('topics', [])}
+    def summary_procedural(group):
+        if procedural_group(group):
+            return True
+        ids = group.get('topic_ids', [])
+        return bool(ids) and all(topics.get(tid, {}).get('source_structured_topic_id') in procedural_ids for tid in ids)
+    summary.get('topic_groups', []).sort(key=summary_procedural)
+    return result
 
 
 def project(brief: dict[str, Any], request: dict[str, Any], response: dict[str, Any]) -> dict[str, Any]:
@@ -173,7 +211,7 @@ def project(brief: dict[str, Any], request: dict[str, Any], response: dict[str, 
             ids = [mapping[t] for t in group['topic_ids'] if t in mapping]
             if ids:
                 new_groups.append({'id': 'summary-' + group['id'], 'title': group['title'],
-                                   'summary': group['summary'], 'topic_ids': ids})
+                                   'summary': group['summary'], 'kind': group['kind'], 'topic_ids': ids})
                 used.update(ids)
         # Additional retained tasks keep their original cards and grouping.
         for group in summary.get('topic_groups', []):
@@ -187,6 +225,7 @@ def project(brief: dict[str, Any], request: dict[str, Any], response: dict[str, 
     meta = {'profile': PROFILE, 'status': 'READY', 'fingerprint': request['fingerprint'],
             'source_group_count': len(originals), 'display_group_count': len(output),
             'method': 'SUMMARY_ONLY_PARENT_REVIEW', 'full_source_sent': False}
+    meta['ordering'] = 'PROCEDURAL_LAST_V1'
     result['parent_review'] = meta
     if summary:
         summary['parent_review'] = deepcopy(meta)
@@ -194,4 +233,4 @@ def project(brief: dict[str, Any], request: dict[str, Any], response: dict[str, 
         result['topic_grouping']['group_count'] = len(output)
     if isinstance(result.get('topic_structure'), dict):
         result['topic_structure']['parent_count'] = len(output)
-    return result
+    return order_procedural_last(result)
