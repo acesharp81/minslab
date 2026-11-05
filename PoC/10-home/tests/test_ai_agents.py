@@ -1,3 +1,4 @@
+from officer_fixtures import officer_response
 """Offline independent checks for boundaries, routing and human hand-off."""
 import csv,io,json,time,hashlib,hmac
 from unittest.mock import patch
@@ -79,19 +80,19 @@ def seed_officer(service,s,did,pid,stage='UNKNOWN'):
  result=work.Decision(action='LINK',project_id=pid,reason='사업명과 주소가 공고 본문에 직접 일치합니다',evidence=['서울 면목동 123'],stage=stage,stage_basis='PLAN',issues=[])
  return r,result
 
-def test_officer_strong_identity_links_only_document_and_keeps_stage_hold(env):
+def test_officer_strong_identity_finishes_plan_reference_without_stage_actual(env):
  service,s,did,pid=env;r,result=seed_officer(service,s,did,pid,'SUPPLY')
- with patch.object(work,'invoke',return_value=(result,'test-call')):work.process(service,s,r)
- assert s.status()['runs'][0]['status']=='PARTIAL'
+ with patch.object(work,'invoke',side_effect=officer_response(result,'test-call')):work.process(service,s,r)
+ assert s.status()['runs'][0]['status']=='COMPLETED'
  d=queue(service)['items'][0];assert d['status']=='APPROVED'
  assert d['decision']['actor'].startswith('업무담당자 AI')
- assert inbox.items(service,s,'officer')[0]['stage']=='STAGE_HOLD'
+ assert inbox.items(service,s,'officer')[0]['verdict']=='YES'
  with service.sessions() as db:
   p=db.scalar(select(Revision).where(Revision.entity_id==pid,Revision.superseded_at.is_(None)))
   assert p.payload['planned_units']==100
   bridge=db.scalar(select(Revision).where(Revision.kind=='evidence_bridge',Revision.superseded_at.is_(None)))
   assert bridge.payload.get('facts',[])==[]
- assert '단계 SUPPLY' in inbox.export_csv(service,s,'officer')
+ assert '서울 면목 행복주택' not in inbox.export_csv(service,s,'officer')
 
 @pytest.mark.parametrize('change',['empty_quote','changed_project','human_decision'])
 def test_officer_does_not_accept_missing_evidence_or_concurrent_changes(env,change):
@@ -130,7 +131,7 @@ def test_algorithm_proposes_without_executing_input(env):
  service,s,did,_=env;r=run_for(s);s.event(r['id'],'DOCUMENT_ERROR',document_id=did,message='원문 읽기 실패');s.finish(r['id'],'PARTIAL')
  config(s,'algorithm');r=start(s,'algorithm')
  result=work.RuleProposal(diagnosis='본문 선택자 확인',change_type='BODY_SELECTOR',selector='article',reason='첨부 범위 확인이 필요합니다',regression_cases=['과거 정상 공고'])
- with patch.object(work,'invoke',return_value=(result,'call')):work.process(service,s,r)
+ with patch.object(work,'invoke',side_effect=officer_response(result,'call')):work.process(service,s,r)
  out=inbox.items(service,s,'algorithm')[0]
  assert out['stage']=='RULE_VALIDATION_REQUIRED' and out['state']=='HOLD'
  assert queue(service)['items'][0]['status']=='REVIEW'
@@ -190,7 +191,7 @@ def test_manual_recovery_is_available_in_officer_and_hold_csv(env):
    row.payload=dict(row.payload,body_text='')
  body='서울 면목 행복주택 사업은 서울 면목동 123에 위치합니다. 공급 계획을 확인합니다.'
  supplement(service,did,1,body,'공식 원문 복구',[],'담당자',hashlib.sha256(body.encode()).hexdigest())
- with patch.object(work,'invoke',return_value=(result,'test-call')) as call:work.process(service,s,r)
+ with patch.object(work,'invoke',side_effect=officer_response(result,'test-call')) as call:work.process(service,s,r)
  assert queue(service)['items'][0]['status']=='APPROVED' and call.called
  assert call.call_args.args[4]==body
  r=run_for(s);s.event(r['id'],'DOCUMENT_ERROR',document_id=did,message='새 수집 오류');s.finish(r['id'],'PARTIAL')

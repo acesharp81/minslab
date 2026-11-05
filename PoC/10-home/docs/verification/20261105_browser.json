@@ -1,0 +1,16 @@
+{
+  "public_site": "https://www.minslab.kr/poc/home/",
+  "menu_path": [
+    "데이터관리",
+    "데이터 정합성 확인",
+    "데이터 신뢰도 확인"
+  ],
+  "iframe_loaded": true,
+  "lazy_reload_requests": 1,
+  "rows": [
+    77,
+    28,
+    24
+  ],
+  "javascript_errors": []
+}

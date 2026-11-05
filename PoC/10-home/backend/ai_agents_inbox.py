@@ -1,4 +1,4 @@
-"""Current role-specific outcomes; CSV includes only actionable human decisions."""
+"""Current role outcomes; officer CSV exposes YES/NO/HOLD and actual effects."""
 import csv,io,json
 from datetime import datetime,timezone
 from .ai_agent_catalog import ROLES
@@ -67,7 +67,17 @@ def items(service,store,role,evidence_export=False):
     if review.get('result_id')==r['id'] and r.get('stage')!='SOURCE_CHANGED':
      action=review.get('action')
      r.update(state='HOLD' if action=='RETRY' else 'DONE',stage={'APPLY':'RULE_APPLIED','IGNORE':'TRANSIENT_DISMISSED','RETRY':'REANALYSIS_REQUESTED','DISABLE':'RULE_DISABLED'}[action],reason=review['effect'],action='담당자 판단: '+review['reason'])
-  return attach_reviews(service,[enrich(r,docs.get(r['subject']),supplements.get(r['subject']),ai.get(r['subject'])) for r in results])
+  results=attach_reviews(service,[enrich(r,docs.get(r['subject']),supplements.get(r['subject']),ai.get(r['subject'])) for r in results])
+  if role=='officer':
+   for r in results:
+    if r['state']=='HOLD':r['verdict']='HOLD'
+    elif r.get('verdict') not in ('YES','NO'):
+     r['verdict']='NO' if r.get('business_status')=='EXCLUDED' or (r.get('result') or {}).get('status')=='DISMISSED' else 'YES' if r.get('business_status')=='APPROVED' or (r.get('result') or {}).get('status')=='APPLIED' else 'HOLD'
+    r['state']='HOLD' if r['verdict']=='HOLD' else 'DONE'
+    if r['verdict']=='HOLD' and not r.get('missing_evidence'):
+     from .ai_officer_decisions import pending
+     r['missing_evidence']=[pending(r.get('reason') or '최종 판단 근거 재점검 필요')]
+  return results
  seen={};result=[]
  with store.db() as c:
   events=c.execute("SELECT e.*,r.config FROM events e JOIN runs r ON e.run_id=r.id WHERE e.kind IN ('SOURCE','SEARCH','SOURCE_ERROR','ANALYZED','ANALYSIS_ERROR','DOCUMENT_ERROR','UNCHANGED') ORDER BY e.id DESC").fetchall()
@@ -102,26 +112,28 @@ def attach_reviews(service, rows):
 
 
 FIELDS=['에이전트','대상ID','자료명','상태','처리단계','보류사유','담당자확인사항','원문URL','원문판본','검토모델','실행ID','처리시각','근거_JSON','분석결과_JSON','수집본문','현재업무상태','최근업무판단사유','본문출처','수동복구확인내용','대상유형','증빙상태','증빙패키지_JSON','사건군ID','중복검토ID_JSON','상이한값검토ID_JSON','교차검토_JSON','재분석필요','자동반영가능']
-def export_csv(service,store,role='all',unique=False):
+def export_csv(service,store,role='all',unique=False,verdict='HOLD'):
  from .publication_evidence import safe_value
  import hashlib
  if role not in ('all','collection','officer'):raise ValueError('수집·업무담당 판단보류만 내보낼 수 있습니다')
+ if verdict not in ('ALL','YES','NO','HOLD') or verdict!='HOLD' and role!='officer':raise ValueError('업무담당자 결정 범위를 확인하세요')
  rows=[]
  for selected in ('collection','officer') if role=='all' else (role,):
-  rows.extend(r for r in items(service,store,selected,evidence_export=True) if r['state']=='HOLD')
+  rows.extend(r for r in items(service,store,selected,evidence_export=True) if (r['state']=='HOLD' if verdict=='HOLD' else verdict=='ALL' or r.get('verdict')==verdict))
  groups={}
  for index,r in enumerate(rows):groups.setdefault(r['subject'] if unique else str(index),[]).append(r)
- output=io.StringIO(newline='');writer=csv.writer(output);writer.writerow(FIELDS+['합쳐진기록수','에이전트별기록_JSON'])
+ output=io.StringIO(newline='');writer=csv.writer(output);writer.writerow([('판단사유' if verdict!='HOLD' and f=='보류사유' else f) for f in FIELDS]+['합쳐진기록수','에이전트별기록_JSON'])
  encode=lambda x:json.dumps(safe_value(x),ensure_ascii=False)
  for group in groups.values():
   # Keep every role's assessment, while including the longest available body once.
-  original=max(group,key=lambda x:len(x.get('body_text','')));r=safe_value(original);result=r.get('result') or {}
+  original=max(group,key=lambda x:len(x.get('body_text','')));r=safe_value(original);result=dict(r.get('result') or {})
+  if r.get('role')=='officer':result.update(verdict=r.get('verdict','HOLD'),missing_evidence=r.get('missing_evidence',[]),retry_after=r.get('retry_after'),effects=r.get('effects',[]))
   package=result.get('evidence_package') or dict(source_url=r.get('url'),source_revision_no=r.get('source_revision_no'),
      body_origin=r.get('body_origin','AI 수집'),body_source_revision_no=r.get('body_source_revision_no'),body_current=r.get('body_source_revision_no')==r.get('source_revision_no') if r.get('body_source_revision_no') else None,exported_body_sha256=hashlib.sha256(r.get('body_text','').encode()).hexdigest() if r.get('body_text') else None,
      quote_checks=[dict(exact=q in r.get('body_text',''),whitespace_normalized=''.join(q.split()) in ''.join(r.get('body_text','').split())) for q in r.get('evidence',[]) if isinstance(q,str) and q.strip()],
      note='현재 저장 본문 대조 · 인용 불일치는 허위 단정이 아닌 재확인 대상')
   record_summaries=[{k:v for k,v in x.items() if k not in ('body_text','cross_review')} for x in group] if unique else []
-  values=[' + '.join(dict.fromkeys(ROLES[x['role']] for x in group)),r['subject'],r.get('title'),'판단보류 · 사람 개입 필요',r.get('stage'),
+  values=[' + '.join(dict.fromkeys(ROLES[x['role']] for x in group)),r['subject'],r.get('title'),{'YES':'Yes · 업무 반영 완료','NO':'No · 제외 확정','HOLD':'보류 · 추가 자료 확보 후 재판단'}.get(r.get('verdict'),'보류') if r.get('role')=='officer' else '판단보류 · 사람 개입 필요',r.get('stage'),
     r.get('reason'),r.get('action'),r.get('url'),r.get('source_revision_no'),r.get('model'),r.get('run_id'),
     datetime.fromtimestamp(r['created'],timezone.utc).isoformat() if r.get('created') else '',encode(r.get('evidence',[])),encode(result),r.get('body_text',''),
     r.get('business_status_label',''),r.get('business_reason',''),r.get('body_origin','AI 수집'),r.get('manual_summary',''),

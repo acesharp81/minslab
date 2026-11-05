@@ -57,7 +57,7 @@ class Fetcher:
         self.folder.mkdir(parents=True,exist_ok=True)
         self.last={}
 
-    def get(self,url,suffix='html'):
+    def get(self,url,suffix='html',*,allow_pdf=False):
         self.last={}
         current=canonical(url)
         cookies={}  # Ephemeral, exact-origin and path scoped; never persisted or logged.
@@ -103,9 +103,10 @@ class Fetcher:
                 data=b''.join(chunks)
                 if not data or len(data)>MAX_BYTES: raise ValueError('원문이 비었거나 3MB 상한 초과')
                 mime=response.getheader('Content-Type','').lower()
-                if data.startswith(b'%PDF') or 'pdf' in mime:
+                is_pdf=data.startswith(b'%PDF')
+                if (is_pdf or 'pdf' in mime) and not (allow_pdf and is_pdf):
                     raise ValueError('PDF 첨부는 원문 링크를 보존하고 담당자 수집 필요')
-                if not any(x in mime for x in ('text/','xml','html','json')) and mime:
+                if not (allow_pdf and is_pdf) and not any(x in mime for x in ('text/','xml','html','json')) and mime:
                     raise ValueError('텍스트/HTML/RSS 원문만 자동 수집합니다')
                 digest=hashlib.sha256(data).hexdigest()
                 (self.folder/(digest+'.raw')).write_bytes(data)
@@ -121,7 +122,7 @@ def text_content(raw):
     for node in soup.select('script,style,noscript,nav,footer,header,form'): node.decompose()
     # Prefer article bodies over navigation, popular-news lists and social widgets.
     main=None
-    for selector in ('#articleText', '.board-view-txt', '.viewer', '.detailTable td.cont', '#scrabArea', '.bd_view_cont', 'article.board_view .contents', '.board_view_con'):
+    for selector in ('#articleText', '.news-contents .article', '.board-view-txt', '.viewer', '.detailTable td.cont', '#scrabArea', '.bd_view_cont', 'article.board_view .contents', '.board_view_con'):
         candidate=soup.select_one(selector)
         if candidate is not None:
             main=candidate

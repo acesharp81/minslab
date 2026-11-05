@@ -1,0 +1,41 @@
+{
+  "project_before": {
+    "CONNECTED": 231,
+    "OFFICER": 1,
+    "REVIEW": 0,
+    "UNLINKED": 45,
+    "EXCLUDED": 64
+  },
+  "project_after": {
+    "CONNECTED": 231,
+    "OFFICER": 1,
+    "REVIEW": 0,
+    "UNLINKED": 45,
+    "EXCLUDED": 64
+  },
+  "publication_before": {
+    "REGISTRATION_REQUIRED": 46,
+    "APPROVED": 16,
+    "REVIEW": 52,
+    "EXCLUDED": 120,
+    "HOLD": 39
+  },
+  "publication_after": {
+    "REGISTRATION_REQUIRED": 46,
+    "APPROVED": 17,
+    "EXCLUDED": 134,
+    "HOLD": 76
+  },
+  "changed_publications": {
+    "APPROVED": 2,
+    "EXCLUDED": 14,
+    "HOLD": 37
+  },
+  "policy_actuals_unchanged": true,
+  "project_mappings_unchanged": true,
+  "new_evidence_bridges": 2,
+  "new_actual_units": 0,
+  "processed_cross_reviews_current": true,
+  "old_facts_revalidated": true,
+  "protected_sha256": "858a4ab299421a1b32f9edb398d062709bc768198a2399134e83f0c85d592e03"
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "path": "/health",
+    "status": 200,
+    "bytes": 57,
+    "seconds": 0.021
+  },
+  {
+    "path": "/poc/home/api/projects",
+    "status": 200,
+    "bytes": 808961,
+    "seconds": 0.529
+  },
+  {
+    "path": "/poc/home/api/policy-delivery/view",
+    "status": 200,
+    "bytes": 3647140,
+    "seconds": 0.112
+  }
+]

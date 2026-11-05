@@ -1,3 +1,4 @@
+from officer_fixtures import officer_response
 """Fixed source examples verify accounting and approval boundaries independently of models."""
 import csv,io,json,hashlib,hmac,time
 from copy import deepcopy
@@ -118,10 +119,11 @@ def test_approved_document_is_revisited_with_stage_evidence_without_overwriting_
  save(service,did,1,0,'APPROVED','UNASSIGNED',[pid],[],'사람 담당자','공식 원문 사업 연결 확인',True)
  event=work.StageEvent(stage='CONSTRUCTION',event_date='2026-10-20',units=100,date_basis='EVENT',precision='DAY',scope='WHOLE_PROJECT',date_quote='원문에 없는 착공일',units_quote='원문에 없는 물량',issues=[])
  result=work.StageDecision(**result.model_dump(),stage_events=[event]);result.stage_basis='ACTUAL'
- with patch.object(work,'invoke',return_value=(result,'test-call')):work.process(service,store,run)
+ with patch.object(work,'invoke',side_effect=officer_response(result,'test-call')):work.process(service,store,run)
  d=queue(service)['items'][0]
  assert d['status']=='APPROVED' and d['decision']['actor']=='사람 담당자'
- assert len(sr.list_items(service))==1 and not sr.list_items(service)[0]['auto_eligible']
+ assert len(sr.list_items(service))==0  # Invalid quotations are rejected before proposal storage.
+ assert work.latest(store,'officer')[did]['verdict']=='HOLD'
  assert not service.rows('project_profile')
 
 
@@ -171,7 +173,7 @@ def test_recent_progress_is_observation_and_partial_supply_is_not_added(env):
 def test_unchanged_approved_input_does_not_spend_another_model_call(env,monkeypatch):
  monkeypatch.setenv('UPSTAGE_SECRET_KEY','offline-test')
  service,store,did,pid=env;run,result=seed_officer(service,store,did,pid)
- with patch.object(work,'invoke',return_value=(result,'test-call')):work.process(service,store,run)
+ with patch.object(work,'invoke',side_effect=officer_response(result,'test-call')):work.process(service,store,run)
  run=start(store,'officer')
  with patch.object(work,'invoke') as model:work.process(service,store,run)
  assert not model.called

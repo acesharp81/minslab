@@ -1,0 +1,14 @@
+{
+  "backend/ai_officer_decisions.py": "208a78c99eb589c0e635fda97f9c36e7e8020f7f42a30b3996ce544454cf996f",
+  "backend/ai_officer_review.py": "77b807e72222d56d75c87c6aea4d5d9cd297b5d05a4af7913022b81c28e37fbe",
+  "backend/ai_agent_workflows.py": "86c5edba5bfdf00f6dfb07230f98921a42fe9aa71608963b60f3f8138304f512",
+  "backend/ai_agents_api.py": "9db3815fcc713e4d881afacea2a47e7c938d468e65f3c4af225e15fea8bd56dd",
+  "backend/ai_agents_inbox.py": "d48c23a3a23f174654d11aadbde3ff9be86aaba2bdeaeaad16733e071f9675ce",
+  "backend/stage_reconciliation.py": "8b7ab663da8724df02ce62497bff4e5dda13af022b0d6eb4283c378f637df205",
+  "backend/ai_collection.py": "86750b0d345c3084ef5b6bf09a4e219c44e238ccb77c056020272e8464293fc2",
+  "web/assets/ai-collection.js": "71d63ad7c0c930d099c65a87bbfe5c83b98c62ab9d508cc66b03bfa464f29d7e",
+  "web/assets/ai-collection.css": "6c6a54e6ae6c842df80d7bd9ee30673867f76530c2aad920749277b1d72db013",
+  "web/index.html": "73d20622b97354c9103b6d99ab8ac4889bd2276547af77b906c42e4a4452cac7",
+  "tests/test_ai_officer_decisions.py": "3d145fa7e9e4c7f77de3de1cf2b82197df731dba9cc4bc72e5ccd3ba0de5f134",
+  "README.md": "9b789d0f4570b77fd87bc6dfb84068509160d82549f9b702859e9a08c2d8bc47"
+}

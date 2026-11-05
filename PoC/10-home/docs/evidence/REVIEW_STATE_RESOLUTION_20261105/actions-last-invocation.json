@@ -1,0 +1,1366 @@
+[
+  {
+    "document_id": "DOC_c1e0735a4fd133445a58f02a",
+    "assessment": {
+      "id": "PUB_82983cb38f51abcf3d586457",
+      "revision_no": 2,
+      "outcome": "unchanged"
+    }
+  },
+  {
+    "document_id": "DOC_7cc26f88094ea91514a10bf2",
+    "result": {
+      "document_id": "DOC_7cc26f88094ea91514a10bf2",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 2,
+      "title": "고덕강일지구 3단지 토지임대부 분양주택의 사전청약·특별공급 접수결과 및 일반공급 확정물량 게시",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312755",
+      "status": "APPROVED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [
+        "PRO_1fbf5c7629634fa05be7652a"
+      ],
+      "project_names": [
+        "고덕강일 3단지"
+      ],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "SH 공식 게시물의 고덕강일지구 3단지·토지임대부 분양주택 명칭 및 시행기관이 현재 유일한 SH 고덕강일 3단지 토지임대부 원장과 일치함을 대조. 모집 절차 참고자료로만 연결 승인. 일반공급 확정 267호 및 신청 6,467건을 총 사업규모나 실제 공급으로 더하지 않으며 기존 계획 1,305호도 수정하지 않음. 정책 귀속·모집차수 병합·단계실적 승인은 별도.",
+      "source_checked": true,
+      "reviewed_at": "2026-11-04T23:26:01.186795+00:00",
+      "effect": "자료 연결 승인. 정책 귀속·호수·목표·실적 자동 변경 없음.",
+      "id": "PUB_6ead49012668c04dded7bca5",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_45cf13c817b9ae8c3769a706",
+    "result": {
+      "document_id": "DOC_45cf13c817b9ae8c3769a706",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "반도체·플랜트 호조, 주택 부진…건설사 3분기 성적표 '희비'",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852424",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "건설사 분기 실적·업황 자료임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:01.240924+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_215e1257f69114f0b7de3f0f",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_45cf13c817b9ae8c3769a706",
+    "assessment": {
+      "id": "PUB_7a63189ff4ffcbc18142c590",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_10bcfe8a66696f7435b8f552",
+    "result": {
+      "document_id": "DOC_10bcfe8a66696f7435b8f552",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "치솟는 세금·분담금 부담…강남 재건축 평형 작아지나",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854818",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 해당 사업명이 구체적으로 제시되고 정비계획 고시가 확인될 때에만 사업위험 참고로 연결. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:01.357001+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_7e73555aafe25bfe9c6bfc61",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_10bcfe8a66696f7435b8f552",
+    "assessment": {
+      "id": "PUB_b8742b719124c58d988a63ba",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_12b143ac0bc7e2746571473a",
+    "result": {
+      "document_id": "DOC_12b143ac0bc7e2746571473a",
+      "source_id": "molit_press_watch",
+      "source_revision_no": 1,
+      "title": "분양가의 25%로 입주하는 LH 공공분양주택, 금년 12월 고양창릉서 첫 분양",
+      "evidence_url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092558",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 기존 고양창릉 S-2BL 사업ID와 원모집 공고를 대조하고 1,057(총량), 284(포함물량), 분양 예정(2026.12)을 별도 클레임으로 저장. 국토부 공식 원문 증거ID 생성. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:01.473276+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_72eab4622f70fabf3e12faab",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_12b143ac0bc7e2746571473a",
+    "assessment": {
+      "id": "PUB_84a0257116d5fc19d7021d74",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_1d1b76910c7f256872b7bfdf",
+    "result": {
+      "document_id": "DOC_1d1b76910c7f256872b7bfdf",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "'반세권' 한화포레나 지제역 6일 견본주택 개관…분양 돌입",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003853854",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 입주자모집공고·시행사 자료로 정식 사업명·위치·주택수·모집기간 확인. #27과 사건 연결하여 중복 공급실적 방지. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:01.603260+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_eeca91b4b23b3424e08d251f",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_1d1b76910c7f256872b7bfdf",
+    "assessment": {
+      "id": "PUB_8430d955f53e3cc518677324",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_29458fee2a62582789fce158",
+    "result": {
+      "document_id": "DOC_29458fee2a62582789fce158",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "이형일 \"150만호 착실하게 공급…인허가·착공 30% 이상 늘어\"",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854727",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "전국 목표·증감률에 관한 상위 통계 자료임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:01.723832+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_7975c311348d425ff3985ca9",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_29458fee2a62582789fce158",
+    "assessment": {
+      "id": "PUB_a87121726da594f49a6e6d4a",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_2e05f8a89a4879d89f987cfc",
+    "result": {
+      "document_id": "DOC_2e05f8a89a4879d89f987cfc",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 2,
+      "title": "제7차 장기전세주택2 [엘리프미아역] 입주안내문 게시",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312804",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 원모집 공고·계약자 안내·입주지정기간 원문 및 첨부 확인. 동일 단지의 제50차 장기전세1(#25)과 모집제도·차수 분리. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:01.833157+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_380feb2b9087fa4125e48213",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_2e05f8a89a4879d89f987cfc",
+    "assessment": {
+      "id": "PUB_48be06ee3f3f5a83d36b1455",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_2fffe241c4468b03e1ba6726",
+    "result": {
+      "document_id": "DOC_2fffe241c4468b03e1ba6726",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "서초구, 무허가 주택 밀집지역 200세대 화재 안전점검",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854049",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "기존 주거지의 화재 안전점검임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:01.936318+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_8952ffe58fad76dbf1ce7694",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_2fffe241c4468b03e1ba6726",
+    "assessment": {
+      "id": "PUB_48210926ad912eda3b2f66f8",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_3af1497f1c3e38152ac9fc9b",
+    "result": {
+      "document_id": "DOC_3af1497f1c3e38152ac9fc9b",
+      "source_id": "molit_press_watch",
+      "source_revision_no": 1,
+      "title": "연체 걱정 없이 세 놓으세요, 월세 부담 없는 집에서 사세요. 전월세 안심신탁 첫 임대인 모집 공고",
+      "evidence_url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092556",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "전월세 보증·신탁 제도 안내임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.025124+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_f153340df5a020d33cc04353",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_3af1497f1c3e38152ac9fc9b",
+    "assessment": {
+      "id": "PUB_946dc5fdae1e43a5de52a2d8",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_5205f8233241c76059054cb5",
+    "result": {
+      "document_id": "DOC_5205f8233241c76059054cb5",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "LH, 주거급여 확인조사에 모바일 본인참여 서비스 도입",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003853851",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "주거급여 조사 행정서비스임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.116140+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_6317b12d604ed9968e2da41d",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_5205f8233241c76059054cb5",
+    "assessment": {
+      "id": "PUB_a1219f0ecffea312fba93cf1",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_615eb72853b1976bd67f0bdc",
+    "result": {
+      "document_id": "DOC_615eb72853b1976bd67f0bdc",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "전월세 안심신탁 첫 임대인 오늘부터 모집…年4.35% 약정수익",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003853693",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "전월세 안심신탁 제도 보조보도임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.206847+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_dd61e40ff99f256b600a4ef6",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_615eb72853b1976bd67f0bdc",
+    "assessment": {
+      "id": "PUB_6fb98781b1eb6c267e312d0d",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_722c8fda54b9f1113a43405f",
+    "result": {
+      "document_id": "DOC_722c8fda54b9f1113a43405f",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "용인시, 임대형기숙사 실별 면적 강화…건축조례 개정",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854068",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "건축조례 제도 안내임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.299670+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_e366193f6403519a36de417a",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_722c8fda54b9f1113a43405f",
+    "assessment": {
+      "id": "PUB_425fb779e0aaf5e9c99a1cc6",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_72ede1d5786c54ba6a273031",
+    "result": {
+      "document_id": "DOC_72ede1d5786c54ba6a273031",
+      "source_id": "lh_press_watch",
+      "source_revision_no": 1,
+      "title": "한국토지주택공사(LH), 주거급여 확인조사에 모바일 본인참여 조사 도입",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12186",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "주거급여 비대면 조사 행정서비스임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.395962+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_503304bfec4c83fede2ff34b",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_72ede1d5786c54ba6a273031",
+    "assessment": {
+      "id": "PUB_3c08ea93b07875e20d0e14e2",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_785b79b9ea902cb6c207e23f",
+    "result": {
+      "document_id": "DOC_785b79b9ea902cb6c207e23f",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "하남시, 신규 공공주택지구 TF 구성…\"5개 분야 운영\"",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854312",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 TF 담당 지구목록·협의 주체·회의자료 확인 후 각 지구별 협업/병목 사건으로만 연결. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.489703+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_1698ae1ff338aa5ba54ee122",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_785b79b9ea902cb6c207e23f",
+    "assessment": {
+      "id": "PUB_38bf149b7f1ccc255d298b32",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_799c1c249ff6f2f97327697d",
+    "result": {
+      "document_id": "DOC_799c1c249ff6f2f97327697d",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 2,
+      "title": "[당첨자발표] 2026년 다자녀 매입임대주택 예비자 공급 계약대상자 발표(2026년 예비2차) 및 계약 안내",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312726",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 원공고·대상자별 자산·계약기간 확인. 개인정보(당첨자 명단) 별도 비식별화 및 자동 추출 제외. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.598787+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_768fcf699bea71d4d5fc7496",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_799c1c249ff6f2f97327697d",
+    "assessment": {
+      "id": "PUB_bb5f3c5a961f155ddaa23f4a",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_858d62ad6877e79e4f31a15b",
+    "result": {
+      "document_id": "DOC_858d62ad6877e79e4f31a15b",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "노원구, 상계2구역 재개발사업 관리처분계획 인가",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854515",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 기존 상계2구역 사업ID를 우선 찾고, 노원구 인가 고시·사업시행계획과 교차확인한 뒤 관리처분인가 이벤트 반영. 2,200세대를 기존 총량과 중복 가산하지 않음. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.694924+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_65286e376b6d65af1e89c104",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_858d62ad6877e79e4f31a15b",
+    "assessment": {
+      "id": "PUB_525c3658f7660d6892502ac2",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_85f7b566834efc6b3e420090",
+    "result": {
+      "document_id": "DOC_85f7b566834efc6b3e420090",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "오세훈 \"유찬종 종로구청장 취임 후 창신동 재개발 희망 흔들려\"",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003855354",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 해당 정비구역 고시·협의 문서가 확보될 때만 사업위험 의견으로 연결; 인허가 단계 자동 변경 금지. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.800467+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_4976c20b58d2b2ba190cab1d",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_85f7b566834efc6b3e420090",
+    "assessment": {
+      "id": "PUB_9a98f8dc0701542655f8f17b",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_a0c8cad5f160d75ce9543dfc",
+    "result": {
+      "document_id": "DOC_a0c8cad5f160d75ce9543dfc",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "이천시, 노후 공동주택 보수비 지원…\"단지당 최대 6천만원\"",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854917",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "기존 공동주택 유지보수 보조금임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.888885+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_07c3a1ac5ff57d681c9e62c2",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_a0c8cad5f160d75ce9543dfc",
+    "assessment": {
+      "id": "PUB_5f05a7f8d3b208677dde2fe1",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_b119fad2693b695410db10d7",
+    "result": {
+      "document_id": "DOC_b119fad2693b695410db10d7",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 2,
+      "title": "제50차 장기전세주택1 [엘리프미아역] 당첨자 주택공개(사전방문) 실시 안내",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312806",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 원모집·당첨·계약·입주 이벤트 연결, 차수 및 공급유형 구분, 주택 공개를 입주 완료로 간주하지 않음. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:02.975973+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_f0a8cb49fa5d421198cbdfcc",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_b119fad2693b695410db10d7",
+    "assessment": {
+      "id": "PUB_15ba8ef556ac3534caa50443",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_b710c8beef01dcc25540acaa",
+    "result": {
+      "document_id": "DOC_b710c8beef01dcc25540acaa",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "분양가 25%만 내고 입주…고양창릉서 LH 공공분양 12월 공급",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854031",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 #7과 발표사건군 통합, 모형별 세대수는 공식 보도 기준으로 검증 후 S-2BL에만 연결. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.063893+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_06bab91c1387005901b25f16",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_b710c8beef01dcc25540acaa",
+    "assessment": {
+      "id": "PUB_f751aacdab8de07202320c10",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_c7b545d8d4673e856edb8272",
+    "result": {
+      "document_id": "DOC_c7b545d8d4673e856edb8272",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "'한화포레나 지제역' 6일 견본주택 개관…1098가구 분양",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854468",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 #8과 중복 연결을 검토하고 정식 모집공고·인허가·시행자·위치 검증, 분양예정/실제 접수 구분. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.156071+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_581359ec03f933ad428b15a6",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_c7b545d8d4673e856edb8272",
+    "assessment": {
+      "id": "PUB_49800e0db04bff0231b6fea1",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_d408fbc3814896a5e4b1a440",
+    "result": {
+      "document_id": "DOC_d408fbc3814896a5e4b1a440",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 2,
+      "title": "[입주안내문] 동작보라매역 프리센트_수정",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312793",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 정정 전후 입주지정기간·주택공개·절차 변경점 비교; `REVISION_OF` 관계 후보로 관리. 신규 주택 물량 가산 금지. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.244187+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_7c78cb2a94a90c8370e49463",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_d408fbc3814896a5e4b1a440",
+    "assessment": {
+      "id": "PUB_566776fd149f15733fc16014",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_d41dfa2a92e54c27a87a5d07",
+    "result": {
+      "document_id": "DOC_d41dfa2a92e54c27a87a5d07",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "춘천 첫 AI 주거단지 '남춘천 센트레빌' 9일 청약…264가구 공급",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003853831",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 청약홈 모집공고 또는 시행자·관할청 자료로 위치·분양물량·청약일정 대조. 공고와 기존 사업대장 조회 후 등록 또는 연계 결정. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.325078+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_936625aa2c1aa942df0f9939",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_d41dfa2a92e54c27a87a5d07",
+    "assessment": {
+      "id": "PUB_323f6897ae6b6c0f90c29231",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_d7d030f15d1f690119de4dcf",
+    "result": {
+      "document_id": "DOC_d7d030f15d1f690119de4dcf",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "LH, 2030년까지 모듈러주택 1.8만호 발주…4.8조 투입",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003853956",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "기관 전체 모듈러 발주 목표임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.425440+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_c21b9c52f3dc9233854399ec",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_d7d030f15d1f690119de4dcf",
+    "assessment": {
+      "id": "PUB_27b15e08cb6c252fce433d6c",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_db6f19d43fca6e38566abe10",
+    "result": {
+      "document_id": "DOC_db6f19d43fca6e38566abe10",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "직주근접이 경쟁력…서울 도심·수도권 업무지구 인근 분양 잇따라",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854066",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 원문에서 프로젝트 식별 가능할 경우에만 별도 사업 검토후보 생성. 일반 동향 데이터는 정책 배경자료. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.523538+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_bb499d892ca71e137f0bad71",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_db6f19d43fca6e38566abe10",
+    "assessment": {
+      "id": "PUB_690b5469d224ddeb7b450d53",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_eedf90ea3eb62f3e0d3c5fef",
+    "result": {
+      "document_id": "DOC_eedf90ea3eb62f3e0d3c5fef",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "LH, 수도권 신규 공공주택지구 6곳 '보상투기 사전 차단' 착수",
+      "evidence_url": "https://www.newsis.com/view/NISX20261104_0003854686",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 LH·국토부 원문에서 6개 지구 명칭 확인 후 지구별 위험관리 이벤트로 연결. 보상착수·착공실적으로 전환 금지. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.612992+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_7f5d00570f4e9ab06edb4f99",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_eedf90ea3eb62f3e0d3c5fef",
+    "assessment": {
+      "id": "PUB_3d72330c94389def75ec72b5",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  },
+  {
+    "document_id": "DOC_18d3bc0dbf9158ee18085393",
+    "result": {
+      "document_id": "DOC_18d3bc0dbf9158ee18085393",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 2,
+      "title": "로또라던 재건축, 어쩌다 '분담금 폭탄' 됐나",
+      "evidence_url": "https://www.newsis.com/view/NISX20261102_0003851199",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 원문에서 특정 정비구역·공식 변경자료가 확인되는 경우에만 해당 사업의 위험보조자료로 재분류한다. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.704839+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_095af579cf61ad2fd0120690",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_1e8144946666be0f53ae225e",
+    "result": {
+      "document_id": "DOC_1e8144946666be0f53ae225e",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "포스코이앤씨, '더샵 일산센트로' 장기민간임대 229가구 이달 공급",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852909",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 사업자 모집공고 또는 임대주택 등록·건축허가 자료에서 주소·229가구 구성과 공급예정일을 검증한다. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.731655+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_2aca039b19fce9e08fe7166f",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_2df56e24328d6ea85819d063",
+    "result": {
+      "document_id": "DOC_2df56e24328d6ea85819d063",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 2,
+      "title": "뉴홈 전용 디딤돌대출(토지임대부 분양주택) 출시 안내",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312704",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 상품 적용대상·신청 개시일·금융기관을 검증하고 기존 마곡17단지 금융지원 이력으로 연결한다. 신규 호수 합산 금지. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.754473+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_8fa27e2dcb9d98c7153685a9",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_2e84f60c0186683e54d6e46c",
+    "result": {
+      "document_id": "DOC_2e84f60c0186683e54d6e46c",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "성남 은행1·금광2구역 재개발 속도…9일 주민설명회",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852194",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 시·구 정비계획 공람 및 구역 고시, 구역별 명칭·주소 확인 후 개별 사업 등록 여부 판단. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.783716+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_492d4b9642e9839fa8738713",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_311731db85dade70b55bf8d6",
+    "result": {
+      "document_id": "DOC_311731db85dade70b55bf8d6",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "김포 아라 공공택지 발표에 주민 청원…“도, 교통대책 나서라”",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003853326",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 김포아라 후보 지구의 교통·주민수용성 리스크에 연결하되 공식 협의결과 전까지 위험 의견으로만 표기. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.809135+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_94e6f2ff6dbf7836b1535d06",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_32a1c46ebda7346b56f46c9d",
+    "result": {
+      "document_id": "DOC_32a1c46ebda7346b56f46c9d",
+      "source_id": "opm_press_watch",
+      "source_revision_no": 1,
+      "title": "[보도자료] 모듈러주택 산업 현장소통을 위한 규제합리화 현장캠프 개최",
+      "evidence_url": "https://www.opm.go.kr/opm/news/press-release.do?mode=view&articleNo=164056",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 모듈러 규제개선 프로그램에 연결; L5블록 ID가 확인되면 현장점검 이력으로도 연결한다. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.830308+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_217ed44d3905788430b2cff2",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_36666cdd9c8b077dbd8da3e1",
+    "result": {
+      "document_id": "DOC_36666cdd9c8b077dbd8da3e1",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "안양 평안동 행정복지센터 착공…\"전기 생산하는 청사\"",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852993",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "주택이 아닌 행정복지센터 신축임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.875206+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_4620a212713bcbce6a3ba7f7",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_42da06c72db63143a89c3438",
+    "result": {
+      "document_id": "DOC_42da06c72db63143a89c3438",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "토지자산 주거용·수도권·민간 편중…\"개발 중심 정책에 한계\"",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852566",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 통계의 조사기관·기준시점·분모를 확인해 정책 환경 참고지표에만 사용한다. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.904782+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_bf39cb1a0e90aa3b55635199",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_45a6436bbfec13d46f50b04f",
+    "result": {
+      "document_id": "DOC_45a6436bbfec13d46f50b04f",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "금융위 등 31곳 우선 세종행에 \"주거·교육 대책부터\"…시민 항의도(종합)",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852267",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 기관 이전 계획과 주택공급 계획의 공식 원문을 각각 확인하고 주거수요 정책 참고로 분리한다. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.931143+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_05756394cfabcfe86660841b",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_5046d8cdb47785da59fd1c8d",
+    "result": {
+      "document_id": "DOC_5046d8cdb47785da59fd1c8d",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "현대엔지니어링, 734가구 '힐스테이트 울산역리버포레' 이달 분양",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852161",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 청약홈 모집공고·건축허가·대지 위치를 확인한 다음에만 독립 사업ID 등록 검토. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.958815+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_784f163368547d0a2f186fd9",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_5a12b38ee4ef96840d281147",
+    "result": {
+      "document_id": "DOC_5a12b38ee4ef96840d281147",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "성북구, 길음복합문화체육센터 착공…지하 2층·지상 5층",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852972",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "주택이 아닌 복합문화체육센터 신축임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:03.995895+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_9cda0f21b99b5f76082915a6",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_6954c7d36d907fbbc9965d60",
+    "result": {
+      "document_id": "DOC_6954c7d36d907fbbc9965d60",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "실거주 중심 부동산세 개편…전문가들 \"임대료 전가 살펴야\"",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003853176",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 공식 입법자료와 시행 여부 확인 후 정책 참고로 저장; 실제 시행 정책이나 개별 공급실적으로 취급 금지. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.027839+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_a81e6795fab89fe3284a8d27",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_6ded3537b3794065fe198e1e",
+    "result": {
+      "document_id": "DOC_6ded3537b3794065fe198e1e",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 2,
+      "title": "제5차 장기전세주택2(2025.07.28.공고) 마곡17단지 예비자 유효기간 연장 안내",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312427",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 원모집공고 및 대상 예비명부와 기간 연장 첨부 확보. 만료일 변경만 기록하고 신규 분양·입주 실적에는 미반영. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.076914+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_6f70ae587d94b3b71885ed61",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_7442b77c67a6122029b9b7a2",
+    "result": {
+      "document_id": "DOC_7442b77c67a6122029b9b7a2",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "은마아파트 일부 토지 한보 상속인들에게…재건축 암초 되나",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003853211",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 은마 재건축 사업ID가 있으면 토지권리 위험 주장으로 참고 연결; 등기·소송 및 조합 공지로 교차 검증. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.104135+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_8be58a432a3037b919553009",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_a09438b7417c78f97dd19d11",
+    "result": {
+      "document_id": "DOC_a09438b7417c78f97dd19d11",
+      "source_id": "molit_press_watch",
+      "source_revision_no": 1,
+      "title": "11월 12일부터 다세대·다가구주택 면적 제한 1,000㎡로 완화",
+      "evidence_url": "https://www.molit.go.kr/USR/NEWS/m_71/dtl.jsp?id=95092553",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 건축법 시행령 시행일 11월12일, 적용대상과 예외·경과규정을 법령 원문으로 확인해 제도 변경 이력에 등록. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.131244+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_013519781f54563cc41c055b",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_aed37925a2d723fd149f5b51",
+    "result": {
+      "document_id": "DOC_aed37925a2d723fd149f5b51",
+      "source_id": "lh_press_watch",
+      "source_revision_no": 1,
+      "title": "한국토지주택공사(LH), 공동주택 최초 태양광 잉여전력 요금상계거래 시행",
+      "evidence_url": "https://www.lh.or.kr/gallery.es?mid=a10502000000&bid=0003&act=view&list_no=12183",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 대상 단지가 확인되면 주택 품질·운영 사례로 보관하되 공급호수 변화·착공으로 연결하지 않는다. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.152974+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_4220e804ef088fc0a42513d3",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_cfd72a3f30ebfc987fbf08bb",
+    "result": {
+      "document_id": "DOC_cfd72a3f30ebfc987fbf08bb",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "K-컬처 복합콤플렉스 민간참여자 공모 취소…공공택지 조성과 중복",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852800",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 공모 취소 기관의 공식 공지와 관련 공공택지 경계를 비교한 뒤 관련성이 있을 때만 사업위험으로 링크. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.178187+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_f36c40c3f9ba46ee13b26672",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_ea9f735d6ab174a137aa4a40",
+    "result": {
+      "document_id": "DOC_ea9f735d6ab174a137aa4a40",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "'세종 이전'에 내년 임대주택 2300호 공급…\"일방적\" 시민 반발도(종합2보)",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852692",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 기관·유형별 계획 및 예산·입주자모집 자료 확보 후 프로그램 계획으로만 보관하고 개별 블록 배분 금지. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.201334+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_5cafdfef16fd7e51fdf0eca0",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_ebcf408c6cb3a2891856b80b",
+    "result": {
+      "document_id": "DOC_ebcf408c6cb3a2891856b80b",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "강동 고덕 '한강뷰' 신축이 3억대…토지임대부 흥행 이어갈까",
+      "evidence_url": "https://www.newsis.com/view/NISX20261103_0003852714",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 단지·블록·본청약 공고와 기사 전문을 대조해 동일하면 보조보도로 연결; 가격을 공식 확정 분양가로 입력 금지. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.227602+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_f098f327432a53356ebfd459",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_d9a300d8b44956ac722e88d8",
+    "result": {
+      "document_id": "DOC_d9a300d8b44956ac722e88d8",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 2,
+      "title": "행복주택 예비당첨자 게시",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312202",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 본문과 첨부에서 공고 회차·단지별 관리번호 확인 전에는 구체적 자산 연결 보류. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.252422+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_71a0cf828a1abb7c306a2e39",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_e78b52a65a34d9c1ad816905",
+    "result": {
+      "document_id": "DOC_e78b52a65a34d9c1ad816905",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 2,
+      "title": "(예비4차) 2025년 전세형 매입임대주택 입주자모집(2025.12.26.) 당첨자 동호배정 명단 발표 및 계약안내",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312398",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 2025-12-26 원모집공고와 80번 일정변경 공고를 같은 모집계열로 대조. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.279324+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_7c0ebf618fddae8ea593aca6",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_ed34161ad0487a22bc5386ab",
+    "result": {
+      "document_id": "DOC_ed34161ad0487a22bc5386ab",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "DL이앤씨, 부산 해운대 'e편한세상 센텀 리버루체' 이달 분양",
+      "evidence_url": "https://www.newsis.com/view/NISX20261102_0003850315",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 대지·사업자·분양세대 수를 청약홈에서 확인한 뒤 등록 여부 결정. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.310634+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_c4bfdcab9e4542edf566a15e",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_f38bcf295320d37ca8afa1e0",
+    "result": {
+      "document_id": "DOC_f38bcf295320d37ca8afa1e0",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "인천 부평구, 내년 재개발·재건축 원스톱 지원센터 신설",
+      "evidence_url": "https://www.newsis.com/view/NISX20261102_0003851632",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문 또는 대상별 첨부 미확보로 부평구 공식 추진계획 확인 후 지자체 정비사업 지원 정책자료로 저장. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.334614+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_d6c758beb632bb7da46d687a",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_fcb60b7debfc1b7398554865",
+    "result": {
+      "document_id": "DOC_fcb60b7debfc1b7398554865",
+      "source_id": "newsis_housing_watch",
+      "source_revision_no": 1,
+      "title": "시흥 공동주택 6층서 불, 1명 중상·5명 대피",
+      "evidence_url": "https://www.newsis.com/view/NISX20261102_0003850137",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "기존 거주 주택의 화재 사건임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.376197+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_7639c762f03e880a0e978893",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_d492d84d05cab99bb8fe0be3",
+    "result": {
+      "document_id": "DOC_d492d84d05cab99bb8fe0be3",
+      "source_id": "sh_notice_watch",
+      "source_revision_no": 1,
+      "title": "2025년 재개발임대주택 예비6차 당첨자 발표(2025.10.24.공고)",
+      "evidence_url": "https://www.i-sh.co.kr/main/lay2/program/S1T294C295/www/brd/m_241/view.do?seq=312452",
+      "status": "HOLD",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "검토 완료 후 판단 보류: 상세본문을 확보했으나 2025-10-24 원모집공고·단지별 관리번호와 대조하고 개인 명단 저장 금지. 현재는 사업 동일성·적용 범위 또는 원공고 대조가 부족하여 연결·실적을 확정하지 않음.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.403610+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_960d1d23ba8e210af9bfd8f6",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_dc49dcb20396faa08c7f45aa",
+    "result": {
+      "document_id": "DOC_dc49dcb20396faa08c7f45aa",
+      "source_id": "ai_publication",
+      "source_revision_no": 1,
+      "title": "김이탁 국토부 차관 “올해 수도권 21.8만~23.5만가구 착공…서울 공급지표 개선”",
+      "evidence_url": "https://www.dailian.co.kr/news/view/1702542/%EA%B9%80%EC%9D%B4%ED%83%81-%EA%B5%AD%ED%86%A0%EB%B6%80-%EC%B0%A8%EA%B4%80-%E2%80%9C%EC%98%AC%ED%95%B4-%EC%88%98%EB%8F%84%EA%B6%8C-2-2026",
+      "status": "EXCLUDED",
+      "policy_id": "UNASSIGNED",
+      "project_ids": [],
+      "project_names": [],
+      "new_project_names": [],
+      "actor": "261105 사용자 위임 AI 업무처리",
+      "reason": "수도권 전체 착공 전망·정례브리핑 통계임을 확보한 원문에서 확인하여 개별 주택공급 사업 연결 검토대상에서 제외. 원문·검토 이력은 보존하며 정책·시장 참고자료로서의 가치를 부정하거나 삭제하지 않음. 개별 사업 적용 근거가 생기면 재검토 가능.",
+      "source_checked": false,
+      "reviewed_at": "2026-11-04T23:26:04.429710+00:00",
+      "effect": "판단 사유 기록. 실적 변경 없음.",
+      "id": "PUB_e4142716e717a3909351ba4c",
+      "revision_no": 1
+    }
+  },
+  {
+    "document_id": "DOC_dc49dcb20396faa08c7f45aa",
+    "assessment": {
+      "id": "PUB_72beea7e5da9df63edd0207b",
+      "revision_no": 2,
+      "outcome": "changed"
+    }
+  }
+]

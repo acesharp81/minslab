@@ -96,8 +96,8 @@ def decorate_facts(item,assessment,candidates,raw_bodies,source_hash,current,red
         else:f['quote']=redact(original.get('quote',''))
         result.append(f)
     for f in result:
-        if f.get('scope')=='RENTAL_SUBSET_OF_TOTAL':
-            parents=[p for p in result if p.get('scope')=='PROJECT_PLANNED_TOTAL' and p.get('unit')==f.get('unit')]
+        if f.get('scope') in ('RENTAL_SUBSET_OF_TOTAL','EQUITY_SUBSET_OF_TOTAL'):
+            parents=[p for p in result if p.get('scope') in ('PROJECT_PLANNED_TOTAL','BLOCK_PLANNED_TOTAL') and p.get('unit')==f.get('unit')]
             if len(parents)==1:f['subset_of_claim_id']=parents[0]['claim_id']
         f['quantity_role']='IDENTIFIER' if f.get('scope')=='ROOM_IDENTIFIER' else 'SUBSET' if f.get('subset_of_claim_id') else 'PLANNED_TOTAL' if 'PLANNED_TOTAL' in f.get('scope','') else 'RECRUITMENT' if f.get('scope')=='EXISTING_STOCK_RECRUITMENT' else None
     return result

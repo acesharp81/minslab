@@ -1229,6 +1229,14 @@ def create_app(engine=None, auto_collect=None):
             'Content-Disposition': f'attachment; filename="home-publication-evidence-{status}-{today().isoformat()}.json"',
             'Cache-Control':'no-store'})
 
+    @app.get(PREFIX + '/api/publication-reviews/reports/{report_id}/original.txt')
+    def publication_review_report(report_id: str):
+        from .review_report_artifacts import artifact_path
+        try:path=artifact_path(service.data_dir,report_id)
+        except ValueError:raise HTTPException(404,'등록된 검토보고서가 아닙니다') from None
+        if not path.is_file():raise HTTPException(404,'검토보고서 원본 미확보')
+        return FileResponse(path,media_type='text/plain; charset=utf-8',filename=report_id+'.txt',headers={'Cache-Control':'no-store'})
+
     @app.get(PREFIX + '/api/publication-reviews/{document_id}/history')
     def publication_review_history(document_id: str):
         from .publication_reviews import history

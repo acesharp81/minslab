@@ -28,6 +28,7 @@ FIELDS = (
     '원시문자열존재', '상세본문활용가능', '첨부검증완료', '통합본문_SHA256', '본문해시계약_JSON',
     '증거검증_재검토필요', '증거재검토사유_JSON', '증거집합ID', '증거대장_JSON', '업무이벤트일정_JSON',
     '사실범위_JSON', '검증단계_JSON', '외부의견교차검토_JSON', '등록대기검토_JSON', '승인추적_JSON', '독립외부검증상태',
+    '첨부확보상태_JSON', '보고서원본추적_JSON', '증거집합요약_JSON', '수집점검_JSON',
 )
 
 
@@ -78,6 +79,8 @@ def _export(service, status='ALL', priority=None, search='', structured=False):
     from .hold_review import load as load_cross_reviews
     cross_reviews=load_cross_reviews(service,[r['id'] for r in items])
     structured_items=[]
+    from .review_report_artifacts import manifest
+    report_manifests={rid:manifest(service.data_dir,rid) for rid in {v.get('report_id') for v in cross_reviews.values()} if rid}
     encoded = lambda value: json.dumps(safe_value(value), ensure_ascii=False, separators=(',', ':'))
     output = io.StringIO(newline=''); writer = csv.DictWriter(output, fieldnames=FIELDS)
     writer.writeheader(); exported_at = now().isoformat()
@@ -87,9 +90,12 @@ def _export(service, status='ALL', priority=None, search='', structured=False):
         body = source.get('text') or source.get('full_text') or source.get('body_text') or ''
         selected = [projects.get(pid, dict(id=pid, missing=True)) for pid in d.get('project_ids', [])]
         extra = supplements.get(r['id'], {})
-        extra_state = ('이전 판본 수집 · 재확인 필요' if extra['source_revision_no'] != r['source_revision_no'] else '현재 판본 원문·첨부 수집') if extra else '미수집'
+        extra_state = ('이전 판본 본문 기록 · 재확인 필요' if extra['source_revision_no'] != r['source_revision_no'] else '현재 판본 본문 기록 · 첨부 실물/검증은 별도 열 참조') if extra else '미수집'
         ev=evidence(dict(r,source_hash=digest,source_revision_id=source.get('evidence_ref',{}).get('revision_id')),source,extra,ai.get(r['id'],{}),assessments.get(r['id'],{}),csv_mode=not structured)
         cross=cross_reviews.get(r['id'],{})
+        ev['report_provenance']=report_manifests.get(cross.get('report_id'),{})
+        ev['evidence_summary']=dict(source_revision_no=r['source_revision_no'],evidence_set_id=ev['evidence_set_id'],active=len(ev['facts']),inactive=len(ev['evidence_records'])-len(ev['facts']),metric_approved=False)
+        ev['collection_check']=cross.get('collection_check',{})
         ev['cross_review']=cross
         ev['registration_review']=cross.get('registration_review',{})
         for f in ev['evidence_records']:
@@ -124,6 +130,7 @@ def _export(service, status='ALL', priority=None, search='', structured=False):
             ev['effective_text_sha256'], encoded(dict(hash_input_field='통합유효본문',encoding='UTF-8',normalization_version=ev['normalization_version'],csv_formula_escaped=not structured,raw_hash_note='원문 바이트·저장 본문 해시는 본문판본별상태_JSON의 raw_sha256·stored_text_sha256; 내보낸 본문 해시와 구분')),
             '예' if ev['needs_revalidation'] else '아니오',encoded(ev['revalidation_reasons']),ev['evidence_set_id'],encoded(ev['evidence_records']),encoded(ev['business_event_dates']),
             encoded(ev['fact_coverage']),encoded(ev['verification_stages']),encoded(cross),encoded(ev['registration_review']),encoded(ev['approval_trace']), 'NOT_RECORDED · 업무보조 교차검토와 별개',
+            encoded(dict(state=ev['attachment_inventory_state'],items=ev['attachment_inventory'],absence_confirmed=False,verified=False)),encoded(ev['report_provenance']),encoded(ev['evidence_summary']),encoded(ev['collection_check']),
         )
         writer.writerow({key: cell(redact(value) if isinstance(value,str) and not key.endswith('_JSON') else value) for key, value in zip(FIELDS, values, strict=True)})
     if structured:return dict(schema_version='publication-review-evidence-3',exported_at=exported_at,

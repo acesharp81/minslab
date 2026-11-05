@@ -196,13 +196,19 @@ class Store:
             for row in db.execute(f'SELECT run_id,model,input_tokens,output_tokens,reserved_tokens,status,cost_usd,reserved_usd FROM calls WHERE run_id IN ({slots})',ids):calls_by[row['run_id']].append(dict(row))
             for row in db.execute(f'SELECT run_id,kind,count(*) n FROM events WHERE run_id IN ({slots}) GROUP BY run_id,kind',ids):counts_by[row['run_id']][row['kind']]=row['n']
             progress_by={r['run_id']:json.loads(r['payload']) for r in db.execute(f'SELECT run_id,payload FROM run_progress WHERE run_id IN ({slots})',ids)}
+            historical={}
+            if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='agent_results'").fetchone():
+                for row in db.execute(f"SELECT run_id,COUNT(*) total,SUM(CASE WHEN json_extract(payload,'$.result') IS NOT NULL THEN 1 ELSE 0 END) analyzed FROM agent_results WHERE run_id IN ({slots}) AND role='officer' GROUP BY run_id",ids):historical[row['run_id']]=dict(row)
             for r in runs:
                 r['config']=json.loads(r['config'])
                 r['events']=[dict(kind=e['kind'],**json.loads(e['payload'])) for e in db.execute(
                     'SELECT kind,payload FROM events WHERE run_id=? ORDER BY id DESC LIMIT 100',(r['id'],))] if include_events else []
                 calls=calls_by[r['id']]
                 r['cost_usd']=sum(c['cost_usd'] if c['cost_usd'] is not None else c['reserved_usd'] for c in calls)
-                r['progress']=summarize(r,progress_by.get(r['id'],{}),calls,counts_by[r['id']])
+                checkpoint=progress_by.get(r['id'],{})
+                if 'business_outcomes' not in checkpoint and r['id'] in historical:
+                    h=historical[r['id']];checkpoint=dict(checkpoint,business_outcomes=dict(model_analyzed=h['analyzed'],input_held=h['total']-h['analyzed'],legacy=True))
+                r['progress']=summarize(r,checkpoint,calls,counts_by[r['id']])
             day = datetime.now(timezone.utc).replace(hour=0,minute=0,second=0,microsecond=0).timestamp()
             usage = [dict(r) for r in db.execute('SELECT provider,token_group,SUM(COALESCE(input_tokens+output_tokens,reserved_tokens)) AS tokens, '
                 'SUM(COALESCE(cost_usd,reserved_usd)) AS cost_usd FROM calls WHERE created>=? GROUP BY provider,token_group', (day,))]

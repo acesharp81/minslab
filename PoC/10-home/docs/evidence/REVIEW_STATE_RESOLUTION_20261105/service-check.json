@@ -1,0 +1,28 @@
+{
+  "project_candidates_before": 98,
+  "project_candidates_after": 45,
+  "project_excluded_before": 11,
+  "project_excluded_after": 64,
+  "publication_counts_before": {
+    "REVIEW": 53,
+    "HOLD": 39,
+    "REGISTRATION_REQUIRED": 46,
+    "APPROVED": 15,
+    "EXCLUDED": 120
+  },
+  "publication_counts_after": {
+    "REVIEW": 0,
+    "HOLD": 76,
+    "REGISTRATION_REQUIRED": 46,
+    "APPROVED": 17,
+    "EXCLUDED": 134
+  },
+  "pending_before": 138,
+  "pending_after": 122,
+  "other_publications_unchanged": true,
+  "policy_actual_series_unchanged": true,
+  "active_evidence_counts_unchanged": true,
+  "quote_checks": 33,
+  "cross_reviews_current": true,
+  "actual_units_added": 0
+}

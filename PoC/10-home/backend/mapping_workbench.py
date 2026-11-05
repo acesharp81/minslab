@@ -45,6 +45,11 @@ def build(service, focus_project_id=None):
     if focused and focused['mapping'].get('policy_id') not in (None,'','UNASSIGNED'):
         active=focused['mapping']['policy_id']
     decisions = {(r['subject_kind'],r['subject_id']):r for r in service.rows('mapping_decision') if r.get('policy_id')==active} if hasattr(service,'rows') else {}
+    from .project_policy_relations import KIND, evidence_context
+    relations = {}
+    for relation in service.rows(KIND) if hasattr(service,'rows') else []:
+        if relation.get('policy_id') == active:
+            relations.setdefault(relation['project_id'], []).append(relation)
     allowed={None,'','UNASSIGNED',active}
     data['programs']=[p for p in data['programs'] if p.get('policy_id') in allowed]
     data['items']=[r for r in data['items'] if r['mapping'].get('policy_id') in allowed]
@@ -60,6 +65,8 @@ def build(service, focus_project_id=None):
         row = {k:r.get(k) for k in ('id','name','region','municipality','planned_units','source_id','program','stage_label','base_date','mapping')}
         quantity=r.get('planned_units')
         row['confirmed_units']=quantity if isinstance(quantity,(int,float)) and quantity>=0 and not input_status(r.get('manual_fields',{}).get('planned_units',{})).startswith('ESTIMATED') else None
+        row['source_evidence'] = evidence_context(r)
+        row['policy_relations'] = [dict(rel, needs_recheck=rel.get('project_sha256') != r.get('source_payload_hash') or rel.get('mapping_revision_no') != r['mapping'].get('revision_no')) for rel in relations.get(r['id'], [])]
         row['source_url'] = public_url(r.get('evidence_url'))
         row['source_publisher'] = publisher_name(row['source_url'])
         row['review'] = review_state(r['mapping'], parents.get(r['mapping'].get('program_id'), {}))

@@ -1,0 +1,178 @@
+{
+  "date_kst": "2026-11-05",
+  "before": [
+    {
+      "id": "2452a4a7-df7b-4ec8-941a-125d13d179f1",
+      "created": 1793833304.2867522,
+      "status": "PARTIAL",
+      "model_calls": 1,
+      "tokens": 3236,
+      "outcomes": {
+        "INPUT_HOLD": 19,
+        "IDENTITY_HOLD": 1
+      }
+    },
+    {
+      "id": "c028ff83-dcc4-4a67-afb8-9ade6f6862ac",
+      "created": 1793815205.6900115,
+      "status": "PARTIAL",
+      "model_calls": 0,
+      "tokens": 0,
+      "outcomes": {
+        "INPUT_HOLD": 20
+      }
+    },
+    {
+      "id": "3466179b-d86e-4d0f-95d4-e41102115174",
+      "created": 1793728806.003387,
+      "status": "PARTIAL",
+      "model_calls": 1,
+      "tokens": 1854,
+      "outcomes": {
+        "INPUT_HOLD": 19,
+        "IDENTITY_HOLD": 1
+      }
+    },
+    {
+      "id": "cf05fc58-5761-4e2d-bcae-9ddc673b02c9",
+      "created": 1793642408.5815094,
+      "status": "PARTIAL",
+      "model_calls": 0,
+      "tokens": 0,
+      "outcomes": {
+        "INPUT_HOLD": 20
+      }
+    },
+    {
+      "id": "dbcf8e1d-b90d-457e-bab9-28bf963c94b4",
+      "created": 1793556009.361641,
+      "status": "PARTIAL",
+      "model_calls": 0,
+      "tokens": 0,
+      "outcomes": {
+        "ERROR": 20
+      }
+    },
+    {
+      "id": "288fbaed-79d6-468c-adc8-09c571390d2c",
+      "created": 1793469609.2264109,
+      "status": "PARTIAL",
+      "model_calls": 0,
+      "tokens": 0,
+      "outcomes": {
+        "ERROR": 20
+      }
+    },
+    {
+      "id": "38df1b3d-2c47-4589-b4ba-bb501d25a6f7",
+      "created": 1793401203.0620852,
+      "status": "PARTIAL",
+      "model_calls": 0,
+      "tokens": 0,
+      "outcomes": {
+        "ERROR": 20
+      }
+    },
+    {
+      "id": "181f4c19-88d8-461a-a528-a6cdd3c2b4bc",
+      "created": 1793366608.1645868,
+      "status": "PARTIAL",
+      "model_calls": 0,
+      "tokens": 0,
+      "outcomes": {
+        "ERROR": 20
+      }
+    },
+    {
+      "id": "29635102-ad45-4dac-8c7f-6e4bbb2b41ee",
+      "created": 1793365893.8739972,
+      "status": "PARTIAL",
+      "model_calls": 0,
+      "tokens": 0,
+      "outcomes": {
+        "ERROR": 20
+      }
+    }
+  ],
+  "after": {
+    "id": "ded4b096-6ce2-40f4-b8b2-3b9d5fd49e2f",
+    "status": "PARTIAL",
+    "cost_estimate_usd": 0.0241974,
+    "progress": {
+      "business_outcomes": {
+        "model_analyzed": 19,
+        "input_held": 1,
+        "documents_linked": 0,
+        "documents_excluded": 0,
+        "holds_saved": 0,
+        "stage_proposals": 0,
+        "stages_applied": 0,
+        "searches": 3,
+        "search_candidates": 0,
+        "unchanged": 0
+      },
+      "queue_total": 139,
+      "queue_remaining": 119,
+      "model_calls": 19,
+      "stage": "ANALYZE",
+      "current": "동탄 핵심 입지에 49층…'아크메르 동탄' 26일 분양 시작",
+      "model": "solar-pro4",
+      "completed": 20,
+      "total": 20,
+      "unit": "documents",
+      "percent": 100,
+      "documents_done": 20,
+      "documents_total": 20,
+      "documents_remaining": 0,
+      "documents_skipped": 0,
+      "documents_failed": 0,
+      "documents_deferred": 20,
+      "source_errors": 0,
+      "elapsed_seconds": 305,
+      "phase_elapsed_seconds": null,
+      "estimated_remaining_tokens": 0,
+      "estimate_sample_documents": 20,
+      "estimate_note": "이번 실행의 처리 완료 자료 평균 × 남은 자료에서 현재 자료의 확인된 사용량을 뺀 추정치입니다. 원문 길이·변경 없음·심층 검토 여부에 따라 달라집니다.",
+      "models": [
+        {
+          "model": "solar-pro4",
+          "input_tokens": 37202,
+          "output_tokens": 10864,
+          "confirmed_tokens": 48066,
+          "reserved_tokens": 0,
+          "unknown_tokens": 0
+        }
+      ],
+      "confirmed_tokens": 48066,
+      "reserved_tokens": 0,
+      "unknown_tokens": 0
+    },
+    "input_business_states": {
+      "REGISTRATION_REQUIRED": 18,
+      "APPROVED": 2
+    }
+  },
+  "checks": {
+    "protected_business_hashes_unchanged": true,
+    "policy_mappings_unchanged": true,
+    "publication_decisions_unchanged": true,
+    "tests_passed": 106,
+    "services_healthy": true,
+    "api_lifespan_off_preserved": true,
+    "night_continuation_max_batches": 5,
+    "scheduled_hours_kst": "01:00–05:00",
+    "manual_verification_run_not_auto_continued": true
+  },
+  "publication_counts": {
+    "REGISTRATION_REQUIRED": 46,
+    "APPROVED": 17,
+    "EXCLUDED": 134,
+    "HOLD": 76
+  },
+  "limitations": [
+    "정책 귀속 자동 확정 미구현",
+    "기존 담당자 보류/등록 대기를 자동 해제하지 않음",
+    "이번 실제 실행 신규 연결/실적 반영 0건",
+    "검색 3회 신규 공식 후보 0건; 전체 인터넷 검색 완전성을 보장하지 않음"
+  ]
+}

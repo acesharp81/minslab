@@ -1,0 +1,18 @@
+{
+  "targets": 141,
+  "new_capture_documents": 27,
+  "assessed_new_documents": 27,
+  "new_active_facts": 33,
+  "scope_excluded": 3,
+  "old_111_decisions_unchanged": true,
+  "project_metrics_unchanged": true,
+  "policy_mappings_unchanged": true,
+  "actual_units_added": 0,
+  "new_project_links": 0,
+  "new_projects": 0,
+  "protected_before_sha256": "50198901d8e765cbd615d54fa825bc842c7effbca9bce4c0e9c11c225c06aba4",
+  "protected_after_sha256": "50198901d8e765cbd615d54fa825bc842c7effbca9bce4c0e9c11c225c06aba4",
+  "active_facts": 140,
+  "historical_facts": 4,
+  "registry_documents": 46
+}

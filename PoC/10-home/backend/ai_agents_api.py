@@ -60,10 +60,14 @@ def install(app,service,authenticated,prefix):
   if role not in ('all','collection','officer'):raise HTTPException(422,'지원하지 않는 CSV 범위')
   return Response(export_csv(service,store(),role,unique=unique),media_type='text/csv; charset=utf-8',headers={
    'Content-Disposition':f'attachment; filename="home-ai-{role}-holds.csv"','Cache-Control':'no-store'})
+ @app.get(prefix+'/api/ai-agents/officer/decisions.csv')
+ def decisions_csv(verdict:str='ALL'):
+  if verdict not in ('ALL','YES','NO','HOLD'):raise HTTPException(422,'지원하지 않는 판단 범위')
+  return Response(export_csv(service,store(),'officer',verdict=verdict),media_type='text/csv; charset=utf-8',headers={'Content-Disposition':'attachment; filename=home-officer-decisions.csv','Cache-Control':'no-store'})
  @app.get(prefix+'/api/ai-agents/{role}/items')
  def inbox(role:str):
   check(role);data=items(service,store(),role)
-  return dict(items=data,done=sum(r['state']=='DONE' for r in data),held=sum(r['state']=='HOLD' for r in data))
+  return dict(verdict_counts={v:sum(r.get('verdict')==v for r in data) for v in ('YES','NO','HOLD')},items=data,done=sum(r['state']=='DONE' for r in data),held=sum(r['state']=='HOLD' for r in data))
  @app.post(prefix+'/api/admin/ai-agents/{role}/settings')
  def save_settings(role:str,payload:AgentSettings,request:Request):
   auth(request);check(role)

@@ -1,0 +1,19 @@
+{
+  "project_candidates": 45,
+  "project_excluded": 64,
+  "publication_review": 0,
+  "publication_hold": 76,
+  "publication_approved": 17,
+  "publication_excluded": 134,
+  "remaining_candidate_csv": 45,
+  "decision_reason_visible": true,
+  "desktop": {
+    "width": 1440,
+    "scroll": 1440
+  },
+  "mobile": {
+    "width": 390,
+    "scroll": 390
+  },
+  "page_errors": []
+}

@@ -73,7 +73,7 @@ const PublicationReviews = {};
     <p class="pr-event">자료의 주제 <strong>${e(g.event)}</strong></p>
     <ol class="pr-checklist">${g.checks.map(t=>`<li>${e(t)}</li>`).join('')}</ol>
     <a class="button secondary" href="${e(safeUrl(r.evidence_url))}" target="_blank" rel="noopener noreferrer">${r.authority==='OFFICIAL'?'공식 원문':'언론 원문'} 열고 대조하기 ↗</a>
-    ${r.supplement?`<details class="pr-basis pr-collected"><summary>수동 수집 원문·첨부 확인${r.supplement.stale?' · 이전 판본 재확인 필요':''}</summary><p>${e(r.supplement.summary)}</p><small>원문 판본 ${r.supplement.source_revision_no} · 수집 ${e(new Date(r.supplement.collected_at).toLocaleString('ko-KR'))} · 사업·실적 승인과 별도</small><ul>${r.supplement.attachments.map(a=>`<li><a href="${e(safeUrl(a.url))}" target="_blank" rel="noopener noreferrer">${e(a.name)} ↗</a></li>`).join('')}</ul><p>수집 본문과 첨부 정보는 외부 검증용 CSV에도 포함됩니다.</p></details>`:''}
+    ${r.supplement?`<details class="pr-basis pr-collected"><summary>수집 본문·첨부 확보 상태${r.supplement.stale?' · 이전 판본 재확인 필요':''}</summary><p>${e(r.supplement.summary)}</p><small>원문 판본 ${r.supplement.source_revision_no} · 수집 ${e(new Date(r.supplement.collected_at).toLocaleString('ko-KR'))} · 사업·실적 승인과 별도</small><ul>${r.supplement.attachments.map(a=>`<li><a href="${e(safeUrl(a.url))}" target="_blank" rel="noopener noreferrer">${e(a.name)} ↗</a></li>`).join('')}</ul><p>첨부 링크 등록·파일 확보·내용 검증은 별도입니다. 아래 링크가 있어도 검증 완료를 뜻하지 않습니다. CSV에서 파일별 확보 상태를 확인하세요.</p></details>`:''}
    </section>
    <section><h4><span class="pr-step">2</span> 현재 데이터와 비교하세요</h4><p class="pr-dataset-summary">${e(g.dataset_summary)}</p>
     ${r.candidates.length?r.candidates.map(p=>`<div class="pr-candidate"><div class="pr-candidate-heading"><strong>${e(p.name)}</strong><span>이름 유사 · 동일성 미확정</span></div>
