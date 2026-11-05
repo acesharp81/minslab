@@ -1,0 +1,56 @@
+[
+  {
+    "site": "kjon",
+    "width": 1440,
+    "title": "총지출 규모의 적정성과 재정 지속가능성",
+    "dialogue_count": 2,
+    "task_count": 1,
+    "initial_collapsed": true,
+    "toggle_and_keyboard": true,
+    "task_always_visible": true,
+    "original_evidence_links": true,
+    "inline_style": {
+      "color": "rgb(29, 41, 57)",
+      "background": "rgba(0, 0, 0, 0)",
+      "weight": "800",
+      "parent": "P"
+    },
+    "page_errors": []
+  },
+  {
+    "site": "minslab",
+    "width": 1440,
+    "title": "총지출 규모의 적정성과 재정 지속가능성",
+    "dialogue_count": 2,
+    "task_count": 1,
+    "initial_collapsed": true,
+    "toggle_and_keyboard": true,
+    "task_always_visible": true,
+    "original_evidence_links": true,
+    "inline_style": {
+      "color": "rgb(29, 41, 57)",
+      "background": "rgba(0, 0, 0, 0)",
+      "weight": "800",
+      "parent": "P"
+    },
+    "page_errors": []
+  },
+  {
+    "site": "mobile",
+    "width": 390,
+    "title": "총지출 규모의 적정성과 재정 지속가능성",
+    "dialogue_count": 2,
+    "task_count": 1,
+    "initial_collapsed": true,
+    "toggle_and_keyboard": true,
+    "task_always_visible": true,
+    "original_evidence_links": true,
+    "inline_style": {
+      "color": "rgb(29, 41, 57)",
+      "background": "rgba(0, 0, 0, 0)",
+      "weight": "800",
+      "parent": "P"
+    },
+    "page_errors": []
+  }
+]

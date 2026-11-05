@@ -1,0 +1,98 @@
+[
+  {
+    "report_id": "1741bd94-f99c-4ba6-a499-1bd751aafc6c",
+    "seconds": 0.436,
+    "saved_unchanged": true,
+    "saved_count": 8,
+    "supplementary_count": 0,
+    "scope": {
+      "saved_count": 8,
+      "additional_count": 0,
+      "current_match_count": 8,
+      "checked_at": "2026-11-05T04:12:13.848909+00:00",
+      "basis": "SAVED_SNAPSHOT_PLUS_CURRENT_SCOPE_QUERY"
+    },
+    "report_sha256": "c85e5e4a4c7d3c2a15640855fc3100c72879a936fd55e271df60b8472ae9482b",
+    "evidence_sha256": "cab54ab6a6ffee00c37ca15dcaf3162c9fbdb94612796d0b4e73772ae4a0f955"
+  },
+  {
+    "report_id": "3485a374-2ae2-450e-98f9-fa921d3ffc84",
+    "seconds": 0.155,
+    "saved_unchanged": true,
+    "saved_count": 52,
+    "supplementary_count": 217,
+    "scope": {
+      "saved_count": 52,
+      "additional_count": 217,
+      "current_match_count": 226,
+      "checked_at": "2026-11-05T04:12:13.931569+00:00",
+      "basis": "SAVED_SNAPSHOT_PLUS_CURRENT_SCOPE_QUERY"
+    },
+    "report_sha256": "b754ea7e104b3fe91c558963291ab58984c516400d1d889790e93d1cb85e101b",
+    "evidence_sha256": "b67265cdf5acdf55cf3a1cc7cdcf0ff57de4888dfec11ce7c865edb4b82aa3eb"
+  },
+  {
+    "report_id": "481cba6a-8cc9-4562-b3e9-1534a1fd0176",
+    "seconds": 0.111,
+    "saved_unchanged": true,
+    "saved_count": 40,
+    "supplementary_count": 218,
+    "scope": {
+      "saved_count": 40,
+      "additional_count": 218,
+      "current_match_count": 226,
+      "checked_at": "2026-11-05T04:13:17.486903+00:00",
+      "basis": "SAVED_SNAPSHOT_PLUS_CURRENT_SCOPE_QUERY"
+    },
+    "report_sha256": "42c2dd62e7ba73e1439381f29e9ca99e2fad481a09f0191f4b705ae9dbae2685",
+    "evidence_sha256": "40c67c2e896ebfcef0f28a927e3af2cb5993cd035f33e32c45a4be382d122778"
+  },
+  {
+    "report_id": "70138ca1-673d-46f5-98f9-d85154a396d1",
+    "seconds": 0.152,
+    "saved_unchanged": true,
+    "saved_count": 21,
+    "supplementary_count": 28,
+    "scope": {
+      "saved_count": 21,
+      "additional_count": 28,
+      "current_match_count": 42,
+      "checked_at": "2026-11-05T04:13:27.061417+00:00",
+      "basis": "SAVED_SNAPSHOT_PLUS_CURRENT_SCOPE_QUERY"
+    },
+    "report_sha256": "2d208cd3b2461bde8cfb8c247d4abd923e07f7ce11d5bc2f61931273171e9d39",
+    "evidence_sha256": "3b60ec2b01f0c6f661eb0098541634b7849ca00d8801789b6a3198a2189a5773"
+  },
+  {
+    "report_id": "25f707cb-fa73-424d-be2f-e413940db641",
+    "seconds": 0.027,
+    "saved_unchanged": true,
+    "saved_count": 14,
+    "supplementary_count": 64,
+    "scope": {
+      "saved_count": 14,
+      "additional_count": 64,
+      "current_match_count": 73,
+      "checked_at": "2026-11-05T04:13:27.171046+00:00",
+      "basis": "SAVED_SNAPSHOT_PLUS_CURRENT_SCOPE_QUERY"
+    },
+    "report_sha256": "f72af4c6db9254ad33174b43d42a2c7092eafeb0f1a7095b5743249ac02991e9",
+    "evidence_sha256": "06edf111c3794886ef1945d232813394d1b52548aa2d6177f6ad3f8ce72f00b6"
+  },
+  {
+    "report_id": "78b44fe7-8ce3-479b-8903-1d5c4b49b573",
+    "seconds": 0.022,
+    "saved_unchanged": true,
+    "saved_count": 40,
+    "supplementary_count": 340,
+    "scope": {
+      "saved_count": 40,
+      "additional_count": 340,
+      "current_match_count": 348,
+      "checked_at": "2026-11-05T04:13:33.581069+00:00",
+      "basis": "SAVED_SNAPSHOT_PLUS_CURRENT_SCOPE_QUERY"
+    },
+    "report_sha256": "771c46269c78bdd46b51c8f1bc46c816fdadd5621dbf62689f61b1a3e1123f28",
+    "evidence_sha256": "0430fdcfd88bcdf001be4ad9735cff66d7c3d5f7dd13760e75ada3e3cbb9d11c"
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "executive_official": {
+    "source_id": "executive-official:148974892:report-1",
+    "exact_agenda": true
+  },
+  "mobile": {
+    "width": 390,
+    "target_visible": true,
+    "horizontal_overflow": false
+  },
+  "official_control_fixture": {
+    "header_location": true,
+    "switches_both_ways": true,
+    "status_row_absent": true
+  },
+  "page_errors": []
+}

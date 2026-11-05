@@ -6,7 +6,7 @@ body.meeting-summary-document-open { overflow: hidden; }
 .meeting-summary-document-toolbar h2 { margin: 0; font-size: 18px; }
 .meeting-summary-document-toolbar p { margin: 6px 0 0; color: #58677c; font-size: 12px; line-height: 1.6; }
 .meeting-summary-document-actions { display: flex; gap: 8px; flex-shrink: 0; }
-.meeting-summary-document-actions button { min-height: 38px; padding: 8px 14px; border: 1px solid #c8d2e2; border-radius: 7px; color: #24334c; background: #fff; cursor: pointer; font-size: 13px; font-weight: 700; }
+.meeting-summary-document-actions button, .meeting-summary-document-actions a { min-height: 38px; padding: 8px 14px; border: 1px solid #c8d2e2; border-radius: 7px; color: #24334c; background: #fff; cursor: pointer; font-size: 13px; font-weight: 700; }
 .meeting-summary-document-actions button.is-primary { border-color: #234f99; color: #fff; background: #234f99; }
 .meeting-summary-document-actions button:focus-visible { outline: 3px solid #7ba6ef; outline-offset: 2px; }
 .meeting-summary-document-body { overflow: auto; min-height: 0; padding: 28px 24px; overscroll-behavior: contain; }
@@ -79,3 +79,8 @@ body.meeting-summary-document-open { overflow: hidden; }
   .meeting-summary-introduction, .meeting-summary-chart { break-inside: avoid; }
   .meeting-summary-overview { break-after: page; }
 }
+
+.meeting-summary-document-actions { flex-wrap:wrap; justify-content:flex-end; }
+.meeting-summary-document-actions a { display:inline-flex; align-items:center; text-decoration:none; }
+.meeting-summary-document-toolbar { flex-wrap:wrap; gap:12px; padding:14px 18px; }
+@media(max-width:600px) { .meeting-summary-document-actions { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } .meeting-summary-document-actions > * { justify-content:center; text-align:center; } }

@@ -1,0 +1,40 @@
+[
+  {
+    "site": "kjon",
+    "keyword": "신분증",
+    "date": "2026-10-26",
+    "count": 7,
+    "llm_calls": 0,
+    "mini_label": "GPT-5.4 mini",
+    "mini_balance": "(일) 1.3만",
+    "button_size": [
+      192,
+      68
+    ],
+    "centering_error_px": [
+      0.0,
+      0.0078125
+    ],
+    "old_report_cleared_on_search": true,
+    "page_errors": []
+  },
+  {
+    "site": "minslab",
+    "keyword": "신분증",
+    "date": "2026-10-26",
+    "count": 7,
+    "llm_calls": 0,
+    "mini_label": "GPT-5.4 mini",
+    "mini_balance": "(일) 1.3만",
+    "button_size": [
+      192,
+      68
+    ],
+    "centering_error_px": [
+      0.0,
+      0.0078125
+    ],
+    "old_report_cleared_on_search": true,
+    "page_errors": []
+  }
+]

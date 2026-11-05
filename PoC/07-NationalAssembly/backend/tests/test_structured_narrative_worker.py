@@ -8,12 +8,13 @@ from app.ingestion import structured_narrative_worker as worker
 from app.services.structured_narrative import apply
 
 
+@pytest.mark.parametrize('live_wait', [False, True])
 @pytest.mark.parametrize('partial', [False, True])
 @pytest.mark.parametrize('final_repair', [False, True])
-def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch, partial, final_repair):
+def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch, partial, final_repair, live_wait):
     from app.ingestion import narrative_jobs
-    monkeypatch.setattr(narrative_jobs, 'background_defer_reason', lambda: None)
-    rows, calls = [], []
+    monkeypatch.setattr(narrative_jobs, 'background_defer_reason', lambda: 'LIVE_OR_RECENT_MEETING' if live_wait else None)
+    rows, calls, history_rows = [], [], []
     lock = {'held': False}
     brief = {'topic_structure': {'revision_id': 's'}, 'report_summary': {'topics': []},
              'topics': [{'id': f't{i}', 'title': '기관 협력', 'speaker_points': [
@@ -43,11 +44,13 @@ def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch,
         def snapshot(self, sid):
             return {'atoms': []}
         def batches(self, sid):
-            return []
+            return deepcopy(history_rows)
         def record(self, sid, index, attempt, request, response, usage, error):
             assert lock['held']
             assert error is None or (partial and error == 'NARRATIVE_INVALID_SUMMARY')
             rows.append((index, request, response))
+            history_rows.append({'index':index,'attempt':attempt,'request':request,'response':response,
+                                 'usage':usage,'error':error,'status':'FAILED' if error else 'READY'})
 
     class Client:
         provider, model = 'nvidia', 'fixture'
@@ -85,9 +88,20 @@ def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch,
         monkeypatch.setattr(worker, 'pending_batches', pending)
     monkeypatch.setattr(worker, 'pace_nim', lambda c: None)
     result = worker.process_one('authorized-report', batch_limit=3)
+    if live_wait:
+        assert result['status']=='LIVE_DEFERRED' and result['reason']=='LIVE_OR_RECENT_MEETING'
+        assert not calls and not rows and not lock['held']
+        return
     assert result['status'] == ('PENDING' if partial else 'COMPLETE')
     assert result['coverage']['summarized_issue_count'] == (15 if partial else 18)
     assert len(calls) == 3
     assert len(rows) == len({row[0] for row in rows}) == (6 if partial else 3)
     assert set(routes) == ({('verification',)} if final_repair else {()})
     assert not lock['held']
+
+    if not partial:
+        calls_before=len(calls);rows_before=len(rows)
+        resumed=worker.process_one('authorized-report',batch_limit=3)
+        assert resumed['status']=='COMPLETE'
+        assert len(calls)==calls_before and len(rows)==rows_before
+        assert not lock['held']

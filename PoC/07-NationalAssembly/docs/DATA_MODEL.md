@@ -402,3 +402,8 @@ PoC7·PoC10·PoC11은 기존 `openai_group_daily_usage`(mini/main, UTC 일자)�
 신규 테이블·스키마 변경은 없다. 월 예비 Luna·Mini 요청은 기존 `shared_model_reservations`에 project=`poc7`, budget_kind=`credit`, 해당 grant ID·실제 model로 예약·정산한다. `openai_credit_grant_usage`의 같은 행을 잠가 전체 공유 잔액과 실시간 소한도·통합용 보호 잔액을 함께 확인한다. Mini 유료 예약은 `force_credit`로 일일 무료 장부와 구분한다. 저장 요약에는 실제 생성 모델을 기록한다.
 
 `transcript_utterance_summary_failures.last_error=BUDGET_WAIT`는 다음 일일 리셋까지 요약이 미뤄진 원문 해시다. 기존 재시도 시각에 다음 UTC 00:00(KST 09:00)을 기록한다. 분류 상태 JSON의 `_budget_wait.retry_after`도 같은 재개 시각을 사용한다. 종료된 방송의 미완료 해시만 재개 선택에 포함하고, 정상 분류의 저장 해시와 일치하는 대기는 BUDGET_RESUMED로 해제한다. 기존 분류 원문·이력 행은 덮어쓰지 않는다.
+
+
+## 2026-11-05 월 공용 대체와 최종 편집 재개 표식
+
+스키마 추가 없이 기존 공용 일일/월 장부와 구조화 배치 이력을 사용한다. 최종 편집 usage의 `budget_policy=monthly-credit-routing/20261105`, `billing_route`, `skipped_models`로 한도 때문에 건너뛴 무료 모델과 실제 호출 모델을 구분한다. 최종 정리 상태의 `monthly_credit_policy`가 없는 기존 FINALIZING 일일 대기만 새 경로에서 한 번 재개한다. 이후에는 저장된 retry_after를 존중한다. `wait_reason`에 입력·검증·한도 사유를 남기고 유지된 원래 묶음을 검증 완료로 바꾸지 않는다. 성공 입력의 기존 fingerprint·캐시와 append-only 요청·응답·원문 이력은 유지한다.

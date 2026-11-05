@@ -173,6 +173,34 @@ function buildMeetingReportDocument(item, record, brief, briefView) {
   return paper;
 }
 
+function meetingReportPaperMarkdown(paper) {
+  const escape = (value) => String(value).replace(/\\/g, "\\\\").replace(/([`*_{}\[\]<>#|])/g, "\\$1");
+  const blocks = [];
+  for (const node of paper.querySelectorAll("h1,h2,h3,p,li,footer")) {
+    if (node.closest("li") && node.tagName !== "LI") continue;
+    const text = escape(node.textContent.trim());
+    if (!text) continue;
+    if (/^H[1-3]$/.test(node.tagName)) blocks.push("#".repeat(Number(node.tagName[1])) + " " + text);
+    else if (node.tagName === "LI") {
+      const label = node.querySelector(".meeting-summary-chart-label");
+      blocks.push("- " + (label ? [...label.children].map((n) => escape(n.textContent)).join(" — ") : text));
+    } else if (node.tagName === "FOOTER") {
+      const link = node.querySelector("a");
+      blocks.push(link ? `[${escape(link.textContent)}](${link.href})` : text);
+    } else blocks.push(text);
+  }
+  return blocks.join("\n\n") + "\n";
+}
+
+function downloadMeetingMarkdown(text, filename) {
+  const url = URL.createObjectURL(new Blob([text], {type:"text/markdown;charset=utf-8"}));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename.replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_");
+  document.body.append(link); link.click(); link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function openMeetingReportDocument(item, record, brief, briefView) {
   document.querySelector("#meetingReportDocumentDialog")?.close();
   const dialog = magazineElement("dialog", "meeting-summary-document-dialog", "");
@@ -191,7 +219,18 @@ function openMeetingReportDocument(item, record, brief, briefView) {
   close.type = "button";
   close.autofocus = true;
   close.addEventListener("click", () => dialog.close());
-  actions.append(print, close);
+  const reportMd = magazineElement("button", "", "보고서 MD");
+  reportMd.type = "button";
+  reportMd.title = "현재 요약 문서의 본문과 그래프 수치를 Markdown으로 저장";
+  reportMd.addEventListener("click", () => downloadMeetingMarkdown(
+    meetingReportPaperMarkdown(viewport.querySelector(".meeting-summary-paper")),
+    `${item.title || "회의"}_보고서.md`,
+  ));
+  const fullMd = magazineElement("a", "", "전체 요약본 MD");
+  fullMd.href = `api/live/broadcasts/${encodeURIComponent(item.broadcast_id)}/brief.md?view=${briefView}`;
+  fullMd.download = `meeting-${item.broadcast_id}.md`;
+  fullMd.title = "주제·발언 요약·과제·근거를 포함한 전체 저장본";
+  actions.append(reportMd, fullMd, print, close);
   toolbar.append(copy, actions);
   const viewport = magazineElement("div", "meeting-summary-document-body", "");
   viewport.tabIndex = 0;

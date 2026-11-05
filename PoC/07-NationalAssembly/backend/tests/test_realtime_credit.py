@@ -11,7 +11,8 @@ from app.db.openai_daily_budget import DailyTokenLimitReached
 def settings():
     return Settings(_env_file=None,openai_api_key='fixture',openai_credit_grant_id='grant',
         openai_credit_expires_at='2099-01-01T00:00:00+00:00',openai_credit_budget_usd=100,
-        openai_realtime_credit_enabled=True)
+        openai_realtime_credit_enabled=True,openai_realtime_credit_monthly_limit_usd=20,
+        openai_realtime_credit_protected_usd=20)
 
 
 def fake_connect(monkeypatch, spent='0', used='0'):
@@ -117,3 +118,15 @@ def test_summary_repairs_only_rejected_luna_items_and_keeps_true_model(monkeypat
     assert repair._post.call_args.args[0]=="['second']"
     assert [r['_summary_model'] for r in result.items]==['gpt-6-luna','gpt-5.4-mini']
     assert result.usage_metadata['rejected_ids']==[]
+
+
+def test_large_request_reserves_all_output_and_long_luna_cache_upper_bound(monkeypatch):
+    from app.services import shared_budget
+    fake_connect(monkeypatch)
+    reserve=Mock(return_value={'event_id':'event'});monkeypatch.setattr(shared_budget,'reserve',reserve)
+    client=rc.credit_client(settings())
+    client.reserve_for_workload(40_000,'meeting_parent_review')
+    assert reserve.call_args.args[-2:]==(20000,20000)
+    # At a long-context reservation the 2x input rate must be protected too.
+    fake_connect(monkeypatch,spent='79.8')
+    with pytest.raises(DailyTokenLimitReached):client.reserve_for_workload(500_000,'meeting_parent_review')

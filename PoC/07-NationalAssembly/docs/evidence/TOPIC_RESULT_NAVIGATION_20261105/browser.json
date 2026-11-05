@@ -1,0 +1,102 @@
+[
+  {
+    "site": "kjon",
+    "matched": [
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-a5462db578cc355b",
+        "target_id": "meeting-summary-topic-structured-summary-48432434d5214035",
+        "title": "모바일 신분증 691억 원 예산에도 4년 전 지적 문제 미개선·가짜 신분증 유통 실태 질의",
+        "target_top": 92.859375
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-13e0e11ea679fca5",
+        "target_id": "meeting-summary-topic-structured-summary-a16cffcde307a74f",
+        "title": "가짜 모바일 신분증 SNS 유통·미성년자 주류 구매 사건·정부 안전 홍보 허위 지적",
+        "target_top": 93.015625
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-d4a0e87f6f8fad7e",
+        "target_id": "meeting-summary-topic-structured-summary-4b1e855c7d31b562",
+        "title": "모바일 신분증 민원 급증·예산 대비 성과 미흡·4년 전 지적 미개선 책임 추궁",
+        "target_top": 93.234375
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-448a546c9c121c56",
+        "target_id": "meeting-summary-topic-structured-summary-8ca3977919fd2982",
+        "title": "모바일 신분증 검증 앱 분산·현장 확인 혼선 지적",
+        "target_top": 92.9375
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-df7c19796b6d46f6",
+        "target_id": "meeting-summary-topic-structured-summary-f4b858efaf9c5ae6",
+        "title": "모바일 신분증 재점검·검증수단 연동·업주 보호 기준·공공기관 인증 정비 대책 마련 보고 요구",
+        "target_top": 92.5
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-351cf446c99c0ebe",
+        "target_id": "meeting-summary-topic-structured-summary-4db2dd37ea5ce5d9",
+        "title": "위조 모바일 신분증 사용 시 업주·행정안전부 책임 기준 불명확 지적",
+        "target_top": 93.171875
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-07a41a7dd62d521b",
+        "target_id": "meeting-summary-topic-structured-summary-9efd7118643094c2",
+        "title": "공공기관별 모바일 신분증 인정 기준 상이 문제 질의",
+        "target_top": 92.6875
+      }
+    ],
+    "deep_link_reopened": true,
+    "removed_status_row": true,
+    "page_errors": []
+  },
+  {
+    "site": "minslab",
+    "matched": [
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-a5462db578cc355b",
+        "target_id": "meeting-summary-topic-structured-summary-48432434d5214035",
+        "title": "모바일 신분증 691억 원 예산에도 4년 전 지적 문제 미개선·가짜 신분증 유통 실태 질의",
+        "target_top": 92.859375
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-13e0e11ea679fca5",
+        "target_id": "meeting-summary-topic-structured-summary-a16cffcde307a74f",
+        "title": "가짜 모바일 신분증 SNS 유통·미성년자 주류 구매 사건·정부 안전 홍보 허위 지적",
+        "target_top": 93.015625
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-d4a0e87f6f8fad7e",
+        "target_id": "meeting-summary-topic-structured-summary-4b1e855c7d31b562",
+        "title": "모바일 신분증 민원 급증·예산 대비 성과 미흡·4년 전 지적 미개선 책임 추궁",
+        "target_top": 93.234375
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-448a546c9c121c56",
+        "target_id": "meeting-summary-topic-structured-summary-8ca3977919fd2982",
+        "title": "모바일 신분증 검증 앱 분산·현장 확인 혼선 지적",
+        "target_top": 92.9375
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-df7c19796b6d46f6",
+        "target_id": "meeting-summary-topic-structured-summary-f4b858efaf9c5ae6",
+        "title": "모바일 신분증 재점검·검증수단 연동·업주 보호 기준·공공기관 인증 정비 대책 마련 보고 요구",
+        "target_top": 92.5
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-351cf446c99c0ebe",
+        "target_id": "meeting-summary-topic-structured-summary-4db2dd37ea5ce5d9",
+        "title": "위조 모바일 신분증 사용 시 업주·행정안전부 책임 기준 불명확 지적",
+        "target_top": 93.171875
+      },
+      {
+        "topic_id": "a242709a-df14-437f-a2bd-65f298d95eb0:structured-topic-07a41a7dd62d521b",
+        "target_id": "meeting-summary-topic-structured-summary-9efd7118643094c2",
+        "title": "공공기관별 모바일 신분증 인정 기준 상이 문제 질의",
+        "target_top": 92.6875
+      }
+    ],
+    "deep_link_reopened": true,
+    "removed_status_row": true,
+    "page_errors": []
+  }
+]

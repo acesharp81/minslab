@@ -81,8 +81,9 @@ class TopicReportCompletenessTests(TestCase):
         topics = [{'id':str(i),'title':f'논의 {i}','summary':'행안부에서 대책을 검토했다.'} for i in range(60)]
         tasks = [{'topic_id':'0','title':f'자료 요구 {i}','ministries':['행정안전부']} for i in range(11)]
         connection=Mock()
-        connection.execute.return_value.fetchall.return_value=[('m','회의','LEGISLATURE','위원회',datetime(2026,10,19,tzinfo=timezone.utc),{'topics':topics,'tasks':tasks},{},'PENDING')]
+        connection.execute.return_value.fetchall.return_value=[('m','회의','LEGISLATURE','위원회',datetime(2026,10,19,tzinfo=timezone.utc),{'topics':topics,'tasks':tasks},{},'PENDING','brief-id')]
         repository=TopicReportRepository(connection)
+        connection.execute.return_value.fetchone.return_value=None
         all_rows=repository.search(ministry='행안부',topic='',period_start=date(2026,10,1),period_end=date(2026,10,20))
         self.assertEqual(all_rows['count'],60)
         self.assertFalse(all_rows['selection_limited'])

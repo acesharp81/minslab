@@ -4,12 +4,14 @@ import json
 import logging
 from datetime import date, datetime, timezone
 from uuid import UUID
+from threading import Lock
 
-from fastapi import APIRouter, Header, HTTPException, Response
+from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from .config import get_settings
 from .db.connection import connect
+from .db.read_projection_cache import ProjectionCache
 from .db.topic_report_repository import TopicReportRepository
 from .db.watch_delivery_repository import WatchDeliveryRepository
 from .db.watch_repository import WatchRepository
@@ -88,6 +90,47 @@ def _with_scope_supplements(item: dict[str, object], repository: TopicReportRepo
         "current_match_count": current["count"], "checked_at": datetime.now(timezone.utc).isoformat(),
         "basis": "SAVED_SNAPSHOT_PLUS_CURRENT_SCOPE_QUERY",
     }}
+
+
+# Scope refreshes are read projections. Never block opening a saved report on a
+# cold reconstruction of every meeting in its date range.
+_scope_cache = ProjectionCache(max_bytes=16 * 1024 * 1024, max_entries=64, ttl=300)
+_scope_pending: set[tuple[str, str]] = set()
+_scope_lock = Lock()
+_SCOPE_MAX_CONCURRENT = 2
+
+
+def _scope_key(item: dict[str, object]) -> tuple[str, str]:
+    return str(item['report_id']), str(item.get('updated_at') or '')
+
+
+def _refresh_scope(item: dict[str, object], key: tuple[str, str]) -> None:
+    try:
+        with connect(get_settings().database_url) as connection:
+            refreshed = _with_scope_supplements(item, TopicReportRepository(connection))
+        _scope_cache.put(key, {name: refreshed[name] for name in ('supplementary_evidence', 'evidence_scope')})
+    except Exception as exc:
+        LOGGER.warning('topic report background scope unavailable: %s', type(exc).__name__)
+        _scope_cache.put(key, {'supplementary_evidence': [], 'evidence_scope': {
+            'status': 'UNAVAILABLE', 'saved_count': len(item.get('evidence') or [])}})
+    finally:
+        with _scope_lock:
+            _scope_pending.discard(key)
+
+
+def _cached_scope(item: dict[str, object], background_tasks: BackgroundTasks) -> dict[str, object]:
+    if item.get('status') != 'READY':
+        return item
+    key = _scope_key(item)
+    cached = _scope_cache.get(key)
+    if cached is not None:
+        return {**item, **cached}
+    with _scope_lock:
+        if key not in _scope_pending and len(_scope_pending) < _SCOPE_MAX_CONCURRENT:
+            _scope_pending.add(key)
+            background_tasks.add_task(_refresh_scope, item, key)
+    return {**item, 'supplementary_evidence': [], 'evidence_scope': {
+        'status': 'PENDING', 'saved_count': len(item.get('evidence') or [])}}
 
 
 def _clean(payload: TopicReportQueryPayload) -> tuple[str, str, str | None]:
@@ -208,6 +251,7 @@ def list_topic_reports(
 @router.get("/{report_id}")
 def topic_report_detail(
     report_id: UUID,
+    background_tasks: BackgroundTasks,
     x_watch_token: str | None = Header(default=None),
 ) -> dict[str, object]:
     try:
@@ -216,7 +260,7 @@ def topic_report_detail(
             repository = TopicReportRepository(connection)
             item = repository.get_visible(report_id, subscriber_id)
             if item is not None:
-                item = _with_scope_supplements(item, repository)
+                item = _cached_scope(item, background_tasks)
     except Exception as exc:
         raise HTTPException(status_code=503, detail="주제별 보고서를 불러올 수 없습니다.") from exc
     if item is None:
@@ -224,9 +268,28 @@ def topic_report_detail(
     return _client_item(item)
 
 
+@router.get("/{report_id}/scope")
+def topic_report_scope(
+    report_id: UUID, background_tasks: BackgroundTasks,
+    x_watch_token: str | None = Header(default=None),
+) -> dict[str, object]:
+    try:
+        with connect(get_settings().database_url) as connection:
+            subscriber_id = _optional_subscriber(connection, x_watch_token)
+            item = TopicReportRepository(connection).get_visible(report_id, subscriber_id)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="보완 자료를 확인할 수 없습니다.") from exc
+    if item is None:
+        raise HTTPException(status_code=404, detail="주제별 보고서를 찾을 수 없습니다.")
+    scoped = _cached_scope(item, background_tasks)
+    return {"report_id": item['report_id'], "supplementary_evidence": scoped.get('supplementary_evidence', []),
+            "evidence_scope": scoped.get('evidence_scope', {})}
+
+
 @router.get("/{report_id}/report.md")
 def topic_report_markdown(
     report_id: UUID,
+    background_tasks: BackgroundTasks,
     x_watch_token: str | None = Header(default=None),
 ) -> Response:
     try:
@@ -238,7 +301,7 @@ def topic_report_markdown(
                 raise HTTPException(status_code=404, detail="주제별 보고서를 찾을 수 없습니다.")
             if item["status"] != "READY":
                 raise HTTPException(status_code=409, detail="보고서 작성이 아직 완료되지 않았습니다.")
-            item = _with_scope_supplements(item, repository)
+            item = _cached_scope(item, background_tasks)
             content = repository.markdown(item)
     except HTTPException:
         raise

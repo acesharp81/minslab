@@ -1,0 +1,32 @@
+[
+  {
+    "site": "desktop",
+    "width": 1440,
+    "controls": [
+      "주제 연결·원문 처리 내역",
+      "실시간 논의 재분석 후 원문 불명확 1묶음",
+      "재분석 후 원문 불명확 1건",
+      "회의 진행·의례 원문 74건"
+    ],
+    "single_line": true,
+    "relocated": true,
+    "single_expansion": true,
+    "no_page_overflow": true,
+    "errors": []
+  },
+  {
+    "site": "mobile",
+    "width": 390,
+    "controls": [
+      "주제 연결·원문 처리 내역",
+      "실시간 논의 재분석 후 원문 불명확 1묶음",
+      "재분석 후 원문 불명확 1건",
+      "회의 진행·의례 원문 74건"
+    ],
+    "single_line": true,
+    "relocated": true,
+    "single_expansion": true,
+    "no_page_overflow": true,
+    "errors": []
+  }
+]

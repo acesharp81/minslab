@@ -11,6 +11,7 @@ from ..db.connection import connect
 from ..db.meeting_brief_repository import MeetingBriefRepository
 from ..db.topic_structure_repository import TopicStructureRepository
 from ..services.meeting_progress import stage_progress
+from ..services.grouped_models import MONTHLY_CREDIT_POLICY
 from . import topic_structure_worker, structure_review_worker, ontology_review_worker, structured_narrative_worker
 
 VERSION = 'meeting-finalization/1'
@@ -19,11 +20,17 @@ VERSION = 'meeting-finalization/1'
 def finish_parent_review(broadcast_id: Any, state: dict[str, Any]) -> dict[str, Any]:
     from .report_parent_review_worker import process_one as review_parents
     outcome = review_parents(broadcast_id)
-    if outcome.get('status') in {'READY', 'CACHED', 'RETAINED'}:
+    # A failed/oversized retained layout must not be advertised as reviewed.
+    retained = outcome.get('status') == 'RETAINED' or bool(outcome.get('status') == 'CACHED' and outcome.get('reason'))
+    reviewed = outcome.get('status') in {'READY', 'CACHED'} and not retained
+    empty_or_legacy_single = retained and outcome.get('reason') in {'NO_GROUPS','SINGLE_PARENT'}
+    if reviewed or empty_or_legacy_single:
         return {**state, 'parent_review_status': outcome['status']}
     return {'status': 'DEFERRED', 'phase': 'FINALIZING',
             'retry_after': outcome.get('retry_after') or (datetime.now(timezone.utc)+timedelta(minutes=15)).isoformat(),
-            'last_result': outcome.get('status')}
+            'last_result': outcome.get('status'),
+            'wait_reason': outcome.get('error') or outcome.get('reason'),
+            'monthly_credit_policy': MONTHLY_CREDIT_POLICY if get_settings().openai_monthly_credit_fallback_enabled else 'DAILY_ONLY'}
 
 
 def initial_state() -> dict[str, Any]:
@@ -114,7 +121,10 @@ def process_one(broadcast_id: Any, *, request_limit: int = 4, batch_limit: int =
             expected_id = item['brief_id']
             state = item['brief'].get('finalization') or initial_state()
             retry = state.get('retry_after')
-            if retry and datetime.fromisoformat(retry) > datetime.now(timezone.utc):
+            settings = get_settings()
+            resume_new_credit_route = (settings.openai_monthly_credit_fallback_enabled and state.get('phase') == 'FINALIZING'
+                and state.get('monthly_credit_policy') != MONTHLY_CREDIT_POLICY)
+            if retry and datetime.fromisoformat(retry) > datetime.now(timezone.utc) and not resume_new_credit_route:
                 return {'broadcast_id': str(broadcast_id), **state}
             if state.get('status') == 'COMPLETED':
                 return {'status': 'CACHED', 'broadcast_id': str(broadcast_id)}
@@ -153,6 +163,8 @@ def process_one(broadcast_id: Any, *, request_limit: int = 4, batch_limit: int =
             elif state['status'] != 'COMPLETED':
                 state.update(status='DEFERRED', retry_after=(datetime.now(timezone.utc)+timedelta(minutes=5)).isoformat(),
                              last_result=outcome.get('status'))
+                if outcome.get('reason'):
+                    state['wait_reason'] = outcome['reason']
             if state.get('phase') == 'ONTOLOGY' and pending and not ontology_review_worker.pending_items(structure, prior):
                 state.update(status='DEFERRED', retry_after=(datetime.now(timezone.utc)+timedelta(days=1)).replace(hour=0,minute=0,second=0,microsecond=0).isoformat(), last_result='DAILY_REVIEW_ATTEMPTS')
             return save(state)
@@ -174,7 +186,9 @@ def process_available(limit: int = 1) -> list[dict[str, Any]]:
               AND meeting_brief_payload(b.id,b.brief)->'finalization'->>'status' <> 'COMPLETED'
               AND NOT EXISTS(SELECT 1 FROM meeting_briefs newer WHERE newer.broadcast_id=b.broadcast_id
                   AND newer.provider <> 'deterministic' AND (newer.generated_at,newer.id)>(b.generated_at,b.id))
-              AND COALESCE((meeting_brief_payload(b.id,b.brief)->'finalization'->>'retry_after')::timestamptz,'-infinity')<=now()
+              AND (COALESCE((meeting_brief_payload(b.id,b.brief)->'finalization'->>'retry_after')::timestamptz,'-infinity')<=now()
+                OR (%s AND meeting_brief_payload(b.id,b.brief)->'finalization'->>'phase'='FINALIZING'
+                    AND COALESCE(meeting_brief_payload(b.id,b.brief)->'finalization'->>'monthly_credit_policy','')<>%s))
             ORDER BY COALESCE((meeting_brief_payload(b.id,b.brief)->'finalization'->>'updated_at')::timestamptz,b.generated_at),
-                     b.generated_at DESC LIMIT %s""", (limit,)).fetchall()
+                     b.generated_at DESC LIMIT %s""", (get_settings().openai_monthly_credit_fallback_enabled, MONTHLY_CREDIT_POLICY, limit)).fetchall()
     return [process_one(row[0]) for row in rows]

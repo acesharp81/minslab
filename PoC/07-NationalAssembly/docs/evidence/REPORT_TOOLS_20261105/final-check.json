@@ -1,0 +1,12 @@
+{
+  "content_preserved": true,
+  "topics": 520,
+  "tasks": 149,
+  "parent_review_status": "READY",
+  "touch_retry_after_503": {
+    "before": 5,
+    "after": 10,
+    "same_offset": true
+  },
+  "official_failure_not_mislabelled": true
+}

@@ -15,7 +15,7 @@ test('every stage is shown and real narrative count is used instead of analysis 
  const t=stages({brief_progress:{completed_chunks:33,total_chunks:33,stages:[
   {key:'INTEGRATION',status:'COMPLETED'}, {key:'REVIEWING',status:'COMPLETED'},
   {key:'NARRATIVE',status:'PROCESSING',completed:212,total:349}, {key:'FINALIZING',status:'PENDING'}]}});
- assert.equal(t.map(x=>x.label).join('|'),'통합 완료|주제 검증 완료|세부 요약 중 (212/349)|최종 확인 대기');
+ assert.equal(t.map(x=>x.label).join('|'),'통합 완료|주제 검증 완료|세부 요약 중 (212/349)|묶음·순서 정리 대기');
 });
 test('completion removes all stage tags for both current and legacy reports',()=>{
  for(const item of [{brief_status:'READY'},{meeting_brief:{brief_finalization:{status:'COMPLETED'}}}]){
