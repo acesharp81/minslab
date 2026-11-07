@@ -66,9 +66,9 @@ class Export:
     dirty: bool
 
 
-# Generated verification snapshots stay in GitHub. Runtime data, fixtures,
+# Generated verification snapshots and recovery captures stay in GitHub. Runtime data, fixtures,
 # migrations, documentation and source remain in each independent export.
-EXCLUDED_PATHS = ("docs/evidence",)
+EXCLUDED_PATHS = ("docs/evidence", "data/recovery")
 
 
 def publication_tree(root: Path, tree: str) -> str:
