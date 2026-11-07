@@ -1,0 +1,46 @@
+[
+  {
+    "at": "2026-11-05 23:15:22.724586+00:00",
+    "status": "READY",
+    "error": null,
+    "issues": 6,
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 15.369,
+    "finish": "stop",
+    "output": 1575,
+    "reasoning": 0
+  },
+  {
+    "at": "2026-11-05 23:15:37.059957+00:00",
+    "status": "READY",
+    "error": null,
+    "issues": 4,
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 29.718,
+    "finish": "stop",
+    "output": 2627,
+    "reasoning": 0
+  },
+  {
+    "at": "2026-11-05 23:16:25.158378+00:00",
+    "status": "READY",
+    "error": null,
+    "issues": 1,
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 3.74,
+    "finish": "stop",
+    "output": 835,
+    "reasoning": 0
+  },
+  {
+    "at": "2026-11-05 23:16:39.852227+00:00",
+    "status": "FAILED",
+    "error": "NARRATIVE_INVALID_SUMMARY",
+    "issues": 8,
+    "model": "nvidia/nemotron-3.5-super-vl:free",
+    "seconds": 18.481,
+    "finish": "stop",
+    "output": 3059,
+    "reasoning": 0
+  }
+]

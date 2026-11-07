@@ -142,3 +142,14 @@
 ## 2026-11-05 — 주제별 검색의 현재 보고서 읽기 투영
 
 검색은 현재 선택된 `meeting_brief_payload`와 원본 해시가 일치하는 통합 완료 구조화 잠정본을 사용한다. 저장된 완성 요약은 `source_structured_topic_id`로 세부 쟁점에 연결한다. 공식 통합본은 현재 brief에 속한 결과를 별도 OFFICIAL_INTEGRATED 근거로 반환하며, 구조화 잠정 근거는 PROVISIONAL을 유지한다. 공식 국무회의 배포 자료의 기존 검색 경로도 유지한다. 검색 날짜는 방송 시작 감지 시각의 한국 날짜로 조회한다. 원본·분석 응답을 변경하거나 새 모델 분석을 호출하지 않는다.
+
+
+### 2026-11-06 국회 일반 자막 전송 계약 확인
+
+- 공식 `https://assembly.webcast.go.kr/main/player.asp` 및 `https://assembly.webcast.go.kr/main/js/openos_util.js?v=20261030`은 smi(-hy|-dw)?(숫자)? 호스트의 일반 자막을 `io(xsami)`로 연결하고 `receive message` 문자열 이벤트를 표시한다. 이 경로에는 `/hls`를 추가하지 않는다. AI 자막만 `/hls` + echo-protocol을 사용한다.
+- 본회의 xsami=wss://smi-dw.webcast.go.kr/10. 공개 Socket.IO 클라이언트와 실제 연결에서 Engine.IO 3 WebSocket의 open, 40/10 namespace, 42/10 receive message 문자열을 확인했다. 클라이언트 2 ping / 서버 3 pong을 지원한다.
+- 일반 자막은 source segment ID·화자·시간정보를 제공하지 않는다. 원본 이벤트 바이트는 text/plain으로 보존하고 수신시각+원본 해시를 로컬 segment ID로 쓴다. 동일 문구라도 다른 시각의 발언은 삭제하지 않는다. 화자는 미확인으로 남긴다. 기존 공식 API나 다른 자막 서버 주소를 추측해 사용하지 않는다.
+
+### 2026-11-06 공식 VOD 누락 구간 복원
+공식 live_play.qlink의 player.do JavaScript에서 사용하는 movie.do의 movieInfo/fileInfo를 실제 확인했습니다. 439회 12차 본회의 파일 676599/676654/676711의 realTime, 재생시간, filePath를 대조했습니다. smiList 응답은 비어 있고 sami=0이므로 공개 VOD 음성으로 복원했습니다. 원본 API 응답은 evidence/CAPTION_RECOVERY_CONTEXT_20261106에 보존합니다.
+음성 및 전사 응답은 RawStore에 저장하며 source_type=assembly_vod_recovery_transcription으로 추적합니다. AI 전사는 OFFICIAL로 승격하지 않습니다. VOD 시계와 채널 수신 시계에는 수초 차이가 있을 수 있어 경계의 완전한 무누락은 보장하지 않습니다.

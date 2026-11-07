@@ -1,0 +1,16 @@
+[
+  {
+    "id": "5436d394-affd-45d6-b528-f799fdab85dc",
+    "title": "제439회 국회(정기회) 제01차 국방위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 335023,
+    "report_cursor": 335023,
+    "generated": "2026-09-10 09:48:38.454409+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "PENDING",
+      "completed_batches": 0
+    },
+    "structured": false
+  }
+]

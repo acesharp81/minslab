@@ -433,7 +433,7 @@ class LiveRepository:
             WHERE id = %s AND institution = 'LEGISLATURE'
               AND lifecycle_status = 'LIVE' AND media_stream_url IS NOT NULL
               AND official_caption_state IN ('ACTIVE','RECOVERING')
-              AND COALESCE(last_caption_received_at, detected_at)
+              AND COALESCE(last_official_caption_received_at, detected_at)
                     < now() - (%s * interval '1 second')
             RETURNING id
             """,
@@ -450,36 +450,53 @@ class LiveRepository:
     def mark_official_caption_received(
         self, broadcast_id: uuid.UUID, stable_seconds: int = 90,
     ) -> str:
+        # STT receipts must never keep the official feed alive. A gap in the
+        # official feed restarts its stability window even after reconnect.
         row = self.connection.execute(
             """
-            UPDATE live_broadcasts
-            SET official_caption_state = CASE
-                    WHEN active_transcript_source = 'AI_STT'
-                     AND official_caption_recovery_started_at IS NOT NULL
-                     AND official_caption_recovery_started_at < now() - (%s * interval '1 second')
-                    THEN 'ACTIVE'
-                    WHEN active_transcript_source = 'AI_STT' THEN 'RECOVERING'
-                    ELSE 'ACTIVE' END,
-                official_caption_recovery_started_at = CASE
-                    WHEN active_transcript_source = 'AI_STT'
-                    THEN COALESCE(official_caption_recovery_started_at, now())
-                    ELSE NULL END,
-                active_transcript_source = CASE
-                    WHEN active_transcript_source = 'AI_STT'
-                     AND official_caption_recovery_started_at IS NOT NULL
-                     AND official_caption_recovery_started_at < now() - (%s * interval '1 second')
-                    THEN 'OFFICIAL_CAPTION' ELSE active_transcript_source END,
-                stt_fallback_status = CASE
-                    WHEN active_transcript_source = 'AI_STT'
-                     AND official_caption_recovery_started_at IS NOT NULL
-                     AND official_caption_recovery_started_at < now() - (%s * interval '1 second')
-                    THEN 'STOP_REQUESTED' ELSE stt_fallback_status END,
-                updated_at = now()
-            WHERE id = %s RETURNING official_caption_state
+            WITH previous AS (
+                SELECT id, active_transcript_source AS old_source,
+                       (last_official_caption_received_at >= now() - interval '45 seconds') AS continuous,
+                       (official_caption_recovery_started_at < now() - (%s * interval '1 second')) AS stable
+                FROM live_broadcasts WHERE id = %s FOR UPDATE
+            ), changed AS (
+                UPDATE live_broadcasts b
+                SET last_official_caption_received_at = now(),
+                    official_caption_state = CASE
+                        WHEN p.old_source = 'AI_STT' AND NOT COALESCE(p.continuous AND p.stable, false)
+                        THEN 'RECOVERING' ELSE 'ACTIVE' END,
+                    official_caption_recovery_started_at = CASE
+                        WHEN p.old_source <> 'AI_STT' OR (p.continuous AND p.stable) THEN NULL
+                        WHEN p.continuous THEN COALESCE(b.official_caption_recovery_started_at, now())
+                        ELSE now() END,
+                    active_transcript_source = CASE
+                        WHEN p.old_source = 'AI_STT' AND p.continuous AND p.stable
+                        THEN 'OFFICIAL_CAPTION' ELSE b.active_transcript_source END,
+                    stt_fallback_status = CASE
+                        WHEN p.old_source = 'AI_STT' AND p.continuous AND p.stable
+                        THEN 'STOP_REQUESTED' ELSE b.stt_fallback_status END,
+                    updated_at = now()
+                FROM previous p WHERE b.id = p.id
+                RETURNING b.official_caption_state, b.active_transcript_source, p.old_source
+            ) SELECT * FROM changed
             """,
-            (stable_seconds, stable_seconds, stable_seconds, broadcast_id),
+            (max(0, stable_seconds), broadcast_id),
         ).fetchone()
+        if row and row[2] == "AI_STT" and row[1] == "OFFICIAL_CAPTION":
+            self.connection.execute(
+                "INSERT INTO transcript_source_sessions(id,broadcast_id,source_type,transition,reason) "
+                "VALUES(%s,%s,'AI_STT','STOP','OFFICIAL_CAPTION_RECOVERED')",
+                (uuid.uuid4(), broadcast_id),
+            )
         return str(row[0]) if row else "UNAVAILABLE"
+
+    def caption_url_changed(self, broadcast_id: uuid.UUID, source_url: str) -> bool:
+        """Release the old socket when the monitored official endpoint changes."""
+        return self.connection.execute(
+            "SELECT 1 FROM live_broadcasts WHERE id=%s AND lifecycle_status='LIVE' "
+            "AND caption_websocket_url IS DISTINCT FROM %s",
+            (broadcast_id, source_url),
+        ).fetchone() is not None
 
     def heartbeat_capture(
         self, broadcast_id: uuid.UUID, worker_id: str, lease_seconds: int = 45
@@ -631,7 +648,7 @@ class LiveRepository:
         self.connection.execute(
             """
             UPDATE live_broadcasts
-            SET last_caption_received_at = %s,
+            SET last_caption_received_at = GREATEST(last_caption_received_at, %s),
                 source_last_event_cursor = GREATEST(
                     source_last_event_cursor, %s
                 ),

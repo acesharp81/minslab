@@ -139,6 +139,11 @@ class OfficialIntegrationSchemaTests(unittest.TestCase):
         ])
         self.assertEqual(restored[0]["new_text"], "공식 문구")
         self.assertEqual(restored[1]["new_values"], ["법무부", "경찰청"])
+
+    def test_source_only_timeout_is_not_a_completed_model_comparison(self):
+        self.assertIsNone(cached_ready_status({
+            'status': 'READY', 'usage_metadata': {'comparison_mode': 'SOURCE_ONLY_TIMEOUT'},
+        }, temporary_stable=True, force=False))
         worker = (
             PROJECT_DIR / "backend/app/ingestion/official_integration_worker.py"
         ).read_text(encoding="utf-8")

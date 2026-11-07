@@ -1205,7 +1205,8 @@ def main() -> None:
                 print(json.dumps({'event': 'structured_narrative.error', 'error': safe_brief_error_code(exc)}), flush=True)
         if args.once or args.broadcast_id:
             return
-        time.sleep(args.interval)
+        from ..services.narrative_retry import progress_poll_delay
+        time.sleep(progress_poll_delay(args.interval, finalizations if not args.broadcast_id else []))
 
 
 if __name__ == "__main__":

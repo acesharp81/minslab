@@ -1,0 +1,1143 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <title>국회인터넷의사중계시스템</title>
+    <meta charset="UTF-8" />
+	<meta http-equiv=X-UA-Compatible content="IE=edge, chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=yes" />
+    <meta name="format-detection" content="telephone=no" />
+	<meta name="keywords" content="국회인터넷의사중계시스템" />
+	<meta name="description" content="국회인터넷의사중계시스템" />
+	<meta name="robots" content="all" />
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="국회인터넷의사중계시스템" />
+	<meta property="og:description" content="국회인터넷의사중계시스템" />
+  
+    <link rel="shortcut icon" href="//assembly.webcast.go.kr/favicon.ico" />
+    
+    <link type="text/css" rel="stylesheet" href="./css/swiper.min.css" />
+    <link type="text/css" rel="stylesheet" href="./css/style.css?v=20261030" />
+	
+		<link type="text/css" rel="stylesheet" href="./css/sub.css?v=20261030" />
+		<link rel="stylesheet" type="text/css" href="./css/openos_video-js.css?v=20261030" >
+	
+    <!-- 공통 -->
+	<script src="./js/trefresh.js?v=17939777072"></script>
+    <script src="./js/jquery-1.12.4.min.js"></script>
+    <script src="./js/swiper.min.js?v=20220429"></script>
+    <script src="./js/design.js??v=20261030"></script>
+    <script src="./js/ready.js?v=20261030"></script>
+    <script src="./js/tags.js?v=20261030"></script>
+	
+    <!-- 공통 -->
+	<script src="./js/socket.io.js?v=20220431"></script>
+	<script src="./js/sub.js?v=20261030"></script>
+    <script src="./js/player.js?v=20261030"></script>
+	<script src="./js/jquery_layer.js?v=20201024"></script>
+	
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-QEPEGVC0VX"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'G-QEPEGVC0VX');
+	</script>
+	
+	<!-- Nethru Tag Manager -->
+  <script>(function(f,d,k,h){var b;var a=m()+"ver="+c(d);g();function e(){var o=document.getElementsByTagName(f)[0];var n=document.createElement(f);n.async=true;n.charset="utf-8";n.src=a;o.parentNode.insertBefore(n,o)}function m(){return window.location.protocol=="https:"?"https://tag.assembly.go.kr:9443/static/00002/install.js?":"https://tag.assembly.go.kr:9443/static/00002/install.js?"}function c(n){var o=new Date().getTime();var p=n*1000*60;return n>0?Math.floor(o/p)*p:o}function g(){var n=l();if(!n){return false}n.open("GET",a,true);n.withCredentials=h;n.send(null);n.onload=function(){j();e()};n.onerror=n.onabort=function(){j()};i(function(){n.abort()},k)}function l(){var q;var o=[function(){return new XDomainRequest()},function(){return new XMLHttpRequest()},function(){return new ActiveXObject("Msxml2.XMLHTTP")},function(){return new ActiveXObject("Msxml3.XMLHTTP")},function(){return new ActiveXObject("Microsoft.XMLHTTP")}];for(var n=0;n<o.length;n++){try{q=o[n]()}catch(p){continue}break}return q}function i(o,n){b=setTimeout(o,n)}function j(){if(b){clearTimeout(b);b=null}}})("script",60,/*{{timeout}}*/2000,/*{{withCredentials}}*/false);</script>
+  <!-- End Nethru Tag Manager -->  
+  </head>
+  <body style='display:none'>
+  <!-- skip nav -->
+  <div id="skip_nav">
+    <ul>
+      <!--<li><a href="javascript:void(0)"
+          onclick="$(function(){document.getElementById('container').tabIndex = -1; document.getElementById('container').focus(); return false;})">본문
+          바로가기</a></li>-->
+      <li><a href="#container">본문 바로가기</a></li>
+    </ul>
+  </div>
+  <!--// skip nav -->
+
+  <!-- top notice -->
+  <div class="top_notice_wrap" id='top_notice_wrap'></div>
+
+  <div id="wrap">
+    <!-- head -->
+    <header id="header" class="sub">
+      <div class="gnb">
+        <ul class="gnb_assembly">
+          <li class="ga00">
+            <a id='gnb_alink' target="_blank" title="국회 회기정보 바로가기 새창열림"><span id='gnb_aname'></span></a>
+          </li>
+          <li class="ga01">
+            <a href="javascript:;" id="gnb_assembly_info" title="국회정보길라잡이 새창열림"><span>국회정보길라잡이</span></a>
+          </li>
+          <li class="ga02">
+            <a href="https://www.assembly.go.kr/portal/cnts/cntsCont/dataA.do?cntsDivCd=NAAS&menuNo=600137&tabIdx=1"  target="_blank" title="국회의원 검색 바로가기 새창열림"><span>국회의원 검색</span></a>
+          </li>
+		</ul>
+		<div class="gnb_util">
+			<ul class="gnb_menu">
+				<li class="m_none"><a href="https://www.assembly.go.kr/portal/main/main.do" target="_blank" title="새창열림">대한민국국회</a></li>
+				<li><a href="./help.asp" title='도움말 바로가기'>도움말</a></li>
+				<li class="m_none">
+					<div>
+						<strong>화면크기</strong>
+							<a href="javascript:;" class="gnb_plus" onclick="$(function(){zoomOut(); return false;})">화면확대</a>
+							<a href="javascript:;" class="gnb_minus" onclick="$(function(){zoomIn(); return false;})">화면축소</a>
+						</div>
+					</li>
+					<li class="m_none">
+						<ol class="glnb_nsns_icon">
+							<li><a href="https://www.facebook.com/NationalAssemblyROK" target="_blank" class="icon_glnb_facebook" id="link_glnb_facebook" title="새창열림_페이스북">페이스북</a></li>
+							<li><a href="https://www.instagram.com/theassembly_kr/" target="_blank" class="icon_glnb_insta" id="link_glnb_insta" title="새창열림_인스타그램">인스타그램</a></li>
+							<li><a href="https://www.youtube.com/channel/UCsWa6xl7KxOolVhROUJ4Ghw" target="_blank" class="icon_glnb_youtube" id="link_glnb_youtube" title="새창열림_유튜브">유튜브</a></li>
+							<li><a href="https://x.com/news_NA" target="_blank" class="icon_glnb_twitter" id="link_glnb_twitter" title="새창열림_트위터">트위터</a></li>
+						</ol>
+					</li>
+				</ul>
+            </div>
+        </div>
+
+	  <div class="head_con_wrap">
+        <div class="head_con">
+          <h1 class="logo"><a href="/main/" title='인터넷의사중계시스템'><img src="./images/logov1.png" alt="인터넷의사중계시스템"></a></h1>
+          <!-- mobile allmenu -->
+          <button class="btn_allmenu">전체메뉴 열기</button>
+          <div class="allmenu_wrap">
+            <div class="all_menu_top">
+              <h2 class="title">전체메뉴</h2>
+              <button class="btn_allmenu_close"></button>
+            </div>
+            <div class="allmenu_head">
+              <a href="javascript:void(0);" class="allmenu_logo">인터넷의사중계시스템</a>
+              <ul class="allmenu_quick">
+                <li>
+                  <a href="https://www.assembly.go.kr/" target="_blank" class="inbox">
+                    <div class="ico" style="background-image: url(./images/ico_allmenu_quick01.png?241206)"></div>
+                    <span class="txt">대한민국 국회</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="http://w3.assembly.go.kr/" target="_blank" class="inbox">
+                    <div class="ico" style="background-image: url(./images/ico_allmenu_quick02.png?241206)"></div>
+                    <span class="txt">영상회의록</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="https://record.assembly.go.kr/" target="_blank" class="inbox">
+                    <div class="ico" style="background-image: url(./images/ico_allmenu_quick04.png?241206)"></div>
+                    <span class="txt">국회회의록</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="https://vplatform.assembly.go.kr/" target="_blank" class="inbox">
+                    <div class="ico" style="background-image: url(./images/ico_allmenu_quick03.png?241206)"></div>
+                    <span class="txt">정책영상플랫폼</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="https://www.natv.go.kr"" target="_blank" class="inbox">
+                    <div class="ico" style="background-image: url(./images/ico_allmenu_quick05.png?241206)"></div>
+                    <span class="txt">국회방송</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div class="allmenu_cont">
+              <ul class="allmenu_list">
+                <li><a href="/main/">HOME</a></li>
+                <li><a href="./schedule.asp">월별 의사중계일정</a></li>
+                <li><a href="./nlist.asp">공지사항</a></li>
+              </ul>
+			  <div class="mobile_gnb_btn">
+					<ul>
+						<li><a id="gnb_assembly_info_quick" target=_blank title="국회정보나침반 바로가기 새창열림" class="on">국회정보나침반</a></li>
+						<li><a href="https://www.assembly.go.kr/portal/cnts/cntsCont/dataA.do?cntsDivCd=NAAS&menuNo=600137&tabIdx=1" title="국회의원 검색 바로가기 새창열림"  target=_blank  class="on">국회의원 검색</a></li>
+					</ul>
+				</div>
+            </div>
+          </div>
+          <!--// mobile allmenu -->
+          <div class="head_title">
+            <h2 class="title" id='txday'>오늘의 생중계</h2>
+			<div class="title_p_group">
+				<p class="title_p date" id='nxday'></p>
+				<p class="title_p" id='nperiod'>제<em>22</em>대 제<em>439</em>회 국회(정기회)</p>
+			</div>
+          </div>
+          <div class="slogan"><img src="./images/slogan.png?v=202608031" alt=""></div>
+        </div>
+      </div>
+    </header>
+    <!--// head -->
+	<script src="./js/openos_video.js?v=20261030"></script>
+	<script type="text/javascript">
+			/*  Player  Setting */
+			var err_rptime=0;
+			var videojs_start=0;
+			var player_ver='2000';
+			var xzone=0;
+
+			// 동영상 북마크 이름 유니크해야함!! 1대신 idx pk 번호여야함.
+			var strMediaBookmark1		= "WebcastGoKrLive1";	
+
+
+			// 플레이어 세팅 object
+			var player_new_main;
+			var player_new_left;
+			var player_new_right;
+
+			// 자막서버
+			var smi_server= "";
+
+			// vod url
+			var rtsp_urls=[];
+			var rtsp_url = '';
+
+			var hls_urls=[];
+			var hls_url = '';
+
+			// 전광판 주소
+			var left_hls='';
+			var right_hls='';
+			
+		 
+	</script>
+	<script src="./js/openos_util.js?v=20261030"></script>
+	<script src="./js/rtsp_player.js?v=20261030"></script>
+	<script src="./js/openos_control.js?v=20261030"></script>
+      <!-- container -->
+      <div id="container" class="bglblue">
+        <!-- player -->
+        <div class="player_wrap">
+          <div class="player_box ">
+            <div class="player_left no-print" id="video_01">
+              <!-- left content -->
+              <div class="player_view " >
+                <div class="popup_video"><div class="popup_video_inner" id="mediaBox_01"></div></div>
+              </div>
+			  <div class="leftcont_group">
+				  <div class="title_box ">
+					<h2 class="title" id='xsubj'></h2>
+					<span class="date" id='xdate'></span>
+				  </div>
+				  <div class="player_ctrl">
+					<ul class="button_list ">
+					  <li id='smi_btn'>
+						<a href="javascript:void(0)" class="btn btn_subtit btn_subtit_ai" title="AI 자막보기 켜기" style="display:none;">AI 자막보기</a>
+						<a href="javascript:void(0)" class="btn btn_subtit btn_subtit_def" title="자막보기 켜기">자막보기</a>
+						<div id="viewSubtit" class="view_subtit ">
+						  <div class="lp_wrap" id="smiLoading">
+							<div class="loadingmsg">로딩중..</div>
+							<div class="lp_load_bg">
+							</div>
+						  </div>
+						  <div class="incont">
+						   
+						  </div>
+						</div>
+						<div id="" class="player_note_ai" style="display:none;">
+							<p>본 자막은 <strong>AI 음성인식 기술</strong>을 이용하여 서비스 중입니다.</p>
+						</div>
+					  </li>
+					  <li><a href="javascript:void(0)" class="btn btn_audio AudioHearing" title="오디오만듣기 켜기">오디오만 듣기</a></li>
+					  <li class="player_install">
+						<a href="#installDownload" class="btn btn_download" title="설치형플레이어 안내 열기">설치형 플레이어</a>
+						<div id="installDownload" class="inlayer">
+						  <h4 class="tit">설치형 플레이어</h4>
+						  <p id="app_msg">
+							1. 인터넷 익스플로러 브라우저를 사용하시거나<br/>2. 생중계를 지연 없이 시청을 원하시면<br/><br/>설치형 플레이어를 실행하시기 바랍니다.
+						  </p>
+						  <a href="javascript:void(0)" onclick="rtsp_run()" class="btn_execution" title="설치형플레이어 실행">설치형 플레이어 실행</a>
+						  <button class="btn_close" title="설치형플레이어 안내 닫기">닫기</button>
+						  <div class="lp_wrap" id="appLoading" >
+							<div class="loadingmsg">설치형 플레이어 설치 검사 중..</div>
+							<div class="lp_load_bg">
+							</div>
+						  </div>
+						</div>
+					  </li>
+					  <li id="vodtxtbon"><a href="javascript:void(0)" class="btn btn_commentary" title="화면해설방송 켜기">화면해설방송</a></li>
+					</ul>
+					<ul class="button_list">
+					  <li><button class="btn btn_pip" id="pipButton" title="PIP모드 켜기">PIP모드</button></li>
+					  <li><button class="btn btn_small" title="작은화면 켜기">작은화면</button></li>
+					  <li><button class="btn btn_wide" title="넓은화면 켜기">넓은화면</button></li>
+					  <li><button class="btn btn_full" title="전체화면 보기">전체화면</button></li>
+					</ul>
+				  </div>
+				  <div class="player_note no-print"><p>회의 영상은 <em>「국회법」 제149조제2항에 의거 상업적 목적으로 사용할 수 없음</em>을 양지하여 주시기 바랍니다.</p></div>
+              </div>
+              <!--// left content -->
+            </div>
+            <div class="player_right">
+              <!-- right content -->
+              <ul class="player_tab">
+                <li class="active">
+                  <div class="player_tabtit">
+                    <a href="javascript:void(0)" id="atab01" title="현재활성화, 보러가기">오늘의 생중계</a>
+                  </div>
+                  <div class="player_tabcont" id="tab01">
+                 <!-- 오늘의 생중계 -->
+                  <div class="playing" id='jplaying'>
+                    <div class="cn_item_box" id='airlist'>
+                   
+                    </div>
+                  </div>
+                  <div class="con_channel mc_scroll" id='jcon_channel'>
+                    <ul id='chlist'>
+                    
+                    </ul>
+                  </div>
+                  <!--// 오늘의 생중계 -->
+                  </div>
+                </li>
+                <li>
+                  <div class="player_tabtit">
+                    <a href="javascript:void(0)" id="atab02" title="보러가기"></a>
+                  </div>
+                  <div class="player_tabcont" id="tab02">
+                  <!-- 심의안건 -->
+                  <div class="player_agenda mc_scroll" id='andiv'>
+                    <ul class="list" id='xxlist'>
+                      
+                    </ul>
+                  </div>
+                  <!--// 심의안건 -->
+                  </div>
+                </li>
+                <li> 
+                  <div class="player_tabtit" id='xtab'>
+                    <a href="javascript:void(0)" id="atab03" title="보러가기"></a>
+					<a href="javascript:void(0)" class="seat" title="보러가기" style='display:none'>의석배치도</a>
+                  </div>
+                  <div class="player_tabcont" id="tab03">
+                    <!-- 전광판 보기 -->
+                    <div class="player_billboard">
+                      <div class="billboard_item" id="video_02">
+                        <div class="ctrl_box">
+                          <h4 class="stit">좌측 전광판</h4>
+                          <ul class="button_list">
+                            <li><button class="btn btn_small" title="작은화면 켜기">작은화면</button></li>
+                            <li><button class="btn btn_wide" title="넓은화면 켜기">넓은화면</button></li>
+                            <li><button class="btn btn_full" title="전체화면 보기">전체화면</button></li>
+                          </ul>
+                        </div>
+                        <div class="video_box">
+                          <div class="popup_video"><div class="popup_video_inner" id="mediaBox_02"></div></div>
+                        </div>
+                      </div>
+                      <div class="billboard_item" id="video_03">
+                        <div class="ctrl_box">
+                          <h4 class="stit">우측 전광판</h4>
+                          <ul class="button_list">
+                            <li><button class="btn btn_small" title="작은화면 켜기">작은화면</button></li>
+                            <li><button class="btn btn_wide" title="넓은화면 켜기">넓은화면</button></li>
+                            <li><button class="btn btn_full" title="전체화면 보기">전체화면</button></li>
+                          </ul>
+                        </div>
+                        <div class="video_box">
+                           <div class="popup_video"><div class="popup_video_inner" id="mediaBox_03"></div></div>
+                        </div>
+                      </div>
+                    </div>
+                    <!--// 전광판 보기 -->
+					
+                  </div>
+				  <!-- 의석배치도 -->
+						<div class="player_seat_wrap">
+						  <div class="player_seat">
+							<h3 class="title"><span id='stitle'>의석배치도</span></h3>
+							<div class="cont mc_scroll">
+							  <div class="seat_list_box">
+								<button class="btn_print" title="의석배치도 인쇄하기">인쇄</button>
+								<div class="seat_list">
+								  <!-- 위원장 -->
+								  <div class="po_center">
+									<div class="inbox">
+									  <div class="imgbox">
+										<div class="img" id='scenter_image' style="background-image: url('')"></div>
+									  </div>
+									  <div class="txtbox">
+										<strong class="name" id='scenter_mname'></strong>
+										<span class="faction" id='scenter_mdang'></span>
+									  </div>
+									</div>
+								  </div>
+								  <!--// 위원장 -->
+								  <ul id='seat_left'>
+									
+								  </ul>
+
+								  <ul id='seat_right'>
+									
+								  </ul>
+								</div>
+							  </div>
+							</div>
+							<button class="btn_close">닫기</button>
+						  </div>
+						</div>
+						<!--// 의석배치도 -->
+                </li>
+              </ul>
+              <!--// right content -->
+            </div>
+          </div>
+        </div>
+        <!--// player -->
+      </div>
+      <!--// container -->
+<script>
+
+if ( navigator.userAgent.match(/Trident.*rv\:11\./) ){
+	document.body.style.removeProperty('display');
+}
+
+$(document).ready(function() {
+	function getQueryVariable(variable) {
+		var query = window.location.search.substring(1);
+		var vars = query.split('&');
+		for (var i = 0; i < vars.length; i++) {
+			var pair = vars[i].split('=');
+			if (decodeURIComponent(pair[0]) == variable) {
+				return decodeURIComponent(pair[1]);
+			}
+		}
+		return '';
+	}
+	var sub_err=0;
+	var xcode=getQueryVariable('xcode');
+	var xcgcd=getQueryVariable('xcgcd');
+	if (xcode=='' ){
+		$('#container').hide();
+		setTimeout(function() {
+			alert('잘못된 요청입니다.');
+			location.href='./';
+		}, 500);
+		return;
+	}
+
+ var serverDay='';
+ var xperiod='';
+ 	/* 실시간 중계 */
+	 /* 의사중계 자체 회기정보 */
+  function oninfo(){
+	  var tajax=Math.floor(Date.now() / 1000);
+	  $.ajax({
+		url: './service/period_info.asp?xtype=player&vv='+tajax+'&',
+		cache: "false",
+		dataType: 'json',
+		success: function( data ) {
+			$('.head_con').addClass('showXperiod');
+			xperiod=data['xperiod'];
+			var xperiod2=' '+data['xperiod'];
+			xperiod2 = xperiod2.replace(/ 제/, ' 제<em>');
+			xperiod2 = xperiod2.replace(/회 /, '</em>회 ');
+			var nperiod='제<em>'+data['xdae']+'</em>대'+xperiod2;
+
+			document.getElementById('nperiod').innerHTML=nperiod;
+
+		    data['xweek']=data['xweek'].replace('요일','');
+			var nxday='<em>'+data['xmonth']+'.'+data['xday']+'</em> ('+data['xweek']+')';
+			document.getElementById('nxday').innerHTML=nxday;
+
+			liveair()
+		},
+		error: function( data ) {
+		  setTimeout(oninfo, 10000); 
+		  console.log('api err period_info ');
+		}
+	  });
+	}
+
+	function liveair(){
+		var tajax=Math.floor(Date.now() / 1000);
+		 $.ajax({
+			url: './service/live_list.asp?vv='+tajax+'&',
+			cache: "false",
+			dataType: 'json',
+			success: function( data ) {
+				$('#chlist').html('');
+				var airtxt='';
+				var aircnt=0;
+				var airlen=data['xlist'].length;
+				if (airlen>0){
+					console.log('['+airlen+'] sub air start ======\n');
+					for (var i=0;i<airlen ;i++ ){
+							if (data['xlist'][i].xstat==1){
+							var xcode_=data['xlist'][i].xcode;
+							var xcgcd_=data['xlist'][i].xcgcd;
+							var xstat=data['xlist'][i].xstat;
+							var xname=data['xlist'][i].xname;
+							var xdesc=data['xlist'][i].xdesc;
+							var xsubj=data['xlist'][i].xsubj;
+							var xqvod=data['xlist'][i].xqvod;
+							var xlink=data['xlist'][i].xlink;
+							var xthmb=data['xlist'][i].xthmb;
+							xsubj = xsubj.replace(xperiod,"");
+							xsubj = xsubj.replace('[ ]',"");
+
+							if (xthmb!='') {xthmb=xthmb+'?v='+tajax;}
+							xthmb="background-image:url('"+xthmb+"')"; 
+							if (xcode_==xcode ){
+								/*
+								var onsel='';
+								onsel=onsel+'<a href="#" class="cn_item active">';
+								onsel=onsel+'<h4 class="tit">'+xname+'</h4>';
+								onsel=onsel+'<span class="time">'+xdesc+'</span>';
+								onsel=onsel+'<p class="stit">'+xsubj+'</p>';
+								onsel=onsel+'</a>';
+								onsel=onsel+'<div class="btns">';
+								if (xqvod==1){
+									onsel=onsel+'<a href="'+xlink+'" title="'+xname+' 퀵VOD 바로가기 새창열림" target=_blank class="btn_blue">퀵VOD</a>';
+								}
+								onsel=onsel+'<span class="btn_red">시청중</span>';
+								onsel=onsel+'</div>';
+								$('#airlist').html(onsel);
+  								*/
+							}else{
+								aircnt++;
+								airtxt=airtxt+'<li><div class="cn_item_box">';
+								airtxt=airtxt+'<div class="cn_item">';
+								airtxt=airtxt+'<div class="imgbox">';
+								airtxt=airtxt+'<a title="'+xname+' 바로보기 페이지이동" class="img" href="./player.asp?xcode='+xcode_+'&xcgcd='+xcgcd_+'" style="'+xthmb+'">';
+								airtxt=airtxt+'<span class="label red">생중계</span>';
+								airtxt=airtxt+'</a>';
+								airtxt=airtxt+'</div>';
+								airtxt=airtxt+'<div class="txtbox">';
+								airtxt=airtxt+'<h4 class="tit">'+xsubj+'</h4>';
+								airtxt=airtxt+'<div class="stit">'+xdesc+' '+xname+'</div>';
+								if (xqvod==1){
+									airtxt=airtxt+'<div class="btns">';
+									airtxt=airtxt+'<a href="'+xlink+'" title="'+xname+' 퀵VOD 바로가기 새창열림" target=_blank class="btn_blue">퀵VOD</a>';
+									airtxt=airtxt+'</div>';
+								}
+								airtxt=airtxt+'</div>';
+								airtxt=airtxt+'</div></li>';
+							}
+						}
+					}
+					$('#chlist').html(airtxt);
+					
+					if (aircnt==0){
+						$('#jplaying').css('height','100%');
+						$('#jtit_channel').hide();
+						$('#jcon_channel').hide();
+					}else{
+						$('#jplaying').css('height','auto');
+						$('#jtit_channel').show();
+						$('#jcon_channel').show();
+					}
+					console.log('['+airlen+'] sub air stop ======\n');
+				}
+				/* 국정감사기간 : 생중계 리스트는 최초 1회만, 회의체크(pinitroll)만 주기 호출 */
+				//pinitroll_loop();
+				
+				// 국감 아닐때
+				pinitroll(xcode,xcgcd);
+				setTimeout(liveair, meetendchktime*1000);
+
+			},
+			error: function( data ) {
+				setTimeout(liveair, meetendchktime*1000);
+			    console.log('api err liveair ');
+			}
+		 });
+	}
+
+	/* 회의 체크 주기 호출 */
+	function pinitroll_loop(){
+		pinitroll(xcode,xcgcd);
+		setTimeout(pinitroll_loop, meetendchktime*1000);
+	}
+
+	/* 안건정보 */
+	function antxt(xcode,xcgcd){
+		 var tajax=Math.floor(Date.now() / 1000);
+		 $.ajax({
+			url: './service/live_angun.asp?xcode='+xcode+'&xcgcd='+xcgcd+'&vv='+tajax+'&',
+			cache: "false",
+			dataType: 'json',
+			success: function( data ) {
+				$('#xxlist').html('');
+				var angun_lurl=data['angun'][0].baseurl;
+				var xlist=data['angun'][0].xlist;
+				var txt='';
+				if (xlist.length<1){
+					txt=txt+'<li><p>안건정보가 없습니다.</p><li>';
+				}
+				for(i=0;i<xlist.length;i++){
+					var rtxt=xlist[i];
+					var brtxtname=rtxt.billname.replace(/\n/g,"<br/>");
+					txt=txt+'<li>';
+					if (rtxt.billid!=''){
+						txt=txt+'<a title="'+rtxt.billname+' 상세보기 새창열림" target=_blank href="'+angun_lurl+rtxt.billid+'">'+brtxtname+'</a>';
+					}else{
+						txt=txt+'<p>'+brtxtname+'</p>';
+					}
+					txt=txt+'</li>';
+				}
+				$('#xxlist').html(txt);
+				$('#andiv').scrollTop(0);
+			},
+			error: function( data ) {
+			  console.log('api antxt err ');
+			}
+		 });
+	}
+
+	/* 의석배치도 */
+	function seattxt(xcode){
+		var tajax=Math.floor(Date.now() / 1000);
+		 $.ajax({
+			url: './service/live_map.asp?xcode='+xcode+'&vv='+tajax+'&',
+			cache: "false",
+			dataType: 'json',
+			success: function( data ) {
+				
+				var result=data.result;
+				if (result!='ok'){
+					$('#xtab').hide();
+					$('.seat').hide();
+					return;
+				}
+
+				var baselink=data.baselink;
+				var imgext=data.imgext;
+				var imgsrc=data.imgsrc;
+
+				var scenter_dang=data.center[0].mdang;
+				var scenter_image=data.center[0].image;
+				var scenter_mname=data.center[0].mname;
+				var scenter_mlink=data.center[0].mlink;
+
+				$('#scenter_mname').html(scenter_mname+' 위원장');
+				$('#scenter_mdang').html(scenter_dang);
+				$('#scenter_image').css({"background-image":"url('"+imgsrc+scenter_image+imgext+"')"}); 
+
+				var ltxt='';
+				var sleft=data.left;
+				for (i=0;i<sleft.length;i++){
+					var v_dang=sleft[i].mdang;
+					var v_image=sleft[i].image;
+					var v_mname=sleft[i].mname;
+					var v_mlink=sleft[i].mlink;
+					ltxt=ltxt+'<li><div class="inbox">';
+					ltxt=ltxt+'<div class="imgbox"><div class="img" style="background-image: url('+imgsrc+v_image+imgext+')"></div></div>';
+					ltxt=ltxt+'<div class="txtbox"><strong class="name">'+v_mname+' 위원</strong><span class="faction">'+v_dang+'</span></div>';
+					ltxt=ltxt+'</div><li>';
+				}
+				$('#seat_left').html(ltxt);
+
+				var rtxt='';
+				var sright=data.right;
+				for (i=0;i<sright.length;i++){
+					var v_dang=sright[i].mdang;
+					var v_image=sright[i].image;
+					var v_mname=sright[i].mname;
+					var v_mlink=sright[i].mlink;
+					rtxt=rtxt+'<li><div class="inbox">';
+					rtxt=rtxt+'<div class="imgbox"><div class="img" style="background-image: url('+imgsrc+v_image+imgext+')"></div></div>';
+					rtxt=rtxt+'<div class="txtbox"><strong class="name">'+v_mname+' 위원</strong><span class="faction">'+v_dang+'</span></div>';
+					rtxt=rtxt+'</div><li>';
+				}
+				$('#seat_right').html(rtxt);
+			},
+			error: function( data ) {
+			  console.log('api seattxt err ');
+			}
+		 });
+	}
+
+	/* 플레이어 회의정보 시청중 */
+	function pinitroll(xcode,xcgcd){
+		var tajax=Math.floor(Date.now() / 1000);
+	    $.ajax({
+		url: encodeURI('./service/live_play.asp?xcode='+xcode+'&xcgcd='+xcgcd+'&vv='+tajax+'&xreferer=&'),
+		cache: "false",
+		dataType: 'json',
+		success: function( data ) {
+			var xcode_=data.xcode;
+			if (xcode_=='invalid-request'){
+				$('#container').hide();
+				if (sub_err==0){
+					setTimeout(function() {
+						alert('잘못된 요청입니다.');
+						location.href='./';
+					}, 500);
+				}
+				return;
+			}
+			var xcgcd_=data.xcgcd;
+			var xsubj=data.xsubj;
+			var xdate=data.xdate;
+			var xname=data.xname;
+			var xfull=data.xfull;
+			var xdesc=data.xdesc;
+			var wcode=data.wcode;
+			var xstat=data.xstat;
+			var xlink=data.xlink;
+			var xname=data.xname;
+			var xqvod=data.xqvod;
+			var xthmb=data.xthmb;
+			if (xthmb!='') {xthmb=xthmb+'?v='+tajax;}
+			xthmb="background-image:url('"+xthmb+"')"; 
+			
+			//회의중아닐때 
+			if (xstat==0){
+				location.href='/';
+				return;
+			}
+
+			try{  	document.title = xsubj+' - 인터넷의사중계시스템'; top.document.title = xsubj+' - 인터넷의사중계시스템';  }catch (e){  }
+			$('#xsubj').html(xsubj);
+			$('#xdate').html(xdate);
+
+			var onsel='';
+			onsel=onsel+'<div class="cn_item active">';
+			onsel=onsel+'<div class="imgbox">';
+			onsel=onsel+'<div class="img" style="'+xthmb+'">';
+			onsel=onsel+'<div class="label blue">시청중</div>';
+			onsel=onsel+'</div>';
+			onsel=onsel+'</div>';
+			onsel=onsel+'<div class="txtbox">';
+			onsel=onsel+'<h4 class="tit">'+xsubj+'</h4>';
+			onsel=onsel+'<div class="stit">'+xdesc+' '+xname+'</div>';
+			if (xqvod==1){
+					onsel=onsel+'<div class="btns">';
+					onsel=onsel+'<a href="'+xlink+'" title="'+xname+' 퀵VOD 바로가기 새창열림" target=_blank class="btn_blue">퀵VOD</a>';
+					onsel=onsel+'</div>';
+			}
+			onsel=onsel+'</div>';
+			onsel=onsel+'</div>';
+			$('#airlist').html(onsel);
+			if (smi_server!=''){
+				if (xstat==0){
+					if($('#'+smi_def_video_id).find("#viewSubtit").css("display") != "none"){
+						if($('.btn_subtit_ai').css('display')!='none'){
+							$('.btn_subtit_ai').click();
+						}else{
+							$('.btn_subtit_def').click();
+						}
+					}
+				}else if (xstat==1){
+
+				}
+			}
+		},
+		error: function( data ) {
+		  console.log('api err nboard ');
+		}
+	  });
+	}
+
+	/* 플레이어 초기화 */
+	function pinit(xcode,xcgcd){
+		var tajax=Math.floor(Date.now() / 1000);
+	    $.ajax({
+		url: './service/live_play.asp?xcode='+xcode+'&xcgcd='+xcgcd+'&vv='+tajax+'&',
+		cache: "false",
+		dataType: 'json',
+		success: function( data ) {
+			var xcode_=data.xcode;
+			if (xcode_=='invalid-request'){
+				$('#container').hide();
+				sub_err=1;
+				setTimeout(function() {
+					alert('잘못된 요청입니다.');
+					location.href='./';
+				}, 500);
+				return;
+			}
+			var xcgcd_=data.xcgcd;
+			var xsubj=data.xsubj;
+			var xdate=data.xdate;
+			var xname=data.xname;
+			var xfull=data.xfull;
+			var xdesc=data.xdesc;
+			var wcode=data.wcode;
+			var xstat=data.xstat;
+			var xlink=data.xlink;
+			var xname=data.xname;
+			var xqvod=data.xqvod;
+			xzone=data.xzone;
+			
+			var xthmb=data.xthmb;
+			if (xthmb!='') {xthmb=xthmb+'?v='+tajax;}
+			xthmb="background-image:url('"+xthmb+"')"; 
+			
+			if (xstat==0){
+				$('#container').hide();
+				setTimeout(function() {
+					try{  	document.title = "현재 생중계 중이 아닙니다."; top.document.title = "현재 생중계 중이 아닙니다.";  }catch (e){  }
+					alert('현재 생중계 중이 아닙니다.');
+					location.href='./';
+				}, 500);
+				return;
+			}
+			try{  	document.title = xsubj; top.document.title = xsubj;  }catch (e){  }
+			$('#xsubj').html(xsubj);
+			$('#xdate').html(xdate);
+
+			var onsel='';
+			onsel=onsel+'<div class="cn_item active">';
+			onsel=onsel+'<div class="imgbox">';
+			onsel=onsel+'<div class="img" style="'+xthmb+'">';
+			onsel=onsel+'<div class="label blue">시청중</div>';
+			onsel=onsel+'</div>';
+			onsel=onsel+'</div>';
+			onsel=onsel+'<div class="txtbox">';
+			onsel=onsel+'<h4 class="tit">'+xsubj+'</h4>';
+			onsel=onsel+'<div class="stit">'+xdesc+' '+xname+'</div>';
+			if (xqvod==1){
+					onsel=onsel+'<div class="btns">';
+					onsel=onsel+'<a href="'+xlink+'" title="'+xname+' 퀵VOD 바로가기 새창열림" target=_blank class="btn_blue">퀵VOD</a>';
+					onsel=onsel+'</div>';
+			}
+			onsel=onsel+'</div>';
+			$('#airlist').html(onsel);
+
+
+
+
+
+			// rtsp url
+			rtsp_urls[0]=data.xrtsp[0]['240p'];
+			rtsp_urls[1]=data.xrtsp[0]['480p'];
+			rtsp_urls[2]=data.xrtsp[0]['720p'];
+			rtsp_urls[3]=data.xrtsp[0]['1080p'];
+			rtsp_url = data.xrtsp[0].default;
+
+			// hls url
+			hls_urls[0]=data.xhls[0]['240p'];
+			hls_urls[1]=data.xhls[0]['480p'];
+			hls_urls[2]=data.xhls[0]['720p'];
+			hls_urls[3]=data.xhls[0]['1080p'];
+			hls_url=data.xhls[0].default;
+
+			if (isEmptyDp(hls_urls[0]) && isEmptyDp(hls_urls[1]) && isEmptyDp(hls_urls[2]) && isEmptyDp(hls_urls[3])){
+				$('#container').hide();
+				setTimeout(function() {
+					alert('영상 주소가 올바르지 않습니다.');
+					location.href='./';
+				}, 500);
+				return;
+			}
+
+			left_hls=right_hls='';
+			$('#xtab').show();
+
+			if (wcode==10){
+				// 본회의
+				left_hls=data.xpanl[0]['default'];
+				right_hls=data.xpanr[0]['default'];
+				$('#atab02').html('심의안건');
+				$('#atab03').html('전광판 보기');
+				
+			}else if (wcode==21){
+				// 예결위
+				$('#atab02').html('심사안건');
+				$('#xtab').hide();
+				$('.seat').hide();
+
+			}else{
+				// 상임위
+				$('#atab02').html('심사안건');
+				$('.seat').show();
+				var pigam=xcgcd.substr(16, 2); // 51 피감기관
+				if (pigam=='51'){
+					$('#atab02').html('피감기관');
+				}
+				$('#stitle').html(xfull+' 의석배치도');
+				seattxt(xcode_);
+			}
+
+			antxt(xcode_,xcgcd_);
+			//atab02 atab03
+			/*  Player  Setting */
+			smi_server=data.xsami;
+			smi_server=$.trim(smi_server);
+			//if (smi_server.indexOf('://smi.webcast.go.kr/')!=-1){
+			if ( smi_server.search(/smi(-hy|-dw)?(\d{1})?\.webcast\.go\.kr/gi)!=-1 )  {	
+				//일반 자막.
+				ai_txt_flag=0;
+				$('.btn_subtit_ai').hide();
+				$('.btn_subtit_def').show();
+			}else{
+				//ai 자막.
+				ai_txt_flag=1;
+				$('.btn_subtit_def').hide();
+				$('.btn_subtit_ai').show();
+			}
+			if (smi_server==''){
+				$('#smi_btn').remove(); 
+			}else{
+				//console.log('smi server:'+smi_server+'<---');
+			}
+		
+			
+			/* Player  Embed Start */
+			document.body.style.removeProperty('display');
+			$(document).ready(function() {
+				 if (xzone==1){
+					$('.player_view').html('<img src="./images/player_work_notice_3.png" alt="업무망 PC에서는 영상이 재생되지 않습니다. 인터넷망 PC에서 시청해 주십시오. 문의 6788-3293/2298" width=100% height=100%>');
+					$('.player_view').css('padding-bottom','0px');
+					$('.player_view').css('height','auto');
+					if (wcode==10){
+					  $('#atab03').remove();
+					  $('#xtab').remove();
+					}
+					$('.player_ctrl').remove();
+				 }else{
+					 player_new_main = new setMedia('video_01','video/mp4',hls_url,1);
+					 filterVideoDp();
+					 if (wcode==10){
+						/* 화면해설 방송 */
+						$('#vodtxtbon').show();
+						/* 본회의 전광판 시작 */
+							player_new_left = new setMedia('video_02','video/mp4',left_hls,1);
+							player_new_right= new setMedia('video_03','video/mp4',right_hls,1);
+						/* 본회의 전광판 끝 */
+					 }else{
+						$('#atab03').remove();
+					 }
+				 }
+			});
+			/* Player  Embed End */
+			var popt=getCookiepop('player_opt');
+			if (popt==''){
+				setCookiepop('player_opt','0',1);
+			}else{
+				if (popt=='1'){
+					$('#video_01').find(".btn_wide").click();
+				}
+				if (popt=='-1'){
+					$('#video_01').find(".btn_small").click();
+				}
+			}
+
+
+
+		},
+		error: function( data ) {
+		  console.log('api err nboard ');
+		}
+	  });
+   }
+
+	// hls_urls 값이 비어있는지(없음/undefined/null/빈문자열) 여부
+	function isEmptyDp(u){
+		return (u==undefined || u==null || u=='');
+	}
+
+	// liveInfoUrl(live_play.asp)에서 제공하는 해상도만 화질 메뉴에 노출
+	function filterVideoDp(){
+		var dpMap = {'240p':hls_urls[0], '480p':hls_urls[1], '720p':hls_urls[2], '1080p':hls_urls[3]};
+		$('#video_01').find('.pvid_box li').each(function(){
+			var dp = $(this).find('a').text();
+			if (isEmptyDp(dpMap[dp])){
+				$(this).hide();
+			}else{
+				$(this).show();
+			}
+		});
+	}
+
+    oninfo();
+	pinit(xcode,xcgcd);
+
+	
+	$(".btn_print").on("click", function () {
+			window.print(); 
+	})
+
+	$(".btn_commentary").on("click", function () {
+		var onoff=0;
+		if ($(this).hasClass('on')){
+			$('.btn_commentary').attr('title','화면해설방송 끄기');
+			// 일반방송 => 화면해설
+			vod_bon_txt=1;
+		}else{
+			$('.btn_commentary').attr('title','화면해설방송 켜기');
+			// 화면해설 => 일반방송
+			vod_bon_txt=0;
+		}
+
+		if ($('#video_01').find('.vjs-big-play-button:button').css('display') === 'block' ) {
+			return;
+		}
+		
+		if (vod_bon_txt==1){
+			if (rtsp_start==1){
+				//rtsp
+			}else{
+				//hls
+			}
+		}
+		if (vod_bon_txt==0){
+			if (rtsp_start==1){
+				//rtsp
+			}else{
+				//hls
+			}
+		}
+		dp_chg_flag=1; setTimeout(function(){ dp_chg_flag=0 },1000); 
+				
+		if (rtsp_start==1){
+			// rtsp
+			if (vod_bon_txt==1){
+				//본회의화면해설방송일때.
+				rtsp_url=rtsp_url.replace("/bon_","/bon2_");
+			}else{
+				rtsp_url=rtsp_url.replace("/bon2_","/bon_");
+			}
+			videojs('YoonVideo_01').src([ { type: 'application/x-mpegURL', src: '' } ]);
+			rtsp_stop(1);
+		}else{
+			// hls
+			var totoq = new Date();
+			var timestamp2 = totoq.getTime();
+			if (vod_bon_txt==1){
+				//본회의화면해설방송일때.
+				hls_url=hls_url.replace("/bon_","/bon2_");
+			}else{
+				hls_url=hls_url.replace("/bon2_","/bon_");
+			}
+			videojs('YoonVideo_01').src([ { type: 'application/x-mpegURL', src: hls_url+'?'+timestamp2 } ]);	
+			videojs('YoonVideo_01').play();
+		}
+		//alert('f:'+vod_bon_txt+'\nhls:'+hls_url+'\nrtsp:'+rtsp_url);
+
+	})
+
+});
+</script>
+
+<script>
+	const pipButton = document.getElementById('pipButton');
+
+	pipButton.addEventListener('click', async () => {
+		if (!document.pictureInPictureElement) {
+			try {
+			videojs('YoonVideo_01').requestPictureInPicture();
+			} catch (error) {
+				console.error('Failed to enter Picture-in-Picture mode:', error);
+			}
+		} else {
+			try {
+				videojs('YoonVideo_01').exitPictureInPicture();
+			} catch (error) {
+				console.error('Failed to exit Picture-in-Picture mode:', error);
+			}
+		}
+	});
+
+	// Disable the PiP button if PiP is not supported
+	if (!('pictureInPictureEnabled' in document)) {
+		$('#pipButton').remove();
+		console.error('Picture-in-Picture not supported');
+	}
+</script>
+    <!-- quick -->
+    <div class="quick_menu">
+      <h2 class="title">Quick 메뉴</h2>
+      <div class="list">
+		  <ul>
+			<li>
+			  <a href="https://www.assembly.go.kr/" target="_blank" title="국회홈페이지 새창열림" class="inbox" id="ffisrtquick">
+				<div class="ico" style="background-image: url(./images/ico_quick01.png)"></div>
+				<span class="txt">국회홈페이지</span>
+			  </a>
+			</li>
+			<li>
+			  <a href="http://w3.assembly.go.kr/" target="_blank" title="영상회의록 새창열림"  class="inbox">
+				<div class="ico" style="background-image: url(./images/ico_quick02.png)"></div>
+				<span class="txt">영상회의록</span>
+			  </a>
+			</li>
+			<li>
+			  <a href="https://record.assembly.go.kr/" target="_blank" title="국회회의록 새창열림"  class="inbox">
+				<div class="ico" style="background-image: url(./images/ico_quick04.png)"></div>
+				<span class="txt">국회회의록</span>
+			  </a>
+			</li>
+			<li>
+			  <a href="https://vplatform.assembly.go.kr/" target="_blank" title="정책영상플랫폼 새창열림"  class="inbox">
+				<div class="ico" style="background-image: url(./images/ico_quick05.png)"></div>
+				<span class="txt">정책영상플랫폼</span>
+			  </a>
+			</li>
+			<li>
+			  <a href="https://www.natv.go.kr" target="_blank" title="국회방송 새창열림"  class="inbox">
+				<div class="ico" style="background-image: url(./images/ico_quick06.png)"></div>
+				<span class="txt">국회방송</span>
+			  </a>
+			</li>
+		  </ul>
+		  <a href="#" title='맨위로 가기' class="btn_quick_top">
+			<span>TOP</span>
+		  </a>
+		</div>
+    </div>
+    <!--// quick -->
+     <a href="#" class="btn_top" title="맨위로 가기">TOP</a>
+
+    <!-- foot -->
+    <footer id="footer">
+      <div class="footer_box">
+        <a href="https://www.assembly.go.kr/" target="_blank" title="국회홈페이지 새창열림" class="foot_logo"><img src="./images/footer_logo.png?v=250211" alt=""></a>
+        <div class="footer_con">
+          <ul class="footer_link">
+			<li><a href="/main/privacy.asp" class="privacy" title="개인정보처리방침 페이지 이동">개인정보처리방침 </a></li>
+			<li><a href="/main/accessibility.asp" class="" title="웹 접근성 도움말 페이지 이동">웹 접근성 도움말 </a></li>
+		  </ul>
+          <address>
+			<span>서울특별시 영등포구 의사당대로 1 (여의도동, 국회)</span>
+			<span class="f_bullet">Tel: 02-6788-3293/2298 (AI자막: 3055)</span>
+			<span class="f_bullet">E-mail: <a href="mailto:webcast@assembly.go.kr" class="mailto">webcast@assembly.go.kr</a></span>
+          </address>
+          <p class="footer_copyright">Copyrightⓒ National Assembly. All rights reserved.<span class="br_t"></span>인터넷의사중계시스템 홈페이지의 모든 정보에 대한 권한은 국회에 있습니다.</p>
+		  <ul class="site_go_flex">
+            <li>
+              <select title="소속기관 홈페이지 선택" id='JRSD_HMPG_CD'>
+                <option>소속기관 홈페이지</option>
+              </select>
+              <button class='flink' rel='JRSD_HMPG_CD' title="선택한 사이트 바로가기 새창열림">GO</button>
+            </li>
+            <li>
+              <select title="위원회 홈페이지 선택" id='CMMIT_HMPG_CD'>
+                <option>위원회 홈페이지</option>
+              </select>
+              <button class='flink' rel='CMMIT_HMPG_CD' title="선택한 사이트 바로가기 새창열림">GO</button>
+            </li>
+            <li>
+              <select title="홈페이지 선택" id='HMPG_CD'>
+                <option>홈페이지</option>
+              </select>
+              <button class='flink' rel='HMPG_CD' title="선택한 사이트 바로가기 새창열림">GO</button>
+            </li>
+            <li>
+              <select title="국회정보시스템 선택" id='NA_INFO_SYS_CD'>
+                <option>국회정보시스템 홈페이지</option>
+              </select>
+              <button class='flink' rel='NA_INFO_SYS_CD' title="선택한 사이트 바로가기 새창열림">GO</button>
+            </li>
+          </ul>
+			<ul class="mark_list">
+				<li><a href="http://wa.or.kr/board/list.asp?search=title&amp;SearchString=%B1%B9%C8%B8&amp;BoardID=0006" target="_blank" title="한국웹접근성평가센터 인증현황 바로가기 새창열림"><img src="./images/footer_wa.png?241205" alt="과학기술정보통신부 WEB ACCESSIBILITY 마크(웹 접근성 품질인증 마크)" /></a></li>
+				<li><a href="/rss.asp" title="인터넷의사중계 RSS 바로가기 새창열림" target="_blank"><img src="./images/footer_rss.png?241205" alt="rss" /></a></li>
+			</ul>
+        </div>
+      </div>
+    </footer>
+    <!--// foot end -->
+  </div>
+</body>
+
+</html>

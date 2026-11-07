@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from ..adapters.live_sources import parse_assembly_caption_message
+from ..adapters.assembly_caption_transport import (is_regular_caption, parse_regular_caption,
+    open_caption_stream, REGULAR_PARSER_VERSION)
 from ..adapters.national_assembly.base import AdapterError, SourcePayload
 from ..db.live_repository import CaptionRevision
 from ..db.schedule_repository import SourceVersionInput
@@ -39,16 +41,20 @@ def persist_caption_message(
     sink: CaptionRevisionSink,
 ) -> dict[str, Any]:
     content = raw_message if isinstance(raw_message, bytes) else raw_message.encode("utf-8")
+    regular = is_regular_caption(source_url)
+    parser_version = REGULAR_PARSER_VERSION if regular else CAPTION_PARSER_VERSION
+    content_type = "text/plain" if regular else "application/json"
     payload = SourcePayload(
         source_key="assembly_caption_message",
         content=content,
-        content_type="application/json",
+        content_type=content_type,
         retrieved_at=received_at,
         source_url=source_url,
         http_status=101,
     )
-    artifact = RawStore(raw_dir).save(payload, parser_version=CAPTION_PARSER_VERSION)
-    parsed = parse_assembly_caption_message(content.decode("utf-8"))
+    artifact = RawStore(raw_dir).save(payload, parser_version=parser_version)
+    parsed = (parse_regular_caption(content.decode("utf-8"), source_url, received_at) if regular
+              else parse_assembly_caption_message(content.decode("utf-8")))
     speaker_segments = parsed["speaker_segments"]
     speaker_label = None
     if isinstance(speaker_segments, list) and speaker_segments:
@@ -59,8 +65,8 @@ def persist_caption_message(
         content_hash=artifact.content_hash,
         raw_path=artifact.content_path,
         retrieved_at=received_at,
-        parser_version=CAPTION_PARSER_VERSION,
-        content_type="application/json",
+        parser_version=parser_version,
+        content_type=content_type,
         metadata={
             "broadcast_external_id": external_id,
             "source_segment_id": parsed["segment_id"],
@@ -78,7 +84,7 @@ def persist_caption_message(
             source_payload={
                 "content_hash": artifact.content_hash,
                 "raw_path": str(artifact.content_path),
-                "parser_version": CAPTION_PARSER_VERSION,
+                "parser_version": parser_version,
                 "speaker_segments": speaker_segments,
                 "speech_code": parsed["speech_code"],
             },
@@ -103,7 +109,6 @@ def capture_broadcast(
     worker_id: str,
     lease_seconds: int,
 ) -> dict[str, Any]:
-    from websockets.sync.client import connect as websocket_connect
 
     from ..db.connection import connect
     from ..db.live_repository import LiveRepository
@@ -114,20 +119,15 @@ def capture_broadcast(
     stored = duplicates = malformed = 0
     retry = True
     try:
-        with websocket_connect(
-            source_url,
-            subprotocols=["echo-protocol"],
-            open_timeout=10,
-            close_timeout=5,
-            ping_interval=20,
-            ping_timeout=20,
-        ) as websocket:
+        with open_caption_stream(source_url) as websocket:
             while True:
                 try:
                     message = websocket.recv(timeout=15)
                 except TimeoutError:
                     with connect(database_url) as connection:
                         repository = LiveRepository(connection)
+                        if repository.caption_url_changed(broadcast_id, source_url):
+                            break
                         repository.mark_official_caption_timeout(
                             broadcast_id, silence_seconds=45,
                         )
@@ -143,6 +143,8 @@ def capture_broadcast(
                 try:
                     with connect(database_url) as connection:
                         repository = LiveRepository(connection)
+                        if repository.caption_url_changed(broadcast_id, source_url):
+                            break
                         result = persist_caption_message(
                             broadcast_id=broadcast_id,
                             external_id=external_id,

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+    "integration_id": "91ba9993-c7fe-46ce-ae9d-2057851d795e",
+    "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+    "reuse_reason": null,
+    "generated_at": "2026-09-26 16:23:58.133364+00:00"
+  },
+  {
+    "id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+    "integration_id": "d3b6f944-19ac-48b1-88f3-f11590818fba",
+    "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+    "reuse_reason": null,
+    "generated_at": "2026-10-28 00:15:40.327885+00:00"
+  },
+  {
+    "id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+    "integration_id": "6e0c9062-64c8-4cdb-a618-1ce3fe5c0163",
+    "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+    "reuse_reason": null,
+    "generated_at": "2026-10-14 01:27:21.720558+00:00"
+  },
+  {
+    "id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+    "integration_id": "15f1c1c2-c647-41f5-ba96-3f255f85f6fc",
+    "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+    "reuse_reason": null,
+    "generated_at": "2026-10-28 00:17:34.372682+00:00"
+  },
+  {
+    "id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+    "integration_id": "d21b649c-c0a7-4dca-93ed-804d5fdc99b9",
+    "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+    "reuse_reason": null,
+    "generated_at": "2026-10-22 01:32:08.355534+00:00"
+  },
+  {
+    "id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+    "integration_id": "b1f2b4b1-bdd8-4055-896c-8a4944b238ee",
+    "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+    "reuse_reason": null,
+    "generated_at": "2026-10-16 19:14:30.011471+00:00"
+  },
+  {
+    "id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+    "integration_id": "c4facada-8ca5-4331-b36e-d0d60e0715d0",
+    "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+    "reuse_reason": null,
+    "generated_at": "2026-10-06 00:51:38.926231+00:00"
+  },
+  {
+    "id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+    "integration_id": "82c7d13b-3ce3-4aeb-bd53-99b631cdd721",
+    "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+    "reuse_reason": null,
+    "generated_at": "2026-09-26 16:24:02.504559+00:00"
+  },
+  {
+    "id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+    "integration_id": "886c6372-e2bd-4dec-bd51-d4eb1e2a7a49",
+    "comparison_mode": "SOURCE_ONLY_TIMEOUT",
+    "reuse_reason": null,
+    "generated_at": "2026-10-28 01:12:16.472209+00:00"
+  }
+]

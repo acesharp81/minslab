@@ -124,6 +124,14 @@ class ParentReviewTests(unittest.TestCase):
 
 
 class ParentWorkerTests(unittest.TestCase):
+    def test_quality_handoff_is_once_and_does_not_override_budget_or_paid_cooldown(self):
+        from app.ingestion.report_parent_review_worker import immediate_quality_escalation
+        prior = {'error': 'PARENT_REVIEW_PARTITION', 'usage': {'billing_route': 'DAILY_FREE'}}
+        self.assertTrue(immediate_quality_escalation(prior, True))
+        self.assertFalse(immediate_quality_escalation(prior, False))
+        self.assertFalse(immediate_quality_escalation({**prior, 'error': 'DAILY_TOKEN_LIMIT'}, True))
+        self.assertFalse(immediate_quality_escalation({**prior, 'usage': {'billing_route': 'MONTHLY_CREDIT'}}, True))
+
     def run_worker(self, brief=None, history=None, error=None, monthly=False):
         from app.ingestion import report_parent_review_worker as worker
         from contextlib import ExitStack

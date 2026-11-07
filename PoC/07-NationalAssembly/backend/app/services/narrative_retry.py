@@ -53,3 +53,33 @@ def next_run(result: dict[str, Any], now: datetime) -> tuple[str, datetime]:
         seconds = max([1800] + [b.get('retry_after_seconds', 0) for b in batches])
         return 'RETRY_WAIT', now + timedelta(seconds=seconds)
     return 'PENDING', now + timedelta(seconds=60)
+
+
+NARRATIVE_PROVIDER_POLICY = 'nemo-direct/1'
+
+
+def truncated_provider_pause(client: Any, history: list[dict], now: datetime | None = None) -> bool:
+    """Pause only repeated output truncations under the current request policy."""
+    if client.provider != 'openrouter':
+        return False
+    now = now or datetime.now(timezone.utc)
+    recent = [h for h in history if isinstance(h.get('created_at'), datetime)
+              and h['created_at'] >= now - timedelta(minutes=15)
+              and (h.get('usage') or {}).get('provider') == client.provider
+              and (h.get('usage') or {}).get('attempted_model') == client.model
+              and (h.get('usage') or {}).get('narrative_policy') == NARRATIVE_PROVIDER_POLICY]
+    recent.sort(key=lambda h: h['created_at'], reverse=True)
+    return len(recent) >= 2 and all((h.get('usage') or {}).get('finish_reason') == 'length'
+                                   for h in recent[:2])
+
+
+def narrative_capacity(requested: int, active_live_count: int, upcoming: bool = False) -> int:
+    cap = 1 if upcoming or active_live_count >= 2 else 2 if active_live_count else 3
+    return min(requested, cap)
+
+
+def progress_poll_delay(interval: float, finalizations: list[dict]) -> float:
+    """Run the next fair scheduling turn promptly only after real forward progress."""
+    if any(r.get('status') == 'PROCESSING' and r.get('phase') == 'NARRATIVE' for r in finalizations):
+        return min(interval, 15.0)
+    return interval

@@ -1,0 +1,2628 @@
+[
+  {
+    "id": "0237068c-c853-4ab9-a8f3-24ca86451562",
+    "title": "제439회 국회(정기회) 제12차 본회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 1281729,
+    "report_cursor": 1281729,
+    "generated": "2026-11-06 08:34:57.481423+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 5,
+          "status": "COMPLETED",
+          "completed": 5
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 5,
+          "status": "COMPLETED",
+          "completed": 5
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 196,
+          "status": "COMPLETED",
+          "completed": 196
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 196,
+          "status": "COMPLETED",
+          "completed": 196
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-11-06T09:23:57.926716+00:00",
+      "parent_review_status": "READY",
+      "source_limited_topics": 0,
+      "integration_batches_done": 5,
+      "integration_batches_total": 5,
+      "source_limited_discussions": 0
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 17,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 196,
+      "summarized_issue_count": 196,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": {
+      "profile": "report-parent-review/1",
+      "status": "READY",
+      "fingerprint": "a2add8147f698dc99cd961c212b7e7c6aeca92e197ac65dc403dcd925a3a341a",
+      "source_group_count": 100,
+      "display_group_count": 55,
+      "method": "SUMMARY_ONLY_PARENT_REVIEW",
+      "full_source_sent": false,
+      "ordering": "PROCEDURAL_LAST_V1"
+    },
+    "topic_count": 196,
+    "summary_count": 198,
+    "meta": []
+  },
+  {
+    "id": "0399600b-b268-4268-8cf3-f14078453b0b",
+    "title": "행정안전위원회 국정감사(부산경찰청)",
+    "lifecycle": "ENDED",
+    "source_cursor": 999604,
+    "report_cursor": 999604,
+    "generated": "2026-10-21 07:13:35.900529+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 7,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 158,
+      "summarized_issue_count": 158,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 158,
+    "summary_count": 162,
+    "meta": []
+  },
+  {
+    "id": "070525e3-359d-4d55-b0a0-ef892d390129",
+    "title": "제439회 국회(정기회) 제11차 본회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 1152445,
+    "report_cursor": 1152445,
+    "generated": "2026-11-02 01:44:22.934558+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 0,
+          "status": "COMPLETED",
+          "completed": 0
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 8,
+          "status": "COMPLETED",
+          "completed": 8
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 8,
+          "status": "COMPLETED",
+          "completed": 8
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-11-02T02:00:36.352255+00:00",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 1,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 8,
+      "summarized_issue_count": 8,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 8,
+    "summary_count": 9,
+    "meta": []
+  },
+  {
+    "id": "07426947-2688-4272-9dd6-24e35605a0eb",
+    "title": "법제사법위원회 국정감사(법무부 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 1137318,
+    "report_cursor": 1137318,
+    "generated": "2026-10-26 21:23:30.444879+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 60,
+          "status": "COMPLETED",
+          "completed": 60
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 83,
+          "status": "COMPLETED",
+          "completed": 83
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 83,
+          "status": "COMPLETED",
+          "completed": 83
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-10-27T22:44:27.872819+00:00",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 4
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 8,
+      "consolidation_attempts": 2
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 83,
+      "summarized_issue_count": 83,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 4
+    },
+    "parent_review": null,
+    "topic_count": 83,
+    "summary_count": 92,
+    "meta": []
+  },
+  {
+    "id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+    "title": "제439회 국회(정기회) 제08차 본회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 342816,
+    "report_cursor": 342816,
+    "generated": "2026-09-22 11:05:25.438354+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 8,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 131,
+      "summarized_issue_count": 131,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 131,
+    "summary_count": 139,
+    "meta": []
+  },
+  {
+    "id": "0e170e67-9235-4c4e-ab46-07545cd2c12c",
+    "title": "제439회 국회(정기회) 제12차 본회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 1281221,
+    "report_cursor": 1281221,
+    "generated": "2026-11-06 07:14:22.032969+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 2,
+          "status": "COMPLETED",
+          "completed": 2
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 2,
+          "status": "COMPLETED",
+          "completed": 2
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 80,
+          "status": "COMPLETED",
+          "completed": 80
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 80,
+          "status": "COMPLETED",
+          "completed": 80
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-11-06T07:28:03.740075+00:00",
+      "parent_review_status": "READY",
+      "source_limited_topics": 0,
+      "integration_batches_done": 2,
+      "integration_batches_total": 2,
+      "source_limited_discussions": 0
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 8,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 80,
+      "summarized_issue_count": 80,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": {
+      "profile": "report-parent-review/1",
+      "status": "READY",
+      "fingerprint": "b67e763fb47694a2489e99b4b98481a29fbd0631160f0fdadf8b559a20efa785",
+      "source_group_count": 33,
+      "display_group_count": 20,
+      "method": "SUMMARY_ONLY_PARENT_REVIEW",
+      "full_source_sent": false,
+      "ordering": "PROCEDURAL_LAST_V1"
+    },
+    "topic_count": 80,
+    "summary_count": 82,
+    "meta": []
+  },
+  {
+    "id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+    "title": "제439회 국회(정기회) 제06차 본회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 337767,
+    "report_cursor": 337767,
+    "generated": "2026-09-22 11:35:21.125306+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 7,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 151,
+      "summarized_issue_count": 151,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 151,
+    "summary_count": 159,
+    "meta": []
+  },
+  {
+    "id": "123d46c3-d8fc-4269-8f31-da8f5d807b47",
+    "title": "행정안전위원회 국정감사(경기남부경찰청 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 744128,
+    "report_cursor": 744128,
+    "generated": "2026-10-13 20:15:46.176947+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 8,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 151,
+      "summarized_issue_count": 151,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 151,
+    "summary_count": 155,
+    "meta": []
+  },
+  {
+    "id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+    "title": "제439회 국회(정기회) 제06차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 412900,
+    "report_cursor": 412900,
+    "generated": "2026-09-22 10:44:14.802280+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 5,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 81,
+      "summarized_issue_count": 81,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 10
+    },
+    "parent_review": null,
+    "topic_count": 81,
+    "summary_count": 88,
+    "meta": []
+  },
+  {
+    "id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+    "title": "제438회 국회(임시회) 제03차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 211415,
+    "report_cursor": 211415,
+    "generated": "2026-09-22 13:41:40.079829+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 4,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 78,
+      "summarized_issue_count": 78,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 9
+    },
+    "parent_review": null,
+    "topic_count": 78,
+    "summary_count": 84,
+    "meta": []
+  },
+  {
+    "id": "1d00ebf4-24da-4443-9eb9-907864e59829",
+    "title": "제439회 국회(정기회) 제03차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 1215937,
+    "report_cursor": 1215937,
+    "generated": "2026-11-04 15:21:31.132467+00:00",
+    "finalization": {
+      "phase": "FINALIZING",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 12,
+          "status": "COMPLETED",
+          "completed": 12
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 103,
+          "status": "COMPLETED",
+          "completed": 103
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 520,
+          "status": "COMPLETED",
+          "completed": 520
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 520,
+          "status": "COMPLETED",
+          "completed": 520
+        },
+        {
+          "key": "FINALIZING",
+          "status": "WAITING"
+        }
+      ],
+      "status": "DEFERRED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-11-06T23:58:36.064522+00:00",
+      "last_result": "DEFERRED",
+      "retry_after": "2026-11-07T00:13:35.519170+00:00",
+      "wait_reason": "PARENT_REVIEW_PARTITION",
+      "monthly_credit_policy": "monthly-credit-routing/20261105",
+      "integration_batches_done": 12,
+      "integration_batches_total": 12
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 44,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 520,
+      "summarized_issue_count": 520,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 62
+    },
+    "parent_review": null,
+    "topic_count": 520,
+    "summary_count": 527,
+    "meta": []
+  },
+  {
+    "id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+    "title": "제439회 국회(정기회) 제07차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 415186,
+    "report_cursor": 415186,
+    "generated": "2026-09-21 10:55:50.043811+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 1,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 7,
+      "summarized_issue_count": 7,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 7,
+    "summary_count": 10,
+    "meta": []
+  },
+  {
+    "id": "24be1685-9070-4522-ab28-456cde194ae1",
+    "title": "제439회 국회(정기회) 제05차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 1274028,
+    "report_cursor": 1274028,
+    "generated": "2026-11-05 17:47:12.055987+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 2,
+          "status": "COMPLETED",
+          "completed": 2
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 5,
+          "status": "COMPLETED",
+          "completed": 5
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 66,
+          "status": "COMPLETED",
+          "completed": 66
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 66,
+          "status": "COMPLETED",
+          "completed": 66
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-11-06T23:59:01.114039+00:00",
+      "parent_review_status": "READY",
+      "source_limited_topics": 0,
+      "integration_batches_done": 2,
+      "integration_batches_total": 2,
+      "source_limited_discussions": 1
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 12,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 66,
+      "summarized_issue_count": 66,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 1
+    },
+    "parent_review": {
+      "profile": "report-parent-review/1",
+      "status": "READY",
+      "fingerprint": "4abc4f0d3aa54272cf0314fe3694b4ed7363a320fc123f67781b26fba286556c",
+      "source_group_count": 36,
+      "display_group_count": 27,
+      "method": "SUMMARY_ONLY_PARENT_REVIEW",
+      "full_source_sent": false,
+      "ordering": "PROCEDURAL_LAST_V1"
+    },
+    "topic_count": 66,
+    "summary_count": 71,
+    "meta": []
+  },
+  {
+    "id": "25c43080-cf47-478b-8dd3-5e318f92b9e3",
+    "title": "법제사법위원회 국정감사(고위공직자범죄수사처)",
+    "lifecycle": "ENDED",
+    "source_cursor": 732152,
+    "report_cursor": 732152,
+    "generated": "2026-10-13 11:03:39.049428+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 9,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 101,
+      "summarized_issue_count": 101,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 101,
+    "summary_count": 105,
+    "meta": []
+  },
+  {
+    "id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+    "title": "제439회 국회(정기회) 제01차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 318214,
+    "report_cursor": 318214,
+    "generated": "2026-09-22 12:20:48.396108+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 4,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 43,
+      "summarized_issue_count": 43,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 43,
+    "summary_count": 50,
+    "meta": []
+  },
+  {
+    "id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+    "title": "제438회 국회(임시회) 제03차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 242308,
+    "report_cursor": 242308,
+    "generated": "2026-09-22 13:33:03.749419+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 11,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 224,
+      "summarized_issue_count": 224,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 33
+    },
+    "parent_review": null,
+    "topic_count": 224,
+    "summary_count": 226,
+    "meta": []
+  },
+  {
+    "id": "33fae667-d853-43be-9500-c7335df4771e",
+    "title": "제438회 국회(임시회) 제02차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 189396,
+    "report_cursor": 189396,
+    "generated": "2026-09-22 14:26:49.040641+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 13,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 318,
+      "summarized_issue_count": 318,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 89
+    },
+    "parent_review": null,
+    "topic_count": 318,
+    "summary_count": 321,
+    "meta": []
+  },
+  {
+    "id": "3ceec40b-3ae5-486f-b582-1580f53f0fde",
+    "title": "행정안전위원회 국정감사(경찰청 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 674012,
+    "report_cursor": 674012,
+    "generated": "2026-10-12 23:49:21.704742+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 7,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 121,
+      "summarized_issue_count": 121,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 121,
+    "summary_count": 126,
+    "meta": []
+  },
+  {
+    "id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+    "title": "제44회 국무회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 691686,
+    "report_cursor": 691686,
+    "generated": "2026-10-13 02:58:32.476150+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 68,
+      "summarized_issue_count": 68,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 68,
+    "summary_count": 71,
+    "meta": []
+  },
+  {
+    "id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+    "title": "제439회 국회(정기회) 제04차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 398810,
+    "report_cursor": 398810,
+    "generated": "2026-09-22 10:53:23.727977+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 4,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 79,
+      "summarized_issue_count": 79,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 79,
+    "summary_count": 83,
+    "meta": []
+  },
+  {
+    "id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+    "title": "제439회 국회(정기회) 제02차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 330143,
+    "report_cursor": 330143,
+    "generated": "2026-09-22 12:09:44.731984+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 5,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 150,
+      "summarized_issue_count": 150,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 150,
+    "summary_count": 153,
+    "meta": []
+  },
+  {
+    "id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+    "title": "제38회 국무회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 310064,
+    "report_cursor": 310064,
+    "generated": "2026-09-22 12:31:19.434364+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 51,
+      "summarized_issue_count": 51,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 1
+    },
+    "parent_review": null,
+    "topic_count": 51,
+    "summary_count": 55,
+    "meta": []
+  },
+  {
+    "id": "50f589a8-2b1a-40b3-9a5f-c53081db48c9",
+    "title": "행정안전위원회 국정감사(광주경찰청 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 1056349,
+    "report_cursor": 1056349,
+    "generated": "2026-10-22 07:34:44.446714+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 18,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 269,
+      "summarized_issue_count": 269,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 7
+    },
+    "parent_review": null,
+    "topic_count": 269,
+    "summary_count": 273,
+    "meta": []
+  },
+  {
+    "id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+    "title": "제439회 국회(정기회) 제01차 행정안전위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 311863,
+    "report_cursor": 311863,
+    "generated": "2026-09-22 12:25:37.894572+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 57,
+      "summarized_issue_count": 57,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 57,
+    "summary_count": 61,
+    "meta": []
+  },
+  {
+    "id": "5c149dc0-88cd-43f2-9aec-dfa323e17daa",
+    "title": "행정안전위원회 국정감사(제주경찰청)",
+    "lifecycle": "ENDED",
+    "source_cursor": 1058154,
+    "report_cursor": 1058154,
+    "generated": "2026-10-22 07:51:18.907249+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 12,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 144,
+      "summarized_issue_count": 144,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 144,
+    "summary_count": 147,
+    "meta": []
+  },
+  {
+    "id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+    "title": "제438회 국회(임시회) 제01차 행정안전위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 129193,
+    "report_cursor": 129193,
+    "generated": "2026-09-22 15:36:41.941011+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 9,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 145,
+      "summarized_issue_count": 145,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 37
+    },
+    "parent_review": null,
+    "topic_count": 145,
+    "summary_count": 147,
+    "meta": []
+  },
+  {
+    "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+    "title": "제439회 국회(정기회) 제03차 행정안전위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 436594,
+    "report_cursor": 436594,
+    "generated": "2026-09-28 07:25:09.251026+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 4,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 59,
+      "summarized_issue_count": 59,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 8
+    },
+    "parent_review": null,
+    "topic_count": 59,
+    "summary_count": 63,
+    "meta": []
+  },
+  {
+    "id": "64c5e92a-5cbc-42a2-8d2f-fc3eb0550ca6",
+    "title": "제439회 국회(정기회) 제04차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 1260555,
+    "report_cursor": 1260555,
+    "generated": "2026-11-05 15:38:15.353951+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 6,
+          "status": "COMPLETED",
+          "completed": 6
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 56,
+          "status": "COMPLETED",
+          "completed": 56
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 281,
+          "status": "COMPLETED",
+          "completed": 281
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 281,
+          "status": "COMPLETED",
+          "completed": 281
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-11-07T00:00:10.005019+00:00",
+      "parent_review_status": "READY",
+      "source_limited_topics": 0,
+      "integration_batches_done": 6,
+      "integration_batches_total": 6,
+      "source_limited_discussions": 7
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 42,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 281,
+      "summarized_issue_count": 281,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 7
+    },
+    "parent_review": {
+      "profile": "report-parent-review/1",
+      "status": "READY",
+      "fingerprint": "ac51869f99b7e710735b620a9da3974d4e83b1aca6415201ea183c438cc8f9c3",
+      "source_group_count": 130,
+      "display_group_count": 92,
+      "method": "SUMMARY_ONLY_PARENT_REVIEW",
+      "full_source_sent": false,
+      "ordering": "PROCEDURAL_LAST_V1"
+    },
+    "topic_count": 281,
+    "summary_count": 289,
+    "meta": []
+  },
+  {
+    "id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+    "title": "법제사법위원회 국정감사(군사법원)",
+    "lifecycle": "ENDED",
+    "source_cursor": 847440,
+    "report_cursor": 847440,
+    "generated": "2026-10-15 12:28:01.625215+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 9,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 200,
+      "summarized_issue_count": 200,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 200,
+    "summary_count": 203,
+    "meta": []
+  },
+  {
+    "id": "6a01f949-2056-47a1-8bcf-862bd4363ae4",
+    "title": "법제사법위원회 국정감사(공소청)",
+    "lifecycle": "ENDED",
+    "source_cursor": 1067926,
+    "report_cursor": 1067926,
+    "generated": "2026-10-22 10:17:26.550369+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 15,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 155,
+      "summarized_issue_count": 155,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 155,
+    "summary_count": 160,
+    "meta": [
+      {
+        "path": "/topics/141/summary",
+        "text": "검찰의 비공개 예규와 지침이 많고, 특히 사건 처리·피해자 보호 관련 지침까지 비공개인 이유가 무엇인지 전면 재검토와 공개 전환 필요성이 제기됐다. 질문자는 검찰이 공소청으로 바뀐 만큼 비공개 규칙을 줄여야 한다고 보며, 법제처 협조에도 원문이 제공되지 않아 현황 파악이 어렵다고 지적했다."
+      },
+      {
+        "path": "/topics/141/speaker_points/1/summary",
+        "text": "검찰에 비공개 예규가 서른 개가량 있는 것으로 보인다며, 공소청 전환 이후 기존 훈령·지침을 전면 재검토해야 하는지 물었다. 법제처에 원문 협조가 이뤄지지 않아 비공개 규칙의 실태를 확인하기 어렵고, 과거 검사 수사 개시 지침처럼 비공개 규칙이 수사 범위 확대에 쓰인 사례도 언급했다."
+      }
+    ]
+  },
+  {
+    "id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+    "title": "제439회 국회(정기회) 제08차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 448469,
+    "report_cursor": 448469,
+    "generated": "2026-09-28 10:36:16.492593+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 7,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 70,
+      "summarized_issue_count": 70,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 1
+    },
+    "parent_review": null,
+    "topic_count": 70,
+    "summary_count": 74,
+    "meta": []
+  },
+  {
+    "id": "7128f3f4-fb05-45a6-8e72-021992157455",
+    "title": "행정안전위원회 국정감사(중앙선거관리위원회 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 567667,
+    "report_cursor": 567667,
+    "generated": "2026-10-07 13:21:35.013043+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 9,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 148,
+      "summarized_issue_count": 148,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 148,
+    "summary_count": 154,
+    "meta": []
+  },
+  {
+    "id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+    "title": "제439회 국회(정기회) 제05차 본회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 332533,
+    "report_cursor": 332533,
+    "generated": "2026-09-22 11:57:40.947439+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 6,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 149,
+      "summarized_issue_count": 149,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 149,
+    "summary_count": 152,
+    "meta": []
+  },
+  {
+    "id": "86948faa-40de-44b5-aa53-93dd81a56957",
+    "title": "제439회 국회(정기회) 제10차 본회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 450769,
+    "report_cursor": 450769,
+    "generated": "2026-10-01 07:22:16.123896+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 2,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 79,
+      "summarized_issue_count": 79,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 3
+    },
+    "parent_review": null,
+    "topic_count": 79,
+    "summary_count": 86,
+    "meta": []
+  },
+  {
+    "id": "8809d5e4-13bc-41dd-a9b4-291afca60c0c",
+    "title": "제439회 국회(정기회) 제02차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 1152282,
+    "report_cursor": 1152282,
+    "generated": "2026-10-30 07:49:54.339457+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 3,
+          "status": "COMPLETED",
+          "completed": 3
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 0,
+          "status": "COMPLETED",
+          "completed": 0
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 120,
+          "status": "COMPLETED",
+          "completed": 120
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 120,
+          "status": "COMPLETED",
+          "completed": 120
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-10-30T08:11:20.026193+00:00",
+      "source_limited_topics": 0,
+      "integration_batches_done": 3,
+      "integration_batches_total": 3,
+      "source_limited_discussions": 0
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 8,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 120,
+      "summarized_issue_count": 120,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 120,
+    "summary_count": 126,
+    "meta": []
+  },
+  {
+    "id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+    "title": "제439회 국회(정기회) 제05차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 403470,
+    "report_cursor": 403470,
+    "generated": "2026-09-22 10:50:30.697707+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 59,
+      "summarized_issue_count": 59,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 4
+    },
+    "parent_review": null,
+    "topic_count": 59,
+    "summary_count": 63,
+    "meta": []
+  },
+  {
+    "id": "8bd13bcf-3484-46de-857f-c511574be758",
+    "title": "제439회 국회(정기회) 제01차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 303892,
+    "report_cursor": 303892,
+    "generated": "2026-09-22 12:36:08.216615+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 32,
+      "summarized_issue_count": 32,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 3
+    },
+    "parent_review": null,
+    "topic_count": 32,
+    "summary_count": 34,
+    "meta": []
+  },
+  {
+    "id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+    "title": "제439회 국회(정기회) 제03차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 388990,
+    "report_cursor": 388990,
+    "generated": "2026-09-22 10:57:21.734132+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 9,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 156,
+      "summarized_issue_count": 156,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 18
+    },
+    "parent_review": null,
+    "topic_count": 156,
+    "summary_count": 166,
+    "meta": []
+  },
+  {
+    "id": "959a9b97-90b2-4217-ad82-1b49227d53e3",
+    "title": "법제사법위원회 국정감사(대법원 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 532676,
+    "report_cursor": 532676,
+    "generated": "2026-10-07 02:36:27.971754+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 9,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 149,
+      "summarized_issue_count": 149,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 1
+    },
+    "parent_review": null,
+    "topic_count": 149,
+    "summary_count": 156,
+    "meta": []
+  },
+  {
+    "id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+    "title": "제439회 국회(정기회) 제07차 행정안전위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 777766,
+    "report_cursor": 777766,
+    "generated": "2026-10-14 13:14:56.639490+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 11,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 190,
+      "summarized_issue_count": 190,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 190,
+    "summary_count": 196,
+    "meta": []
+  },
+  {
+    "id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+    "title": "행정안전위원회 국정감사(행정안전부 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 1135169,
+    "report_cursor": 1135169,
+    "generated": "2026-10-26 14:41:11.829561+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 8,
+          "status": "COMPLETED",
+          "completed": 8
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 5,
+          "status": "COMPLETED",
+          "completed": 5
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 349,
+          "status": "COMPLETED",
+          "completed": 349
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 349,
+          "status": "COMPLETED",
+          "completed": 349
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-10-27T22:44:29.293332+00:00",
+      "source_limited_topics": 0,
+      "integration_batches_done": 8,
+      "integration_batches_total": 8,
+      "source_limited_discussions": 0
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 20,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 349,
+      "summarized_issue_count": 349,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 349,
+    "summary_count": 350,
+    "meta": []
+  },
+  {
+    "id": "a4b7e5ae-80be-4687-9902-8b0f2d317793",
+    "title": "행정안전위원회 국정감사(행정안전부 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 534365,
+    "report_cursor": 534365,
+    "generated": "2026-10-06 22:41:48.518873+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 9,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 163,
+      "summarized_issue_count": 163,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 163,
+    "summary_count": 169,
+    "meta": []
+  },
+  {
+    "id": "a9dadf73-b838-46e1-b0df-090758a11042",
+    "title": "제47회 국무회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 1153077,
+    "report_cursor": 1153077,
+    "generated": "2026-11-03 02:39:08.217759+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 2,
+          "status": "COMPLETED",
+          "completed": 2
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 16,
+          "status": "COMPLETED",
+          "completed": 16
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 66,
+          "status": "COMPLETED",
+          "completed": 66
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 66,
+          "status": "COMPLETED",
+          "completed": 66
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-11-03T02:50:26.871261+00:00",
+      "source_limited_topics": 0,
+      "integration_batches_done": 2,
+      "integration_batches_total": 2,
+      "source_limited_discussions": 1
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 6,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 66,
+      "summarized_issue_count": 66,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 1
+    },
+    "parent_review": {
+      "profile": "report-parent-review/1",
+      "status": "READY",
+      "fingerprint": "fad68b00aff476cd1af1844a968dff8545393abd94de5d9d2bf2a34b7c3d5afa",
+      "source_group_count": 31,
+      "display_group_count": 13,
+      "method": "SUMMARY_ONLY_PARENT_REVIEW",
+      "full_source_sent": false,
+      "ordering": "PROCEDURAL_LAST_V1"
+    },
+    "topic_count": 66,
+    "summary_count": 71,
+    "meta": []
+  },
+  {
+    "id": "b363d5e8-c11d-488c-a5bf-e9b46d6e13e5",
+    "title": "법제사법위원회 국정감사(서울광역공소청 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 913181,
+    "report_cursor": 913181,
+    "generated": "2026-10-19 09:58:20.416015+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 9,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 259,
+      "summarized_issue_count": 259,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 259,
+    "summary_count": 263,
+    "meta": []
+  },
+  {
+    "id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+    "title": "제438회 국회(임시회) 제04차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 251229,
+    "report_cursor": 251229,
+    "generated": "2026-09-22 12:55:26.917340+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 4,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 108,
+      "summarized_issue_count": 108,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 24
+    },
+    "parent_review": null,
+    "topic_count": 108,
+    "summary_count": 113,
+    "meta": []
+  },
+  {
+    "id": "bd4f65b1-6c3d-4369-8133-68c0af202695",
+    "title": "법제사법위원회 국정감사(법무부 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 610346,
+    "report_cursor": 610346,
+    "generated": "2026-10-09 04:25:37.119990+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 13,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 188,
+      "summarized_issue_count": 188,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 188,
+    "summary_count": 191,
+    "meta": []
+  },
+  {
+    "id": "c316e30a-8922-4eef-92dc-6f5b774799b1",
+    "title": "제46회 국무회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 1138508,
+    "report_cursor": 1138508,
+    "generated": "2026-10-27 03:15:33.880836+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 2,
+          "status": "COMPLETED",
+          "completed": 2
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 0,
+          "status": "COMPLETED",
+          "completed": 0
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 90,
+          "status": "COMPLETED",
+          "completed": 90
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 90,
+          "status": "COMPLETED",
+          "completed": 90
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-10-27T22:44:29.673755+00:00",
+      "source_limited_topics": 0,
+      "integration_batches_done": 2,
+      "integration_batches_total": 2,
+      "source_limited_discussions": 0
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 90,
+      "summarized_issue_count": 90,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 90,
+    "summary_count": 93,
+    "meta": []
+  },
+  {
+    "id": "c391ad71-008d-4544-a2b6-81709e344703",
+    "title": "법제사법위원회 국정감사(대구고등법원 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 952617,
+    "report_cursor": 952617,
+    "generated": "2026-10-20 03:18:56.145234+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 86,
+      "summarized_issue_count": 86,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 86,
+    "summary_count": 88,
+    "meta": []
+  },
+  {
+    "id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+    "title": "제438회 국회(임시회) 제05차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 300289,
+    "report_cursor": 300289,
+    "generated": "2026-09-22 15:02:06.917737+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 14,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 295,
+      "summarized_issue_count": 295,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 59
+    },
+    "parent_review": null,
+    "topic_count": 295,
+    "summary_count": 297,
+    "meta": []
+  },
+  {
+    "id": "c6585423-5faf-4fad-8e25-4ef97b92b931",
+    "title": "법제사법위원회 국정감사(서울고등법원 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 885528,
+    "report_cursor": 885528,
+    "generated": "2026-10-16 10:21:28.464513+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 9,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 129,
+      "summarized_issue_count": 129,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 129,
+    "summary_count": 133,
+    "meta": []
+  },
+  {
+    "id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+    "title": "제438회 국회(임시회) 제02차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 54216,
+    "report_cursor": 54216,
+    "generated": "2026-08-25 03:47:40.754554+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 1,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 37,
+      "summarized_issue_count": 37,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 37,
+    "summary_count": 39,
+    "meta": []
+  },
+  {
+    "id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+    "title": "제42회 국무회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 449775,
+    "report_cursor": 449775,
+    "generated": "2026-09-29 03:36:34.043014+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 50,
+      "summarized_issue_count": 50,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 50,
+    "summary_count": 57,
+    "meta": []
+  },
+  {
+    "id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab",
+    "title": "행정안전위원회 국정감사(충청북도)",
+    "lifecycle": "ENDED",
+    "source_cursor": 959133,
+    "report_cursor": 959133,
+    "generated": "2026-10-20 04:42:36.666062+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 6,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 131,
+      "summarized_issue_count": 131,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 131,
+    "summary_count": 134,
+    "meta": []
+  },
+  {
+    "id": "dc09c1f6-763c-4ba6-8e3f-e91512bb67c1",
+    "title": "법제사법위원회 국정감사(감사원)",
+    "lifecycle": "ENDED",
+    "source_cursor": 670814,
+    "report_cursor": 670814,
+    "generated": "2026-10-12 10:29:31.821956+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 7,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 118,
+      "summarized_issue_count": 118,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 118,
+    "summary_count": 123,
+    "meta": []
+  },
+  {
+    "id": "e79d3383-55ae-428d-821f-96d15ce35294",
+    "title": "제439회 국회(정기회) 제11차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 1203442,
+    "report_cursor": 1203442,
+    "generated": "2026-11-04 12:20:25.535273+00:00",
+    "finalization": {
+      "phase": "COMPLETED",
+      "stages": [
+        {
+          "key": "ANALYZING",
+          "status": "COMPLETED"
+        },
+        {
+          "key": "INTEGRATION",
+          "unit": "묶음",
+          "total": 3,
+          "status": "COMPLETED",
+          "completed": 3
+        },
+        {
+          "key": "REVIEWING",
+          "unit": "발언",
+          "total": 9,
+          "status": "COMPLETED",
+          "completed": 9
+        },
+        {
+          "key": "ONTOLOGY",
+          "unit": "쟁점",
+          "total": 135,
+          "status": "COMPLETED",
+          "completed": 135
+        },
+        {
+          "key": "NARRATIVE",
+          "unit": "쟁점",
+          "total": 135,
+          "status": "COMPLETED",
+          "completed": 135
+        },
+        {
+          "key": "FINALIZING",
+          "status": "COMPLETED"
+        }
+      ],
+      "status": "COMPLETED",
+      "version": "meeting-finalization/1",
+      "updated_at": "2026-11-07T00:02:07.886811+00:00",
+      "parent_review_status": "READY",
+      "source_limited_topics": 0,
+      "integration_batches_done": 3,
+      "integration_batches_total": 3,
+      "source_limited_discussions": 1
+    },
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 7,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 135,
+      "summarized_issue_count": 135,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 1
+    },
+    "parent_review": {
+      "profile": "report-parent-review/1",
+      "status": "READY",
+      "fingerprint": "3049c712c5e6b2bc8bc7ae6dd05a7e88a787f654b0c524605a57f50ddf094731",
+      "source_group_count": 33,
+      "display_group_count": 13,
+      "method": "SUMMARY_ONLY_PARENT_REVIEW",
+      "full_source_sent": false,
+      "ordering": "PROCEDURAL_LAST_V1"
+    },
+    "topic_count": 135,
+    "summary_count": 139,
+    "meta": []
+  },
+  {
+    "id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+    "title": "제438회 국회(임시회) 제01차 법제사법위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 29134,
+    "report_cursor": 29134,
+    "generated": "2026-08-25 04:01:18.073145+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 1,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 37,
+      "summarized_issue_count": 37,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 11
+    },
+    "parent_review": null,
+    "topic_count": 37,
+    "summary_count": 40,
+    "meta": []
+  },
+  {
+    "id": "e858014a-90c5-411c-a282-82e1ff8b094f",
+    "title": "법제사법위원회 국정감사(대전고등법원 등)",
+    "lifecycle": "ENDED",
+    "source_cursor": 961297,
+    "report_cursor": 961297,
+    "generated": "2026-10-20 04:24:25.491347+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 4,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 112,
+      "summarized_issue_count": 112,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 112,
+    "summary_count": 116,
+    "meta": []
+  },
+  {
+    "id": "ebf050d7-171f-466a-8e71-c85336417170",
+    "title": "행정안전위원회 국정감사(울산광역시)",
+    "lifecycle": "ENDED",
+    "source_cursor": 992315,
+    "report_cursor": 992315,
+    "generated": "2026-10-21 08:50:52.163682+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 63,
+      "summarized_issue_count": 63,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 63,
+    "summary_count": 74,
+    "meta": []
+  },
+  {
+    "id": "ee8e077e-aace-45f0-811c-02d348423947",
+    "title": "제45회 국무회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 953305,
+    "report_cursor": 953305,
+    "generated": "2026-10-20 03:26:50.910266+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 4,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 93,
+      "summarized_issue_count": 93,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 93,
+    "summary_count": 95,
+    "meta": []
+  },
+  {
+    "id": "f09e1d8c-35df-4ded-beb5-310d0830e53e",
+    "title": "행정안전위원회 국정감사(서울경찰청)",
+    "lifecycle": "ENDED",
+    "source_cursor": 855803,
+    "report_cursor": 855803,
+    "generated": "2026-10-16 00:36:18.180067+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 12,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 180,
+      "summarized_issue_count": 180,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 180,
+    "summary_count": 184,
+    "meta": []
+  },
+  {
+    "id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+    "title": "제439회 국회(정기회) 제07차 본회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 340312,
+    "report_cursor": 340312,
+    "generated": "2026-09-22 11:08:48.574898+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 6,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 147,
+      "summarized_issue_count": 147,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 147,
+    "summary_count": 150,
+    "meta": []
+  },
+  {
+    "id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+    "title": "제438회 국회(임시회) 제01차 예산결산특별위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 138646,
+    "report_cursor": 138646,
+    "generated": "2026-09-22 21:43:42.536270+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 12,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 264,
+      "summarized_issue_count": 264,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "PENDING",
+      "phase": "ONTOLOGY",
+      "pending_count": 80
+    },
+    "parent_review": null,
+    "topic_count": 264,
+    "summary_count": 271,
+    "meta": []
+  },
+  {
+    "id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+    "title": "제43회 국무회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 471404,
+    "report_cursor": 471404,
+    "generated": "2026-10-06 03:23:00.078951+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 72,
+      "summarized_issue_count": 72,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 1
+    },
+    "parent_review": null,
+    "topic_count": 72,
+    "summary_count": 78,
+    "meta": []
+  },
+  {
+    "id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+    "title": "제439회 국회(정기회) 제09차 본회의",
+    "lifecycle": "ENDED",
+    "source_cursor": 404434,
+    "report_cursor": 404434,
+    "generated": "2026-09-22 10:47:09.750066+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 3,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 34,
+      "summarized_issue_count": 34,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 0
+    },
+    "parent_review": null,
+    "topic_count": 34,
+    "summary_count": 38,
+    "meta": []
+  },
+  {
+    "id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+    "title": "제439회 국회(정기회) 제02차 행정안전위원회",
+    "lifecycle": "ENDED",
+    "source_cursor": 353362,
+    "report_cursor": 353362,
+    "generated": "2026-09-22 11:00:49.575080+00:00",
+    "finalization": null,
+    "progress": {
+      "status": "COMPLETED",
+      "completed_batches": 4,
+      "consolidation_attempts": 1
+    },
+    "structured": true,
+    "narrative": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 23,
+      "summarized_issue_count": 23,
+      "status": "COMPLETE"
+    },
+    "assessment": {
+      "status": "COMPLETED",
+      "phase": "COMPLETED",
+      "source_limited_topics": 0,
+      "source_limited_discussions": 1
+    },
+    "parent_review": null,
+    "topic_count": 23,
+    "summary_count": 27,
+    "meta": []
+  }
+]

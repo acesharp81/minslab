@@ -8,12 +8,14 @@ from app.ingestion import structured_narrative_worker as worker
 from app.services.structured_narrative import apply
 
 
+@pytest.mark.parametrize('finalizing', [False, True])
 @pytest.mark.parametrize('live_wait', [False, True])
 @pytest.mark.parametrize('partial', [False, True])
 @pytest.mark.parametrize('final_repair', [False, True])
-def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch, partial, final_repair, live_wait):
+def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch, partial, final_repair, live_wait, finalizing):
     from app.ingestion import narrative_jobs
     monkeypatch.setattr(narrative_jobs, 'background_defer_reason', lambda: 'LIVE_OR_RECENT_MEETING' if live_wait else None)
+    monkeypatch.setattr(narrative_jobs, 'finalization_batch_limit', lambda n: min(n, 2) if live_wait else n)
     rows, calls, history_rows = [], [], []
     lock = {'held': False}
     brief = {'topic_structure': {'revision_id': 's'}, 'report_summary': {'topics': []},
@@ -87,21 +89,33 @@ def test_single_report_pool_preserves_lock_and_unique_batch_records(monkeypatch,
             return [{**r, 'repair_round': 4} for r in batches], blocked
         monkeypatch.setattr(worker, 'pending_batches', pending)
     monkeypatch.setattr(worker, 'pace_nim', lambda c: None)
-    result = worker.process_one('authorized-report', batch_limit=3)
-    if live_wait:
+    result = worker.process_one('authorized-report', batch_limit=3, finalizing=finalizing)
+    if live_wait and not finalizing:
         assert result['status']=='LIVE_DEFERRED' and result['reason']=='LIVE_OR_RECENT_MEETING'
         assert not calls and not rows and not lock['held']
         return
-    assert result['status'] == ('PENDING' if partial else 'COMPLETE')
-    assert result['coverage']['summarized_issue_count'] == (15 if partial else 18)
-    assert len(calls) == 3
-    assert len(rows) == len({row[0] for row in rows}) == (6 if partial else 3)
+    limited = live_wait and finalizing
+    assert result['status'] == ('PENDING' if partial or limited else 'COMPLETE')
+    assert result['coverage']['summarized_issue_count'] == ((14 if partial else 16) if limited else (15 if partial else 18))
+    assert len(calls) == (2 if limited else 3)
+    assert len(rows) == len({row[0] for row in rows}) == ((4 if partial else 2) if limited else (6 if partial else 3))
     assert set(routes) == ({('verification',)} if final_repair else {()})
     assert not lock['held']
 
-    if not partial:
+    if not partial and not limited:
         calls_before=len(calls);rows_before=len(rows)
         resumed=worker.process_one('authorized-report',batch_limit=3)
         assert resumed['status']=='COMPLETE'
         assert len(calls)==calls_before and len(rows)==rows_before
         assert not lock['held']
+
+
+def test_finalizing_does_not_summarize_live_meeting(monkeypatch):
+    @contextmanager
+    def connect(_):
+        yield SimpleNamespace(execute=lambda q, p=None: SimpleNamespace(
+            fetchone=lambda: (True,) if 'pg_try_advisory_lock' in q else ('LIVE',)))
+    monkeypatch.setattr(worker, 'connect', connect)
+    monkeypatch.setattr(worker, 'get_settings', lambda: SimpleNamespace(database_url='fixture'))
+    monkeypatch.setattr(worker, 'clients', lambda *a: pytest.fail('Live meeting must not finalize'))
+    assert worker.process_one('live', finalizing=True)['status'] == 'LIVE_DEFERRED'

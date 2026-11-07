@@ -9,6 +9,8 @@ import subprocess
 import tempfile
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -22,6 +24,8 @@ from ..storage.raw_store import RawStore
 
 
 PARSER_VERSION = "ai-audio-transcription/1.1"
+TRANSCRIPTION_SLOT = Lock()
+MAX_AUDIO_WORKERS = 4
 
 
 def capture_hls_audio(stream_url: str, target: Path, duration_seconds: int) -> None:
@@ -273,86 +277,90 @@ def capture_broadcast(claim: dict[str, Any], *, settings: Any, worker_id: str) -
                 if segmenter_stalled:
                     raise RuntimeError("KTV continuous audio segmenter stalled")
 
-                with connect(settings.database_url) as connection:
-                    audio = ExecutiveAudioRepository(connection)
-                    chunk = audio.claim_pending(broadcast_id)
-                    usage_snapshot = (
-                        SummaryRepository(connection).monthly_token_usage(
-                            "mistral", settings.llm_model,
-                        ) if chunk else None
-                    )
-                result = None
-                if chunk:
-                    current_cost = mistral_usage_cost_usd(
-                        usage_snapshot or {},
-                        input_usd_per_million=settings.mistral_input_usd_per_million,
-                        output_usd_per_million=settings.mistral_output_usd_per_million,
-                    )
-                    next_cost = (float(chunk["duration_ms"]) / 60000.0) * float(
-                        settings.executive_transcription_usd_per_minute
-                    )
-                    if current_cost + next_cost > float(settings.mistral_monthly_credit_usd):
-                        with connect(settings.database_url) as connection:
-                            ExecutiveAudioRepository(connection).fail(
-                                chunk["chunk_id"], "MONTHLY_CREDIT_LIMIT",
-                            )
-                        failures += 1
-                        chunk = None
-
-                if chunk:
+                chunk = None
+                if TRANSCRIPTION_SLOT.acquire(blocking=False):
                     try:
-                        result = client.transcribe(
-                            Path(chunk["raw_path"]),
-                            duration_seconds=float(chunk["duration_ms"]) / 1000.0,
-                        )
-                    except Exception as exc:
                         with connect(settings.database_url) as connection:
-                            ExecutiveAudioRepository(connection).fail(
-                                chunk["chunk_id"], type(exc).__name__,
+                            audio = ExecutiveAudioRepository(connection)
+                            chunk = audio.claim_pending(broadcast_id)
+                            usage_snapshot = (
+                                SummaryRepository(connection).monthly_provider_usage("mistral") if chunk else None
                             )
-                        failures += 1
+                        result = None
+                        if chunk:
+                            current_cost = mistral_usage_cost_usd(
+                                usage_snapshot or {},
+                                input_usd_per_million=settings.mistral_input_usd_per_million,
+                                output_usd_per_million=settings.mistral_output_usd_per_million,
+                            )
+                            next_cost = (float(chunk["duration_ms"]) / 60000.0) * float(
+                                settings.executive_transcription_usd_per_minute
+                            )
+                            if current_cost + next_cost > float(settings.mistral_monthly_credit_usd):
+                                with connect(settings.database_url) as connection:
+                                    ExecutiveAudioRepository(connection).fail(
+                                        chunk["chunk_id"], "MONTHLY_CREDIT_LIMIT",
+                                    )
+                                failures += 1
+                                chunk = None
 
-                if chunk and result is not None:
-                    with connect(settings.database_url) as connection:
-                        boundary_ms = int(chunk.get(
-                            "start_offset_ms",
-                            int(chunk["chunk_number"]) * int(chunk["duration_ms"]),
-                        ))
-                        previous = connection.execute(
-                            """
-                            SELECT speaker_label, end_offset_ms
-                            FROM transcript_segments
-                            WHERE broadcast_id = %s AND is_final = true
-                            ORDER BY end_offset_ms DESC NULLS LAST, last_received_at DESC
-                            LIMIT 1
-                            """,
-                            (broadcast_id,),
-                        ).fetchone()
-                        first_start_ms = (
-                            int(result.segments[0]["start_seconds"] * 1000)
-                            if result.segments else 999999
-                        )
-                        continuation_speaker = (
-                            str(previous[0])
-                            if previous and previous[0] and previous[1] is not None
-                            and int(previous[1]) >= boundary_ms - 1500
-                            and first_start_ms <= 1500
-                            else None
-                        )
-                        transcribed += persist_transcription(
-                            chunk=chunk, result=result, stream_url=stream_url,
-                            live_repository=LiveRepository(connection),
-                            audio_repository=ExecutiveAudioRepository(connection),
-                            model=settings.executive_transcription_model,
-                            continuation_speaker=continuation_speaker,
-                        )
-                    print(json.dumps({
-                        "event": "executive.audio.progress",
-                        "broadcast_id": str(broadcast_id),
-                        "captured_chunks": captured,
-                        "transcript_segments": transcribed,
-                        "failures": failures,
-                    }), flush=True)
+                        if chunk:
+                            try:
+                                result = client.transcribe(
+                                    Path(chunk["raw_path"]),
+                                    duration_seconds=float(chunk["duration_ms"]) / 1000.0,
+                                )
+                            except Exception as exc:
+                                with connect(settings.database_url) as connection:
+                                    ExecutiveAudioRepository(connection).fail(
+                                        chunk["chunk_id"], type(exc).__name__,
+                                    )
+                                failures += 1
+
+                        if chunk and result is not None:
+                            with connect(settings.database_url) as connection:
+                                boundary_ms = int(chunk.get(
+                                    "start_offset_ms",
+                                    int(chunk["chunk_number"]) * int(chunk["duration_ms"]),
+                                ))
+                                previous = connection.execute(
+                                    """
+                                    SELECT speaker_label, end_offset_ms
+                                    FROM transcript_segments
+                                    WHERE broadcast_id = %s AND is_final = true
+                                    ORDER BY end_offset_ms DESC NULLS LAST, last_received_at DESC
+                                    LIMIT 1
+                                    """,
+                                    (broadcast_id,),
+                                ).fetchone()
+                                first_start_ms = (
+                                    int(result.segments[0]["start_seconds"] * 1000)
+                                    if result.segments else 999999
+                                )
+                                continuation_speaker = (
+                                    str(previous[0])
+                                    if previous and previous[0] and previous[1] is not None
+                                    and int(previous[1]) >= boundary_ms - 1500
+                                    and first_start_ms <= 1500
+                                    else None
+                                )
+                                transcribed += persist_transcription(
+                                    chunk=chunk, result=result, stream_url=stream_url,
+                                    live_repository=LiveRepository(connection),
+                                    audio_repository=ExecutiveAudioRepository(connection),
+                                    model=settings.executive_transcription_model,
+                                    continuation_speaker=continuation_speaker,
+                                )
+                            print(json.dumps({
+                                "event": "executive.audio.progress",
+                                "broadcast_id": str(broadcast_id),
+                                "captured_chunks": captured,
+                                "transcript_segments": transcribed,
+                                "failures": failures,
+                            }), flush=True)
+
+                    finally:
+                        TRANSCRIPTION_SLOT.release()
 
                 if live_ended:
                     with connect(settings.database_url) as connection:
@@ -427,31 +435,42 @@ def main() -> None:
     parser.add_argument("--interval", type=float, default=5.0)
     parser.add_argument("--lease-seconds", type=int, default=180)
     parser.add_argument("--once", action="store_true")
+    parser.add_argument("--workers", type=int, default=MAX_AUDIO_WORKERS)
     args = parser.parse_args()
+    if not 1 <= args.workers <= MAX_AUDIO_WORKERS:
+        parser.error("workers must be between 1 and 4")
     settings = get_settings()
     if not settings.mistral_api_key:
         raise RuntimeError("MISTRAL_API_KEY is required")
     apply_migrations(settings.database_url)
     worker_id = f"{socket.gethostname()}:{os.getpid()}:executive-audio"
-    while True:
-        with connect(settings.database_url) as connection:
-            claim = LiveRepository(connection).claim_audio_fallback_capture(
-                worker_id, args.lease_seconds,
-            )
-        if claim:
-            print(json.dumps({
-                "event": "executive.audio.started",
-                "broadcast_id": str(claim["broadcast_id"]),
-                "lifecycle_status": claim["lifecycle_status"],
-            }), flush=True)
-            try:
-                result = capture_broadcast(claim, settings=settings, worker_id=worker_id)
-                print(json.dumps({"event": "executive.audio.completed", **result}), flush=True)
-            except Exception as exc:
-                print(json.dumps({"event": "executive.audio.error", "error": type(exc).__name__}), flush=True)
-        if args.once:
-            return
-        time.sleep(max(2.0, min(args.interval, 60.0)))
+    def run_claim(claim):
+        print(json.dumps({
+            "event": "executive.audio.started",
+            "broadcast_id": str(claim["broadcast_id"]),
+            "lifecycle_status": claim["lifecycle_status"],
+        }), flush=True)
+        try:
+            result = capture_broadcast(claim, settings=settings, worker_id=worker_id)
+            print(json.dumps({"event": "executive.audio.completed", **result}), flush=True)
+        except Exception as exc:
+            print(json.dumps({"event": "executive.audio.error", "error": type(exc).__name__}), flush=True)
+
+    with ThreadPoolExecutor(max_workers=args.workers, thread_name_prefix="audio") as pool:
+        futures = set()
+        while True:
+            futures = {future for future in futures if not future.done()}
+            while len(futures) < args.workers:
+                with connect(settings.database_url) as connection:
+                    claim = LiveRepository(connection).claim_audio_fallback_capture(
+                        worker_id, args.lease_seconds,
+                    )
+                if not claim:
+                    break
+                futures.add(pool.submit(run_claim, claim))
+                if args.once:
+                    return
+            time.sleep(max(2.0, min(args.interval, 60.0)))
 
 
 if __name__ == "__main__":

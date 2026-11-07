@@ -130,8 +130,10 @@ class OfficialChangeReportTests(unittest.TestCase):
         reuse_cursor.fetchone.return_value = (source_integration, {"summary": "저장 결과"})
         save_cursor = MagicMock()
         save_cursor.fetchone.return_value = (uuid.uuid4(),)
+        unchanged_cursor = MagicMock()
+        unchanged_cursor.fetchone.return_value = None
         connection = MagicMock()
-        connection.execute.side_effect = [rows_cursor, reuse_cursor, save_cursor]
+        connection.execute.side_effect = [rows_cursor, unchanged_cursor, reuse_cursor, save_cursor]
 
         changed = OfficialChangeReportRepository(connection).sync_pending(
             provider="openrouter", model="test/model",
@@ -139,8 +141,8 @@ class OfficialChangeReportTests(unittest.TestCase):
         )
 
         self.assertEqual(1, changed)
-        save_sql = connection.execute.call_args_list[2].args[0]
-        save_params = connection.execute.call_args_list[2].args[1]
+        save_sql = connection.execute.call_args_list[3].args[0]
+        save_params = connection.execute.call_args_list[3].args[1]
         self.assertIn("'READY'", save_sql)
         self.assertEqual(0, save_params[-1].obj["api_requests"])
         self.assertEqual(

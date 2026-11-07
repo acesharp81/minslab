@@ -24,6 +24,12 @@ def retry_at(*, daily: bool = False) -> str:
             if daily else now + timedelta(minutes=15)).isoformat()
 
 
+def immediate_quality_escalation(latest: dict[str, Any], monthly: bool) -> bool:
+    """A failed daily-model partition can hand off once to the paid verifier."""
+    return bool(monthly and str(latest.get('error') or '').startswith('PARENT_REVIEW_')
+                and (latest.get('usage') or {}).get('billing_route') == 'DAILY_FREE')
+
+
 def process_one(broadcast_id: Any) -> dict[str, Any]:
     from .meeting_brief_worker import safe_brief_error_code
     settings = get_settings()
@@ -54,11 +60,16 @@ def process_one(broadcast_id: Any) -> dict[str, Any]:
             monthly = bool(settings.openai_monthly_credit_fallback_enabled and credit_active(settings))
             # Wake budget-only waits from the previous daily-only routing once.
             legacy_daily_wait = latest.get("error") == "DAILY_TOKEN_LIMIT" and (latest.get("usage") or {}).get("budget_policy") != MONTHLY_CREDIT_POLICY
-            if retry and datetime.fromisoformat(retry) > datetime.now(timezone.utc) and not (monthly and legacy_daily_wait):
+            if retry and datetime.fromisoformat(retry) > datetime.now(timezone.utc) and not (
+                    (monthly and legacy_daily_wait) or immediate_quality_escalation(latest, monthly)):
                 return {'status': 'DEFERRED', 'retry_after': retry}
             index = prior[0]['index'] if prior else max([BATCH_START-1] + [h['index'] for h in history]) + 1
             attempt = max([0] + [h['attempt'] for h in prior]) + 1
             instruction = prompt(request)
+            if str(latest.get('error') or '').startswith('PARENT_REVIEW_'):
+                instruction += ('\n이전 응답은 '+latest['error']+' 검증을 통과하지 못했다. '
+                                '모든 입력 G번호를 빠짐없이 정확히 한 번씩 사용하고, '
+                                '중복 제목이나 누락된 묶음이 없는지 반환 전에 검사하라.')
             input_bytes = len(instruction.encode())
             errors = sum(bool(h.get('error')) and h.get('error') != 'DAILY_TOKEN_LIMIT' for h in prior)
             reason = ('NO_GROUPS' if not request['groups'] else

@@ -97,6 +97,15 @@ def made_progress(outcome: dict[str, Any]) -> bool:
                for batch in outcome.get('batches', []) if isinstance(batch, dict)) if isinstance(outcome.get('batches'), list) else False
 
 
+def completed_review_is_current(state: dict[str, Any], structure: dict[str, Any] | None) -> bool:
+    """A corrected narrative invalidates the editorial pass over its old text."""
+    if state.get('parent_review_status') not in {'READY', 'CACHED'}:
+        return True  # Older reports without this stage keep their existing policy.
+    return bool(structure and
+                (structure.get('narrative_coverage') or {}).get('status') == 'COMPLETE' and
+                (structure.get('parent_review') or {}).get('status') == 'READY')
+
+
 def process_one(broadcast_id: Any, *, request_limit: int = 4, batch_limit: int = 2) -> dict[str, Any]:
     # A separate lease covers the stage transitions. Individual workers retain
     # their existing topic-structure leases and per-provider budget reservations.
@@ -126,8 +135,10 @@ def process_one(broadcast_id: Any, *, request_limit: int = 4, batch_limit: int =
                 and state.get('monthly_credit_policy') != MONTHLY_CREDIT_POLICY)
             if retry and datetime.fromisoformat(retry) > datetime.now(timezone.utc) and not resume_new_credit_route:
                 return {'broadcast_id': str(broadcast_id), **state}
-            if state.get('status') == 'COMPLETED':
-                return {'status': 'CACHED', 'broadcast_id': str(broadcast_id)}
+            if state.get('status') == 'COMPLETED' and completed_review_is_current(state, structure):
+                # A new batch may be semantically unchanged. Acknowledge it once,
+                # so the completed-report scan cannot starve unfinished reports.
+                return save(state)
             pending = ontology_review_worker.pending_items(structure, []) if structure else []
             ready = assess(structure, progress, pending)
             if ready['status'] == 'COMPLETED':
@@ -151,7 +162,7 @@ def process_one(broadcast_id: Any, *, request_limit: int = 4, batch_limit: int =
             state = assess(structure, progress, pending)
             if state.get('phase') == 'NARRATIVE':
                 save({'status': 'PROCESSING', 'phase': 'NARRATIVE'})
-                outcome = structured_narrative_worker.process_one(broadcast_id, batch_limit=batch_limit)
+                outcome = structured_narrative_worker.process_one(broadcast_id, batch_limit=batch_limit, finalizing=True)
                 item, structure, progress, prior = _load(broadcast_id)
                 state = assess(structure, progress, pending)
             if state['status'] == 'COMPLETED':
@@ -183,7 +194,16 @@ def process_available(limit: int = 1) -> list[dict[str, Any]]:
             JOIN live_broadcasts live ON live.id=b.broadcast_id
             WHERE live.lifecycle_status='ENDED'
               AND meeting_brief_payload(b.id,b.brief) ? 'finalization'
-              AND meeting_brief_payload(b.id,b.brief)->'finalization'->>'status' <> 'COMPLETED'
+              AND (meeting_brief_payload(b.id,b.brief)->'finalization'->>'status' <> 'COMPLETED'
+                OR (meeting_brief_payload(b.id,b.brief)->'finalization'->>'parent_review_status' IN ('READY','CACHED')
+                    AND EXISTS (
+                        SELECT 1 FROM meeting_topic_structures s
+                        JOIN meeting_topic_structure_batches batch ON batch.structure_id=s.id
+                        WHERE s.meeting_brief_id=b.id AND batch.status='READY'
+                          AND batch.request_snapshot->>'profile'='structured-narrative/1.2'
+                          AND batch.created_at > COALESCE(
+                              (meeting_brief_payload(b.id,b.brief)->'finalization'->>'updated_at')::timestamptz,
+                              b.generated_at))))
               AND NOT EXISTS(SELECT 1 FROM meeting_briefs newer WHERE newer.broadcast_id=b.broadcast_id
                   AND newer.provider <> 'deterministic' AND (newer.generated_at,newer.id)>(b.generated_at,b.id))
               AND (COALESCE((meeting_brief_payload(b.id,b.brief)->'finalization'->>'retry_after')::timestamptz,'-infinity')<=now()

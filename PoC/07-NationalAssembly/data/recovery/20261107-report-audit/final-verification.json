@@ -1,0 +1,107 @@
+{
+  "public_report_count": 65,
+  "incomplete_finalization": [],
+  "official_jobs_pending": 0,
+  "topic_reports": [
+    [
+      "READY",
+      9
+    ]
+  ],
+  "official_recovered": [
+    [
+      "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+      "READY",
+      "gpt-6.1-terra",
+      14
+    ],
+    [
+      "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+      "READY",
+      "gpt-6.1-terra",
+      11
+    ],
+    [
+      "96e52910-09e4-457b-b090-19dfc3f19f4b",
+      "READY",
+      "gpt-5.4",
+      4
+    ],
+    [
+      "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+      "READY",
+      "gpt-6.1-terra",
+      8
+    ],
+    [
+      "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+      "READY",
+      "gpt-5.4",
+      2
+    ],
+    [
+      "0ed14a87-a415-47d7-a778-33abb976ba5b",
+      "READY",
+      "gpt-6.1-terra",
+      11
+    ],
+    [
+      "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+      "READY",
+      "gpt-5.4",
+      2
+    ],
+    [
+      "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+      "READY",
+      "gpt-6.1-terra",
+      14
+    ],
+    [
+      "277063ec-be24-41b3-a50b-424c40e3bd96",
+      "READY",
+      "gpt-6.1-terra",
+      7
+    ]
+  ],
+  "official_change_reports": [
+    [
+      "91ba9993-c7fe-46ce-ae9d-2057851d795e",
+      "READY"
+    ],
+    [
+      "d3b6f944-19ac-48b1-88f3-f11590818fba",
+      "READY"
+    ],
+    [
+      "6e0c9062-64c8-4cdb-a618-1ce3fe5c0163",
+      "READY"
+    ],
+    [
+      "15f1c1c2-c647-41f5-ba96-3f255f85f6fc",
+      "READY"
+    ],
+    [
+      "d21b649c-c0a7-4dca-93ed-804d5fdc99b9",
+      "READY"
+    ],
+    [
+      "b1f2b4b1-bdd8-4055-896c-8a4944b238ee",
+      "READY"
+    ],
+    [
+      "c4facada-8ca5-4331-b36e-d0d60e0715d0",
+      "READY"
+    ],
+    [
+      "82c7d13b-3ce3-4aeb-bd53-99b631cdd721",
+      "READY"
+    ],
+    [
+      "886c6372-e2bd-4dec-bd51-d4eb1e2a7a49",
+      "READY"
+    ]
+  ],
+  "verified_at": "2026-11-07 00:31:34.137258+00:00",
+  "change_report_queue": []
+}

@@ -1,0 +1,10 @@
+{
+  "video_id": "tts8k5gUlAI",
+  "cookies_used": false,
+  "stt_calls": 0,
+  "http_status": 206,
+  "sample_bytes": 4096,
+  "content_type": "audio/webm",
+  "audio_codec": "opus",
+  "live_status": "was_live"
+}
