@@ -46,3 +46,14 @@ def test_reader_disagreement_does_not_promote_transcription(monkeypatch):
     run={'glyph_audit':{'regions':[r]},'calls':[]};iso.run_isolated(engine,{'id':'j'},run,b'raw')
     assert not r['isolated_glyphs']['agreed'] and not r['assessment']['transcription_confirmed']
     assert r['assessment']['literal_text']==before['literal_text'] and r['assessment']['status']=='REVIEW'
+
+
+def test_rectified_segmentation_sends_original_pixels_and_maps_back(monkeypatch):
+    import numpy as np
+    from app import artifact_screen
+    image=Image.new('RGB',(100,80),'white');image.putpixel((22,22),(23,45,67));raw=io.BytesIO();image.save(raw,format='PNG')
+    monkeypatch.setattr(artifact_screen,'oriented_crop',lambda image,region:(image.crop((20,20,60,60)),np.array([[1.,0.,20.],[0.,1.,20.],[0.,0.,1.]]),True))
+    monkeypatch.setattr(iso,'split_word',lambda *a:[(b'unused rectified pixels',[0.,0.,.5,1.]),(b'other',[.5,0.,1.,1.])])
+    parts=iso.split_region(raw.getvalue(),{'rect':[.2,.25,.6,.75],'polygon_px':[[20,20],[60,20],[60,60],[20,60]]})
+    assert len(parts)==2 and parts[0][1]==[.2,.25,.4,.75]
+    assert Image.open(io.BytesIO(parts[0][0])).tobytes()==image.crop((20,20,40,60)).tobytes()

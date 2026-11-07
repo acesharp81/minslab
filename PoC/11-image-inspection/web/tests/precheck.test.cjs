@@ -23,3 +23,8 @@ test('confirmed glyph reading is shown instead of an older context-completed OCR
  assert.ok(html.includes('안젼한 하루')&&html.includes('원본 획으로 확인한 문자'));
  assert.ok(!html.includes('획·외형 정상'));
 });
+test('blind unknown syllables are not labelled as contextual reconstruction',()=>{
+ ctx.activeRun=()=>({analysis_observation:{objects:[{id:'g',label:'독립 획',glyph_region:true,text:'□□',transcription_inferred:true,text_legibility:'DEGRADED'}]}});
+ const html=ctx.textQualityHTML({evidence_ids:['g']});
+ assert.match(html,/음절 판독 미확정/);assert.ok(!html.includes('문맥 추정 포함'));
+});

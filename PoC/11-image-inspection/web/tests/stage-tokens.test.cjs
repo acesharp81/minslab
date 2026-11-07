@@ -50,3 +50,15 @@ test('header shows mock, waiting and finished states without inventing usage',()
  assert.equal(ctx.stageTokensHTML(null),'');assert.match(ctx.stageTokensHTML({options:{mode:'mock'}}),/실제 토큰 사용 없음/);
  assert.match(ctx.stageTokensHTML({calls:[]}),/대기 중/);assert.match(ctx.stageTokensHTML({phase:'DONE',calls:[]}),/미실행/);
 });
+test('component readings are image verification spend, not unclassified or analysis spend',()=>{
+ const stages=ctx.stageTokenUsage({calls:[call('text-jamo-isolated','gpt-5.4',120,80)]});
+ assert.equal(stages[1].models[0].input,120);assert.equal(stages[1].models[0].output,80);
+ assert.equal(stages[2].models.length,0);assert.equal(stages.length,3);
+});
+test('completed analysis still exposes failed supplemental crops without calling them normal',()=>{
+ const run={phase:'DONE',calls:[],verification:{deferred:[
+  {object_id:'a',reason:'자동 재검사 실패: 응답 시간 초과'},
+  {object_id:'a',reason:'자동 재검사 실패: 응답 시간 초과'},
+  {object_id:'b',reason:'자동 재검사 객체 한도: 선택 확대 재검사 가능'}]}};
+ assert.match(ctx.stageTokensHTML(run),/확대 확인 1개 영역 응답 실패 · 정상 판정 아님/);
+});

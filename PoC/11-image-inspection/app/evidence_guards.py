@@ -113,7 +113,10 @@ def protect_glyphs(run, rows, ids):
     steps={s['rule_id']:s for s in pack['steps']}
     text_rules=general_text_rules(steps,ids)
     objects={o['id']:o for o in run.get('observation',{}).get('objects',[])}
-    for check in run.get('verification',{}).get('results',[]):
+    verification=run.get('verification',{})
+    # A partial retry can still contain a precisely localized source glyph defect.
+    # Keep old whole-object evidence while evaluating this separately scoped crop.
+    for check in verification.get('results',[])+verification.get('attempt_results',[]):
         obj=objects.get(check.get('object_id'))
         if not obj or check.get('status')!='COMPLETED' or check.get('coverage')=='MISSING':continue
         issues=[copy.deepcopy(g) for g in check.get('glyph_checks',[]) if g['quality'] in ('DEFECT','UNCERTAIN') and g['evidence'].strip() and g['cell_ids']]

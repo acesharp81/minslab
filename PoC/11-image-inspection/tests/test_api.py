@@ -15,6 +15,44 @@ def login(c,role='admin'):
     assert c.post('/api/login',json={'role':role,'password':'admin-test' if role=='admin' else 'review-test'}).status_code==200
 
 
+def test_quality_plan_is_read_only_version_scoped_and_execution_is_admin_only(client,monkeypatch):
+    from test_quality_recheck import saved
+    assert client.get('/api/jobs/missing/runs/old/quality-plan').status_code==401
+    login(client);job=client.post('/api/demo').json();engine=client.app.state.engine
+    original=engine.store.get(job['id']);run=saved()
+    run.update(id='old',created_at=original['created_at'],scope='FULL_IMAGE',results=[],reviews=[],analysis=[])
+    from app.rules import placeholder
+    run['results']=[{**placeholder('H-01-a','PASS','기존 근거 보존'),'id':'keep'}]
+    run['reviews']=[{'finding_id':'keep','status':'REVIEW','reason':'사람 검토 기록'}]
+    run['options'].update(mode='live',quality_recheck=False,recheck_object_ids=[])
+    original['runs']=[run];engine.store.save(original)
+    before=engine.store.get(job['id'])
+    path=f'/api/jobs/{job["id"]}/runs/old/quality-plan'
+    plan=client.get(path).json();assert plan['recommended_ids']==['hand','sign']
+    assert engine.store.get(job['id'])==before
+    assert client.get(path.replace('/old/','/missing/')).status_code==404
+    payload=dict(mode='live',consent=True,quality_recheck=True,reuse_observation_run_id='old',recheck_object_ids=['hand'])
+    client.post('/api/logout');login(client,'reviewer')
+    assert client.get(path).status_code==200
+    assert client.post(f'/api/jobs/{job["id"]}/runs',json=payload).status_code==403
+    client.post('/api/logout');login(client)
+    engine.s.values.update(EXTERNAL_API_ENABLED='true',OPENAI_API_KEY='fake-test-only')
+    queued=[];monkeypatch.setattr(engine.pool,'submit',lambda *a:queued.append(a))
+    invalid={**payload,'recheck_object_ids':['missing']}
+    assert client.post(f'/api/jobs/{job["id"]}/runs',json=invalid).status_code==409
+    invalid={**payload,'recheck_object_ids':[]}
+    assert client.post(f'/api/jobs/{job["id"]}/runs',json=invalid).status_code==400
+    result=client.post(f'/api/jobs/{job["id"]}/runs',json=payload)
+    assert result.status_code==200 and len(queued)==1
+    latest=engine.store.get(job['id'])['runs'][-1]
+    assert latest['quality_recheck_plan']['max_calls']==2
+    assert latest['observation_reused_from']['run_id']=='old'
+    assert set(latest['selected'])=={f'D-02-{c}' for c in 'cdefghi'}
+    assert next(r for r in latest['results'] if r['id']=='keep')==run['results'][0]
+    assert latest['reviews']==run['reviews']
+    assert not latest['calls']  # Worker intentionally not executed; no provider call.
+
+
 def test_history_summary_and_compact_view_keep_full_report_and_auth(client):
     assert client.get('/api/jobs/missing/versions').status_code==401
     login(client);j=client.post('/api/demo').json();store=client.app.state.engine.store
@@ -198,3 +236,43 @@ def test_default_run_is_gpt54_read_and_mini_analysis(client):
     login(client);job=client.post('/api/demo').json()
     assert client.post('/api/jobs/'+job['id']+'/runs',json={}).status_code==400
     assert client.get('/api/jobs/'+job['id']).json()['runs']==[]
+
+
+def test_screen_view_defers_snapshots_but_keeps_findings_and_exact_version(client):
+    assert client.get('/api/jobs/missing?view=screen').status_code==401
+    assert client.get('/api/jobs/missing/runs/old/details').status_code==401
+    login(client);j=client.post('/api/demo').json();store=client.app.state.store
+    saved=store.get(j['id']);run=dict(id='old',created_at=saved['created_at'],options={'mode':'live'},
+        results=[],reviews=[],analysis=[],selected=[],rule_pack=PACK,
+        observation={'objects':[{'id':'original-observation'}]},calls=[{'usage':{'input_tokens':42}}],
+        reference_snapshot=[{'id':'ref','name':'원래 기준','content':'original '+('large '*3000)}])
+    saved['runs']=[run,{**run,'id':'new','reference_snapshot':[{'id':'ref','name':'새 기준','content':'new'}]}];store.save(saved)
+    # Reviewer also has read access; permissions for running analyses remain unchanged.
+    login(client,'reviewer')
+    url=f'/api/jobs/{j["id"]}'
+    response=client.get(url+'?view=screen&run_id=old',headers={'Accept-Encoding':'gzip'})
+    assert response.headers['content-encoding']=='gzip' and 'accept-encoding' in response.headers['vary'].lower()
+    assert response.headers['cache-control']=='no-store'
+    screen=response.json();r=screen['runs'][0]
+    assert r['id']=='old' and r['details_deferred']
+    assert r['reference_snapshot']==[{'id':'ref','name':'원래 기준'}]
+    assert r['observation']==run['observation'] and r['calls']==run['calls']
+    assert r['results']==run['results'] and r['reviews']==run['reviews']
+    assert all(set(step)<= {'rule_id','objective','reference_requirements'} for step in r['rule_pack']['steps'])
+    full=client.get(url+'?view=latest&run_id=old').json()
+    assert screen['checklist_report']==full['checklist_report'] and screen['parents']==full['parents']
+    detail=client.get(url+'/runs/old/details').json()
+    assert detail=={'run_id':'old','rule_pack':PACK,'reference_snapshot':run['reference_snapshot']}
+    assert client.get(url+'/runs/missing/details').status_code==404
+    assert client.get(url+'?view=screen&run_id=missing').status_code==404
+    assert client.get(url+'/report').json()['runs']==saved['runs']
+    assert store.get(j['id'])==saved
+
+
+def test_compression_preserves_original_image_and_identity_clients(client):
+    login(client);j=client.post('/api/demo').json();url=f'/api/jobs/{j["id"]}'
+    response=client.get(url+'?view=screen',headers={'Accept-Encoding':'identity'})
+    assert response.status_code==200 and 'content-encoding' not in response.headers
+    image=client.get(url+'/image',headers={'Accept-Encoding':'gzip'})
+    assert 'content-encoding' not in image.headers
+    assert image.content==(client.app.state.settings.data/j['id']/'image.png').read_bytes()

@@ -107,3 +107,42 @@ def test_confirmed_crop_name_is_checked_even_when_scene_reader_auto_corrected_it
     assert crop['text']=='행정안정부' and crop['quality']=='CLEAR'
     rows=evidence_guards.protect(run,[],['D-02-l'])
     assert any(r['status']=='FAIL' and r['evidence_ids']==['OCR001'] for r in rows)
+
+
+def test_union_covers_text_across_cells_without_bridging_disconnected_gaps():
+    rect=[.626953125,.8125,.6979166667,.857421875]
+    cells=[[7/12,9/12,8/12,10/12],[7/12,10/12,8/12,11/12]]
+    assert .55<t.covered_fraction(rect,cells)<.57
+    objects=[dict(id='food',text='김치찌개',rects=cells)]
+    assert t.linked_objects(dict(rect=rect,text='김처찌개'),objects)==objects
+    assert t.covered_fraction([0.,0.,1.,1.],[[0.,0.,.2,1.],[.8,0.,1.,1.]])<.41
+    assert t.covered_fraction(rect,cells*3)==t.covered_fraction(rect,cells)
+
+
+def test_conflict_stays_visible_at_exact_location_without_claiming_typo(tmp_path):
+    _,run,_,_=fixture(tmp_path)
+    run['pixel_text']['detector_regions'][0]['recognition_score']=.77
+    run['observation']['objects'][0]['cell_ids']=['R03C03']
+    row=dict(rule_id='D-02-l',status='PASS',evidence_ids=['sign'],reason='일치')
+    result=t.protect_conflicts(run,[row],['D-02-l'])[0]
+    assert result['status']=='REVIEW' and result['visual_issue'] and not result['diagnostic_only']
+    assert result['rects']==[run['pixel_text']['detector_regions'][0]['rect']]
+    result['status']='FAIL'
+    assert t.protect_conflicts(run,[result],['D-02-l'])[0]['status']=='FAIL'
+
+
+def test_geometric_ambiguity_is_not_resolved_using_a_convenient_transcript(tmp_path):
+    _,run,_,_=fixture(tmp_path);region=run['pixel_text']['detector_regions'][0]
+    objects=run['observation']['objects'];objects.append({**objects[0],'id':'ambiguous','text':region['text']})
+    assert len(t.linked_objects(region,objects))==2
+    assert t.protect_conflicts(run,[],['D-02-l'])==[]
+
+
+def test_coarse_anchor_cell_can_locate_a_cross_boundary_line_without_loosening_measured_boxes():
+    region=dict(rect=[.626953125,.8125,.6979166667,.857421875],text='김처찌개')
+    obj=dict(id='sign',cell_ids=['R11C08'],text='김치찌개')
+    assert t.covered_fraction(region['rect'],t.object_rects(obj))<.5
+    assert t.linked_objects(region,[obj])==[obj]
+    measured={**obj,'rects':t.object_rects(obj)}
+    assert not t.linked_objects(region,[measured])
+    assert not t.linked_objects(region,[{**obj,'cell_ids':['R11C09']}])

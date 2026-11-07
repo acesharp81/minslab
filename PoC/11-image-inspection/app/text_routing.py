@@ -6,7 +6,16 @@ from collections import Counter
 from . import text_ocr, text_selection
 from .imaging import cell_rect
 
-VERSION = 'text-routing-v1'
+VERSION = 'text-routing-v2-union-binding'
+
+
+def reading_relation(region, obj):
+    """A detected line may be only one part of a scene text block."""
+    literal=text_ocr.normalized(region.get('text'))
+    whole=text_ocr.normalized(obj.get('text'))
+    if literal and literal==whole:return 'EQUAL'
+    if literal and whole and literal in whole:return 'FRAGMENT'
+    return 'DIFFERENT'
 
 
 def object_rects(obj):
@@ -24,10 +33,13 @@ def linked_objects(region, objects):
     rect = region.get('rect', [])
     if not text_ocr.valid_rect(rect):
         return []
-    spatial = [o for o in objects if any(text_ocr.overlap(rect, r) > .5 for r in object_rects(o))
+    spatial = [o for o in objects if spatial_match(rect,o)
                and (o.get('text') or o.get('text_legibility') in ('CLEAR', 'DEGRADED', 'UNREADABLE'))]
     exact = [o for o in spatial if text_ocr.normalized(o.get('text')) == text_ocr.normalized(region.get('text'))
              and region.get('text', '').strip() and not o.get('transcription_inferred')]
+    # Transcript agreement must not choose between overlapping spatial targets.
+    # An OCR correction could otherwise hide the very object that disagrees.
+    if len(spatial)>1:return spatial
     if exact: return exact
     if spatial: return spatial
     # Legacy imports without geometry may bind an exact, unique transcript.
@@ -35,11 +47,43 @@ def linked_objects(region, objects):
             and region.get('text', '').strip() and text_ocr.normalized(o.get('text')) == text_ocr.normalized(region['text'])]
 
 
-def prepare(run):
+def spatial_match(rect,obj):
+    rects=object_rects(obj);coverage=covered_fraction(rect,rects)
+    if coverage>.5:return True
+    # Inventory cells identify an anchor, not a measured object bounding box.
+    # A long line can extend across the boundary while its centre is correctly
+    # inside the reported cell. Never loosen measured rectangle matching.
+    if obj.get('rects') or not obj.get('cell_ids') or coverage<=.2:return False
+    cx,cy=(rect[0]+rect[2])/2,(rect[1]+rect[3])/2
+    return any(r[0]<=cx<=r[2] and r[1]<=cy<=r[3] for r in rects)
+
+
+def covered_fraction(target, rects):
+    """Exact clipped union area, without filling gaps or double-counting cells."""
+    if not text_ocr.valid_rect(target):return 0.
+    x,y,z,b=target
+    clipped=[]
+    for r in rects:
+        if not text_ocr.valid_rect(r):continue
+        a,c,d,e=max(x,r[0]),max(y,r[1]),min(z,r[2]),min(b,r[3])
+        if a<d and c<e:clipped.append((a,c,d,e))
+    edges=sorted({v for r in clipped for v in (r[0],r[2])})
+    area=0.
+    for left,right in zip(edges,edges[1:]):
+        spans=sorted((r[1],r[3]) for r in clipped if r[0]<right and r[2]>left)
+        end=-1.;height=0.
+        for top,bottom in spans:
+            height+=max(0.,bottom-max(top,end));end=max(end,bottom)
+        area+=(right-left)*height
+    return min(1.,area/((z-x)*(b-y)))
+
+
+def prepare(run, artifact_routing=False):
     pixel = run.get('pixel_text') or {}
     objects = run.get('observation', {}).get('objects', [])
     shaped = {r.get('source_id'): r for r in pixel.get('regions', [])}
     reasons = {r.get('source_id'):r['state'] for r in pixel.get('region_diagnostics',[])}
+    extras={c.get('source_id'):c for c in (run.get('artifact_screen') or {}).get('candidates',[]) if c.get('issue_family')=='TEXT_QUALITY'} if artifact_routing else {}
     rows = []
     for region in pixel.get('detector_regions', []):
         matches = linked_objects(region, objects)
@@ -48,9 +92,11 @@ def prepare(run):
         elif not text.strip(): state = 'UNREAD'
         elif len(matches) > 1: state = 'AMBIGUOUS_TARGET'
         elif not matches: state = 'NO_SCENE_MATCH'
-        elif text_ocr.normalized(matches[0].get('text')) != text_ocr.normalized(text) or matches[0].get('transcription_inferred'): state = 'DISAGREEMENT'
+        elif matches[0].get('transcription_inferred') or reading_relation(region,matches[0])=='DIFFERENT': state = 'DISAGREEMENT'
+        elif reading_relation(region,matches[0])=='FRAGMENT': state = 'FRAGMENT_MATCH'
         elif region.get('recognition_score', 0) < .9: state = 'LOW_CONFIDENCE'
         else: state = 'AGREED'
+        if state=='AGREED' and set(extras.get(region.get('id'),{}).get('signals',[])).intersection({'LOCAL_BLUR_SIGNAL','SHAPE_CONFLICT'}):state='QUALITY_CONFLICT'
         role = text_selection.role(matches[0]) if len(matches) == 1 else 'notice'
         shape = shaped.get(region.get('id'), {})
         rows.append(dict(region_id=region['id'], rect=region.get('rect'), detector_text=text,
@@ -64,7 +110,7 @@ def prepare(run):
 
 
 def recheck(engine, job, run, raw):
-    routing = prepare(run)
+    routing = prepare(run,engine.s.flag('ARTIFACT_RECHECK_ENABLED',False))
     pending = [r for r in routing['regions'] if r['action'] == 'RECHECK']
     if not pending: return
     reason = None
@@ -77,7 +123,7 @@ def recheck(engine, job, run, raw):
     if reason:
         for row in pending: row['deferred_reason'] = reason
         return
-    priority = {'UNREAD': 0, 'DISAGREEMENT': 1, 'NO_SCENE_MATCH': 2, 'LOW_CONFIDENCE': 3, 'AMBIGUOUS_TARGET': 4}
+    priority = {'QUALITY_CONFLICT': 0, 'UNREAD': 0, 'DISAGREEMENT': 1, 'NO_SCENE_MATCH': 2, 'LOW_CONFIDENCE': 3, 'AMBIGUOUS_TARGET': 4}
     pending.sort(key=lambda r: (priority.get(r['state'], 5), r['rect'][3]-r['rect'][1]))
     pending = text_selection.balanced(pending, lambda r:r['role'])
     limit = max(0, min(3, engine.s.integer('TEXT_ROUTING_MAX_REGIONS', 3), engine.s.integer('AUTO_VERIFY_MAX_OBJECTS', 9)))
@@ -126,3 +172,59 @@ def recheck(engine, job, run, raw):
         for region in regions:region['verdict']=text_ocr.verdict(region)
         for row in selected:row['deferred_reason']='CALL_FAILED'
     engine.checkpoint(job['id'],run)
+
+
+def protect_conflicts(run, rows, ids):
+    """Keep localized, comparable OCR disagreements visible; never call them typos.
+
+    Partial lines, ambiguous objects, poor recognition and unlocated text remain
+    diagnostics. Two equal GPT reads do not erase a differing detector reading.
+    """
+    if 'D-02-l' not in ids:return rows
+    from .rules import validate_batch
+    from .text_location import cells_for_rects
+    objects=run.get('observation',{}).get('objects',[])
+    verified={r['object_id']:r for r in (run.get('verification') or {}).get('results',[])
+              if r.get('coverage')=='COMPLETE' and r.get('status')=='COMPLETED'}
+    conflicts=[]
+    for region in (run.get('pixel_text') or {}).get('detector_regions',[]):
+        if region.get('recognition_score',0)<.65:continue
+        linked=linked_objects(region,objects)
+        if len(linked)!=1:continue
+        obj=linked[0];check=verified.get(obj['id'],{})
+        reading=check.get('text') or obj.get('text','')
+        first=text_ocr.normalized(region.get('text'));second=text_ocr.normalized(reading)
+        if not first or not second or first==second or first in second or second in first:continue
+        if not .75<=len(first)/len(second)<=1.25:continue
+        # A completed, independent isolated-character comparison can identify
+        # an OCR recognition error. Successful contextual reading alone cannot.
+        resolved=any(g.get('isolated_glyphs',{}).get('agreed') and
+            text_ocr.normalized(g['isolated_glyphs'].get('literal_text'))==second and
+            covered_fraction(region['rect'],[g['rect']])>.8
+            for g in (run.get('glyph_audit') or {}).get('regions',[]))
+        if resolved:continue
+        evidence=dict(region_id=region['id'],object_id=obj['id'],rect=region['rect'],
+                      detector_text=region.get('text',''),independent_text=reading,
+                      event_id=check.get('event_id'),status='UNRESOLVED')
+        conflicts.append(evidence)
+        matching=[r for r in rows if r['rule_id']=='D-02-l' and obj['id'] in r.get('evidence_ids',[])]
+        reason=f'같은 위치의 OCR 판독 “{evidence["detector_text"]}”와 그림 판독 “{reading}”가 다릅니다. 오탈자인지 OCR 오인식인지 원본 획 확인이 필요합니다.'
+        if not matching:
+            matching=validate_batch({'results':[dict(rule_id='D-02-l',instance_id=obj['id'],status='REVIEW',
+                observation=obj.get('label','문자 영역'),reason=reason,evidence_quality='UNCERTAIN',
+                cell_ids=cells_for_rects([region['rect']]),reference_ids=[],recommended_action='서로 다른 음절의 원본 획을 확인하세요.')]},
+                ['D-02-l'],run['reference_snapshot'],None,'system/independent-reading-conflict',pack=run['rule_pack'])
+            rows.extend(matching)
+        for row in matching:
+            row.setdefault('independent_reading_conflicts',[])
+            if evidence not in row['independent_reading_conflicts']:row['independent_reading_conflicts'].append(evidence)
+            if row['status'] in ('FAIL','ERROR','NOT_RUN'):continue
+            row.update(status='REVIEW',reason=reason,error_type='OCR_MISMATCH',review_basis='OBSERVED_ANOMALY',
+                evidence_ids=[obj['id']],rects=[region['rect']],cell_ids=cells_for_rects([region['rect']]),
+                visual_issue=True,document_review=False,diagnostic_only=False,location_unresolved=False,
+                evidence_quality='UNCERTAIN',target_presence='PRESENT',
+                recommended_action='서로 다른 음절의 원본 획을 확인하세요.')
+    if conflicts:
+        if not run.get('text_routing',{}).get('regions'):prepare(run)
+        run['text_routing']['unresolved_conflicts']=conflicts
+    return rows

@@ -14,8 +14,9 @@ from .rules import PACK, STEPS, placeholder, validate_batch, rollup, redact
 from .providers import Provider
 from .usage import Usage
 from .imaging import labeled
+from . import hand_audit
 from .observations import clean_inventory, legacy_inventory, Decisions, required_object_checks
-from . import taegeukgi, rule_editor, verification, text_ocr, symbol_geometry, evidence_guards, emblem_geometry, glyph_audit, text_location, isolated_glyphs, source_copy, pixel_text, pixel_confirm, spelling_audit, precheck, anatomy, text_routing
+from . import taegeukgi, rule_editor, verification, text_ocr, symbol_geometry, evidence_guards, emblem_geometry, glyph_audit, text_location, isolated_glyphs, source_copy, pixel_text, pixel_confirm, spelling_audit, precheck, anatomy, text_routing, artifact_screen
 
 
 def resized(raw):
@@ -59,16 +60,32 @@ class Engine:
                 if source['options']['mode']!='live' or source.get('scope')=='CROP':raise ValueError('전체 이미지의 실제 관찰 기록만 재사용할 수 있습니다.')
                 observation=copy.deepcopy(source.get('observation')) or legacy_inventory(source)
                 if not set(options.get('recheck_object_ids') or [])<={o['id'] for o in observation['objects']}:raise ValueError('재판독 대상이 저장된 관찰에 없습니다.')
+            quality_plan=None
+            if options.get('quality_recheck'):
+                from . import quality_recheck
+                if not source:raise ValueError('손·글자 확대 재검사에는 저장 관찰이 필요합니다.')
+                calls=max(0,min(2,self.s.integer('AUTO_VERIFY_MAX_CALLS',3)))
+                limit=max(0,min(6,calls*3,self.s.integer('AUTO_VERIFY_MAX_OBJECTS',9)))
+                quality_plan=quality_recheck.plan(source,limit,calls)
+                requested=options.get('recheck_object_ids') or []
+                allowed={e['object_id'] for e in quality_plan['entries'] if e['selectable']}
+                if not requested or len(requested)>limit or len(set(requested))!=len(requested) or not set(requested)<=allowed:
+                    raise ValueError('확대 재검사 대상 또는 한도가 올바르지 않습니다.')
             selected=options['rule_ids'] or list(steps)
+            if quality_plan:
+                domains={e['focus'] for e in quality_plan['entries'] if e['object_id'] in options['recheck_object_ids']}
+                related=(quality_recheck.HAND_RULES if 'anatomy' in domains else set()) | (quality_recheck.TEXT_RULES if 'text' in domains else set())
+                selected=[rid for rid in steps if rid in related]
+                if not selected:raise ValueError('현재 규칙에 선택 영역의 손·글자 점검 항목이 없습니다.')
             if any(x not in steps for x in selected):raise ValueError('알 수 없는 규칙')
             selected=list(dict.fromkeys(selected))
             if options.get('crop_id') and not options['rule_ids']:raise ValueError('확대 재검사는 점검할 규칙을 선택하십시오.')
             refs=[r for r in self.store.references() if r['status']=='APPROVED' and (not r.get('effective_to') or r['effective_to']>=now()[:10]) and (not r.get('effective_from') or r['effective_from']<=now()[:10])]
             cache_data={'image':job['image']['normalized_sha256'],'metadata':job['metadata'],'rules':selected,'pack':pack,
                         'refs':refs,'options':{k:v for k,v in options.items() if k not in ('force','consent')},
-                        'effort':self.s.get('REASONING_EFFORT','low'),'detail':self.s.get('IMAGE_DETAIL','high'),'prompt_version':'original-checklist-v44-hand-text-routing','ocr_settings':{k:self.s.get(k) for k in ('PRECHECK_GUIDANCE_ENABLED','SPELLING_AUDIT_ENABLED','PIXEL_CONFIRM_ENABLED','PIXEL_TEXT_ENABLED','PIXEL_TEXT_MAX_REGIONS','TEXT_BALANCED_SELECTION','GLYPH_AUDIT_ENABLED','GLYPH_AUDIT_MODEL','GLYPH_AUDIT_MAX_REGIONS','ISOLATED_GLYPH_ENABLED','ISOLATED_GLYPH_SCALE','TEXT_ROUTING_RECHECK_ENABLED','TEXT_ROUTING_MAX_REGIONS','OCR_ENABLED','OCR_MAX_REGIONS','OCR_VISION_MAX_REGIONS','OCR_VISION_SCALE','VERIFICATION_REASONING_EFFORT','OCR_REASONING_EFFORT','OCR_HIGH_EFFORT_RECHECK','NAVER_OCR_ENABLED')}}
+                        'effort':self.s.get('REASONING_EFFORT','low'),'detail':self.s.get('IMAGE_DETAIL','high'),'prompt_version':'original-checklist-v53-preserve-reading-conflicts','ocr_settings':{k:self.s.get(k) for k in ('JAMO_ISOLATED_ENABLED','HAND_AUDIT_MODEL','HAND_GEOMETRY_ENABLED','HAND_AUDIT_ENABLED','HAND_AUDIT_MAX_OBJECTS','ARTIFACT_SCREEN_ENABLED','ARTIFACT_RECHECK_ENABLED','ARTIFACT_MAX_REGIONS','PRECHECK_GUIDANCE_ENABLED','SPELLING_AUDIT_ENABLED','PIXEL_CONFIRM_ENABLED','PIXEL_TEXT_ENABLED','PIXEL_TEXT_MAX_REGIONS','TEXT_BALANCED_SELECTION','GLYPH_AUDIT_ENABLED','GLYPH_AUDIT_MODEL','GLYPH_AUDIT_MAX_REGIONS','ISOLATED_GLYPH_ENABLED','ISOLATED_GLYPH_SCALE','TEXT_ROUTING_RECHECK_ENABLED','TEXT_ROUTING_MAX_REGIONS','OCR_ENABLED','OCR_MAX_REGIONS','OCR_VISION_MAX_REGIONS','OCR_VISION_SCALE','VERIFICATION_REASONING_EFFORT','OCR_REASONING_EFFORT','OCR_HIGH_EFFORT_RECHECK','NAVER_OCR_ENABLED')}}
             cache_key=hashlib.sha256(json.dumps(cache_data,sort_keys=True).encode()).hexdigest()
-            inherited=copy.deepcopy(job['runs'][-1]['results']) if job['runs'] else [placeholder(r) for r in steps]
+            inherited=copy.deepcopy(source['results'] if quality_plan else job['runs'][-1]['results']) if job['runs'] else [placeholder(r) for r in steps]
             # Crops are supplementary: preserve the whole-image result and mark the scope.
             if not options.get('crop_id'):inherited=[r for r in inherited if r['rule_id'] not in selected]
             results=inherited+[placeholder(r) for r in selected]
@@ -78,26 +95,32 @@ class Engine:
             if job['runs'] and not options.get('crop_id') and job['runs'][-1].get('structural_checks'):
                 run['structural_checks']=copy.deepcopy(job['runs'][-1]['structural_checks'])
             if source:
-                run['options']['text_sensitivity']=source['options'].get('text_sensitivity','standard')
+                if quality_plan:
+                    run['quality_recheck_plan']=quality_plan
+                    kept_ids={r.get('id') for r in inherited}
+                    run['reviews']=copy.deepcopy([r for r in source.get('reviews',[]) if r.get('finding_id') in kept_ids])
+                run['options']['text_sensitivity']='strict' if quality_plan else source['options'].get('text_sensitivity','standard')
                 run['observation']=observation
                 run['observation_reused_from']={'job_id':jid,'run_id':source['id']}
                 run['observation_model']=source.get('observation_model',source['options']['vision_model'])
                 run['verification']=copy.deepcopy(source.get('verification',{'results':[],'deferred':[],'reused_without_verification':True}))
                 if source.get('text_ocr'):run['text_ocr']=copy.deepcopy(source['text_ocr'])
                 if source.get('glyph_audit'):run['glyph_audit']=copy.deepcopy(source['glyph_audit'])
+                if source.get('hand_audit'):run['hand_audit']=copy.deepcopy(source['hand_audit'])
                 if source.get('pixel_text'):run['pixel_text']=copy.deepcopy(source['pixel_text'])
+                if source.get('artifact_screen'):run['artifact_screen']=copy.deepcopy(source['artifact_screen'])
                 if source.get('spelling_audit'):run['spelling_audit']=copy.deepcopy(source['spelling_audit'])
                 # A previous comparison only applies to the exact approved reference snapshot.
                 valid_hashes={r['id']:r.get('image_hash') for r in refs}
                 action_hashes={r['rule_id']:hashlib.sha256(r['objective'].encode()).hexdigest() for r in pack['steps']}
-                for result in run['verification'].get('results',[]):
+                for result in run['verification'].get('results',[])+run['verification'].get('reference_results',[]):
                     result['comparisons']=[{**c,'rule_ids':[rid for rid in c['rule_ids'] if result.get('rule_hashes',{}).get(rid)==action_hashes.get(rid) and rid in action_hashes]} for c in result.get('comparisons',[]) if result.get('reference_hashes',{}).get(c['reference_id'])==valid_hashes.get(c['reference_id']) and c['reference_id'] in valid_hashes]
                     result['comparisons']=[c for c in result['comparisons'] if c['rule_ids']]
             if not options.get('force'):
                 for old in self.store.jobs():
                     for prior in reversed(old.get('runs',[])):
-                        if prior['cache_key']==cache_key and prior.get('finished_at') and not any(r['status'] in ('ERROR','NOT_RUN') for r in prior['results']):
-                            run.update(results=copy.deepcopy(prior['results']),analysis=copy.deepcopy(prior['analysis']),observation=copy.deepcopy(prior.get('observation')),observation_model=prior.get('observation_model'),verification=copy.deepcopy(prior.get('verification',{})),analysis_observation=copy.deepcopy(prior.get('analysis_observation')),text_coverage=copy.deepcopy(prior.get('text_coverage')),source_copy=copy.deepcopy(prior.get('source_copy')),text_ocr=copy.deepcopy(prior.get('text_ocr')),glyph_audit=copy.deepcopy(prior.get('glyph_audit')),pixel_text=copy.deepcopy(prior.get('pixel_text')),spelling_audit=copy.deepcopy(prior.get('spelling_audit')),precheck_guidance=copy.deepcopy(prior.get('precheck_guidance')),structural_checks=copy.deepcopy(prior.get('structural_checks')),progress=len(selected),finished_at=now(),reused_from={'job_id':old['id'],'run_id':prior['id']})
+                        if prior.get('cache_key')==cache_key and prior.get('finished_at') and not any(r['status'] in ('ERROR','NOT_RUN') for r in prior['results']):
+                            run.update(results=copy.deepcopy(prior['results']),analysis=copy.deepcopy(prior['analysis']),observation=copy.deepcopy(prior.get('observation')),observation_model=prior.get('observation_model'),verification=copy.deepcopy(prior.get('verification',{})),analysis_observation=copy.deepcopy(prior.get('analysis_observation')),text_coverage=copy.deepcopy(prior.get('text_coverage')),source_copy=copy.deepcopy(prior.get('source_copy')),text_ocr=copy.deepcopy(prior.get('text_ocr')),glyph_audit=copy.deepcopy(prior.get('glyph_audit')),hand_audit=copy.deepcopy(prior.get('hand_audit')),pixel_text=copy.deepcopy(prior.get('pixel_text')),artifact_screen=copy.deepcopy(prior.get('artifact_screen')),spelling_audit=copy.deepcopy(prior.get('spelling_audit')),precheck_guidance=copy.deepcopy(prior.get('precheck_guidance')),structural_checks=copy.deepcopy(prior.get('structural_checks')),progress=len(selected),finished_at=now(),reused_from={'job_id':old['id'],'run_id':prior['id']})
                             job['runs'].append(run);job['state']='COMPLETED';self.store.save(job);return job
             job['runs'].append(run);job['state']='QUEUED';self.store.save(job)
             self.pool.submit(self.execute,jid,run['id']);return job
@@ -174,19 +197,27 @@ class Engine:
             run['phase']='TEXT_OCR';self.checkpoint(jid,run)
             raw=(self.s.data/jid/'image.png').read_bytes()
             pixel_text.run_check(self,job,run,raw)
-            text_routing.recheck(self,job,run,raw)
+        if not grid:
+            artifact_screen.inspect(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+        if not grid and set(run['selected']).intersection(pixel_text.TEXT_RULES) and self.s.flag('PIXEL_TEXT_ENABLED',True):
+            text_routing.recheck(self,job,run,(self.s.data/jid/'image.png').read_bytes())
         if not grid and (not run.get('observation_reused_from') or options.get('recheck_object_ids')):
             run['phase']='VERIFYING';self.checkpoint(jid,run)
             verification.run_verification(self,job,run,(self.s.data/jid/'image.png').read_bytes())
-        if not grid and not run.get('observation_reused_from') and set(run['selected']).intersection(glyph_audit.TEXT_RULES) and options.get('text_sensitivity','strict')=='strict' and self.s.flag('GLYPH_AUDIT_ENABLED',False):
+        quality_pass=not grid and not run.get('observation_reused_from') and self.s.integer('AUTO_VERIFY_MAX_CALLS',3)>0
+        if quality_pass and set(run['selected']).intersection(glyph_audit.TEXT_RULES) and options.get('text_sensitivity','strict')=='strict' and self.s.flag('GLYPH_AUDIT_ENABLED',self.s.flag('PIXEL_TEXT_ENABLED',True)):
             run['phase']='GLYPH_AUDIT';self.checkpoint(jid,run)
             glyph_audit.run_audit(self,job,run,(self.s.data/jid/'image.png').read_bytes())
-            if self.s.flag('ISOLATED_GLYPH_ENABLED',False):isolated_glyphs.run_isolated(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+            if self.s.flag('ISOLATED_GLYPH_ENABLED',True):isolated_glyphs.run_isolated(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+        if quality_pass and set(run['selected']).intersection({f'D-02-{c}' for c in 'cdefghi'}) and self.s.flag('HAND_AUDIT_ENABLED',True):
+            run['phase']='VERIFYING';self.checkpoint(jid,run)
+            hand_audit.inspect(self,job,run,(self.s.data/jid/'image.png').read_bytes())
         if not grid and set(run['selected']).intersection(pixel_text.TEXT_RULES) and self.s.flag('PIXEL_TEXT_ENABLED',True):
             run['phase']='TEXT_OCR';self.checkpoint(jid,run)
-            if self.s.flag('PIXEL_CONFIRM_ENABLED',True):pixel_confirm.confirm(self,job,run,(self.s.data/jid/'image.png').read_bytes())
+            if self.s.flag('PIXEL_CONFIRM_ENABLED',True) and not options.get('quality_recheck'):pixel_confirm.confirm(self,job,run,(self.s.data/jid/'image.png').read_bytes())
         if not grid:source_copy.inspect(run,(self.s.data/jid/'image.png').read_bytes())
         run['analysis_observation']=verification.effective_observation(run)
+        hand_audit.attach(run)
         run['text_coverage']=verification.coverage(run['analysis_observation'],run.get('verification',{}))
         if not grid:run['symbol_geometry']=symbol_geometry.inspect((self.s.data/jid/'image.png').read_bytes(),run['analysis_observation'],run['reference_snapshot'],self.s.data)
         if not grid and 'H-07-b' in run['selected']:
@@ -345,6 +376,8 @@ class Engine:
             found=text_location.protect(run,found)
             found=pixel_text.protect(run,found,ids)
             found=spelling_audit.protect(run,found,ids)
+            found=text_routing.protect_conflicts(run,found,ids)
+            found=hand_audit.protect(run,found,ids)
         return precheck.annotate(run,anatomy.protect(run,found),ids)
 
     def mock(self,job,ids,grid):

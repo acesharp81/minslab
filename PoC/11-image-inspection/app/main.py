@@ -11,11 +11,12 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse, Response
+from .response_compression import HistoryCompressionMiddleware
 from pydantic import BaseModel, Field, ConfigDict
 from .config import Settings, ROOT
 from .storage import Store, now
 from .engine import Engine
-from . import rule_editor, checklist_report
+from . import rule_editor, checklist_report, quality_recheck
 from .rules import PACK, STEPS, rollup, redact
 from .imaging import normalize, crop, cell_rect, labeled
 
@@ -33,6 +34,7 @@ class RunInput(BaseModel):
     force: bool=False
     reuse_observation_run_id: str | None=None
     recheck_object_ids: list[str]=Field(default_factory=list,max_length=9)
+    quality_recheck: bool=False
 class RuleEditInput(BaseModel):
     markdown: str=Field(min_length=1,max_length=150000)
     base_version: str=Field(max_length=100)
@@ -66,6 +68,7 @@ def create_app(settings=None):
         import asyncio
         await asyncio.to_thread(engine.pool.shutdown, wait=True)
     app=FastAPI(title='췤미! · PoC11 이미지 품질검수',docs_url=None,redoc_url=None,openapi_url=None,lifespan=lifespan)
+    app.add_middleware(HistoryCompressionMiddleware,minimum_size=1000,compresslevel=5)
     app.state.settings=s;app.state.store=store;app.state.engine=engine
     login_attempts={}
 
@@ -203,15 +206,37 @@ def create_app(settings=None):
     @app.get('/api/jobs/{jid}')
     def detail(jid:str,request:Request,view:str='full',run_id:str|None=None):
         actor(request)
-        if view not in ('full','latest'):raise HTTPException(400,'지원하지 않는 조회 방식입니다.')
-        job=store.view(jid,run_id) if view=='latest' else getjob(jid)
+        if view not in ('full','latest','screen'):raise HTTPException(400,'지원하지 않는 조회 방식입니다.')
+        job=store.view(jid,run_id) if view in ('latest','screen') else getjob(jid)
         if not job:raise HTTPException(404,'검사 자료 또는 버전을 찾을 수 없습니다.')
-        return public_job(job)
+        out=public_job(job)
+        if view=='screen':
+            # Preserve all findings, observations and usage; defer the large snapshots only.
+            out['runs']=[{**r,'details_deferred':True,
+                'rule_pack':{'version':r.get('rule_pack',{}).get('version'),
+                             'steps':[{k:step[k] for k in ('rule_id','objective','reference_requirements') if k in step}
+                                      for step in r.get('rule_pack',{}).get('steps',[])]},
+                'reference_snapshot':[{k:ref[k] for k in ('id','name') if k in ref}
+                                      for ref in r.get('reference_snapshot',[])]} for r in out['runs']]
+        return out
+    @app.get('/api/jobs/{jid}/runs/{run_id}/details')
+    def run_details(jid:str,run_id:str,request:Request):
+        actor(request);job=store.view(jid,run_id)
+        if not job or not job['runs']:raise HTTPException(404,'검사 자료 또는 버전을 찾을 수 없습니다.')
+        run=job['runs'][0]
+        return {'run_id':run_id,'rule_pack':run.get('rule_pack',{}),'reference_snapshot':run.get('reference_snapshot',[])}
     @app.get('/api/jobs/{jid}/versions')
     def versions(jid:str,request:Request):
         actor(request);rows=store.versions(jid)
         if rows is None:raise HTTPException(404,'검사 자료를 찾을 수 없습니다.')
         return rows
+    @app.get('/api/jobs/{jid}/runs/{run_id}/quality-plan')
+    def quality_plan(jid:str,run_id:str,request:Request):
+        actor(request);job=store.view(jid,run_id)
+        if not job or not job['runs']:raise HTTPException(404,'검사 자료 또는 버전을 찾을 수 없습니다.')
+        calls=max(0,min(2,s.integer('AUTO_VERIFY_MAX_CALLS',3)))
+        limit=max(0,min(6,calls*3,s.integer('AUTO_VERIFY_MAX_OBJECTS',9)))
+        return {'run_id':run_id,**quality_recheck.plan(job['runs'][0],limit,calls)}
     @app.get('/api/jobs/{jid}/image')
     def image(jid:str,request:Request):
         actor(request)
@@ -234,6 +259,7 @@ def create_app(settings=None):
             raise HTTPException(400,'지원하지 않는 실행 설정')
         if data.reuse_observation_run_id and (data.mode!='live' or data.crop_id):raise HTTPException(400,'관찰 재사용은 전체 이미지 실제 분석에서만 가능합니다.')
         if data.recheck_object_ids and not data.reuse_observation_run_id:raise HTTPException(400,'객체 재판독에는 재사용할 관찰 버전이 필요합니다.')
+        if data.quality_recheck and (not data.reuse_observation_run_id or not data.recheck_object_ids or len(data.recheck_object_ids)>6):raise HTTPException(400,'손·글자 확대 재검사는 저장된 관찰에서 1~6개 영역을 선택해야 합니다.')
         if data.crop_id and data.crop_id not in {x['id'] for x in job['crops']}:raise HTTPException(400,'잘못된 확대 영역')
         if data.mode=='live':
             if not data.consent or not s.flag('EXTERNAL_API_ENABLED',True):raise HTTPException(400,'외부 전송 허용을 확인하십시오.')

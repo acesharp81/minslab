@@ -117,3 +117,6 @@ header{height:64px;padding:0 24px;gap:28px}nav{gap:20px}main{max-width:1920px;pa
 
 /* Analysis actions are unavailable until an administrator session is confirmed. */
 body:not(.can-run-analysis) :is(#run,#reanalyze,#rerun,#run-crop,#retry-step,#crop-step,#retry-failed-inspection,#demo,[data-reanalysis-job],[data-source-run],[data-result-view="selection"],.parent-select){display:none!important}
+
+/* Explicit crop review: coverage gaps remain separate from findings. */
+#quality-dialog{width:min(900px,94vw);max-height:90vh;padding:24px}#quality-targets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.quality-target{display:grid;grid-template-columns:20px 100px minmax(0,1fr);align-items:center;gap:10px;border:1px solid #d8e3e5;border-radius:8px;padding:10px;cursor:pointer}.quality-target svg{width:100px;height:100px;background:#edf2f3}.quality-target small{display:block;margin-top:6px;color:#536d79}.quality-target input{width:16px;height:16px}.quality-footer{position:sticky;bottom:-24px;background:white;padding:12px 0;display:flex;align-items:center;justify-content:space-between;gap:12px}body:not(.can-run-analysis) #quality-recheck{display:none}@media(max-width:650px){#quality-targets{grid-template-columns:1fr}.quality-footer{flex-wrap:wrap}#quality-dialog{padding:16px}.quality-footer{bottom:-16px}}

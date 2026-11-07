@@ -12,7 +12,7 @@ from .imaging import cell_rect, crop, labeled
 from .rules import redact
 from .usage import BudgetError
 from . import text_selection
-from . import precheck
+from . import precheck, quality_recheck
 from .anatomy import HandObservation, POLICY as HAND_POLICY
 
 class Comparison(BaseModel):
@@ -170,7 +170,7 @@ def candidates(observation,refs,steps,selected,strict=True,image_hash=None,balan
         buckets['text']=text_selection.balanced(buckets['text'],lambda t:text_selection.role(t['object']))
     ordered=[]
     while any(buckets.values()):
-        for domain in ('text','text','map','emblem','context_symbol','symbol','anatomy'):
+        for domain in ('text','anatomy','map','emblem','context_symbol','symbol'):
             if buckets.get(domain):ordered.append(buckets[domain].pop(0))
         if not any(buckets.get(d) for d in ('text','map','context_symbol','emblem','anatomy','symbol')):
             ordered.extend(buckets.pop('other',[]))
@@ -192,11 +192,11 @@ def expanded_crop(raw,cells,measured_rect=None,focus=None):
     if focus=='map':
         # Keep title, legend and neighboring countries; a center crop loses territorial context.
         return raw,[0.,0.,1.,1.]
-    if not measured_rect and focus in ('text','anatomy'):
+    if not measured_rect and focus in ('text','anatomy','hand-quality'):
         rects=[cell_rect(c) for c in cells]
         bounds=[min(r[0] for r in rects),min(r[1] for r in rects),max(r[2] for r in rects),max(r[3] for r in rects)]
         # Native pixels; reduce distracting surrounding words, retain wrist context.
-        padding=(.3 if focus=='text' else 2.)/12
+        padding=(.3 if focus=='text' else 1. if focus=='hand-quality' else 2.)/12
         # Inventory cells locate the center, not a bounding box. Preserve the
         # first/last words while keeping neighboring lines out of the crop.
         horizontal_padding=1.25/12 if focus=='text' else padding
@@ -253,8 +253,33 @@ def reconcile_comparison_aspects(result):
 
 def run_verification(engine,job,run,raw):
     pack=run['rule_pack'];steps={s['rule_id']:s for s in pack['steps']}
-    tasks=candidates(run['observation'],run['reference_snapshot'],steps,run['selected'],run['options'].get('text_sensitivity','strict')=='strict',hashlib.sha256(raw).hexdigest(),balanced=engine.s.flag('TEXT_BALANCED_SELECTION',False))
+    focused=bool(run['options'].get('quality_recheck'))
+    tasks=[] if focused else candidates(run['observation'],run['reference_snapshot'],steps,run['selected'],run['options'].get('text_sensitivity','strict')=='strict',hashlib.sha256(raw).hexdigest(),balanced=engine.s.flag('TEXT_BALANCED_SELECTION',False))
+    if engine.s.flag('ARTIFACT_RECHECK_ENABLED',False):
+        # Promote only a recorded concrete hand anomaly, never normal occlusion.
+        hand_ids={oid for c in (run.get('artifact_screen') or {}).get('candidates',[]) if c.get('issue_family')=='ANATOMY_OR_STRUCTURE' for oid in c['object_ids']}
+        for obj in run['observation']['objects']:
+            if obj['id'] not in hand_ids:continue
+            task=next((t for t in tasks if t['object']['id']==obj['id']),None)
+            if task is None:
+                task={'object':obj,'references':[],'rules':[],'domain':'anatomy','score':100};tasks.append(task)
+            if task['domain']=='other':task['domain']='anatomy'
+            if task['domain']=='anatomy':
+                # Keep wrists/forearms via the existing padded anatomy crop.
+                task['artifact_hand_candidate']=True
+        # Replace the first anatomy slot; do not starve other domains or add calls.
+        slots=[i for i,t in enumerate(tasks) if t['domain']=='anatomy']
+        hands=sorted((tasks[i] for i in slots),key=lambda t:not t.get('artifact_hand_candidate',False))
+        for i,task in zip(slots,hands):tasks[i]=task
     requested=set(run['options'].get('recheck_object_ids') or [])
+    for task in tasks:
+        if task['domain']=='text':task['measured_rect']=quality_recheck.measured_text_rect(task['object'],run)
+    if focused:
+        # Explicit coverage review also checks previously CLEAR or unassessed hands.
+        # No previous transcript/verdict is sent to the image reader.
+        tasks=[dict(object=o,references=[],rules=[],domain=quality_recheck.focus(o),score=0,
+                    measured_rect=quality_recheck.measured_text_rect(o,run) if quality_recheck.focus(o)=='text' else None)
+               for o in run['observation']['objects'] if o['id'] in requested and quality_recheck.focus(o)]
     # A positive global OCR count says nothing about any particular object.
     # Skip only an explicitly bound complete region, never every text task.
     covered={r['object_id'] for r in run.get('text_ocr',{}).get('regions',[])
@@ -267,11 +292,12 @@ def run_verification(engine,job,run,raw):
             if obj['id'] in requested and obj['id'] not in existing:
                 tasks.append({'object':obj,'references':[],'rules':[],'domain':'text' if obj.get('text') else 'anatomy' if '손' in obj['label'] else 'other','score':0})
         tasks=[t for t in tasks if t['object']['id'] in requested]
-    verification={'version':'visual-recheck-v8-balanced-text','results':[r for r in previous.get('results',[]) if r['object_id'] not in requested],'deferred':[r for r in previous.get('deferred',[]) if r['object_id'] not in requested],'max_calls':max(0,min(3,engine.s.integer('AUTO_VERIFY_MAX_CALLS',3)))}
+    verification={'version':'visual-recheck-v9-quality-focus','results':copy.deepcopy(previous.get('results',[])),'deferred':[r for r in previous.get('deferred',[]) if r['object_id'] not in requested],'max_calls':max(0,min(2 if focused else 3,engine.s.integer('AUTO_VERIFY_MAX_CALLS',3)))}
+    if previous.get('reference_results'):verification['reference_results']=copy.deepcopy(previous['reference_results'])
     if run.get('text_ocr',{}).get('mode')=='targeted' and not run.get('observation_reused_from'):
         verification['max_calls']=max(0,verification['max_calls']-run['text_ocr'].get('call_count',0))
     run['verification']=verification
-    limit=max(0,min(9,engine.s.integer('AUTO_VERIFY_MAX_OBJECTS',9)))
+    limit=max(0,min(6 if focused else 9,engine.s.integer('AUTO_VERIFY_MAX_OBJECTS',9)))
     if run.get('text_ocr',{}).get('mode')=='targeted' and not run.get('observation_reused_from'):
         limit=max(0,limit-len(run['text_ocr'].get('regions',[])))
     pending=[]
@@ -292,7 +318,7 @@ def run_verification(engine,job,run,raw):
         try:
             images=[];request_tasks=[]
             for task in batch:
-                obj=task['object'];measured=None
+                obj=task['object'];measured=task.get('measured_rect')
                 if any('태극기' in r['name'] for r in task['references']):
                     rects=[cell_rect(c) for c in obj['cell_ids']]
                     def overlap(flag):
@@ -300,13 +326,26 @@ def run_verification(engine,job,run,raw):
                     flags=run.get('structural_checks',{}).get('flags',[])
                     best=max(flags,key=overlap,default=None)
                     if best and overlap(best)>0:measured=best['rect']
-                cropped,rect=expanded_crop(raw,obj['cell_ids'],measured,task['domain']);task['rect']=rect
+                crop_focus='hand-quality' if task['domain']=='anatomy' else task['domain']
+                cropped,rect=expanded_crop(raw,obj['cell_ids'],measured,crop_focus);task['rect']=rect
                 images.extend([thumbnail(cropped),labeled(cropped,8,8)])
                 target_locations=[]
                 for cell in obj['cell_ids']:
                     x,y,z,w=cell_rect(cell);cx=((x+z)/2-rect[0])/(rect[2]-rect[0]);cy=((y+w)/2-rect[1])/(rect[3]-rect[1])
                     if 0<=cx<=1 and 0<=cy<=1:target_locations.append(f'R{min(8,int(cy*8)+1):02}C{min(8,int(cx*8)+1):02}')
+                if measured:
+                    cx=((measured[0]+measured[2])/2-rect[0])/(rect[2]-rect[0]);cy=((measured[1]+measured[3])/2-rect[1])/(rect[3]-rect[1])
+                    target_locations=[f'R{min(8,int(cy*8)+1):02}C{min(8,int(cx*8)+1):02}']
                 request_task={'object_id':obj['id'],'label':blind_label(obj),'target_locations':target_locations,'clean_image_index':len(images)-2,'grid_image_index':len(images)-1,'reference_ids':[r['id'] for r in task['references']],'rules':task['rules'],'inspection_focus':task['domain']}
+                if task['domain'] in ('text','anatomy'):
+                    request_task['quality_protocol']=(
+                        '의미를 해석하기 전에 글자별 실제 초성·중성·종성의 연결, 끊김, 융합, 번짐을 glyph_checks에 기록한다. '
+                        '문맥으로 자연스러운 단어를 복원하지 않는다. 판독불가 음절은 □. 글자마다 획 품질과 원본/crop 경계 손상을 구분한다. '
+                        '검사하지 않은 글자가 있으면 PARTIAL. 읽을 수 있다는 이유로 CLEAR라고 하지 않는다.' if task['domain']=='text' else
+                        '보이는 각각의 손을 hands에 기록한다. 손목→손바닥→손가락 뿌리→관절→끝의 연결을 확인하고 '
+                        '융합·분기·부착 위치가 이상하면 정확한 부위와 모양을 anomaly_evidence에 기록한다. '
+                        '브이/주먹의 접힌 손가락이나 가려진 손가락 개수는 추측하지 않는다. '
+                        '자세가 자연스럽다는 설명만으로 구조를 정상 처리하지 않는다. 손이 확대 경계에 잘리면 PARTIAL이며 원본 손 결함으로 단정하지 않는다. 요청 손을 찾지 못하면 MISSING.')
                 guidance=precheck.compact(run,[r['rule_id'] for r in task['rules']],object_ids={obj['id']})
                 if guidance:request_task['inspection_guidance']={'policy':precheck.POLICY,'items':guidance}
                 request_tasks.append(request_task)
@@ -345,6 +384,9 @@ def run_verification(engine,job,run,raw):
             returned=accepted
             for result in returned:
                 task=by_id[result['object_id']];obj=task['object']
+                if focused and result['coverage']=='COMPLETE' and not result.get('hands' if task['domain']=='anatomy' else 'glyph_checks'):
+                    result['coverage']='PARTIAL'
+                    verification['deferred'].append({'object_id':obj['id'],'reason':'손 구조 또는 글자별 획 관찰 누락: 정상으로 확정하지 않음'})
                 for k in ('text','description','legibility_evidence','visual_concerns'):result[k]=redact(result[k])[:4000]
                 for hand in result.get('hands',[]):
                     for key in ('occlusion_reason','anomaly_evidence'):hand[key]=redact(hand[key])[:500]
@@ -360,7 +402,19 @@ def run_verification(engine,job,run,raw):
                 if result['coverage']=='COMPLETE' and ((obj.get('text','').strip() and not result['text'].strip()) or not found or any(not any(b[0]-.125<=(a[0]+a[2])/2<=b[2]+.125 and b[1]-.125<=(a[1]+a[3])/2<=b[3]+.125 for b in found) for a in anchors)):
                     result['coverage']='PARTIAL'
                 result.update(status='COMPLETED',crop_rect=task['rect'],model=run['options']['vision_model'],event_id=meta.get('event_id'),first_text=obj.get('text',''),transcription_disagreement=obj.get('text','').strip()!=result['text'].strip(),reference_hashes={r['id']:r['image_hash'] for r in task['references']},rule_hashes={r['rule_id']:hashlib.sha256(r['action'].encode()).hexdigest() for r in task['rules']})
-                verification['results'].append(result)
+                prior=next((r for r in verification['results'] if r['object_id']==obj['id']),None)
+                if prior and result['coverage']!='COMPLETE':
+                    # An incomplete retry must not erase earlier paid evidence.
+                    verification.setdefault('attempt_results',[]).append(result)
+                else:
+                    if focused and prior and prior.get('comparisons'):
+                        # A glyph/hand pass does not invalidate an earlier symbol comparison.
+                        # Keep its own crop, reference hashes and original event provenance.
+                        verification['reference_results']=[r for r in verification.get('reference_results',[]) if r['object_id']!=obj['id']]+[copy.deepcopy(prior)]
+                    elif not focused and result.get('comparisons'):
+                        verification['reference_results']=[r for r in verification.get('reference_results',[]) if r['object_id']!=obj['id']]
+                    verification['results']=[r for r in verification['results'] if r['object_id']!=obj['id']]
+                    verification['results'].append(result)
                 if result['coverage']!='COMPLETE':verification['deferred'].append({'object_id':obj['id'],'reason':'대상의 일부만 재판독됨: 첫 관찰을 유지하며 전체 확인 필요'})
         except Exception as exc:
             if isinstance(exc,BudgetError) and not getattr(exc,'call_meta',None) and len(batch)>1:
@@ -383,9 +437,10 @@ def direct_comparisons(run,rule_id,object_ids,reference_ids):
     action=steps.get(rule_id,{}).get('objective','')
     action_hash=hashlib.sha256(action.encode()).hexdigest()
     proof=[]
+    checks=run.get('verification',{}).get('results',[])+run.get('verification',{}).get('reference_results',[])
     for oid in object_ids:
         matches=[]
-        for result in run.get('verification',{}).get('results',[]):
+        for result in checks:
             if result.get('object_id')!=oid or result.get('status')!='COMPLETED' or result.get('coverage')!='COMPLETE' or result.get('rule_hashes',{}).get(rule_id)!=action_hash or not result.get('cell_ids'):continue
             for cmp in result['comparisons']:
                 quality=cmp.get('quality','UNASSESSED')
@@ -403,7 +458,7 @@ def direct_comparisons(run,rule_id,object_ids,reference_ids):
                 group=[c for c in group if c['status']=='MISMATCH']
             normalized.extend(group)
         if len({c['status'] for c in normalized})>1:return []
-        incomplete=any(c.get('status') in ('UNCERTAIN','NOT_COMPARABLE') and rule_id in c.get('rule_ids',[]) and c.get('reference_id') in reference_ids for r in run.get('verification',{}).get('results',[]) if r.get('object_id')==oid for c in r.get('comparisons',[]))
+        incomplete=any(c.get('status') in ('UNCERTAIN','NOT_COMPARABLE') and rule_id in c.get('rule_ids',[]) and c.get('reference_id') in reference_ids for r in checks if r.get('object_id')==oid for c in r.get('comparisons',[]))
         if incomplete and all(c['status']=='MATCH' for c in normalized):return []
         proof.extend(normalized)
     return proof
@@ -435,6 +490,15 @@ def effective_observation(run):
         obj['rects']=[global_rect(c,result['crop_rect']) for c in result['cell_ids']]
         # Keep global coarse grid ids for legacy expansion buttons; precise provenance stays in rects.
         obj['cell_ids']=list(dict.fromkeys(f'R{min(12,int((r[1]+r[3])/2*12)+1):02}C{min(12,int((r[0]+r[2])/2*12)+1):02}' for r in obj['rects']))
+    # Retain specifically observed partial hand anomalies without certifying the
+    # rest of the hand, or replacing the original text/geometry with a partial read.
+    for result in run.get('verification',{}).get('results',[])+run.get('verification',{}).get('attempt_results',[]):
+        obj=by_id.get(result.get('object_id'))
+        if not obj or result.get('status')!='COMPLETED' or result.get('coverage')!='PARTIAL':continue
+        anomalies=[h for h in result.get('hands',[]) if h.get('visible_structure')=='ANOMALOUS' and h.get('anomaly_evidence','').strip()]
+        if not anomalies or not result.get('cell_ids'):continue
+        obj['hands']=copy.deepcopy(obj.get('hands',[]))+[copy.deepcopy(h) for h in anomalies if h not in obj.get('hands',[])]
+        obj['partial_hand_evidence']={'event_id':result.get('event_id'),'crop_rect':result.get('crop_rect'),'coverage':'PARTIAL'}
     return observation
 
 
