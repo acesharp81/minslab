@@ -17,6 +17,10 @@ def enrich(row,doc,supplement,analysis):
  if not doc:return row
  decision=doc.get('decision') or {}
  row.update(business_status=doc['status'],business_status_label=doc['status_label'],business_reason=decision.get('reason',''))
+ row['body_refs']=[dict(value['evidence_ref'],kind=kind) for kind,value in [('publication_supplement',supplement),('ai_publication_analysis',analysis)] if value and value.get('evidence_ref')]
+ source= supplement if usable(supplement,doc['source_revision_no'],analysis) else analysis
+ if source and source.get('evidence_ref'):
+  row['body_ref']=dict(source['evidence_ref'],kind='publication_supplement' if source is supplement else 'ai_publication_analysis')
  if usable(supplement,doc['source_revision_no'],analysis):
   row.update(body_text=supplement['body_text'],body_source_revision_no=supplement['source_revision_no'],body_origin='담당자 원문 복구',manual_summary=supplement.get('summary',''))
  if row.get('role')=='collection' and row.get('state')=='HOLD' and row.get('body_origin')=='담당자 원문 복구' and row.get('stage') in ('DOCUMENT_ERROR','ANALYSIS_ERROR'):
@@ -120,6 +124,8 @@ def export_csv(service,store,role='all',unique=False,verdict='HOLD'):
  rows=[]
  for selected in ('collection','officer') if role=='all' else (role,):
   rows.extend(r for r in items(service,store,selected,evidence_export=True) if (r['state']=='HOLD' if verdict=='HOLD' else verdict=='ALL' or r.get('verdict')==verdict))
+ from .hold_evidence_integrity import package as integrity_package, load_registry, references
+ registry=load_registry(service,[ref for row in rows for ref in references(dict(row.get('result') or {},body_ref=row.get('body_ref') or (row.get('result') or {}).get('body_ref'),body_refs=row.get('body_refs',[])))])
  groups={}
  for index,r in enumerate(rows):groups.setdefault(r['subject'] if unique else str(index),[]).append(r)
  output=io.StringIO(newline='');writer=csv.writer(output);writer.writerow([('판단사유' if verdict!='HOLD' and f=='보류사유' else f) for f in FIELDS]+['합쳐진기록수','에이전트별기록_JSON'])
@@ -128,16 +134,15 @@ def export_csv(service,store,role='all',unique=False,verdict='HOLD'):
   # Keep every role's assessment, while including the longest available body once.
   original=max(group,key=lambda x:len(x.get('body_text','')));r=safe_value(original);result=dict(r.get('result') or {})
   if r.get('role')=='officer':result.update(verdict=r.get('verdict','HOLD'),missing_evidence=r.get('missing_evidence',[]),retry_after=r.get('retry_after'),effects=r.get('effects',[]))
-  package=result.get('evidence_package') or dict(source_url=r.get('url'),source_revision_no=r.get('source_revision_no'),
-     body_origin=r.get('body_origin','AI 수집'),body_source_revision_no=r.get('body_source_revision_no'),body_current=r.get('body_source_revision_no')==r.get('source_revision_no') if r.get('body_source_revision_no') else None,exported_body_sha256=hashlib.sha256(r.get('body_text','').encode()).hexdigest() if r.get('body_text') else None,
-     quote_checks=[dict(exact=q in r.get('body_text',''),whitespace_normalized=''.join(q.split()) in ''.join(r.get('body_text','').split())) for q in r.get('evidence',[]) if isinstance(q,str) and q.strip()],
-     note='현재 저장 본문 대조 · 인용 불일치는 허위 단정이 아닌 재확인 대상')
+  package=integrity_package(original,group,registry)
+  r['body_text']=package['body']
+  if result.get('evidence_package'):result['evidence_package']=package
   record_summaries=[{k:v for k,v in x.items() if k not in ('body_text','cross_review')} for x in group] if unique else []
   values=[' + '.join(dict.fromkeys(ROLES[x['role']] for x in group)),r['subject'],r.get('title'),{'YES':'Yes · 업무 반영 완료','NO':'No · 제외 확정','HOLD':'보류 · 추가 자료 확보 후 재판단'}.get(r.get('verdict'),'보류') if r.get('role')=='officer' else '판단보류 · 사람 개입 필요',r.get('stage'),
     r.get('reason'),r.get('action'),r.get('url'),r.get('source_revision_no'),r.get('model'),r.get('run_id'),
     datetime.fromtimestamp(r['created'],timezone.utc).isoformat() if r.get('created') else '',encode(r.get('evidence',[])),encode(result),r.get('body_text',''),
     r.get('business_status_label',''),r.get('business_reason',''),r.get('body_origin','AI 수집'),r.get('manual_summary',''),
-    'STAGE' if r['subject'].startswith('STA_') else 'DOCUMENT',result.get('body_status',('STALE_TEXT' if r.get('body_source_revision_no') and r.get('body_source_revision_no')!=r.get('source_revision_no') else 'TEXT_AVAILABLE') if r.get('body_text') else 'MISSING'),encode(package),
+    'STAGE' if r['subject'].startswith('STA_') else 'DOCUMENT',result.get('body_status',('STALE_TEXT' if r.get('body_source_revision_no') and r.get('body_source_revision_no')!=r.get('source_revision_no') else 'TEXT_AVAILABLE') if r.get('body_text') else 'MISSING'),json.dumps(package,ensure_ascii=False),
     result.get('event_group',''),encode(result.get('duplicate_ids',[])),encode(result.get('different_value_ids',[])),encode(r.get('cross_review',{})),
     bool(r.get('reanalysis_required')),bool(result.get('auto_eligible')),len(group),encode(record_summaries)]
   writer.writerow([cell(v) for v in values])

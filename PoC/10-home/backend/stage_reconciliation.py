@@ -308,8 +308,14 @@ def export_csv(service):
     from .publication_review_export import cell
     from .publication_evidence import safe_value
     out=io.StringIO(newline='');w=csv.writer(out);w.writerow(['검토ID','사업ID','사업명','단계','상태','기존값_JSON','새근거_JSON','변경호수_가산아님','자동반영제약','반영불가사유','원문URL','근거판본_JSON','인용_JSON','수집본문','증빙상태','증빙패키지_JSON','사건군ID','중복검토ID_JSON','상이한값검토ID_JSON','교차검토_JSON','수동검토가능_승인아님','자동반영가능'])
-    for r in list_items(service,include_proof=True):
-        r=safe_value(r)
+    from .hold_evidence_integrity import package,load_registry,references
+    rows=list_items(service,include_proof=True)
+    registry=load_registry(service,[ref for r in rows for ref in references(r)])
+    for original in rows:
+        r=safe_value(original)
+        record=dict(subject=r['id'],result=original,body_text=original.get('evidence_package',{}).get('body',''),
+            evidence=[v for k,v in original.get('quotes',{}).items() if k in ('date_quote','units_quote')],cross_review=original.get('cross_review',{}),url=original.get('url'),source_revision_no=original['source_ref']['revision_no'])
+        r['evidence_package']=package(record,[record],registry)
         if r['status'] not in LIVE:continue
         values=[r['id'],r['project_id'],r['project_name'],r['stage_label'],r['status'],json.dumps(r['previous'],ensure_ascii=False),json.dumps(r['proposed'],ensure_ascii=False),r['delta_units'],' / '.join(r['review_reasons']),' / '.join(r['blockers']),r['url'],json.dumps(r['source_ref'],ensure_ascii=False),json.dumps(r['quotes'],ensure_ascii=False),r['evidence_package']['body'],r['body_status'],json.dumps(r['evidence_package'],ensure_ascii=False),r.get('event_group'),json.dumps(r['duplicate_ids']),json.dumps(r['different_value_ids']),json.dumps(r['cross_review'],ensure_ascii=False),r['can_apply'],r['auto_eligible']]
         w.writerow([cell(v) for v in values])

@@ -29,6 +29,19 @@ def install(app,service,authenticated,prefix):
         return Response(stages.export_csv(service),media_type='text/csv; charset=utf-8',headers={
             'Content-Disposition':'attachment; filename="home-stage-review-pending.csv"','Cache-Control':'no-store'})
 
+    @app.get(prefix+'/api/admin/stage-reviews/{proposal_id}/evidence')
+    def evidence(proposal_id:str,request:Request):
+        if not authenticated(request):raise HTTPException(401,'관리자 로그인이 필요합니다')
+        from .hold_evidence_integrity import package,load_registry,references
+        row=next((r for r in stages.list_items(service,include_proof=True) if r['id']==proposal_id),None)
+        if not row:raise HTTPException(404,'검토 대상을 찾을 수 없습니다')
+        record=dict(subject=row['id'],result=row,body_text=row['evidence_package']['body'],
+            evidence=[v for k,v in row['quotes'].items() if k in ('date_quote','units_quote')],
+            url=row['url'],cross_review=row.get('cross_review',{}),source_revision_no=row['source_ref']['revision_no'])
+        import json
+        return Response(json.dumps(package(record,[record],load_registry(service,references(row))),ensure_ascii=False),
+            media_type='application/json',headers={'Cache-Control':'no-store','Content-Disposition':'attachment; filename="'+proposal_id+'-evidence.json"'})
+
     @app.post(prefix+'/api/admin/stage-reviews/refresh')
     def refresh(request:Request):
         if not authenticated(request):raise HTTPException(401,'관리자 로그인이 필요합니다')
