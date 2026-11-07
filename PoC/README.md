@@ -14,7 +14,7 @@
 | 08 | [조달췤!](08-AICommonPlatformRadar/README.md) | 조달 AI 사업 수집·선별·검토 | 독립 FastAPI + SQLite |
 | 10 | [HOME](10-home/README.md) | 정부 정책과 서울·경기 사업 후보 수집·검토·현황 조회 | 독립 FastAPI + PostgreSQL/PostGIS + 루트 reverse proxy |
 | 11 | [췤미!](11-image-inspection/README.md) | 이미지 검사·OCR | 독립 API + SQLite |
-| 12 | [책자리](12-epub-reader/README.md) | EPUB·PDF 읽기·로컬 서재·책갈피 | 정적 HTML/JS + 브라우저 IndexedDB |
+| 12 | [책자리](12-epub-reader/README.md) | EPUB·PDF·Markdown 읽기·로컬 서재·책갈피 | 정적 HTML/JS + 브라우저 IndexedDB |
 
 
 현재 1·2·4·6·11번은 PoC, 7·8·10·12번은 포트폴리오입니다. 3·5·9번은 삭제했습니다. 4번은 코드·파이프라인·테이블 구조를 보존하고 데이터·백업만 초기화한 중지 상태입니다. 8번은 수집이 비활성화되어 있습니다.

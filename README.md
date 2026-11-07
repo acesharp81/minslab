@@ -17,7 +17,7 @@ MinsLab은 Python ASGI 애플리케이션을 중심으로 로컬·원격 AI 채�
 | Portfolio 08 | 조달췤! | `/portfolio?project=ai-common-platform-radar` | [PoC/08-AICommonPlatformRadar](PoC/08-AICommonPlatformRadar/README.md) |
 | Portfolio 10 | HOME · 주택정책의 실행·모니터링 | `/poc/home` · `/home` | [PoC/10-home](PoC/10-home/README.md) |
 | PoC 11 | 췤미! 이미지 검사 | `/poc?project=image-inspection` | [PoC/11-image-inspection](PoC/11-image-inspection/README.md) |
-| Portfolio 12 | 책자리 · EPUB · PDF 리더 | `/portfolio?project=epub-reader` · `/epub` | [PoC/12-epub-reader](PoC/12-epub-reader/README.md) |
+| Portfolio 12 | 책자리 · EPUB · PDF · Markdown 리더 | `/portfolio?project=epub-reader` · `/epub` | [PoC/12-epub-reader](PoC/12-epub-reader/README.md) |
 
 현재 1·2·4·6·11번은 PoC, 7·8·10·12번은 포트폴리오입니다. 최초 번호·폴더·서비스 URL은 유지합니다. 3·5·9번과 이전 포트폴리오 4개는 삭제했습니다. 4번은 코드·파이프라인·DB 스키마를 보존하고 데이터·백업만 비운 중지 상태입니다. 8번의 신규 수집은 설정에서 비활성화되어 있습니다.
 

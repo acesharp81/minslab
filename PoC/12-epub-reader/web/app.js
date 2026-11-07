@@ -6,8 +6,10 @@ let books = [], current = null, epub = null, chapterIndex = 0, ready = false, bu
 let pager = null;
 let saveTimer, toastTimer, pendingDelete, coverUrls = [];
 let preferences = { fontSize: 19, theme: 'paper', columns: 2, pdfZoom: 1 };
-let pdfModule;
+let pdfModule, markdownModule;
 const loadPdf = () => pdfModule ||= import('./pdf.js');
+const loadMarkdown = () => markdownModule ||= import('./markdown.js');
+let markdownStyles = '';
 const isPdf = () => current?.format === 'pdf';
 const palette = { paper: ['#fcfaf3','#30372e','#526b51'], light: ['#ffffff','#242d28','#2d5b48'], dark: ['#242c26','#e0e5da','#a8c7a1'] };
 function toast(message, error = false) {
@@ -42,7 +44,7 @@ function renderShelf() {
     open.append(cover, create('strong', '', book.title), create('span', 'author', book.author));
     const meta = create('span', 'book-meta'); meta.append(create('span', '', book.position ? `약 ${book.progress || 0}% 읽음` : '새로 담은 책'), create('span', '', `책갈피 ${book.bookmarks.length}`)); open.append(meta);
     open.onclick = () => { if (!busy) openBook(book.id); };
-    const actions = create('div', 'book-actions'); actions.append(create('small', '', `${(book.size / 1024 / 1024).toFixed(1)} MB · ${book.format === 'pdf' ? `${book.pages}쪽 · PDF` : `${book.chapters}개 장 · EPUB`}`));
+    const actions = create('div', 'book-actions'); actions.append(create('small', '', `${(book.size / 1024 / 1024).toFixed(1)} MB · ${book.format === 'pdf' ? `${book.pages}쪽 · PDF` : `${book.chapters}개 장 · ${book.format === 'md' ? 'Markdown' : 'EPUB'}`}`));
     const remove = create('button', 'quiet', '삭제'); remove.setAttribute('aria-label', `${book.title} 삭제`); remove.onclick = () => { if (busy) return; pendingDelete = book.id; $('delete-description').textContent = book.title; $('delete-dialog').showModal(); };
     actions.append(remove); card.append(open, actions); $('shelf').append(card);
   }
@@ -54,24 +56,28 @@ async function importFiles(files) {
   for (const file of files) {
     let parsed;
     try {
-      if (!/\.(epub|pdf)$/i.test(file.name)) throw new Error('EPUB 또는 PDF 파일만 추가할 수 있습니다.');
-      if (!file.size || file.size > 50 * 1024 * 1024) throw new Error('파일당 50 MB 이하의 EPUB 또는 PDF를 선택해 주세요.');
+      if (!/\.(epub|pdf|md|markdown)$/i.test(file.name)) throw new Error('EPUB, PDF 또는 Markdown(.md) 파일만 추가할 수 있습니다.');
+      const format = /\.pdf$/i.test(file.name) ? 'pdf' : /\.(md|markdown)$/i.test(file.name) ? 'md' : 'epub';
+      const limit = format === 'md' ? 5 : 50;
+      if (!file.size || file.size > limit * 1024 * 1024) throw new Error(`본문이 있는 ${limit} MB 이하의 파일을 선택해 주세요.`);
       toast(`${file.name} 읽는 중…`);
       const buffer = await file.arrayBuffer();
       const id = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', buffer)), b => b.toString(16).padStart(2, '0')).join('');
       if (books.some(b => b.id === id)) { first ||= id; toast('이미 서재에 있는 책입니다. 기존 책갈피를 유지합니다.'); continue; }
-      const format = /\.pdf$/i.test(file.name) ? 'pdf' : 'epub';
       let cover;
       if (format === 'pdf') {
         parsed = await (await loadPdf()).PdfBook.load(buffer, file.name);
         cover = await parsed.thumbnail();
+      } else if (format === 'md') {
+        parsed = await (await loadMarkdown()).MarkdownBook.load(buffer, file.name);
+        cover = null;
       } else {
         parsed = await Epub.load(buffer);
         await parsed.chapter(0);
         cover = parsed.cover ? await (await fetch(parsed.cover)).blob() : null;
       }
       const book = { id, format, title: parsed.title, author: parsed.author, filename: file.name, size: file.size, cover, chapters: parsed.spine.length, pages: format === 'pdf' ? parsed.total : null, bookmarks: [], position: null, progress: 0, updatedAt: Date.now() };
-      await storage.importBook(book, new Blob([buffer], { type: format === 'pdf' ? 'application/pdf' : 'application/epub+zip' }));
+      await storage.importBook(book, new Blob([buffer], { type: format === 'pdf' ? 'application/pdf' : format === 'md' ? 'text/markdown;charset=utf-8' : 'application/epub+zip' }));
       books.push(book); added++; first ||= id;
     } catch (error) { errors.push(`${file.name}: ${error.name === 'QuotaExceededError' ? '저장 공간이 부족합니다.' : error.message}`); }
     finally { await parsed?.destroy(); }
@@ -89,7 +95,11 @@ async function openBook(id) {
     const book = books.find(b => b.id === id);
     const file = await storage.getFile(id);
     if (!file) throw new Error('저장된 책 파일을 찾을 수 없습니다. 원본 파일을 다시 추가해 주세요.');
-    parsed = book.format === 'pdf' ? await (await loadPdf()).PdfBook.load(await file.arrayBuffer(), book.filename) : await Epub.load(await file.arrayBuffer());
+    const buffer = await file.arrayBuffer();
+    if (book.format === 'md') {
+      const module = await loadMarkdown(); markdownStyles = module.readerStyles;
+      parsed = await module.MarkdownBook.load(buffer, book.filename);
+    } else parsed = book.format === 'pdf' ? await (await loadPdf()).PdfBook.load(buffer, book.filename) : await Epub.load(buffer);
     epub?.destroy(); epub = parsed; current = book;
     $('reader-title').textContent = book.title; $('reader-author').textContent = book.author;
     $('library').hidden = true; $('reader').hidden = false; document.body.classList.add('is-reading');
@@ -109,6 +119,7 @@ async function openBook(id) {
 }
 function configureReader() {
   const pdf = isPdf();
+  $('book-frame').title = current?.format === 'md' ? 'Markdown 본문' : 'EPUB 본문';
   $('book-frame').hidden = pdf; $('pdf-pages').hidden = !pdf;
   $('page-wrap').classList.toggle('is-pdf', pdf);
   for (const id of ['font-minus','font-plus','font-size']) $(id).hidden = pdf;
@@ -118,7 +129,7 @@ function configureReader() {
 }
 function readerStyle() {
   const [bg, fg, accent] = palette[preferences.theme];
-  return `html,body{width:100%;height:100%;margin:0;overflow:hidden;background:${bg};color:${fg};color-scheme:${preferences.theme === 'dark' ? 'dark' : 'light'}}#reader-flow{box-sizing:content-box;column-fill:auto;font-family:Georgia,"Batang","Noto Serif KR",serif;font-size:${preferences.fontSize}px;line-height:1.8;overflow-wrap:anywhere}p{margin:0 0 1em;orphans:2;widows:2}h1,h2,h3,h4{line-height:1.4;margin:0 0 .8em;break-after:avoid}h1{font-size:1.7em}h2{font-size:1.4em}img{max-width:100%;max-height:calc(100vh - 64px);object-fit:contain;width:auto;height:auto;display:block;margin:0 auto 1em;break-inside:avoid}a{color:${accent};text-underline-offset:4px}pre{white-space:pre-wrap}table{max-width:100%;border-collapse:collapse;font-size:.85em}td,th{border:1px solid ${accent};padding:5px}blockquote{margin:0 0 1em;padding-left:1em;border-left:2px solid ${accent}}`;
+  return `html,body{width:100%;height:100%;margin:0;overflow:hidden;background:${bg};color:${fg};color-scheme:${preferences.theme === 'dark' ? 'dark' : 'light'}}#reader-flow{box-sizing:content-box;column-fill:auto;font-family:Georgia,"Batang","Noto Serif KR",serif;font-size:${preferences.fontSize}px;line-height:1.8;overflow-wrap:anywhere}p{margin:0 0 1em;orphans:2;widows:2}h1,h2,h3,h4{line-height:1.4;margin:0 0 .8em;break-after:avoid}h1{font-size:1.7em}h2{font-size:1.4em}img{max-width:100%;max-height:calc(100vh - 64px);object-fit:contain;width:auto;height:auto;display:block;margin:0 auto 1em;break-inside:avoid}a{color:${accent};text-underline-offset:4px}pre{white-space:pre-wrap}table{max-width:100%;border-collapse:collapse;font-size:.85em}td,th{border:1px solid ${accent};padding:5px}blockquote{margin:0 0 1em;padding-left:1em;border-left:2px solid ${accent}}` + (current?.format === 'md' ? markdownStyles : '');
 }
 async function displayChapter(index, position = null, hash = '') {
   ready = false; clearTimeout(saveTimer); pager?.destroy(); pager = null; chapterIndex = index;
@@ -224,6 +235,7 @@ function renderToc() {
   for (const item of epub.toc) {
     const index = epub.spine.findIndex(s => s.path === item.path);
     const button = create('button', 'toc-item', item.label || epub.spine[index].label);
+    if (current?.format === 'md') button.style.paddingLeft = `${10 + Math.min(item.depth || 0, 3) * 10}px`;
     button.setAttribute('aria-current', String(index === chapterIndex)); button.onclick = () => navigate(index, null, item.hash); $('toc-panel').append(button);
   }
 }
@@ -285,7 +297,7 @@ $('back-library').onclick = async () => {
   if (busy) return;
   setBusy(true); await savePosition(); ready = false; clearTimeout(saveTimer); pager?.destroy(); pager = null; epub?.destroy(); epub = null; current = null;
   $('book-frame').onload = null; $('book-frame').srcdoc = ''; $('library').hidden = false; $('reader').hidden = true; document.body.classList.remove('is-reading'); $('import-top').hidden = false;
-  document.title = '책자리 · EPUB · PDF 리더';
+  document.title = '책자리 · EPUB · PDF · Markdown 리더';
   try { await storage.setSetting('lastBook', null); } catch (error) { storageError(error); }
   renderShelf(); setBusy(false); $('import-top').focus();
 };
