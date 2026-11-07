@@ -97,6 +97,7 @@ def text_quality(text, title=''):
     t=re.sub(r'\s+',' ',str(text or '')).strip()
     if not t:return 'MISSING'
     if re.search(r'총\s*[\d,]+\s*건.*(?:현재페이지|전체페이지)',t) and re.search(r'번호.{0,20}제목.{0,30}(?:등록일|작성일|담당부서)',t):return 'BOILERPLATE'
+    if re.match(r'^이\s*시간\s*핫\s*뉴스',t):return 'BOILERPLATE'
     if len(t)<60:return 'INSUFFICIENT'
     if '공고 및 공지는 서울주택' in t and ('본문 바로가기' in t or '우리 아파트 찾기' in t):return 'BOILERPLATE'
     if len(t)<300 and t.count(' - ')>=3 and '□' not in t:return 'SUMMARY_ONLY'

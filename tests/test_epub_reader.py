@@ -19,6 +19,8 @@ class EpubReaderRoutes(unittest.IsolatedAsyncioTestCase):
                            ('/poc/epub-reader/storage.js', b'text/javascript'),
                            ('/poc/epub-reader/pagination.js', b'text/javascript'),
                            ('/poc/epub-reader/pdf.js', b'text/javascript'),
+                           ('/poc/epub-reader/markdown.js', b'text/javascript'),
+                           ('/poc/epub-reader/vendor/marked.js', b'text/javascript'),
                            ('/poc/epub-reader/vendor/pdfjs/legacy/build/pdf.min.mjs', b'text/javascript'),
                            ('/poc/epub-reader/vendor/pdfjs/legacy/build/pdf.worker.min.mjs', b'text/javascript'),
                            ('/poc/epub-reader/styles.css', b'text/css'),

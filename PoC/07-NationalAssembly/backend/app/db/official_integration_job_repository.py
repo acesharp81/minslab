@@ -60,6 +60,8 @@ class OfficialIntegrationJobRepository:
                         AND COALESCE(
                               integration.usage_metadata->>'reuse_reason', ''
                             ) <> 'TEMPORARY_UPDATE_DEFERRED'
+                        AND COALESCE(integration.usage_metadata->>'comparison_mode', '')
+                            <> 'SOURCE_ONLY_TIMEOUT'
                   )
                 ORDER BY broadcast.ended_at DESC NULLS LAST, broadcast.id
                 LIMIT %s

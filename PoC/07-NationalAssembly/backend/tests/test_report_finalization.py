@@ -1,6 +1,7 @@
 from copy import deepcopy
 from unittest.mock import Mock, patch
 from app.ingestion.report_finalization import assess
+from app.ingestion.report_finalization import completed_review_is_current
 from app.ingestion.meeting_brief_worker import map_unlinked_brief_once
 from app.services.live_topic_mapping import MAPPING_VERSION
 from app.main import _public_meeting_brief
@@ -77,3 +78,18 @@ def test_finalization_metadata_does_not_invalidate_source_batches():
     original=source_hash(brief)
     brief['finalization']={'status':'PROCESSING','phase':'ONTOLOGY'}
     assert source_hash(brief)==original
+
+
+def test_corrected_summary_must_not_keep_stale_completed_parent_review():
+    state = {'status': 'COMPLETED', 'parent_review_status': 'READY'}
+    brief = structure()
+    assert not completed_review_is_current(state, brief)
+    brief['parent_review'] = {'status': 'READY'}
+    assert completed_review_is_current(state, brief)
+    brief['narrative_coverage']['status'] = 'PENDING'
+    assert not completed_review_is_current(state, brief)
+    assert not completed_review_is_current(state, None)
+
+
+def test_legacy_completion_does_not_trigger_unrequested_bulk_regeneration():
+    assert completed_review_is_current({'status': 'COMPLETED'}, structure())

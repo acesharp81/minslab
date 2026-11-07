@@ -52,7 +52,9 @@ def capture(raw,url,fetcher,*,force_attachment=False):
             body=detail['text'];truncated=detail['truncated'];meta=dict(fetcher.last,landing_page=meta,body_source='ATTACHMENT_TEXT',attachments=links)
         except Exception as error:attachment.update(error=str(error),verification_status='UNVERIFIED')
     meta['attachments']=links;fetcher.last=meta
-    if len(body.strip())<40:raise ValueError('ATTACHMENT_REQUIRED: 상세 본문은 첨부에만 존재하며 추출 미완료')
+    if len(body.strip())<40:
+        if links:raise ValueError('ATTACHMENT_REQUIRED: 상세 본문 미확보 · 첨부 추출 필요')
+        raise ValueError('EMPTY_OR_SCRIPT_PAGE: HTTP 응답은 있으나 상세 본문·첨부를 찾지 못함 · 스크립트/접근제한/원문 삭제 여부 확인 필요')
     return (title,body,truncated),meta
 
 if __name__=='__main__':

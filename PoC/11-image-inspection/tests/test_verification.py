@@ -405,3 +405,24 @@ def test_global_ocr_count_does_not_skip_unchecked_text_or_explicit_recheck(tmp_p
     run['options']['recheck_object_ids']=['o0']
     v.run_verification(engine,{'id':'job','metadata':{}},run,data)
     assert len(sent)==2
+
+
+def test_artifact_hand_routing_reuses_existing_crop_and_call_limits(tmp_path):
+    engine,run,calls,data=setup_run(tmp_path,1)
+    run['reference_snapshot']=[];run['selected']=['D-02-c']
+    obj=run['observation']['objects'][0]
+    obj.update(label='인물',description='사람',text='',quality='CLEAR',visual_concerns='',text_legibility='NOT_TEXT',hands=[])
+    run['artifact_screen']={'candidates':[{'issue_family':'ANATOMY_OR_STRUCTURE','object_ids':[obj['id']]}]}
+    engine.s=Settings({'DATA_DIR':str(tmp_path),'ARTIFACT_RECHECK_ENABLED':'true','AUTO_VERIFY_MAX_CALLS':'1','AUTO_VERIFY_MAX_OBJECTS':'1'})
+    sent=[]
+    def call(model,prompt,images,workload):
+        body=json.loads(prompt);sent.append(body)
+        assert body['tasks'][0]['inspection_focus']=='anatomy'
+        return {'results':[recheck(t['object_id']) for t in body['tasks']]},{'event_id':'fake','workload':workload}
+    engine.provider.call=call
+    v.run_verification(engine,{'id':'job','metadata':{}},run,data)
+    assert len(sent)==1 and len(sent[0]['tasks'])==1
+    # A previous targeted text call already consumed the only shared crop call.
+    run['text_ocr']={'mode':'targeted','call_count':1,'regions':[]}
+    v.run_verification(engine,{'id':'job','metadata':{}},run,data)
+    assert len(sent)==1 and run['verification']['max_calls']==0

@@ -1299,6 +1299,8 @@ class OpenRouterMeetingBriefClient(_MistralMeetingBriefRequestClient):
         if (
             schema_name == "live_topic_mapping"
             or request_model == OPENROUTER_FINAL_RETRY_MODEL
+            or (schema_name == "structured_narrative"
+                and request_model == "nvidia/nemotron-3.5-super-vl:free")
         ):
             body["reasoning"] = {"enabled": False, "exclude": True}
         elif request_model == self.model:

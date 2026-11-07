@@ -1,0 +1,1185 @@
+[
+  {
+    "id": "987a359e-fe5d-4d34-ab74-b33455b3ba10",
+    "model": "dots-studio/dots-3-note-preview:free",
+    "topic": "",
+    "report": {},
+    "status": "LIMIT_REACHED",
+    "evidence": [
+      {
+        "id": "c316e30a-8922-4eef-92dc-6f5b774799b1:topic-2",
+        "score": 0.0625,
+        "tasks": [
+          {
+            "title": "실효적 생활비 절감책 추가 개발·집행",
+            "status": "RESOLVED",
+            "ministries": [
+              ":정부"
+            ]
+          }
+        ],
+        "summary": "기존 물가 안정 노력에도 국민 체감 민생 회복이 미흡하다고 판단해 더욱 과감한 생활비 절감책을 추가로 개발·집행하기로 했다.",
+        "meeting_at": "2026-10-27T03:05:26.879742+00:00",
+        "ministries": [
+          ":정부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "생활비 절감 추가 대책 개발·집행",
+        "broadcast_id": "c316e30a-8922-4eef-92dc-6f5b774799b1",
+        "meeting_title": "제46회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "c316e30a-8922-4eef-92dc-6f5b774799b1:topic-6",
+        "score": 0.0625,
+        "tasks": [
+          {
+            "title": "소액 공급입찰 보증금 5%→10% 상향(차등화)",
+            "status": "RESOLVED",
+            "ministries": [
+              ":조달청"
+            ]
+          },
+          {
+            "title": "공급업체 실태조사 시범 실시(군수물자 등 중요 품목 우선) 후 확대",
+            "status": "RESOLVED",
+            "ministries": [
+              ":조달청"
+            ]
+          },
+          {
+            "title": "국방부 자체 현장 실사·전수검사·전문가 투입 투트랙 검증 체계 구축",
+            "status": "RESOLVED",
+            "ministries": [
+              ":국방부"
+            ]
+          },
+          {
+            "title": "중요하지 않은 물품 납품도 전수조사 실시(준비 기간 소요)",
+            "status": "RESOLVED",
+            "ministries": [
+              ":조달청·행안부"
+            ]
+          }
+        ],
+        "summary": "벌떼 입찰 대책 시행 후 투찰자 84% 감소 성과를 확인했으나 공급입찰 구조적 한계로 무자격 업체 낙찰 후 전매가 지속되어, 소액 공급입찰 보증금 5%→10% 상향, 공급업체 실태조사 시범 실시(군수물자 우선) 후 확대, 국방부 자체 현장 실사·전수검사·전문가 투입 투트랙 검증 체계 구축, 중요하지 않은 물품도 전수조사실",
+        "meeting_at": "2026-10-27T03:05:26.879742+00:00",
+        "ministries": [
+          ":조달청",
+          ":국방부",
+          ":조달청·행안부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "조달청 벌떼 입찰·공급입찰 부조리 근절 강화 대책",
+        "broadcast_id": "c316e30a-8922-4eef-92dc-6f5b774799b1",
+        "meeting_title": "제46회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 13,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "c316e30a-8922-4eef-92dc-6f5b774799b1:topic-8",
+        "score": 0.0625,
+        "tasks": [],
+        "summary": "2025년 기준 지방세·세외수입 체납액 11.1조 원, 체납자 1,200만 명 현황에서 지역 주민 기간제 채용 체납관리단(2,029명) 운영으로 2개월간 136만 명 실태조사, 414억 원 징수(인건비 대비 4배), 생계형 체납자 787명 복지 연계, 일자리 창출 효과를 달성했다.",
+        "meeting_at": "2026-10-27T03:05:26.879742+00:00",
+        "ministries": [],
+        "institution": "EXECUTIVE",
+        "topic_title": "지방세입 체납관리단 운영 성과 및 향후 추진",
+        "broadcast_id": "c316e30a-8922-4eef-92dc-6f5b774799b1",
+        "meeting_title": "제46회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "c316e30a-8922-4eef-92dc-6f5b774799b1:topic-9",
+        "score": 0.0625,
+        "tasks": [
+          {
+            "title": "지방정부와 인건비 보전 방안 협의·검토",
+            "status": "OPEN",
+            "ministries": [
+              "지방자치단체",
+              "행정안전부"
+            ]
+          }
+        ],
+        "summary": "지방세·세외수입 데이터 38만 8천 건(세외수입 약 20%) 현황을 확인하고 주차 위반 등 포함 시 건수 증가 가능성을 논의했으며, 지방정부와 협의해 인건비 보전 방안을 추가 검토하기로 하고 전액 지원 의사도 밝혔다.",
+        "meeting_at": "2026-10-27T03:05:26.879742+00:00",
+        "ministries": [
+          "지방자치단체",
+          "행정안전부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "지방세·세외수입 데이터 확인 및 인건비 보전 협의",
+        "broadcast_id": "c316e30a-8922-4eef-92dc-6f5b774799b1",
+        "meeting_title": "제46회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 6,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "c316e30a-8922-4eef-92dc-6f5b774799b1:topic-13",
+        "score": 0.0625,
+        "tasks": [],
+        "summary": "올해 산불 인명피해 제로화 달성(작년 주민 27명·진화 공무원 4명 피해 대비), 전국 10만 명 규모 주민대피지원단 운영과 레디셋고(준비·대기·즉시대피) 체계 구축 효과를 확인하고 행안부·지방정부 공직자 노고 치하 및 성과 홍보 필요성 제기",
+        "meeting_at": "2026-10-27T03:05:26.879742+00:00",
+        "ministries": [],
+        "institution": "EXECUTIVE",
+        "topic_title": "산불 인명피해 제로화 및 주민대피체계 운영 성과",
+        "broadcast_id": "c316e30a-8922-4eef-92dc-6f5b774799b1",
+        "meeting_title": "제46회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 4,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "c316e30a-8922-4eef-92dc-6f5b774799b1:topic-17",
+        "score": 0.0625,
+        "tasks": [],
+        "summary": "농업 인력난 해소·일자리 창출을 위해 내국인 계절 농업 노동자 고용 시 정부가 인건비 보전·지원하는 정책을 예산처와 공동 검토 추진, 농업인 경영비 중 인건비 비중 우려 해소 기대, 기존 일자리 사업으로 검토 이력 확인",
+        "meeting_at": "2026-10-27T03:05:26.879742+00:00",
+        "ministries": [],
+        "institution": "EXECUTIVE",
+        "topic_title": "농업 분야 내국인 계절 노동자 인건비 지원 정책 검토",
+        "broadcast_id": "c316e30a-8922-4eef-92dc-6f5b774799b1",
+        "meeting_title": "제46회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 5,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      }
+    ],
+    "ministry": "행안부, 행정안전부, 물가, 일자리",
+    "provider": "openrouter",
+    "created_at": "2026-10-27T04:17:32.202766+00:00",
+    "last_error": "OPENROUTER_DAILY_LIMIT",
+    "period_end": "2026-10-27",
+    "query_hash": "e0b95132161f889826641457031e3e25e9434009646e3f1c1a8191c1af33b7f2",
+    "updated_at": "2026-10-27T04:21:07.341509+00:00",
+    "institution": "EXECUTIVE",
+    "lease_owner": null,
+    "generated_at": null,
+    "period_start": "2026-10-27",
+    "subscriber_id": "9671ff7f-7eec-46fc-983f-0c8e11051d98",
+    "prompt_version": "topic-report/1.8",
+    "usage_metadata": {
+      "failed_attempts": [
+        {
+          "error": "OPENROUTER_DAILY_LIMIT",
+          "recorded_at": "2026-10-27T04:17:33.595519+00:00",
+          "usage_metadata": {}
+        },
+        {
+          "error": "OPENROUTER_DAILY_LIMIT",
+          "recorded_at": "2026-10-27T04:21:07.359074+00:00",
+          "usage_metadata": {}
+        }
+      ]
+    },
+    "lease_expires_at": null,
+    "evidence_set_hash": "f2370638a1657b035d01e4bebb9ec3fde54ae5e945489769d73c40ebb73915f2",
+    "quota_reserved_at": "2026-10-27T04:17:33.361978+00:00"
+  },
+  {
+    "id": "eb7437aa-815e-4189-8638-24a830a1d368",
+    "model": "dots-studio/dots-3-note-preview:free",
+    "topic": "",
+    "report": {},
+    "status": "FAILED",
+    "evidence": [
+      {
+        "id": "d6221c69-cf52-4c68-b32d-36221608a66b:topic-8",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "경찰수사인권감찰기구 신설 및 제도 강화 (행안부 주도)",
+            "status": "OPEN",
+            "ministries": [
+              "행안부"
+            ]
+          }
+        ],
+        "summary": "경찰의 사건 조작 및 은폐 우려가 존재하며, 경징계 수준의 징계는 부족하여 징계 수위 강화와 책임 문책 강도를 높아야 한다. 경찰 지휘부는 중대 비행에 대해 구속수사와 배제징계를 원칙으로 하고 있으며, 감찰 기능의 강화와 독립성 확보가 필요하다. 총리실 산하 경찰개혁위원회가 발족해 실질적인 감찰 기구를 신설할 예정이다.",
+        "meeting_at": "2026-09-29T03:30:16.372031+00:00",
+        "ministries": [
+          "행안부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "경찰 개혁 및 감찰 기능 강화",
+        "broadcast_id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+        "meeting_title": "제42회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 5,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16:topic-1",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "서류제출 요구 시 7일 전 송달 요건 준수 요청 및 자료제출 당부 사항 의결 완료",
+            "status": "RESOLVED",
+            "ministries": [
+              "행정안전부"
+            ]
+          }
+        ],
+        "summary": "2026년도 국정감사 보고 및 서류제출 요구 건을 의결하고, 적법한 송달을 위해 7일 전 송달 요건을 고려해 자료제출을 요청할 것을 당부함.",
+        "meeting_at": "2026-09-28T07:17:10.724560+00:00",
+        "ministries": [
+          "행정안전부"
+        ],
+        "institution": "LEGISLATURE",
+        "topic_title": "2026년도 국정감사 보고 및 서류제출 요구 의결",
+        "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+        "meeting_title": "제439회 국회(정기회) 제03차 행정안전위원회",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 1,
+        "committee_name": "행정안전위원회",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16:topic-2",
+        "score": 0.125,
+        "tasks": [],
+        "summary": "2026년도 국정감사 증인 및 참고인 출석요구의 건으로 행정안전부 안전문화 과장 등 32명을 일반증인, 김효진 참고인 등 8명을 참고인으로 채택하여 의결하고자 합니다.",
+        "meeting_at": "2026-09-28T07:17:10.724560+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "2026년도 국정감사 증인 및 참고인 출석요구 의결",
+        "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+        "meeting_title": "제439회 국회(정기회) 제03차 행정안전위원회",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 1,
+        "committee_name": "행정안전위원회",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16:topic-15",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "지방의회법 제정을 위한 행안부와의 협의 및 소극적 태도 해소",
+            "status": "OPEN",
+            "ministries": []
+          }
+        ],
+        "summary": "행안부가 지방의회법 제정에 소극적이었으며, '다른 나라에는 없다'는 논리로 반대했으나, 기본 과제임을 인정하며 현상 상태를 고려한 입법이 필요하다.",
+        "meeting_at": "2026-09-28T07:17:10.724560+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "지방의회법 제정을 위한 행안부의 태도",
+        "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+        "meeting_title": "제439회 국회(정기회) 제03차 행정안전위원회",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 6,
+        "committee_name": "행정안전위원회",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16:topic-17",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "지방의회법 평균 적용 여부 검토 및 정책지원관 전문인력 제도의 실질적 적용 방안 검토",
+            "status": "OPEN",
+            "ministries": []
+          }
+        ],
+        "summary": "지방의회 인원 차이로 인한 법 적용 부담과 인력 배치 불균형에 대해, 행안부의 지도 필요성과 정책보좌관 제도 도입이 논의되었다.",
+        "meeting_at": "2026-09-28T07:17:10.724560+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "지방의회 인력 배치 및 정책지원 제도 개선 논의",
+        "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+        "meeting_title": "제439회 국회(정기회) 제03차 행정안전위원회",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 6,
+        "committee_name": "행정안전위원회",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16:topic-18",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "지방의회 인력 지원 규모 균형 조정 방안 검토",
+            "status": "OPEN",
+            "ministries": []
+          }
+        ],
+        "summary": "지방의회 인력 지원 규모의 지역 간 차이와 공무원 정원 자율성에 대해, 행안부의 조정 필요성이 논의되었다.",
+        "meeting_at": "2026-09-28T07:17:10.724560+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "지방의회 인력 지원 규모 불균형 및 정원 자율성 논의",
+        "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+        "meeting_title": "제439회 국회(정기회) 제03차 행정안전위원회",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 6,
+        "committee_name": "행정안전위원회",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16:topic-19",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "경남도의회 인력 배치 적정성 검토 및 조정",
+            "status": "OPEN",
+            "ministries": []
+          },
+          {
+            "title": "전국 지자체 인력 배치 비율 균형 조정 지도 방안 검토",
+            "status": "OPEN",
+            "ministries": []
+          }
+        ],
+        "summary": "경남도의회 인력 부족 문제와 공무원 정원 자율성에 대해, 행안부의 조정 가능성이 논의되었다.",
+        "meeting_at": "2026-09-28T07:17:10.724560+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "경남도의회 인력 부족 및 행안부 조정 필요성 논의",
+        "broadcast_id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+        "meeting_title": "제439회 국회(정기회) 제03차 행정안전위원회",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 6,
+        "committee_name": "행정안전위원회",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "executive-official:148972426:report-3",
+        "score": 0.125,
+        "tasks": [],
+        "summary": "행정안전부가 「가을철 축제·행사 등 다중운집인파 안전관리 대책」을(를) 보고했습니다. 공식 결과문에서 보고 제목과 담당 부처가 확인됐습니다. 가을 행락철 다중운집인파 안전관리 총력 대응 가을철 축제‧행사 등 다중운집인파 안전관리 관계기관 대책회의 개최(9.3.). 부처·지방정부 상황관리 강화 및 안전한 축제를 위한 국민행동요령 준수 당부.",
+        "meeting_at": "2026-09-22T00:00:00+00:00",
+        "ministries": [
+          "행정안전부"
+        ],
+        "source_url": "https://www.korea.kr/briefing/stateCouncilView.do?newsId=148972426",
+        "institution": "EXECUTIVE",
+        "topic_title": "가을철 축제·행사 등 다중운집인파 안전관리 대책",
+        "broadcast_id": "executive-148972426",
+        "meeting_title": "제41회 국무회의 브리핑",
+        "mention_basis": "OFFICIAL_ITEM",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "OFFICIAL_SOURCE"
+      },
+      {
+        "id": "405fc847-07c0-4383-87a8-ef738ec3f97f:topic-23",
+        "score": 0.125,
+        "tasks": [],
+        "summary": "의석을 정돈하고 성원이 확인된 후 제439회 국회 정기회 제4차 법제사법위원회를 개회하며, 타 상임위 법안 18건과 고유법안 24건을 심사하고 철회 요구 법안의 철회 동의 및 고유법안 4건을 상정할 예정이라고 밝힘. 또한 윤호중 행정안전부 장관과 허장 재정경제부 제2차관의 오후 4시 40분 이석으로 인해 행안위와 재경위소",
+        "meeting_at": "2026-09-16T09:38:05.694052+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "법제사법위원회 회의 개회 및 의사일정 안내",
+        "broadcast_id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+        "meeting_title": "제439회 국회(정기회) 제04차 법제사법위원회",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 1,
+        "committee_name": "법제사법위원회",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760:topic-13",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "서울시 조례 제정 및 행정안전부 재지정 요청",
+            "status": "OPEN",
+            "ministries": []
+          },
+          {
+            "title": "4자 협의기구에 서울시 참여 유도",
+            "status": "OPEN",
+            "ministries": []
+          }
+        ],
+        "summary": "사태는 출연기관 지정 해제로 인한 정치적 논에서 비롯되었으며, 재지정 절차는 서울시가 주도하되 행정안전부가 심사 절차 단축을 검토 중이다.",
+        "meeting_at": "2026-09-14T09:17:11.994791+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "사태 해결을 위한 출연기관 재지정 절차",
+        "broadcast_id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+        "meeting_title": "제439회 국회(정기회) 제08차 본회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 13,
+        "committee_name": "본회의",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760:topic-16",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "정부 광고 개혁 방안의 세 가지 요소(기준, 확인, 시정 절차) 실무화",
+            "status": "OPEN",
+            "ministries": []
+          },
+          {
+            "title": "경로당 운영비 잔액 부식비 전용 활용 가능 복구 또는 대체 정산 매커니즘 구축",
+            "status": "OPEN",
+            "ministries": []
+          },
+          {
+            "title": "총리 주재 긴급 산림재난 선포 및 농림부·행안부·지자체 인프라 집결을 위한 대면 대책회의",
+            "status": "OPEN",
+            "ministries": []
+          }
+        ],
+        "summary": "정부 광고의 집행 기준 부재와 비합리적 사례가 지적되었으며, 객관적 기준과 투명한 선정 절차를 위한 법 개정안이 제안됨.",
+        "meeting_at": "2026-09-14T09:17:11.994791+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "정부 광고 개혁 방안 및 법 개정",
+        "broadcast_id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+        "meeting_title": "제439회 국회(정기회) 제08차 본회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 8,
+        "committee_name": "본회의",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c:topic-7",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "경찰개혁 종합안 작성",
+            "status": "RESOLVED",
+            "ministries": []
+          }
+        ],
+        "summary": "기존 경찰개혁 추진기구의 중복 문제를 인지하고, 총리실을 중심으로 행안부와 협의해 종합안을 작성 중이다.",
+        "meeting_at": "2026-09-09T09:17:57.268198+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "경찰개혁 기구 중복 및 통합",
+        "broadcast_id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+        "meeting_title": "제439회 국회(정기회) 제05차 본회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 3,
+        "committee_name": "본회의",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "executive-official:148971475:report-1",
+        "score": 0.125,
+        "tasks": [],
+        "summary": "행정안전부가 「공무원의 AI 활용 직접개발 활성화 및 확산 방안」을(를) 보고했습니다. 공식 결과문에서 보고 제목과 담당 부처가 확인됐습니다.",
+        "meeting_at": "2026-09-08T00:00:00+00:00",
+        "ministries": [
+          "행정안전부"
+        ],
+        "source_url": "https://www.korea.kr/briefing/stateCouncilView.do?newsId=148971475",
+        "institution": "EXECUTIVE",
+        "topic_title": "공무원의 AI 활용 직접개발 활성화 및 확산 방안",
+        "broadcast_id": "executive-148971475",
+        "meeting_title": "제39회 국무회의 브리핑",
+        "mention_basis": "OFFICIAL_ITEM",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "OFFICIAL_SOURCE"
+      },
+      {
+        "id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85:topic-1",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "소위원회 제안 시정요구 및 부대의견 이행",
+            "status": "OPEN",
+            "ministries": []
+          }
+        ],
+        "summary": "2025회계연도 행정안전부, 중앙 선거관리위원회, 진실화해위원회, 이태원 특조위, 인사혁신처, 경찰청, 소방청 소관 결산 및 예비비지출 승인 건이 소위원회 심사 결과를 반영하여 원안대로 의결됨.",
+        "meeting_at": "2026-09-01T03:00:56.071710+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "2025회계연도 결산 및 예비비지출 승인 건 의결",
+        "broadcast_id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+        "meeting_title": "제439회 국회(정기회) 제01차 행정안전위원회",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 6,
+        "committee_name": "행정안전위원회",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85:topic-3",
+        "score": 0.125,
+        "tasks": [],
+        "summary": "행정안전위원회가 총 28건의 일부개정법률안을 의결했으며, 이 중 19건은 행정안전부 소관으로 지방자치제 개선과 재난관리 전문성 강화를 목적으로 한다.",
+        "meeting_at": "2026-09-01T03:00:56.071710+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "일부개정법률안 의결 및 통합 조정안 제안",
+        "broadcast_id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+        "meeting_title": "제439회 국회(정기회) 제01차 행정안전위원회",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 6,
+        "committee_name": "행정안전위원회",
+        "authority_status": "OFFICIAL_INTEGRATED"
+      },
+      {
+        "id": "4fbe49d7-2404-44fa-9396-d3128804e871:topic-1",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "정부와 국회가 초당적 협치를 통한 민생 대개혁 정책 추진",
+            "status": "CANDIDATE",
+            "ministries": [
+              "국무총리실",
+              "행정안전부"
+            ]
+          }
+        ],
+        "summary": "정부가 정기국회 개막을 맞아 민생 대개혁과 초당적 협치를 통해 민생 개선과 국가 미래를 위한 공동 책무를 강조하며, 국회와 협력할 것을 요청했다.",
+        "meeting_at": "2026-09-01T02:40:05.497678+00:00",
+        "ministries": [
+          "국무총리실",
+          "행정안전부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "정기국회 개막과 민생 대개혁·초당적 협치 강조",
+        "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+        "meeting_title": "제38회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "4fbe49d7-2404-44fa-9396-d3128804e871:topic-2",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "내년 예산안의 3대 메가 프로젝트와 7대 시드 정책 추진 계획 수립 및 집행",
+            "status": "CANDIDATE",
+            "ministries": [
+              "기획재정부",
+              "행정안전부",
+              "국토교통부"
+            ]
+          }
+        ],
+        "summary": "정부가 내년 예산안을 초격차 선도국가 도약과 민생 체감 개선을 위해 미래성장동력·청년·양극화·민생안전망에 중점 편성했다고 밝혔다. 3대 메가 프로젝트와 7대 시드 정책을 추진해 청년 1인당 최대 2억 원 지원, 공공주택 20만 호 공급, 농어촌 기본소득 확대 등을 계획했다.",
+        "meeting_at": "2026-09-01T02:40:05.497678+00:00",
+        "ministries": [
+          "기획재정부",
+          "행정안전부",
+          "국토교통부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "내년 예산안 편성: 미래성장동력·청년·양극화·민생안전망 중점",
+        "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+        "meeting_title": "제38회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "4fbe49d7-2404-44fa-9396-d3128804e871:topic-5",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "목포 서부 지역 주민의 상대적 박탈감 해소를 위한 중앙정부 차원의 지원 조치 마련",
+            "status": "OPEN",
+            "ministries": [
+              "행정안전부",
+              "보건복지부"
+            ]
+          },
+          {
+            "title": "순천 지역 의료 인프라 확충 계획 수립 및 이행",
+            "status": "CANDIDATE",
+            "ministries": [
+              "보건복지부"
+            ]
+          }
+        ],
+        "summary": "순천을 의대 유치지로 결정한 정부에 대해 전남 서부 지역 주민의 반발과 정치적 어려움을 고려하여, 목포 서부 지역 주민의 상대적 박탈감을 해소하기 위한 중앙정부 차원의 지원 조치를 검토하도록 지시하였다.",
+        "meeting_at": "2026-09-01T02:40:05.497678+00:00",
+        "ministries": [
+          "행정안전부",
+          "보건복지부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "순천 의대 유치에 따른 지역 균형 발전 지원",
+        "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+        "meeting_title": "제38회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 3,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "4fbe49d7-2404-44fa-9396-d3128804e871:topic-7",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "청년 지원 사업 예산안 마련 및 집행 계획 수립",
+            "status": "OPEN",
+            "ministries": [
+              "행정안전부",
+              "기획재정부",
+              "여성가족부"
+            ]
+          },
+          {
+            "title": "현장 실습 지원비 및 지방국립대 등록금 지원 확대 시행",
+            "status": "OPEN",
+            "ministries": [
+              "교육부",
+              "고용노동부"
+            ]
+          }
+        ],
+        "summary": "정부가 예산안을 통해 청년 세대를 경제 성장과 국가 생존의 핵심으로 규정하고, 혼인지원금·출산 지원금·공공임대주택 확대 등 청년 지원 사업에 집중 투자하기로 했다. 특히 첫 경력 확보를 위한 현장 실습 기회 제공과 월 230만 원의 실습 지원비, 지방국립대 등록금 지원 확대 계획이 발표되었다.",
+        "meeting_at": "2026-09-01T02:40:05.497678+00:00",
+        "ministries": [
+          "행정안전부",
+          "기획재정부",
+          "여성가족부",
+          "교육부",
+          "고용노동부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "청년 정책 예산안 및 지원 사업 확대",
+        "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+        "meeting_title": "제38회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 2,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "4fbe49d7-2404-44fa-9396-d3128804e871:topic-8",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "네팔 실종자 수색 인력 및 장비 추가 투입 계획 수립",
+            "status": "OPEN",
+            "ministries": [
+              "소방청",
+              "외교부",
+              "행정안전부"
+            ]
+          },
+          {
+            "title": "네팔 인도적 지원 계획 수립 및 신속 집행",
+            "status": "OPEN",
+            "ministries": [
+              "외교부",
+              "행정안전부",
+              "국제협력단"
+            ]
+          }
+        ],
+        "summary": "네팔 대홍수로 실종된 우리 국민 9명의 수색을 위해 소방청 인원과 헬기 추가 투입이 추진되었으며, 네팔 정부와의 협력으로 육로수색 범위가 확대되었다. 그러나 아직 유의미한 결과는 없으며, 추가 인력과 장비 투입, 인도적 지원도 요청되었다.",
+        "meeting_at": "2026-09-01T02:40:05.497678+00:00",
+        "ministries": [
+          "소방청",
+          "외교부",
+          "행정안전부",
+          "국제협력단"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "네팔 대홍수 인명 수색 및 인도적 지원",
+        "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+        "meeting_title": "제38회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 2,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "4fbe49d7-2404-44fa-9396-d3128804e871:topic-9",
+        "score": 0.125,
+        "tasks": [
+          {
+            "title": "전국 실종사건 31만 건 전수조사 계획 수립 및 시행",
+            "status": "OPEN",
+            "ministries": [
+              "행정안전부",
+              "경찰청"
+            ]
+          },
+          {
+            "title": "실종사건 처리 시스템 개선(종결 권한·입증 자료·전담 인력 배치 등)",
+            "status": "OPEN",
+            "ministries": [
+              "행정안전부",
+              "경찰청"
+            ]
+          },
+          {
+            "title": "실종사건 최종 책임자 명확화 및 인력 보강 계획 수립",
+            "status": "CANDIDATE",
+            "ministries": [
+              "행정안전부",
+              "경찰청"
+            ]
+          }
+        ],
+        "summary": "월 평균 31만 건의 실종 사건이 발생하며, 이 중 5만 4천 건만 신고되었으나 해결되지 않은 미해제 사건이 다수 존재한다는 문제가 지적되었다. 이재명 대통령은 실종사건 31만 건 전수조사 지시와 함께 종결 권한, 입증 자료, 전담 인력 배치 등 전방위적 제도 개선과 최종 책임자 명확화를 요구했다.",
+        "meeting_at": "2026-09-01T02:40:05.497678+00:00",
+        "ministries": [
+          "행정안전부",
+          "경찰청"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "전국 실종사건 전수조사 및 시스템 개선",
+        "broadcast_id": "4fbe49d7-2404-44fa-9396-d3128804e871",
+        "meeting_title": "제38회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 2,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      }
+    ],
+    "ministry": "행정안전부, 행안부",
+    "provider": "openrouter",
+    "created_at": "2026-10-20T07:55:25.586618+00:00",
+    "last_error": "KOREAN_GRAMMAR_REVIEW_REQUIRED",
+    "period_end": "2026-09-30",
+    "query_hash": "5649bfa30b47ec8ae44690bb2fdc163ab6ff59e1f5eaac260610330ff19d2d07",
+    "updated_at": "2026-10-20T07:55:26.176486+00:00",
+    "institution": null,
+    "lease_owner": null,
+    "generated_at": null,
+    "period_start": "2026-09-01",
+    "subscriber_id": "0830d8fc-626b-43e8-8852-328100054c13",
+    "prompt_version": "topic-report/1.6",
+    "usage_metadata": {},
+    "lease_expires_at": null,
+    "evidence_set_hash": "a5df606b07d8ef0df866b8f39e0c9ba58ac5c1b444430947facf969ef763921b",
+    "quota_reserved_at": "2026-10-20T07:55:26.176486+00:00"
+  },
+  {
+    "id": "77cf8189-8de4-4dea-907b-a435465cfb72",
+    "model": "dots-studio/dots-3-note-preview:free",
+    "topic": "",
+    "report": {},
+    "status": "FAILED",
+    "evidence": [
+      {
+        "id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab:topic-2",
+        "score": 0.3,
+        "tasks": [
+          {
+            "title": "장애인권익옹호기관 위탁·수탁 기관 배제 조사 10월 중 실시 및 결과 보고",
+            "status": "OPEN",
+            "ministries": [
+              "충청북도"
+            ]
+          },
+          {
+            "title": "사회서비스원의 장애인 거주시설 직접 운영·신규 수탁 금지 이행",
+            "status": "OPEN",
+            "ministries": [
+              "충청북도",
+              "보건복지부"
+            ]
+          }
+        ],
+        "summary": "복지부 지침 개정 전 사회서비스원에 수의 위탁된 장애인권익옹호기관의 공정성·독립성 훼손을 지적하고, 위탁·수탁 기관을 배제한 조사 10월 중 실시와 사회서비스원의 거주시설 직접 운영·신규 수탁 금지 약속을 이끌어냈다.",
+        "meeting_at": "2026-10-20T03:34:43.000048+00:00",
+        "ministries": [
+          "충청북도",
+          "보건복지부"
+        ],
+        "institution": "LEGISLATURE",
+        "topic_title": "장애인권익옹호기관 위탁 공정성·독립성 확보 및 조사 실시",
+        "broadcast_id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab",
+        "meeting_title": "행정안전위원회 국정감사(충청북도)",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 7,
+        "committee_name": "행정안전위원회",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab:topic-4",
+        "score": 0.3,
+        "tasks": [
+          {
+            "title": "사회서비스원 종사자 근무시간 관리 및 보상체계(대체휴무 등) 개선 계획 수립 후 의원실 제출",
+            "status": "OPEN",
+            "ministries": [
+              "충청북도",
+              "보건복지부"
+            ]
+          },
+          {
+            "title": "장애인 자립지원법 본사업 시행 대비 당사자 의사결정 지원 소통수단 마련 및 당사자 중심 서비스 체계 구축",
+            "status": "OPEN",
+            "ministries": [
+              "충청북도",
+              "보건복지부"
+            ]
+          }
+        ],
+        "summary": "내년 장애인 자립지원법 본사업 시행에 맞춰 당사자 의사결정 지원 소통수단 마련, 보호자 대리 의사결정 지양, 당사자 의사·선호 반영 강화를 요청하고 장애인 권익 보호를 각별히 유념하겠다는 약속을 받았다.",
+        "meeting_at": "2026-10-20T03:34:43.000048+00:00",
+        "ministries": [
+          "충청북도",
+          "보건복지부"
+        ],
+        "institution": "LEGISLATURE",
+        "topic_title": "장애인 자립지원법 시행 대비 당사자 의사결정 지원 체계 강화",
+        "broadcast_id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab",
+        "meeting_title": "행정안전위원회 국정감사(충청북도)",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 2,
+        "committee_name": "행정안전위원회",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab:topic-9",
+        "score": 0.3,
+        "tasks": [
+          {
+            "title": "인구감소지역 학습 멘토링 지원사업 목표 재설정 및 성과 지표 개선",
+            "status": "OPEN",
+            "ministries": []
+          },
+          {
+            "title": "지방소멸기금 학습 멘토링 사업 내년도 계획 전면 재검토 및 수정",
+            "status": "RESOLVED",
+            "ministries": [
+              "행정안전부",
+              "보건복지부"
+            ]
+          }
+        ],
+        "summary": "광역계정 25억 원 투입에도 목표 모호, 이용률 저조(멘토링 48%, AI진단 6%), 성과 부풀리기(성적 향상 100%는 6명 대상), 사회보장기본법상 복지부 협의·행안부 인건비 가이드라인 위반을 지적하고 내년도 사업 전면 재검토를 요구했다.",
+        "meeting_at": "2026-10-20T03:34:43.000048+00:00",
+        "ministries": [
+          "행정안전부",
+          "보건복지부"
+        ],
+        "institution": "LEGISLATURE",
+        "topic_title": "지방소멸기금 학습 멘토링 사업 성과 부진 및 절차 위반 지적",
+        "broadcast_id": "d6d2e68d-7fbe-4237-952b-8d52065cc8ab",
+        "meeting_title": "행정안전위원회 국정감사(충청북도)",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 6,
+        "committee_name": "행정안전위원회",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "ee8e077e-aace-45f0-811c-02d348423947:live-promoted-live-topic-23",
+        "score": 0.3,
+        "tasks": [],
+        "summary": "보건복지부는 2027년부터 만 18세 청년을 대상으로 국민연금 첫 보험료 1개월을 지원하는 청년 생애 첫 보험료 지원 사업을 시행하며, 현재 사전 신청 중이며 관계부처의 홍보 협조를 요청합니다. 청년 국민연금 조기 가입 지원 사업은 신청 기반으로 운영되어 정보 접근성이나 부모의 도움 여부에 따라 혜택이 불평등하게 배분된다는 점을 지적하며, 이는 실질적인 복지 정책의 공정성을 해친다고 주장함. 국민연금 청년 생애 첫 보험료 지원 사업은 신청자에게만 혜택을 주는 구조로, 몰라서 신청하지 못한 청년에게 불평등을 초래하며, 이는 국가가 일부러 혜택을 제한해 재정 부담을 줄이는 기만적 제도라는 비판이 제기됨. 국민연금법 개정 시 청년 가입 의무화",
+        "meeting_at": "2026-10-20T03:10:23.152214+00:00",
+        "ministries": [],
+        "institution": "EXECUTIVE",
+        "topic_title": "청년 국민연금 첫 보험료 지원 사업 시행 및 홍보 협조 요청",
+        "broadcast_id": "ee8e077e-aace-45f0-811c-02d348423947",
+        "meeting_title": "제45회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 6,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a:topic-22",
+        "score": 0.3,
+        "tasks": [],
+        "summary": "비혼 여성의 보조생식술 접근 제한이 법적 공백을 만들고 있다는 지적과 함께, 법제처가 보건복지부와 협의해 명확한 지침이나 유권해석을 제시해야 한다는 요구가 나왔다. 관련 학회와 복지부가 정책 대상에 포함됐다.",
+        "meeting_at": "2026-10-15T12:18:39.548211+00:00",
+        "ministries": [],
+        "institution": "LEGISLATURE",
+        "topic_title": "비혼 여성 보조생식술 접근 제한 문제",
+        "broadcast_id": "65c8a5d4-82f3-4d2b-b74a-bbc92ba4db1a",
+        "meeting_title": "법제사법위원회 국정감사(군사법원)",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 2,
+        "committee_name": "법제사법위원회",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "3f1648f0-3510-4497-845b-21dffeea92ee:topic-1",
+        "score": 0.3,
+        "tasks": [
+          {
+            "title": "복지신청주의 개선법 시행 및 자동지원복지 체계 구축",
+            "status": "RESOLVED",
+            "ministries": [
+              "보건복지부"
+            ]
+          },
+          {
+            "title": "자동지원복지 시스템 구축 및 복지 사각지대 해소 방안 마련",
+            "status": "OPEN",
+            "ministries": [
+              "보건복지부"
+            ]
+          },
+          {
+            "title": "관계성 범죄 대응 매뉴얼 마련",
+            "status": "OPEN",
+            "ministries": []
+          }
+        ],
+        "summary": "신청주의 복지 체계의 한계를 지적하며 복지신청주의 개선법 통과를 계기로 국가가 위기 가구를 선제적으로 발굴·지원하는 자동지원복지(자동지급·신청간주·직권신청)로 패러다임을 전환하기로 했다. 복지급여의 권리성·소급지급·소멸시효·배임죄 논란 등 법적 쟁점과 예산 부족 시 지급 의무·소송 리스크, 보편사업 예산 확보 방안, 제도 명칭 정리 및 홍보 용어 확정 등 후속 검토가 병행된다.",
+        "meeting_at": "2026-10-13T02:50:20.398596+00:00",
+        "ministries": [
+          "보건복지부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "복지 사각지대 해소를 위한 자동지원복지 전환",
+        "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+        "meeting_title": "제44회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 13,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "3f1648f0-3510-4497-845b-21dffeea92ee:topic-6",
+        "score": 0.3,
+        "tasks": [
+          {
+            "title": "자살률 감축 목표 33.3% 달성 및 추가 3배 감축을 위한 전 부처 협업 강화",
+            "status": "RESOLVED",
+            "ministries": [
+              "보건복지부",
+              "금융위원회",
+              "중소벤처기업부"
+            ]
+          },
+          {
+            "title": "자살 원인별·연령별·성별·지역별 데이터 정교화 및 정책 효과 분석 체계 구축",
+            "status": "RESOLVED",
+            "ministries": [
+              "보건복지부"
+            ]
+          },
+          {
+            "title": "지방정부와의 자살 예방 데이터 연계 및 공동 대응 강화",
+            "status": "RESOLVED",
+            "ministries": [
+              "보건복지부"
+            ]
+          },
+          {
+            "title": "자살예방센터 인력 확충 및 월별 점검회의 체계화",
+            "status": "OPEN",
+            "ministries": [
+              "보건복지부",
+              "국무총리실"
+            ]
+          },
+          {
+            "title": "시도지사·기초단체장 협의회 차원의 자살 예방 사업 논의 및 적극 추진 독려",
+            "status": "OPEN",
+            "ministries": []
+          }
+        ],
+        "summary": "정부·공직자 노력으로 자살자 수가 전반기 기준 수백 명 감소(전체 10% 이상, 경제적 원인 약 40% 감소)했으며 현재 33.3% 감축 목표를 넘어 3배 추가 감축을 목표로 전 부처 협업 강화를 주문했다. 원인별·연령별·성별·지역별 데이터 정교화, 지방정부와의 데이터 연계·공동 대응 강화, 자살예방센터 인력 확충 및 월별 점검회의 체계화 등 구체적 과제가 도출됐다.",
+        "meeting_at": "2026-10-13T02:50:20.398596+00:00",
+        "ministries": [
+          "보건복지부",
+          "금융위원회",
+          "중소벤처기업부",
+          "국무총리실"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "자살 예방 정책 성과 평가 및 감축 목표 상향",
+        "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+        "meeting_title": "제44회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 11,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "3f1648f0-3510-4497-845b-21dffeea92ee:topic-8",
+        "score": 0.3,
+        "tasks": [],
+        "summary": "청소년 자살률 증가 문제와 경제적 원인에 대응하기 위한 중앙정부·금융위·복지부 협업 필요성이 논의됐다.",
+        "meeting_at": "2026-10-13T02:50:20.398596+00:00",
+        "ministries": [],
+        "institution": "EXECUTIVE",
+        "topic_title": "청소년 자살률 증가와 경제적 원인 대응",
+        "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+        "meeting_title": "제44회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 2,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "3f1648f0-3510-4497-845b-21dffeea92ee:topic-15",
+        "score": 0.3,
+        "tasks": [],
+        "summary": "청와대 수석대변인이 실시간 국민 의견을 소개하며 자동복지 명칭 선호, 자살 예방 대책, 북극항로 시범 운항 성과, 복지급여 신청주의 개선 요구 등을 전달했고 대통령과 국무위원들이 검토·추진 방향을 논의했다. 자동복지 명칭 최다 의견 확인 후 보건복지부에 개념 명확화 검토를 지시했다.",
+        "meeting_at": "2026-10-13T02:50:20.398596+00:00",
+        "ministries": [],
+        "institution": "EXECUTIVE",
+        "topic_title": "국민 의견 수렴 및 자동복지 개념 명확화 검토",
+        "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+        "meeting_title": "제44회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 3,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "executive-official:148973414:report-2",
+        "score": 0.3,
+        "tasks": [],
+        "summary": "보건복지부가 「복지·돌봄 AI 대전환 로드맵」을(를) 보고했습니다. 공식 결과문에서 보고 제목과 담당 부처가 확인됐습니다. AI의 도움으로 24시간 끊김없는 돌봄, 더 쉽게 누리는 복지, 사람에 집중하는 돌봄 만든다 정은경 장관, 국무회의에서 ‘복지·돌봄 AI 대전환 로드맵’ 보고 -. 혼자 있어도 AI가 24시간 상태를 살피고, 필요한 서비스로 즉시 연결 -. AI가 상황에 맞는 복지서비스 추천부터 신청까지 자동 연계 -. 반복적인 행정업무 자동화로, 복지·돌봄 현장은 더 사람에게 집중 -.",
+        "meeting_at": "2026-10-13T00:00:00+00:00",
+        "ministries": [
+          "보건복지부"
+        ],
+        "source_url": "https://www.korea.kr/briefing/stateCouncilView.do?newsId=148973414",
+        "institution": "EXECUTIVE",
+        "topic_title": "복지·돌봄 AI 대전환 로드맵",
+        "broadcast_id": "3f1648f0-3510-4497-845b-21dffeea92ee",
+        "meeting_title": "제44회 국무회의 브리핑",
+        "mention_basis": "OFFICIAL_ITEM",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "OFFICIAL_SOURCE"
+      },
+      {
+        "id": "fa2b85d9-8419-4031-9db2-fede23c4644d:topic-22",
+        "score": 0.3,
+        "tasks": [],
+        "summary": "정부가 선도적 역할을 위해 전례 없는 정책을 추진할 때 발생하는 문제점과 정치적 공격에 대한 우려를 설명하며, 충분한 사전 설명과 공감 확보가 필요하다고 강조함. 선도적 정책 추진 시 전례가 없어 의심을 받는 문제를 해결하기 위해, 각 부처 정책에 대해 국민의 동의를 구하고 공감을 얻는 절차가 필요하다고 강조함. AI와 로봇이 결합된 신기술 정책은 전례가 없어 비판받을 수 있으나, 베타 서비스처럼 사용하면서 개선해가는 방식으로 국민 동의를 얻고 적극적으로 알리겠다는 입장이다. 복지부에서 인공지능화를 추진하는 정책은 정부 전반의 인공지능화 필요성을 보여주며, 예측 가능성, 합리성, 공정성을 위해 인공지능이 사람보다 더 정확한 판단을 할 수",
+        "meeting_at": "2026-10-06T03:10:29.637392+00:00",
+        "ministries": [],
+        "institution": "EXECUTIVE",
+        "topic_title": "정부 선도 정책 추진 시 정치적 공격 우려와 대응 필요성",
+        "broadcast_id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+        "meeting_title": "제43회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 5,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "executive-official:148973074:report-2",
+        "score": 0.3,
+        "tasks": [
+          {
+            "title": "보건복지부가 마련한 「복지‧돌봄 AI대전환 로드맵」을 보고받은 이 대통령은 “정부 정책은 예측가능, 합리적, 공정 측면에서 인공지능에 가장 적합하다”면서 “국가 사무는 가급적 인공지능으로 신속하게 전환하고, 절감되는 인적 역량을 새로운 사업에 투입해야 국가도 첨단화, 선진화 될 수 있다” 강조했습니다.",
+            "status": "OFFICIAL",
+            "ministries": [
+              "보건복지부"
+            ]
+          }
+        ],
+        "summary": "보건복지부가 마련한 「복지‧돌봄 AI대전환 로드맵」을 보고받은 이 대통령은 “정부 정책은 예측가능, 합리적, 공정 측면에서 인공지능에 가장 적합하다”면서 “국가 사무는 가급적 인공지능으로 신속하게 전환하고, 절감되는 인적 역량을 새로운 사업에 투입해야 국가도 첨단화, 선진화 될 수 있다” 강조했습니다. 보건복지부가 마련한 「복지‧돌봄 AI대전환 로드맵」을 보고받은 이 대통령은 “정부 정책은 예측가능, 합리적, 공정 측면에서 인공지능에 가장 적합하다”면서 “국가 사무는 가급적 인공지능으로 신속하게 전환하고, 절감되는 인적 역량을 새로운 사업에 투입해야 국가도 첨단화, 선진화 될 수 있다” 강조했습니다. AI의 도움으로 24시간 끊김없는 돌봄, 더 쉽게 누리는 복지, 사람에 집중하는 돌봄 만든다 정은경 장관, 국무회의에서 ‘복지·돌봄 AI 대전환 로드맵’ 보고 -. 혼자 있어도 AI가 24시간 상태를 살피고, 필요한 서비스로 즉시 연결 -. AI가 상황에 맞는 복지서비스 추천부터 신청까지 자동 연계 -. 반복적인 행정업무 자동화로, 복지·돌봄 현장은 더 사람에게 집중 -. 복지·돌봄 AI 대전환 로드맵 수립 위한 관계 전문가 의견수렴 정은경 장관, 복지·돌봄 AI 전문가 간담회 개최(9.21.) -. AI 기반 복지·돌봄 혁신 목표와 추진 과제 담은.",
+        "meeting_at": "2026-10-06T00:00:00+00:00",
+        "ministries": [
+          "보건복지부"
+        ],
+        "source_url": "https://www.korea.kr/briefing/stateCouncilView.do?newsId=148973074",
+        "institution": "EXECUTIVE",
+        "topic_title": "복지·돌봄 AI 대전환 로드맵",
+        "broadcast_id": "fa2b85d9-8419-4031-9db2-fede23c4644d",
+        "meeting_title": "제43회 국무회의 브리핑",
+        "mention_basis": "OFFICIAL_ITEM",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "OFFICIAL_SOURCE"
+      },
+      {
+        "id": "d6221c69-cf52-4c68-b32d-36221608a66b:topic-6",
+        "score": 0.3,
+        "tasks": [
+          {
+            "title": "국립의전원 설립 위치 최종 결정 및 발표 (10월 1일까지)",
+            "status": "OPEN",
+            "ministries": [
+              "보건복지부"
+            ]
+          }
+        ],
+        "summary": "국립의전원 설립 위치에 대해 설립 추진위원회가 10월 1일까지 최종 결정할 예정이며, 기존 남원 부지 확보와 정책 일관성을 고려해 결정된다.",
+        "meeting_at": "2026-09-29T03:30:16.372031+00:00",
+        "ministries": [
+          "보건복지부"
+        ],
+        "institution": "EXECUTIVE",
+        "topic_title": "국립의전원 설립 위치 결정 과정",
+        "broadcast_id": "d6221c69-cf52-4c68-b32d-36221608a66b",
+        "meeting_title": "제42회 국무회의",
+        "mention_basis": "UNIQUE_UTTERANCE_EVIDENCE",
+        "mention_count": 3,
+        "committee_name": "국무회의",
+        "authority_status": "PROVISIONAL"
+      },
+      {
+        "id": "executive-official:148972426:report-4",
+        "score": 0.3,
+        "tasks": [],
+        "summary": "보건복지부가 「민관협력 활성화 '모두의 연결' 추진 방안」을(를) 보고했습니다. 공식 결과문에서 보고 제목과 담당 부처가 확인됐습니다.",
+        "meeting_at": "2026-09-22T00:00:00+00:00",
+        "ministries": [
+          "보건복지부"
+        ],
+        "source_url": "https://www.korea.kr/briefing/stateCouncilView.do?newsId=148972426",
+        "institution": "EXECUTIVE",
+        "topic_title": "민관협력 활성화 '모두의 연결' 추진 방안",
+        "broadcast_id": "executive-148972426",
+        "meeting_title": "제41회 국무회의 브리핑",
+        "mention_basis": "OFFICIAL_ITEM",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "OFFICIAL_SOURCE"
+      },
+      {
+        "id": "executive-official:148972426:agenda-2",
+        "score": 0.3,
+        "tasks": [],
+        "summary": "채무로 인해 어려움을 겪는 위기가구 등을 신속하고 효과적으로 발굴·지원하기 위해 복지사각지대 발굴시스템에서 처리하는 금융 위기정보의 범위를 △서민금융상품 이용자 중 취약채무자, △채무조정중지자, △불법사금융 피해자로 확대하고 수도 사용량 변화 정보를 추가하는 내용입니다.",
+        "meeting_at": "2026-09-22T00:00:00+00:00",
+        "ministries": [
+          "보건복지부"
+        ],
+        "source_url": "https://www.korea.kr/briefing/stateCouncilView.do?newsId=148972426",
+        "institution": "EXECUTIVE",
+        "topic_title": "사회보장급여의 이용·제공 및 수급권자 발굴에 관한 법률 시행령 일부개정령안",
+        "broadcast_id": "executive-148972426",
+        "meeting_title": "제41회 국무회의 브리핑",
+        "mention_basis": "OFFICIAL_ITEM",
+        "mention_count": 1,
+        "committee_name": "국무회의",
+        "authority_status": "OFFICIAL_SOURCE"
+      }
+    ],
+    "ministry": "보건복지부",
+    "provider": "openrouter",
+    "created_at": "2026-10-20T08:39:45.400943+00:00",
+    "last_error": "EVIDENCE_COVERAGE_INCOMPLETE",
+    "period_end": "2026-10-20",
+    "query_hash": "ef07465d8dc9e52f5f7c61c75ec0188128df5c5930a9f7aa1af1fdbe010581f5",
+    "updated_at": "2026-10-20T08:39:46.821247+00:00",
+    "institution": null,
+    "lease_owner": null,
+    "generated_at": null,
+    "period_start": "2026-09-20",
+    "subscriber_id": "93c00096-cb41-48a4-a7cc-dea9e5704132",
+    "prompt_version": "topic-report/1.7",
+    "usage_metadata": {},
+    "lease_expires_at": null,
+    "evidence_set_hash": "289a45e750d68619d77038c0e5ef9c84ba88e7c27f5a679e8a3a22dd5fe76c34",
+    "quota_reserved_at": "2026-10-20T08:39:46.821247+00:00"
+  }
+]

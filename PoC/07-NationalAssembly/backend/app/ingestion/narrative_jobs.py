@@ -72,3 +72,17 @@ def process_due(broadcast_id: Any = None, batch_limit: int = 8) -> list[dict[str
             return [{**result, 'job_status': status, 'next_attempt_at': due.isoformat()}]
         finally:
             lease.execute("SELECT pg_advisory_unlock(hashtext('narrative-job-runner'))")
+
+
+def finalization_batch_limit(requested: int) -> int:
+    from ..services.narrative_retry import narrative_capacity
+    reason = background_defer_reason()
+    if reason == 'UPCOMING_MEETING':
+        return narrative_capacity(requested, 0, upcoming=True)
+    with connect(get_settings().database_url) as c:
+        count = c.execute("""SELECT count(*) FROM live_broadcasts
+            WHERE source_system IN ('assembly.webcast.go.kr','ktv.go.kr')
+              AND lifecycle_status='LIVE'
+              AND GREATEST(last_caption_received_at,last_seen_at,detected_at)
+                  >= now() - interval '15 minutes'""").fetchone()[0]
+    return narrative_capacity(requested, count)

@@ -195,6 +195,7 @@ def parse_assembly_live_play(content: bytes) -> dict[str, object]:
     required = ("xcode", "xcgcd", "xsubj", "xstat", "xsami", "xhls")
     if any(name not in payload for name in required):
         raise AdapterError("assembly live play contract markers are missing")
+    from .assembly_caption_transport import is_regular_caption
     caption_server = str(payload.get("xsami", "")).strip()
     hls_profiles = payload.get("xhls", [])
     stream_url = None
@@ -218,7 +219,8 @@ def parse_assembly_live_play(content: bytes) -> dict[str, object]:
         "title": str(payload["xsubj"]).strip(),
         "status_text": str(payload.get("xdesc", "")).strip(),
         "is_live": str(payload["xstat"]) == "1",
-        "caption_websocket_url": f"{caption_server}/hls" if caption_server else None,
+        "caption_websocket_url": (caption_server if is_regular_caption(caption_server)
+                                  else f"{caption_server}/hls") if caption_server else None,
         "caption_capture_status": "READY_TO_CAPTURE" if caption_server else "UNAVAILABLE",
         "hls_profiles": hls_profiles,
         "stream_url": stream_url,

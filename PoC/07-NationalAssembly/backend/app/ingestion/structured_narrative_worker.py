@@ -18,7 +18,7 @@ from ..db.openai_daily_budget import DailyTokenLimitReached
 from ..services.structured_narrative import PROFILE, BATCH_START, inputs, saved, prompt, corrective_prompt, schema, validate, valid_subset, pending_batches, field_repair_prompt, merge_field_repair
 from ..services.structure_retry import retry_allowance
 from ..services.provider_retry_gate import blocked_provider
-from ..services.narrative_retry import transient_delay
+from ..services.narrative_retry import transient_delay, truncated_provider_pause, NARRATIVE_PROVIDER_POLICY
 from .topic_structure_worker import clients, pace_nim
 
 
@@ -67,9 +67,9 @@ def post_with_nim_retry(client: Any, batch: list[dict[str, Any]], corrective: bo
     raise RuntimeError('unreachable')
 
 
-def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
+def process_one(broadcast_id: Any, batch_limit: int = 2, *, finalizing: bool = False) -> dict[str, Any]:
     from .meeting_brief_worker import safe_brief_error_code
-    from .narrative_jobs import background_defer_reason
+    from .narrative_jobs import background_defer_reason, finalization_batch_limit
     settings = get_settings()
     label = str(broadcast_id)
     with connect(settings.database_url) as lease:
@@ -99,6 +99,10 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
             if not batches:
                 return {'status': 'REVIEW_REQUIRED' if blocked else 'NO_ISSUES',
                         'broadcast_id': label, 'blocked_issues': blocked}
+            # New ended reports must make bounded progress even during another
+            # broadcast. Historical repair jobs still yield to live collection.
+            if finalizing:
+                batch_limit = finalization_batch_limit(batch_limit)
             first_index = max([BATCH_START - 1] + [h['index'] for h in history]) + 1
             indices = count(first_index)
             def run_batch(request):
@@ -120,15 +124,18 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                 attempt_base = max((h['attempt'] for h in prior), default=0)
                 error, retry_after_seconds = None, 0
                 for retry in range(allowed):
-                    reason = background_defer_reason()
+                    reason = None if finalizing else background_defer_reason()
                     if reason:
                         return {'status': 'LIVE_DEFERRED', 'broadcast_id': label, 'reason': reason}
                     client = pool[retry % len(pool)]
                     blocked = blocked_provider(client, prior)
+                    if truncated_provider_pause(client, history):
+                        blocked = "NARRATIVE_OUTPUT_COOLDOWN"
                     if blocked:
                         error = blocked
                         continue
                     response, usage, error = {}, {}, None
+                    started = time.monotonic()
                     try:
                         response, usage = post_with_nim_retry(client, batch, bool(request.get('repair_round')),
                                                              request.get('validation_feedback'), request.get('field_repair'))
@@ -150,6 +157,8 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                         usage = usage or getattr(exc, 'usage_metadata', {})
                         retry_after_seconds = max(retry_after_seconds, getattr(exc, 'retry_after_seconds', 0))
                     usage = {**usage,'provider':client.provider,'attempted_model':client.model,
+                             'narrative_policy': NARRATIVE_PROVIDER_POLICY,
+                             'elapsed_seconds': round(time.monotonic() - started, 3),
                              'retry_after_seconds':retry_after_seconds}
                     usage.setdefault('model',client.model)
                     with connect(settings.database_url) as c:
@@ -165,7 +174,8 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                     prior.append({'usage':usage,'error':error,'created_at':datetime.now(timezone.utc)})
                     print(json.dumps({'event': 'structured_narrative.batch', 'broadcast_id': label,
                         'issues': len(batch), 'completed_before': len(done), 'total': len(issues),
-                        'provider': client.provider, 'error': error}, ensure_ascii=False), flush=True)
+                        'provider': client.provider, 'model': usage.get('model'),
+                        'elapsed_seconds': usage['elapsed_seconds'], 'error': error}, ensure_ascii=False), flush=True)
                     if subset:
                         # Do not resend seven good issues to another provider
                         # because one failed. The next pass isolates only failures.
@@ -175,7 +185,7 @@ def process_one(broadcast_id: Any, batch_limit: int = 2) -> dict[str, Any]:
                         break
                 transient = error in {'ReadTimeout', 'ConnectTimeout', 'ConnectionError', 'ConnectError',
                                       'HTTPError:HTTP_429', 'HTTPError:HTTP_500', 'HTTPError:HTTP_502',
-                                      'HTTPError:HTTP_503', 'HTTPError:HTTP_504','DAILY_TOKEN_LIMIT','AUXILIARY_DAILY_LIMIT','AUXILIARY_RATE_WAIT','AUXILIARY_INPUT_TOO_LARGE'}
+                                      'HTTPError:HTTP_503', 'HTTPError:HTTP_504','DAILY_TOKEN_LIMIT','AUXILIARY_DAILY_LIMIT','AUXILIARY_RATE_WAIT','AUXILIARY_INPUT_TOO_LARGE','NARRATIVE_OUTPUT_COOLDOWN'}
                 return {'status': ('RETRY_DEFERRED' if transient else 'PARTIAL') if error else 'READY',
                         'broadcast_id': label, 'error': error, 'retry_after_seconds': retry_after_seconds}
             # The report lock covers the whole pool. Batch IDs are allocated before

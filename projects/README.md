@@ -9,7 +9,7 @@
 | 07 | `PoC/07-NationalAssembly` | 지금 우리 국회에선 |
 | 08 | `PoC/08-AICommonPlatformRadar` | 조달췤! |
 | 10 | `PoC/10-home` | HOME |
-| 12 | `PoC/12-epub-reader` | 책자리 · EPUB · PDF 리더 |
+| 12 | `PoC/12-epub-reader` | 책자리 · EPUB · PDF · Markdown 리더 |
 
 이전 청킹 실습·청킹 RAG·멀티에이전트 하네스·보고서 초안 프로젝트는 삭제했습니다.
 

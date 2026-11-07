@@ -100,6 +100,9 @@ class GitLabSyncTests(unittest.TestCase):
         evidence = prefix / 'docs/evidence/audit.json'
         evidence.parent.mkdir(parents=True)
         evidence.write_text('large generated verification dump')
+        recovery = prefix / 'data/recovery/audit.json'
+        recovery.parent.mkdir(parents=True)
+        recovery.write_text('generated operational recovery snapshot')
         for name in ['tests/fixtures/source.json', 'backend/data/seed.json', 'docs/setup.md']:
             path = prefix / name
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -113,15 +116,18 @@ class GitLabSyncTests(unittest.TestCase):
         for commit in self.git(Path(export.project.remote), 'rev-list', 'main').splitlines():
             paths = self.git(Path(export.project.remote), 'ls-tree', '-r', '--name-only', commit)
             self.assertNotIn('docs/evidence/', paths)
+            self.assertNotIn('data/recovery/', paths)
         paths = self.git(Path(export.project.remote), 'ls-tree', '-r', '--name-only', 'main')
         for name in ['tests/fixtures/source.json', 'backend/data/seed.json', 'docs/setup.md']:
             self.assertIn(name, paths)
         self.assertEqual(self.git(self.root, 'show-ref'), refs)
         self.assertEqual(fetch_head.read_text(), 'keep existing fetch marker\n')
         evidence.write_text('new verification dump only')
+        recovery.write_text('new recovery snapshot only')
         self.commit('change audit dump only')
         self.assertEqual(self.prepare('home').commit, export.commit)
         self.assertTrue(evidence.exists())
+        self.assertTrue(recovery.exists())
 
 
     def test_publication_starts_at_reviewed_version_and_future_updates_fast_forward(self):

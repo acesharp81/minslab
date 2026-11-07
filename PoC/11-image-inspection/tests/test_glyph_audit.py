@@ -38,6 +38,24 @@ def test_character_contract_disagreement_and_missing_target():
     v['coverage']='MISSING';assert not g.assess(r,v)['location_verified']
 
 
+def test_unreadable_transcription_keeps_observed_blur_but_not_reading_failure_visible():
+    from app.rules import PACK
+    r=region();v=reading()
+    v.update(units=[dict(char='□',strokes='번짐으로 획 분리 불가',certain=False)],
+             quality='DEFECT',evidence='첫 블록 내부 획 경계가 넓게 번져 합쳐짐',defect_rects=[[.1,.2,.4,.8]])
+    r['assessment']=g.assess(r,v)
+    run={'glyph_audit':{'model':'gpt-5.4','regions':[r]},'rule_pack':PACK,'reference_snapshot':[]}
+    row=g.protect(run,[],['D-02-l'],'gpt-5.4-mini')[0]
+    assert not r['assessment']['transcription_confirmed']
+    assert row['status']=='FAIL' and row['visual_issue'] and not row['diagnostic_only']
+    v.update(quality='UNCERTAIN',evidence='작아서 읽지 못함',defect_rects=[])
+    r['assessment']=g.assess(r,v)
+    row=g.protect(run,[],['D-02-l'],'gpt-5.4-mini')[0]
+    assert row['status']=='REVIEW' and row['diagnostic_only'] and not row['visual_issue']
+    assert row['error_type']=='OCR_UNCERTAIN'
+    assert 'OCR 전사가 다릅니다' not in row['reason']
+
+
 def test_overlapping_windows_preserve_pixels_without_synthetic_strokes():
     im=Image.new('RGB',(180,20),'white');im.putpixel((55,7),(1,2,3));out=io.BytesIO();im.save(out,format='PNG')
     raw,starts=g.windows(out.getvalue());sheet=Image.open(io.BytesIO(raw))
@@ -110,3 +128,59 @@ def test_audit_reuses_one_rule_row_instead_of_duplicating_the_same_concern():
     rows=g.protect(run,[],['D-02-l'],'gpt-5.4-mini')
     rows=g.protect(run,rows,['D-02-l'],'gpt-5.4-mini')
     assert len(rows)==1 and rows[0]['status']=='REVIEW' and rows[0]['glyph_audit_evidence']['id']==r['id']
+
+
+def test_partial_localized_source_damage_is_reviewed_not_hidden_or_certified():
+    from app.rules import PACK
+    r=region();v=reading();v.update(coverage='PARTIAL',quality='DEFECT',defect_rects=[[.1,.2,.4,.8]],evidence='원본 내부 받침 획 융합')
+    r['assessment']=g.assess(r,v)
+    run={'glyph_audit':{'model':'gpt-5.4','regions':[r]},'rule_pack':PACK,'reference_snapshot':[]}
+    row=g.protect(run,[],['D-02-l'],'gpt-5.4-mini')[0]
+    assert row['status']=='REVIEW' and row['visual_issue'] and not row['diagnostic_only']
+    assert row['rects'] and not row['location_unresolved']
+
+
+def test_long_transcription_prefix_is_not_a_false_ocr_conflict():
+    r=region();r['detector_text']='가나다라마바사아자차카타파하'
+    v=reading();v['units']=[dict(char=c,strokes='원본 획',certain=True) for c in r['detector_text'][:12]]
+    a=g.assess(r,v)
+    assert not a['transcription_confirmed'] and a['error_type']=='OCR_UNCERTAIN'
+    assert '12음절' in a['reason']
+
+
+def test_concrete_conflict_replaces_generic_review_without_duplicate_or_extra_warning():
+    from app.rules import PACK
+    r=region();r['detector_text']='앉';r['assessment']=g.assess(r,reading())
+    run={'glyph_audit':{'model':'gpt-5.4','regions':[r]},'rule_pack':PACK,'reference_snapshot':[]}
+    generic=dict(rule_id='D-02-l',status='REVIEW',reason='문자는 또렷하나 사람 검토 필요',
+                 evidence_ids=['GLY001'],review_basis='DOCUMENT_CHECK',error_type='NONE',
+                 visual_issue=False,document_review=True,diagnostic_only=True,rects=[])
+    rows=g.protect(run,[copy.deepcopy(generic)],['D-02-l'],'gpt-5.4-mini')
+    assert len(rows)==1 and rows[0]['status']=='REVIEW'
+    assert rows[0]['reason']==r['assessment']['reason']
+    assert rows[0]['error_type']=='OCR_MISMATCH' and rows[0]['review_basis']=='OBSERVED_ANOMALY'
+    assert rows[0]['visual_issue'] and not rows[0]['document_review'] and not rows[0]['diagnostic_only']
+    assert rows[0]['rects']==r['assessment']['rects']
+    before=copy.deepcopy(rows[0]['before_glyph_audit'])
+    g.protect(run,rows,['D-02-l'],'gpt-5.4-mini')
+    assert len(rows)==1 and rows[0]['before_glyph_audit']==before
+    # Mere unreadability without a concrete source defect stays diagnostic.
+    v=reading();v.update(units=[dict(char='□',strokes='잘 보이지 않음',certain=False)],quality='UNCERTAIN')
+    r['assessment']=g.assess(r,v)
+    rows=g.protect(run,[copy.deepcopy(generic)],['D-02-l'],'gpt-5.4-mini')
+    assert rows[0]['reason']==generic['reason'] and not rows[0]['visual_issue']
+
+
+def test_later_uncertain_syllables_keep_earlier_detector_conflict_location():
+    r=region();r['detector_text']='김처찌개'
+    original=dict(issue=True,error_type='OCR_MISMATCH',location_verified=True,literal_text='김치찌개',rects=[r['rect']])
+    r['before_isolated_assessment']=original
+    r['assessment']=dict(issue=True,error_type='OCR_MISMATCH',transcription_confirmed=False,reason='세 번째 음절 판독 차이',rects=[[.35,.3,.4,.4]])
+    r['isolated_glyphs']={'parts':[{'rect':[.2+i*.05,.3,.25+i*.05,.4]} for i in range(4)]}
+    g.retain_detector_conflict(r)
+    assert r['isolated_glyphs']['parts'][1]['rect'] in r['assessment']['rects']
+    assert '김처찌개' in r['assessment']['reason'] and '김치찌개' in r['assessment']['reason']
+    before=copy.deepcopy(r);g.retain_detector_conflict(r);assert r==before
+    # Agreement of the independent readers may resolve the earlier conflict.
+    r['assessment'].update(transcription_confirmed=True,reason='독립 판독 일치',rects=[])
+    g.retain_detector_conflict(r);assert not r['assessment']['rects']

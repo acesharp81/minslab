@@ -1,6 +1,6 @@
 # 서비스별 GitLab 동기화
 
-GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 폴더를 각각의 GitLab 저장소 최상위에 게시합니다. GitLab만 받아 독립 설치·테스트·수정할 수 있도록 소스·설정 예시·의존성·DB migration·실행 데이터·fixture·문서를 포함합니다. 검증용 덤프·화면 캡처인 `docs/evidence/`만 GitHub에 남깁니다.
+GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 폴더를 각각의 GitLab 저장소 최상위에 게시합니다. GitLab만 받아 독립 설치·테스트·수정할 수 있도록 소스·설정 예시·의존성·DB migration·실행 데이터·fixture·문서를 포함합니다. 검증용 덤프·화면 캡처인 `docs/evidence/`와 운영 복구용 캡처·감사 스냅샷인 `data/recovery/`는 GitHub에 남깁니다.
 
 | 선택값 | 원본 폴더 | GitLab 대상 |
 | --- | --- | --- |
@@ -8,7 +8,7 @@ GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 �
 | `home` | `PoC/10-home/` | <https://gitlab.aigov.go.kr/acesharp/HOME> |
 | `all` | 위 두 폴더 | 위 두 프로젝트 |
 
-예를 들어 `PoC/07-NationalAssembly/README.md`는 `kjon` 저장소의 `README.md`가 됩니다. 상위 `PoC/` 폴더나 다른 서비스 코드는 포함되지 않습니다. `git subtree split`으로 프로젝트 이력을 분리한 다음 `git fast-export`·`fast-import`의 경로 선택으로 `docs/evidence/`를 과거 이력에서도 제외합니다. 국정ON은 `e9482fd`, Home은 `1d9fd7d`의 재구성·보안 보완 버전을 최초 공개 기준으로 삼고 그 이전 이력은 GitHub에 보존합니다. 기준 버전의 전체 파일로 공유 이력을 시작하고 이후 작성자·메시지·변경 이력을 이어 갑니다. 트리는 원본에서 이 증빙 경로만 제외한 결과와 일치하는지 검증합니다. 원본 branch·index·작업 파일·FETCH_HEAD는 바꾸지 않습니다. 다른 폴더만 바뀌면 분리된 커밋은 동일하여 해당 GitLab 프로젝트에는 새 변경이 생기지 않습니다.
+예를 들어 `PoC/07-NationalAssembly/README.md`는 `kjon` 저장소의 `README.md`가 됩니다. 상위 `PoC/` 폴더나 다른 서비스 코드는 포함되지 않습니다. `git subtree split`으로 프로젝트 이력을 분리한 다음 `git fast-export`·`fast-import`의 경로 선택으로 `docs/evidence/`와 `data/recovery/`를 과거 이력에서도 제외합니다. 국정ON은 `e9482fd`, Home은 `1d9fd7d`의 재구성·보안 보완 버전을 최초 공개 기준으로 삼고 그 이전 이력은 GitHub에 보존합니다. 기준 버전의 전체 파일로 공유 이력을 시작하고 이후 작성자·메시지·변경 이력을 이어 갑니다. 트리는 원본에서 이 생성 증빙 경로만 제외한 결과와 일치하는지 검증합니다. 원본 branch·index·작업 파일·FETCH_HEAD는 바꾸지 않습니다. 다른 폴더만 바뀌면 분리된 커밋은 동일하여 해당 GitLab 프로젝트에는 새 변경이 생기지 않습니다.
 
 ## 자동 동기화
 
@@ -80,7 +80,7 @@ python3 -m unittest discover -s tests -p 'test_gitlab_sync.py' -v
 
 79,281,811바이트 요청은 약 1.3초 만에 전송됐습니다. 이후 약 60초 뒤 재전송되고 다시 약 60초 뒤 502가 반환됐습니다. HTTP/1.1에서도 동일했습니다. 인증이나 전송 속도 실패가 아니라 업로드 이후 응답 대기에서 실패했으며, 서버 내부 원인은 직접 관측하지 못했습니다. [진단 실행](https://github.com/acesharp81/minslab/actions/runs/41369865934)
 
-최신 Home 트리 약 404MiB 중 약 371MiB가 `docs/evidence/`입니다. 사용자와 합의하여 이 생성 증빙만 공개 이력에서 제외합니다. 실행·다른 방식의 재사용에 필요한 데이터, migration, dependency, fixture는 포함합니다. 증빙을 읽던 월별 통계 회귀 테스트의 공식 HTML/PDF는 `tests/fixtures/monthly_release_202608/`에 보존해 제외 정책과 분리했습니다. 다른 파일이나 보안 검사 규칙을 임의로 제외하지 않습니다.
+최신 Home 트리 약 404MiB 중 약 371MiB가 `docs/evidence/`입니다. 사용자와 합의하여 이 생성 증빙을 공개 이력에서 제외합니다. 2026-11-08부터 국정ON의 복구 음성·감사 덤프인 `data/recovery/`도 같은 생성 증빙으로 분류합니다. 실행 코드·회귀 테스트에서 이 복구 경로를 참조하지 않는 것을 확인했으며 GitHub 원본은 보존합니다. 실행·다른 방식의 재사용에 필요한 데이터, migration, dependency, fixture는 포함합니다. 증빙을 읽던 월별 통계 회귀 테스트의 공식 HTML/PDF는 `tests/fixtures/monthly_release_202608/`에 보존해 제외 정책과 분리했습니다. 다른 파일이나 보안 검사 규칙을 임의로 제외하지 않습니다.
 
 ### 최초 공개 기준
 

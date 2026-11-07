@@ -88,6 +88,8 @@ def cached_ready_status(
 ) -> str | None:
     if not cached or cached.get("status") != "READY" or force:
         return None
+    if (cached.get("usage_metadata") or {}).get("comparison_mode") == "SOURCE_ONLY_TIMEOUT":
+        return None
     deferred = (
         (cached.get("usage_metadata") or {}).get("reuse_reason")
         == "TEMPORARY_UPDATE_DEFERRED"
@@ -169,6 +171,8 @@ def generate_one(
         reusable = repository.latest_for_brief(
             brief_record["brief_id"],
         ) if not force else None
+        if reusable and (reusable.get('usage_metadata') or {}).get('comparison_mode') == 'SOURCE_ONLY_TIMEOUT':
+            reusable = None  # No accepted model comparison exists to reuse.
         same_semantic_content = bool(
             reusable
             and reusable.get("usage_metadata", {}).get("official_semantic_hash")
@@ -420,7 +424,8 @@ def generate_one(
             usage_metadata=usage_metadata,
         )
     return {
-        "broadcast_id": str(broadcast_id), "status": saved["status"],
+        "broadcast_id": str(broadcast_id),
+        "status": "RETRY_WAIT" if usage_metadata.get('comparison_mode') == 'SOURCE_ONLY_TIMEOUT' else saved["status"],
         "changes": len(changes), "matched_segments": speaker_stats["matched_segments"],
         "api_requests": int(usage_metadata.get("api_requests") or 0),
     }
@@ -467,12 +472,9 @@ def process_available(
                 broadcast_id, deterministic_only=deterministic_only,
                 official_document_id=job["official_document_id"],
                 meeting_brief_id=job["meeting_brief_id"],
-                source_only_due_to_prior_failure=str(job.get("last_error") or "").startswith(
-                    ("ReadTimeout:", "Timeout:", "JSONDecodeError:")
-                ),
             )
             if result.get("status") in {
-                "DEFERRED", "SKIPPED_LLM_REQUIRED",
+                "DEFERRED", "SKIPPED_LLM_REQUIRED", "RETRY_WAIT",
             }:
                 with connect(settings.database_url) as connection:
                     OfficialIntegrationJobRepository(connection).retry(
@@ -480,6 +482,7 @@ def process_available(
                         (
                             "TEMPORARY_STABILITY_WINDOW"
                             if result.get("status") == "DEFERRED"
+                            else "OFFICIAL_COMPARISON_PENDING" if result.get('status') == 'RETRY_WAIT'
                             else "LLM_REQUIRED"
                         ),
                     )

@@ -1,0 +1,36 @@
+[
+  {
+    "id": "eb7437aa-815e-4189-8638-24a830a1d368",
+    "status": "READY",
+    "evidence_provided": 21,
+    "evidence_sent": 21,
+    "narrative_evidence_covered": 21,
+    "coverage_repair": {
+      "requests": 1,
+      "repaired_count": 6,
+      "summary_refreshed": true,
+      "initial_missing_count": 6
+    }
+  },
+  {
+    "id": "987a359e-fe5d-4d34-ab74-b33455b3ba10",
+    "status": "READY",
+    "evidence_provided": 6,
+    "evidence_sent": 6,
+    "narrative_evidence_covered": 6,
+    "coverage_repair": {}
+  },
+  {
+    "id": "77cf8189-8de4-4dea-907b-a435465cfb72",
+    "status": "READY",
+    "evidence_provided": 15,
+    "evidence_sent": 15,
+    "narrative_evidence_covered": 15,
+    "coverage_repair": {
+      "requests": 1,
+      "repaired_count": 3,
+      "summary_refreshed": true,
+      "initial_missing_count": 3
+    }
+  }
+]

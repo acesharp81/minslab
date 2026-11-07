@@ -1,0 +1,13 @@
+{
+  "yt_dlp_version": "2026.10.26",
+  "video_id": "tts8k5gUlAI",
+  "downloaded": false,
+  "cookies_used": false,
+  "metadata_ok": true,
+  "live_status": "was_live",
+  "playable_format_count": 48,
+  "audio_format_count": 10,
+  "audio_protocols": [
+    "https"
+  ]
+}

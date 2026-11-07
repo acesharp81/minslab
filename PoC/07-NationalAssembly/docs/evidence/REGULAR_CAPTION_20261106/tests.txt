@@ -1,0 +1,5 @@
+
+[notice] A new release of pip is available: 25.0.1 -> 26.3
+[notice] To update, run: pip install --upgrade pip
+...........................                                   [100%]
+27 passed, 11 subtests passed in 0.65s

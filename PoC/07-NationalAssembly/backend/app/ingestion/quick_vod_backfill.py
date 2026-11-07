@@ -230,7 +230,7 @@ def main() -> None:
     with connect(settings.database_url) as connection:
         row = connection.execute(
             """
-            SELECT institution, stt_fallback_started_at,
+            SELECT institution, COALESCE((SELECT MIN(captured_at - duration_ms * interval '1 millisecond') FROM executive_audio_chunks a WHERE a.broadcast_id=broadcast.id), stt_fallback_started_at),
                    (SELECT COUNT(*) FROM transcript_segments segment
                     WHERE segment.broadcast_id = broadcast.id
                       AND segment.source_segment_id LIKE 'qvod-backfill-%%')

@@ -407,3 +407,7 @@ PoC7·PoC10·PoC11은 기존 `openai_group_daily_usage`(mini/main, UTC 일자)�
 ## 2026-11-05 월 공용 대체와 최종 편집 재개 표식
 
 스키마 추가 없이 기존 공용 일일/월 장부와 구조화 배치 이력을 사용한다. 최종 편집 usage의 `budget_policy=monthly-credit-routing/20261105`, `billing_route`, `skipped_models`로 한도 때문에 건너뛴 무료 모델과 실제 호출 모델을 구분한다. 최종 정리 상태의 `monthly_credit_policy`가 없는 기존 FINALIZING 일일 대기만 새 경로에서 한 번 재개한다. 이후에는 저장된 retry_after를 존중한다. `wait_reason`에 입력·검증·한도 사유를 남기고 유지된 원래 묶음을 검증 완료로 바꾸지 않는다. 성공 입력의 기존 fingerprint·캐시와 append-only 요청·응답·원문 이력은 유지한다.
+
+### 0068 공식 자막 전용 수신 시계
+`live_broadcasts.last_official_caption_received_at`은 공식 실시간 자막의 마지막 수신 시각이며 STT 및 VOD 복원은 갱신하지 않습니다. `last_caption_received_at`은 GREATEST로만 갱신하여 과거 발언 추가 시 후퇴하지 않습니다. 복구에 따른 STT 종료는 `transcript_source_sessions`에 STOP/OFFICIAL_CAPTION_RECOVERED로 기록합니다.
+요약 표시의 `source_only_point_ids`는 문맥 검토 후에도 요약 불가능한 짧은 발언의 ID입니다. 주제의 evidence_ids와 원문은 보존하며 빈 요약 행은 표시하지 않습니다.

@@ -1,0 +1,60 @@
+{
+  "schema": "chekmi-deferred-evaluation-v1",
+  "status": "DEFERRED_BY_USER",
+  "automatic_execution": false,
+  "execute_only_after_user_requests_resume": true,
+  "reason": "실제 LLM·외부 OCR 테스트는 나중에 묶어서 수행한다는 사용자 지시 유지",
+  "baseline": {
+    "ARTIFACT_RECHECK_ENABLED": false
+  },
+  "candidate": {
+    "ARTIFACT_SCREEN_ENABLED": true,
+    "ARTIFACT_RECHECK_ENABLED": true
+  },
+  "models": {
+    "reading": "gpt-5.4",
+    "analysis": "gpt-5.4-mini",
+    "paid_credit_escalation": false
+  },
+  "test_cases": [
+    "QA_02_hands",
+    "QA_03_ocr_readability",
+    "QA_07_culture_food",
+    "QA_08_all_pass",
+    "QA_10_emblem",
+    "정상 주먹·브이·쥐기·부분 가림",
+    "정상 장식체·곡면·기울임",
+    "1~3글자 흐림·전사 누락"
+  ],
+  "regression_only": [
+    "ImageGen_Exploratory_01",
+    "ImageGen_Exploratory_02",
+    "ImageGen_Exploratory_03"
+  ],
+  "conditions": [
+    "PoC7 공용 일일 잔량 확인·예약 후 실행",
+    "기존 확대 호출·객체 상한 유지",
+    "정답과 ROI는 채점에서만 사용",
+    "토큰·호출·시간·오탐·위치 지표 기록",
+    "검출 개선을 경고 수 증가로 대체하지 않음",
+    "상한 부족 시 중단",
+    "실증 후에만 새 재판독 경로 활성화"
+  ],
+  "actual_llm_calls": 0,
+  "actual_external_ocr_calls": 0,
+  "manual_quality_recheck": {
+    "available": true,
+    "automatic_execution": false,
+    "max_objects": 6,
+    "max_image_calls": 2,
+    "requires_user_selected_regions": true,
+    "actual_llm_evaluation": "DEFERRED_BY_USER",
+    "cases": [
+      "prior_CLEAR_glyph_defect",
+      "PARTIAL_hand_observation",
+      "occluded_normal_hand",
+      "failed_retry_preserves_evidence",
+      "fragment_vs_full_text"
+    ]
+  }
+}

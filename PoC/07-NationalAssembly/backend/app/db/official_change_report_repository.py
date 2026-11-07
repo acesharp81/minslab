@@ -97,7 +97,7 @@ class OfficialChangeReportRepository:
                        integration.id, integration.broadcast_id,
                        integration.meeting_brief_id,
                        integration.integrated_brief, integration.changes,
-                       integration.speaker_stats
+                       integration.speaker_stats, integration.generated_at
                 FROM meeting_official_integrations integration
                 WHERE integration.status = 'READY'
                   AND COALESCE(integration.usage_metadata->>'comparison_mode', '')
@@ -112,14 +112,30 @@ class OfficialChangeReportRepository:
             FROM latest
             JOIN live_broadcasts broadcast ON broadcast.id = latest.broadcast_id
             JOIN meeting_briefs brief ON brief.id = latest.meeting_brief_id
+            WHERE NOT EXISTS (
+                SELECT 1 FROM meeting_official_change_reports report
+                WHERE report.integration_id=latest.id AND report.provider=%s
+                  AND report.model=%s AND report.prompt_version=%s
+                  AND report.updated_at >= latest.generated_at
+            )
             ORDER BY brief.generated_at DESC, latest.id DESC
             LIMIT %s
             """,
-            (limit,),
+            (provider, model, prompt_version, limit),
         ).fetchall()
         changed = 0
         for row in rows:
             integration_id, snapshot, input_hash = self._snapshot(row)
+            # A metadata-only refresh does not require another model call, but
+            # must be acknowledged so it cannot occupy the next scan forever.
+            acknowledged = self.connection.execute(
+                """UPDATE meeting_official_change_reports SET updated_at=now()
+                   WHERE integration_id=%s AND provider=%s AND model=%s
+                     AND prompt_version=%s AND input_hash=%s RETURNING id""",
+                (integration_id, provider, model, prompt_version, input_hash),
+            ).fetchone()
+            if acknowledged:
+                continue
             reusable = self.connection.execute(
                 """
                 SELECT id, report
