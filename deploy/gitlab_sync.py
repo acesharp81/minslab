@@ -28,6 +28,9 @@ class Project:
 KJON_PUBLICATION_BASE_SOURCE = "e9482fd1005e7a01301d908ec91d8d2de6912272"
 HOME_PUBLICATION_BASE_SOURCE = "1d9fd7d34f85190c1ca97337e8b5aa5465146d2f"
 
+CHECK_PUBLICATION_BASE_SOURCE = "72d1af3ffdd3cc2761f83f778dc16f9d7c7d598e"
+BATON_PUBLICATION_BASE_SOURCE = "72d1af3ffdd3cc2761f83f778dc16f9d7c7d598e"
+
 PROJECTS = {
     "kjon": Project(
         "국정ON", "PoC/07-NationalAssembly",
@@ -38,6 +41,14 @@ PROJECTS = {
         "the주택", "PoC/10-home",
         "https://gitlab.aigov.go.kr/acesharp/HOME.git",
         "GITLAB_HOME_TOKEN", HOME_PUBLICATION_BASE_SOURCE,
+    ),
+    "check": Project(
+        "범정부 AI 공통기반 활용 점검", "PoC/08-AICommonPlatformRadar",
+        "https://gitlab.aigov.go.kr/acesharp/check.git", "GITLAB_CHECK_TOKEN", CHECK_PUBLICATION_BASE_SOURCE,
+    ),
+    "baton": Project(
+        "바톤", "PoC/13-handover",
+        "https://gitlab.aigov.go.kr/acesharp/baton.git", "GITLAB_BATON_TOKEN", BATON_PUBLICATION_BASE_SOURCE,
     ),
 }
 
@@ -241,12 +252,21 @@ def publish(root: Path, export: Export, env: dict[str, str], *, diagnose: bool =
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("project", choices=[*PROJECTS, "all"])
+    parser.add_argument("--source", help="게시할 원본의 전체 40자리 커밋 SHA (push 시 필수)")
+    parser.add_argument("--approve-source", help="게시를 승인한 동일한 전체 커밋 SHA (push 시 필수)")
     parser.add_argument("--push", action="store_true", help="분리한 이력을 GitLab main에 반영")
     parser.add_argument("--diagnose", action="store_true", help="전송 상태와 시간만 출력 (인증값·본문 제외)")
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parents[1]
     try:
-        source = git(root, "rev-parse", "HEAD")
+        if args.push and (not args.source or args.approve_source != args.source):
+            raise SyncError("--source와 동일한 --approve-source로 게시할 커밋을 명시적으로 승인하세요.")
+        source = args.source or git(root, "rev-parse", "HEAD")
+        if not re.fullmatch(r"[0-9a-f]{40}", source):
+            raise SyncError("원본은 브랜치명 대신 전체 40자리 소문자 커밋 SHA로 지정하세요.")
+        if git(root, "cat-file", "-t", source) != "commit":
+            raise SyncError("원본 SHA는 커밋이어야 합니다.")
+        git(root, "merge-base", "--is-ancestor", source, "HEAD")
         keys = list(PROJECTS) if args.project == "all" else [args.project]
         exports = []
         for key in keys:
@@ -254,12 +274,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{project.name}: {project.prefix} → {project.remote}", flush=True)
             export = prepare_export(root, project, source)
             exports.append(export)
-            print(f"  원본 {source[:12]} / 분리 {export.commit[:12]} / 파일 {export.files}개", flush=True)
+            print(f"  원본 {source} / 분리 {export.commit} / 파일 {export.files}개", flush=True)
             print(f"  검증 증빙 제외: {', '.join(EXCLUDED_PATHS)} (GitHub 원본 보존)", flush=True)
             if export.dirty:
                 print("  미커밋 변경이 있습니다. 위 결과에는 커밋된 내용만 포함됩니다.")
         if not args.push:
-            print("미리보기 완료. GitLab에 반영하려면 --push를 추가하세요.")
+            print("미리보기 완료. 게시는 --source SHA --approve-source SHA --push로 명시적으로 승인하세요.")
             return 0
         # Check every selected project before publishing any of them.
         if any(export.dirty for export in exports):

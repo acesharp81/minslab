@@ -8,10 +8,10 @@ GitHub 기본 실행 서버에서 `gitlab.aigov.go.kr:443`에 접속할 수 없�
 - 전용 Docker volume `minslab-gitlab-runner-data`에 실행기 등록 정보와 별도 GitHub checkout만 저장합니다. GitLab 프로젝트 토큰은 작업 실행 시 GitHub Secrets에서 전달되며 영구 환경변수로 등록하지 않습니다.
 - 전용 bridge network `minslab-gitlab-sync`에서 외부 HTTPS로 접속하며, 운영 애플리케이션의 Docker network에는 연결하지 않습니다. 공개 포트를 열지 않습니다.
 - 읽기 전용 컨테이너 파일시스템, `/tmp` tmpfs, capability 전체 제거, `no-new-privileges`, PID·CPU·메모리 제한을 적용합니다.
-- 이미지에 포함된 읽기 전용 pre-job hook은 저장소·`main` ref·workflow 경로·이벤트를 검사합니다. `sync-gitlab-projects.yml@refs/heads/main`의 `push`·`workflow_dispatch` 이외에는 사용자 단계를 실행하기 전에 작업을 거부합니다. [GitHub 작업 hook 문서](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/run-scripts)
+- 이미지에 포함된 읽기 전용 pre-job hook은 저장소·`main` ref·workflow 경로·이벤트를 검사합니다. `sync-gitlab-projects.yml@refs/heads/main`의 명시적 프로젝트·원본 SHA·승인이 있는 `workflow_dispatch` 이외에는 사용자 단계를 실행하기 전에 작업을 거부합니다. [GitHub 작업 hook 문서](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/run-scripts)
 - 공개 저장소의 외부 기여자 PR 작업에는 관리자 승인을 요구하도록 `all_external_contributors` 정책을 적용합니다. 이 실행기의 허용 workflow를 PR·fork 작업으로 넓히지 않습니다. 컨테이너 격리와 별개로 신뢰 경계를 유지해야 합니다. [GitHub 실행기 보안 지침](https://docs.github.com/en/actions/reference/security/secure-use)
 
-Docker 재시작 정책은 `unless-stopped`입니다. 한 실행기가 국정ON·the주택 작업을 차례로 처리합니다.
+Docker 재시작 정책은 `unless-stopped`입니다. 한 실행기가 네 프로젝트의 승인된 수동 게시를 차례로 처리합니다. 과거 자동 실행과 승인 정보가 없는 과거 수동 실행을 재실행해도 hook에서 차단합니다.
 
 ## 빌드·등록
 
