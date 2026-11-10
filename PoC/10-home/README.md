@@ -1,5 +1,18 @@
 # the주택 · HOME — 주택공급 정책 추진현황 시스템 원천 설명서
 
+<!-- thehousing-demo:start -->
+## 더주택 · 59초 시연 영상
+
+공개정보 수집부터 AI 에이전트 검토, 정책·사업 추진현황, 공급현황 지도까지 소개합니다. **한국어 내레이션 · 자막 포함**
+
+<!-- GitHub renders the attachment as a player; GitLab converts the fallback MP4 image to a player. -->
+<video src="https://github.com/user-attachments/assets/95ee7346-6f42-4e7c-b343-5eebde2de5fa" controls width="960">
+  <img src="docs/demo/thehousing-demo-59s.mp4" alt="더주택 — 주택공급 디지털 상황판 59초 시연 영상" width="960">
+</video>
+
+[▶ 영상 열기](https://github.com/user-attachments/assets/95ee7346-6f42-4e7c-b343-5eebde2de5fa) · [MP4 파일](docs/demo/thehousing-demo-59s.mp4) · [한국어 자막 SRT](docs/demo/thehousing-demo-59s.ko.srt)
+<!-- thehousing-demo:end -->
+
 독립 GitLab 저장소로 설치·테스트·재사용하려면 [재구성 안내](RECONSTRUCT.md)를 확인하세요.
 
 > 일반 사용자·업무담당자·유지관리사업자·동료 개발자용 공통 기준 문서입니다. 이 문서를 토대로 대상별 사용·업무·운영·개발 매뉴얼을 제작합니다.
