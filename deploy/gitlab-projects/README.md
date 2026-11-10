@@ -14,6 +14,8 @@ GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 �
 
 PoC 8·13의 최초 공개 기준 원본은 `72d1af3ffdd3cc2761f83f778dc16f9d7c7d598e`입니다. 현재 파일 전체로 독립 이력을 시작하고 이후에는 같은 기준점을 유지합니다. 이 기준점은 이미 게시한 이력을 재작성하는 용도로 바꾸지 않습니다.
 
+두 신규 대상에는 GitLab이 만든 README 초기 커밋이 있어 이를 보존합니다. `bootstrap/check.bundle`은 `efc284a162c818a9ece07b15e10ef32d9442ef19`, `bootstrap/baton.bundle`은 `e0157718d5e903c616fc465d5385c8c0239e1969` 한 커밋의 공개 README만 담습니다. 원본 공개 기준 커밋의 부모를 이 초기 이력으로 연결하는 작업은 임시 bare 저장소에서 수행하며 원본 refs를 변경하지 않습니다. bundle의 SHA와 최종 이력의 선조 관계를 검사하고 이후에도 동일하게 재현합니다. GitLab 기본 README는 프로젝트 README로 교체됩니다. 새로운 원격 이력이 생기면 일반 push가 거부하므로 강제로 지우지 않습니다.
+
 ## 승인 후 수동 게시
 
 2026-11-11부터 네 프로젝트 모두 **자동 게시를 중단**합니다. GitHub에서 개발·커밋·push·병합해도 GitLab 제출본은 변경되지 않습니다. [sync-gitlab-projects.yml](../../.github/workflows/sync-gitlab-projects.yml)은 `workflow_dispatch`만 허용합니다.

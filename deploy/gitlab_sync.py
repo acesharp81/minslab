@@ -23,6 +23,8 @@ class Project:
     remote: str
     token_env: str = ""
     base_source: str | None = None
+    initial_remote: str | None = None
+    initial_bundle: str | None = None
 
 
 KJON_PUBLICATION_BASE_SOURCE = "e9482fd1005e7a01301d908ec91d8d2de6912272"
@@ -45,10 +47,12 @@ PROJECTS = {
     "check": Project(
         "범정부 AI 공통기반 활용 점검", "PoC/08-AICommonPlatformRadar",
         "https://gitlab.aigov.go.kr/acesharp/check.git", "GITLAB_CHECK_TOKEN", CHECK_PUBLICATION_BASE_SOURCE,
+        "efc284a162c818a9ece07b15e10ef32d9442ef19", "deploy/gitlab-projects/bootstrap/check.bundle",
     ),
     "baton": Project(
         "바톤", "PoC/13-handover",
         "https://gitlab.aigov.go.kr/acesharp/baton.git", "GITLAB_BATON_TOKEN", BATON_PUBLICATION_BASE_SOURCE,
+        "e0157718d5e903c616fc465d5385c8c0239e1969", "deploy/gitlab-projects/bootstrap/baton.bundle",
     ),
 }
 
@@ -90,7 +94,8 @@ def publication_tree(root: Path, tree: str) -> str:
         return git(root, "write-tree", env=env)
 
 
-def publication_history(root: Path, commit: str, excluded_parents: tuple[str, ...] = ()) -> str:
+def publication_history(root: Path, commit: str, excluded_parents: tuple[str, ...] = (),
+                        graft: tuple[str, str] | None = None) -> str:
     """Filter only generated evidence, including history, without editing refs."""
     objects = git(root, "rev-parse", "--path-format=absolute", "--git-path", "objects")
     with tempfile.TemporaryDirectory(prefix="minslab-export-history-") as directory:
@@ -100,6 +105,11 @@ def publication_history(root: Path, commit: str, excluded_parents: tuple[str, ..
             git(root, "init", "--bare", "--quiet", str(bare))
             (bare / "objects/info/alternates").write_text(objects + "\n", encoding="utf-8")
         git(source, "update-ref", "refs/heads/export", commit)
+        if graft:
+            # Preserve the reviewed GitLab initializer as the parent of the first
+            # published source snapshot. Replacement refs exist only in this
+            # disposable repository and produce stable future fast-forwards.
+            git(source, "replace", "--graft", *graft)
         # --no-data reuses existing blobs through read-only object alternates.
         # A private stream preserves arbitrary commit-message bytes exactly.
         with (base / "history.fi").open("w+b") as stream:
@@ -139,13 +149,24 @@ def prepare_export(root: Path, project: Project, source: str) -> Export:
     ))
     split = git(root, "subtree", "split", f"--prefix={project.prefix}", source)
     excluded_parents: tuple[str, ...] = ()
+    graft = None
     if project.base_source:
         # Start sharing with the reviewed, reconstructable version. Earlier
         # monorepo history remains in GitHub; subsequent history stays linear.
         git(root, "merge-base", "--is-ancestor", project.base_source, source)
         base_split = git(root, "subtree", "split", f"--prefix={project.prefix}", project.base_source)
         excluded_parents = tuple(git(root, "rev-list", "--parents", "-n", "1", base_split).split()[1:])
-    commit = publication_history(root, split, excluded_parents)
+        if project.initial_remote:
+            if not project.initial_bundle:
+                raise SyncError("GitLab 초기 이력 bundle이 필요합니다.")
+            bundle = str(root / project.initial_bundle)
+            if git(root, "bundle", "list-heads", bundle) != f"{project.initial_remote} refs/heads/main":
+                raise SyncError("GitLab 초기 이력이 검토한 커밋과 다릅니다.")
+            git(root, "fetch", "--no-tags", "--no-write-fetch-head", bundle, "refs/heads/main")
+            graft = (base_split, project.initial_remote)
+    commit = publication_history(root, split, excluded_parents, graft)
+    if project.initial_remote:
+        git(root, "merge-base", "--is-ancestor", project.initial_remote, commit)
     if git(root, "rev-parse", f"{commit}^{{tree}}") != expected_tree:
         raise SyncError(f"분리 결과가 원본 프로젝트와 다릅니다: {project.name}")
     files = len(git(root, "ls-tree", "-r", "--name-only", "-z", commit).split("\0"))

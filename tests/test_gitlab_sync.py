@@ -156,6 +156,42 @@ class GitLabSyncTests(unittest.TestCase):
             sync.prepare_export(self.root, self.projects[key], old_source)
 
 
+    def test_gitlab_initializer_is_preserved_with_stable_future_updates(self):
+        key = "check"
+        original = self.projects[key]
+        remote = Path(original.remote)
+        initializer = self.base / "gitlab-initializer"
+        initializer.mkdir()
+        self.git(initializer, "init", "-b", "main")
+        self.identity(initializer)
+        (initializer / "README.md").write_text("GitLab default README")
+        self.git(initializer, "add", ".")
+        self.git(initializer, "commit", "-m", "Initial commit")
+        initial = self.git(initializer, "rev-parse", "HEAD")
+        self.git(initializer, "push", str(remote), "main")
+        bundle = self.root / "bootstrap.bundle"
+        self.git(initializer, "bundle", "create", str(bundle), "refs/heads/main")
+        source = self.git(self.root, "rev-parse", "HEAD")
+        self.projects[key] = sync.Project(original.name, original.prefix, original.remote,
+                                          original.token_env, source, initial, "bootstrap.bundle")
+        first = self.prepare(key)
+        self.assertEqual(self.git(self.root, "rev-parse", first.commit + "^"), initial)
+        self.assertEqual(self.git(self.root, "rev-parse", first.commit + "^{tree}"),
+                         self.git(self.root, "rev-parse", source + ":" + original.prefix))
+        sync.publish(self.root, first, self.env)
+        self.assertEqual(self.prepare(key).commit, first.commit)
+        (self.root / original.prefix / "README.md").write_text("next reviewed source")
+        self.commit("update selected source")
+        second = self.prepare(key)
+        sync.publish(self.root, second, self.env)
+        self.assertEqual(self.git(remote, "rev-parse", "main^"), first.commit)
+        self.assertEqual(self.git(remote, "rev-parse", "main^^"), initial)
+        self.assertEqual(self.git(self.root, "for-each-ref", "refs/replace"), "")
+        self.projects[key] = sync.Project(original.name, original.prefix, original.remote,
+                                          original.token_env, source, "a" * 40, "bootstrap.bundle")
+        with self.assertRaisesRegex(sync.SyncError, "초기 이력"):
+            self.prepare(key)
+
     def test_repeated_sync_and_other_project_commits_do_not_change_export(self):
         first = self.prepare("kjon")
         sync.publish(self.root, first, self.env)
