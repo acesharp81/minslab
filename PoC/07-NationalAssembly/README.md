@@ -1,5 +1,18 @@
 # 국정ON — 서비스·운영·개발 원천 설명서
 
+<!-- gukjeongon-demo:start -->
+## 국정ON · 3분 14초 시연 영상
+
+실시간 방송 기록과 키워드 알림부터 회의 보고서, 공식자료의 화자·추가·누락 비교, 주제별 보고서와 정책 인사이트까지 소개합니다. **한국어 내레이션 · 자막 포함**
+
+<!-- GitHub renders the attachment as a player; GitLab converts the fallback MP4 image to a player. -->
+<video src="https://github.com/user-attachments/assets/f053285d-09a6-44f3-8a3d-c0d3965cb24c" controls width="960">
+  <img src="docs/demo/gukjeongon-demo-3m14s.mp4" alt="국정ON — 실시간 국회 및 국무회의 모니터링 서비스 3분 14초 시연 영상" width="960">
+</video>
+
+[▶ 영상 크게 보기 · MP4](docs/demo/gukjeongon-demo-3m14s.mp4) · [한국어 자막 SRT](docs/demo/gukjeongon-demo-3m14s.ko.srt) · [국정ON 서비스](https://kjon.aigov.go.kr/)
+<!-- gukjeongon-demo:end -->
+
 독립 GitLab 저장소로 설치·테스트·재사용하려면 [재구성 안내](RECONSTRUCT.md)를 확인하세요.
 
 > 2026-10-31: 중수청 등 정책 대상별 대주제 규칙을 과거 보고서에도 적용했습니다. 세부 쟁점·요약·과제·근거는 보존합니다. 진행 상태/본문 이력/동일 요청/공식 원문의 공유 저장과 제공사별 재시도 보완은 [적용·검증 기록](docs/evidence/REPORT_STORAGE_APPLICATION_20261031/README.md), [데이터 모델](docs/DATA_MODEL.md)을 참조하세요.

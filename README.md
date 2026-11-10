@@ -1,5 +1,18 @@
 # MinsLab
 
+<!-- gukjeongon-demo:start -->
+## 국정ON · 3분 14초 시연 영상
+
+실시간 방송 기록과 키워드 알림부터 회의 보고서, 공식자료의 화자·추가·누락 비교, 주제별 보고서와 정책 인사이트까지 소개합니다. **한국어 내레이션 · 자막 포함**
+
+<!-- GitHub renders the attachment as a player; GitLab converts the fallback MP4 image to a player. -->
+<video src="https://github.com/user-attachments/assets/f053285d-09a6-44f3-8a3d-c0d3965cb24c" controls width="960">
+  <img src="PoC/07-NationalAssembly/docs/demo/gukjeongon-demo-3m14s.mp4" alt="국정ON — 실시간 국회 및 국무회의 모니터링 서비스 3분 14초 시연 영상" width="960">
+</video>
+
+[▶ 영상 크게 보기 · MP4](PoC/07-NationalAssembly/docs/demo/gukjeongon-demo-3m14s.mp4) · [한국어 자막 SRT](PoC/07-NationalAssembly/docs/demo/gukjeongon-demo-3m14s.ko.srt) · [국정ON 서비스](https://kjon.aigov.go.kr/)
+<!-- gukjeongon-demo:end -->
+
 <!-- thehousing-demo:start -->
 ## 더주택 · 59초 시연 영상
 
