@@ -19,7 +19,7 @@
 공개정보 수집부터 AI 에이전트 검토, 정책·사업 추진현황, 공급현황 지도까지 소개합니다. **한국어 내레이션 · 자막 포함**
 
 <!-- GitHub renders the attachment as a player; GitLab converts the fallback MP4 image to a player. -->
-<video src="https://github.com/user-attachments/assets/95ee7346-6f42-4e7c-b343-5eebde2de5fa" controls width="960">
+<video src="https://github.com/user-attachments/assets/cff65552-5cf6-43d3-90cb-c9e41f24b362" controls width="960">
   <img src="PoC/10-home/docs/demo/thehousing-demo-59s.mp4" alt="더주택 — 주택공급 디지털 상황판 59초 시연 영상" width="960">
 </video>
 
