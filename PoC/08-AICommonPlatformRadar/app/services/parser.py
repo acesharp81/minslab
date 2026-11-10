@@ -8,7 +8,7 @@ import tempfile
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from xml.etree import ElementTree
+from defusedxml import ElementTree
 
 from docx import Document
 from pypdf import PdfReader
@@ -65,7 +65,7 @@ def _parse_hwpx(content: bytes) -> str:
                 raise ValueError(f"안전하지 않은 HWPX 경로: {info.filename}")
             if not info.filename.startswith("Contents/") or not info.filename.endswith(".xml"):
                 continue
-            root = ElementTree.fromstring(archive.read(info))
+            root = ElementTree.fromstring(archive.read(info), forbid_dtd=True)
             chunks.extend(element.text or "" for element in root.iter() if element.tag.endswith("}t"))
     return "\n".join(chunk for chunk in chunks if chunk.strip())
 
@@ -81,7 +81,7 @@ def _parse_xlsx(content: bytes, max_uncompressed_bytes: int = 100 * 1024 * 1024)
         names = {info.filename for info in infos}
         shared: list[str] = []
         if "xl/sharedStrings.xml" in names:
-            root = ElementTree.fromstring(archive.read("xl/sharedStrings.xml"))
+            root = ElementTree.fromstring(archive.read("xl/sharedStrings.xml"), forbid_dtd=True)
             for item in root.iter():
                 if item.tag.endswith("}si"):
                     shared.append("".join(
@@ -90,7 +90,7 @@ def _parse_xlsx(content: bytes, max_uncompressed_bytes: int = 100 * 1024 * 1024)
         lines: list[str] = []
         sheets = sorted(name for name in names if re.fullmatch(r"xl/worksheets/sheet\d+\.xml", name))
         for sheet_name in sheets:
-            root = ElementTree.fromstring(archive.read(sheet_name))
+            root = ElementTree.fromstring(archive.read(sheet_name), forbid_dtd=True)
             for row in (element for element in root.iter() if element.tag.endswith("}row")):
                 values: list[str] = []
                 for cell in (element for element in row if element.tag.endswith("}c")):

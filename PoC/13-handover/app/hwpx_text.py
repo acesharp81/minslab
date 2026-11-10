@@ -2,7 +2,8 @@
 
 Only the temporary parsing copy changes; uploaded bytes/hashes remain untouched.
 """
-import tempfile,zipfile,uuid,xml.etree.ElementTree as ET
+import tempfile,zipfile,uuid
+from defusedxml import ElementTree as ET
 from pathlib import Path
 
 def open_with_breaks(path):
@@ -16,7 +17,7 @@ def open_with_breaks(path):
    for info in src.infolist():
     data=src.read(info)
     if info.filename.startswith('Contents/section') and info.filename.endswith('.xml'):
-     root=ET.fromstring(data);changed=False
+     root=ET.fromstring(data, forbid_dtd=True);changed=False
      for node in root.iter():
       if node.tag.rsplit('}',1)[-1]!='t':continue
       controls=[c for c in node.iter() if c.tag.rsplit('}',1)[-1] in {'lineBreak','tab'}]

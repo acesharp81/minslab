@@ -370,8 +370,8 @@
       "file": "handover-source-v1.6.7.zip",
       "title": "프로그램 소스·실행 패키지",
       "description": "설치·테스트·라이선스 고지 포함",
-      "bytes": 9363664,
-      "sha256": "6a882049349c2b271e7c40ecb8888edc3f2322efabd3af70133980be22c9f0fb"
+      "bytes": 9364185,
+      "sha256": "39520ecd474c2a3f1a49d6ddab03d290fc251901a2aed8c3170300da4d04145f"
     },
     {
       "file": "handover-demo-kit-v1.6.7.zip",

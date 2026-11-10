@@ -140,9 +140,9 @@
   </div>
   {% if progress_pagination.total_pages > 1 %}
   <nav class="pagination" aria-label="대시보드 조치중 사업 페이지">
-    {% if progress_pagination.previous_url %}<a href="{{ progress_pagination.previous_url }}">← 이전</a>{% else %}<span>← 이전</span>{% endif %}
-    <div>{% for number in progress_pagination.pages %}<a class="{% if number == progress_pagination.page %}current{% endif %}" href="{{ progress_pagination.page_url(number) }}">{{ number }}</a>{% endfor %}</div>
-    {% if progress_pagination.next_url %}<a href="{{ progress_pagination.next_url }}">다음 →</a>{% else %}<span>다음 →</span>{% endif %}
+    {% if progress_pagination.previous_query %}<a href="{{ url_for('dashboard').path }}?{{ progress_pagination.previous_query }}#actions-in-progress">← 이전</a>{% else %}<span>← 이전</span>{% endif %}
+    <div>{% for number in progress_pagination.pages %}<a class="{% if number == progress_pagination.page %}current{% endif %}" href="{{ url_for('dashboard').path }}?{{ progress_pagination.page_query(number) }}#actions-in-progress">{{ number }}</a>{% endfor %}</div>
+    {% if progress_pagination.next_query %}<a href="{{ url_for('dashboard').path }}?{{ progress_pagination.next_query }}#actions-in-progress">다음 →</a>{% else %}<span>다음 →</span>{% endif %}
   </nav>
   {% endif %}
   <div class="action-list-footer"><span>{{ progress_pagination.page|number }} / {{ progress_pagination.total_pages|number }}페이지 · 전체 {{ progress_total|number }}건</span><a class="button" href="{{ url_for('notices_page').path }}?stage=prenotice&action_status=in_progress">공고 목록에서 보기</a></div>
