@@ -411,3 +411,7 @@ PoC7·PoC10·PoC11은 기존 `openai_group_daily_usage`(mini/main, UTC 일자)�
 ### 0068 공식 자막 전용 수신 시계
 `live_broadcasts.last_official_caption_received_at`은 공식 실시간 자막의 마지막 수신 시각이며 STT 및 VOD 복원은 갱신하지 않습니다. `last_caption_received_at`은 GREATEST로만 갱신하여 과거 발언 추가 시 후퇴하지 않습니다. 복구에 따른 STT 종료는 `transcript_source_sessions`에 STOP/OFFICIAL_CAPTION_RECOVERED로 기록합니다.
 요약 표시의 `source_only_point_ids`는 문맥 검토 후에도 요약 불가능한 짧은 발언의 ID입니다. 주제의 evidence_ids와 원문은 보존하며 빈 요약 행은 표시하지 않습니다.
+
+
+### Solar key2 공유 계정
+기존 `shared_model_reservations.period_key` 및 `shared_solar_grant_usage.grant_id`에 `solar-key2-poc10-poc13`을 사용한다. 새 테이블이나 기존 원장 초기화는 없다. `project`는 `poc10` 또는 `poc13`, `budget_kind=solar`이며 Mini/Pro는 같은 $100 계정을 차감한다. 상태 조회에는 `solar_pool=key2`를 지정한다.

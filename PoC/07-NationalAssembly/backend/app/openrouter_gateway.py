@@ -424,7 +424,7 @@ def record_external_usage(
     return JSONResponse({"recorded": bool(cursor.rowcount)}, status_code=201 if cursor.rowcount else 200)
 
 
-def _shared_snapshot() -> dict[str, Any]:
+def _shared_snapshot(solar_pool: str = 'default') -> dict[str, Any]:
     from .config import get_settings
     from .db.connection import connect
     from .services.shared_budget import snapshot, import_solar_history
@@ -433,15 +433,15 @@ def _shared_snapshot() -> dict[str, Any]:
         rows = [dict(r) for r in local.execute("SELECT * FROM external_usage_events WHERE provider='upstage'").fetchall()]
     with connect(settings.database_url) as c:
         import_solar_history(c, settings, rows)
-        return snapshot(c, settings)
+        return snapshot(c, settings,solar_pool)
 
 
 @app.get("/internal/budget/status")
-def shared_budget_status(x_minslab_meter_token: str = Header(default="")) -> Response:
+def shared_budget_status(x_minslab_meter_token: str = Header(default=""), solar_pool: str = 'default') -> Response:
     if not METER_TOKEN or not hmac.compare_digest(x_minslab_meter_token, METER_TOKEN):
         return _gateway_error(403, "meter_token_required")
     try:
-        return JSONResponse(_shared_snapshot())
+        return JSONResponse(_shared_snapshot() if solar_pool=='default' else _shared_snapshot(solar_pool))
     except Exception:
         return _gateway_error(503, "shared_budget_unavailable")
 
@@ -465,6 +465,7 @@ def shared_budget_action(action: str, request: Request, x_minslab_meter_token: s
                 event_id: str = Field(min_length=8,max_length=100)
                 project: str
                 model: str
+                solar_pool: str = 'default'
                 input_bound: int = Field(gt=0,le=2000000)
                 output_bound: int = Field(gt=0,le=100000)
             values = Reservation.model_validate(payload).model_dump()
@@ -486,7 +487,7 @@ def shared_budget_action(action: str, request: Request, x_minslab_meter_token: s
 
 
 @app.get("/internal/status")
-def internal_status() -> dict[str, Any]:
+def internal_status(solar_pool: str = 'default') -> dict[str, Any]:
     with _connect() as connection:
         usage = _usage(connection)
         external_today = _external_breakdown(connection, "day")
@@ -499,7 +500,7 @@ def internal_status() -> dict[str, Any]:
             """, (_utc_day(),),
         ).fetchall()
     try:
-        shared = _shared_snapshot()
+        shared = _shared_snapshot() if solar_pool=='default' else _shared_snapshot(solar_pool)
     except Exception:
         shared = {"models": [], "error": "공통 예산 연결 확인 필요"}
     return {

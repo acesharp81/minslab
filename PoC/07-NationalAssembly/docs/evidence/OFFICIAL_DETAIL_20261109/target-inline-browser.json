@@ -1,0 +1,30 @@
+[
+  {
+    "width": 1440,
+    "official_sources": 6,
+    "official_speakers": [
+      "김남근",
+      "한성숙"
+    ],
+    "named_summary_points": 2,
+    "unresolved_summary_points_preserved": 4,
+    "inline_toggle": true,
+    "no_overflow": true,
+    "page_errors": [],
+    "elapsed_seconds": 7.9
+  },
+  {
+    "width": 390,
+    "official_sources": 6,
+    "official_speakers": [
+      "김남근",
+      "한성숙"
+    ],
+    "named_summary_points": 2,
+    "unresolved_summary_points_preserved": 4,
+    "inline_toggle": true,
+    "no_overflow": true,
+    "page_errors": [],
+    "elapsed_seconds": 4.2
+  }
+]

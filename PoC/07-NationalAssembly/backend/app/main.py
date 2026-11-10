@@ -1779,6 +1779,9 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
                 else None
             )
             speaker_sources = []
+            detail_official_rows = []
+            detail_snapshot = None
+            detail_source_matches = []
             if (
                 integration and integration.get("status") == "READY"
                 and not integration_deferred and current_document_id
@@ -1793,6 +1796,16 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
                 speaker_sources = official_evidence_items(
                     connection, source_ids, document_id=current_document_id,
                 )
+                if is_legislature and structure:
+                    detail_snapshot = TopicStructureRepository(connection).snapshot(
+                        structure['topic_structure']['revision_id'],
+                    )
+                    detail_source_matches = LiveRepository(connection).snapshot_official_source_matches(
+                        broadcast_id, current_document_id, detail_snapshot or {},
+                    )
+                    detail_official_rows = LiveRepository(connection).broadcast_official_material(
+                        broadcast_id, document_id=current_document_id,
+                    ).get("utterances") or []
     except Exception as exc:
         raise HTTPException(
             status_code=503, detail="회의 결과 브리프를 사용할 수 없습니다."
@@ -1909,6 +1922,15 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
         public["live_topic_resolution"] = build_live_topic_resolution(
             public["brief"], structure, public.get("brief_id"),
         )
+        if is_legislature and public.get("official_brief") and detail_official_rows:
+            from .services.official_structured_presentation import official_structured_view
+            public["official_comparison_brief"] = public["official_brief"]
+            public["official_brief"] = official_structured_view(
+                public["official_brief"], structure, public.get("brief_id"),
+                detail_official_rows, (integration or {}).get("changes") or [],
+                snapshot=detail_snapshot, source_matches=detail_source_matches,
+            )
+            public["brief"] = public["official_brief"]
         if public.get("default_brief_view") != "OFFICIAL":
             public["provisional_brief"] = public["brief"]
             public["brief"] = structure
@@ -2009,22 +2031,26 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
         lines.extend(("</details>", ""))
     lineage = brief.get("live_topic_lineage") or {}
     resolution = record.get("live_topic_resolution") or {}
-    if resolution and not brief.get("topic_structure"):
+    if resolution:
         lines.extend((
             "## 실시간 논의 재구조화 연결 · AI 잠정", "",
-            f"- 전체 {resolution['cluster_count']}묶음 · 쟁점 연결 {resolution['linked_count']} · "
-            f"절차 {resolution['procedural_count']} · 추가 확인 {resolution['review_count']}",
+            f"- 전체 {resolution['cluster_count']}묶음 · 쟁점 연결 {resolution.get('linked_cluster_count', resolution['linked_count'])} · "
+            f"절차 {resolution['procedural_count']} · 추가 연결 확인 {resolution.get('pending_review_count', resolution['review_count'])} · "
+            f"재검토 후 원문 불명확 {resolution.get('source_limited_cluster_count', 0)}묶음 "
+            f"({resolution.get('source_limited_evidence_count', 0)}건)",
             f"- 기존 요약의 연결 확인 {resolution['legacy_pending_count']}묶음 중 "
             f"구조화 연결 {resolution['legacy_pending_linked_count']} · "
             f"절차 {resolution['legacy_pending_procedural_count']} · "
-            f"추가 확인 {resolution['legacy_pending_review_count']}",
+            f"추가 연결 확인 {resolution.get('legacy_pending_active_review_count', resolution['legacy_pending_review_count'])} · "
+            f"재검토 후 원문 불명확 {resolution.get('legacy_pending_source_limited_count', 0)}묶음",
             "- 저장된 LIVE 원문 기반 잠정 연결이며 공식 요약·공식 근거의 연결 상태는 아래에 보존합니다.", "",
         ))
-    if lineage.get("cluster_count"):
+    if lineage.get("cluster_count") and not (resolution and brief.get("topic_structure")):
         lines.extend(
             (
-                "## 실시간 주제 계보",
+                "## 대조 당시 실시간 주제 연결 이력" if resolution else "## 실시간 주제 계보",
                 "",
+                *( ["아래는 보존된 이전 연결 이력입니다. 현재 처리 결과는 위의 재구조화 연결 내역을 참고하세요.", ""] if resolution else [] ),
                 f"- 전체 {lineage.get('cluster_count') or 0}묶음 · "
                 f"연결 {lineage.get('mapped_cluster_count') or 0} · "
                 f"교차 {lineage.get('ambiguous_cluster_count') or 0} · "
@@ -2038,7 +2064,8 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
             if cluster.get("mapping_status") == "UNMAPPED"
         ]
         if unmapped:
-            lines.append("### 최종 상위 주제에 포함되지 않은 실시간 논의")
+            lines.append("### 당시 상위 주제 연결 보류 항목 (보존 이력)" if resolution
+                         else "### 최종 상위 주제에 포함되지 않은 실시간 논의")
             lines.append("")
             lines.extend(
                 f"- {cluster.get('title') or '제목 확인 필요'}" for cluster in unmapped
@@ -2215,7 +2242,10 @@ def ended_live_broadcast_brief_evidence(
     broadcast_id: UUID,
     entity_type: str,
     entity_id: str,
+    view: str | None = None,
 ) -> dict[str, object]:
+    if view not in {None, "official", "structured", "provisional"}:
+        raise HTTPException(status_code=422, detail="unsupported brief view")
     if entity_type not in {
         "topic", "topic_group", "task", "speaker", "live_topic_cluster", "structure_review", "summary_topic", "summary_speaker",
     }:
@@ -2245,10 +2275,35 @@ def ended_live_broadcast_brief_evidence(
                 else brief.get("brief") or {}
             )
             is_structured = entity_id.startswith("structured-") or entity_type in {"summary_topic", "summary_speaker"}
+            detail_material = None
+            source_snapshot = None
+            detail_source_matches = []
             if is_structured:
                 evidence_brief = TopicStructureRepository(connection).ready_current(brief)
                 if not evidence_brief:
                     raise HTTPException(status_code=404, detail="현재 구조화 버전이 없습니다.")
+                if view == "official" and integration and integration.get("status") == "READY":
+                    from .services.official_structured_presentation import official_structured_view
+                    detail_material = live_repository.broadcast_official_material(
+                        broadcast_id, document_id=current_document_id,
+                    )
+                    comparison = attach_meeting_topic_groups(link_tasks_to_topics(
+                        attach_official_evidence_from_changes(
+                            integration.get("integrated_brief") or {}, integration.get("changes") or [],
+                        ),
+                    ))
+                    source_snapshot = TopicStructureRepository(connection).snapshot(
+                        evidence_brief['topic_structure']['revision_id'],
+                    )
+                    detail_source_matches = live_repository.snapshot_official_source_matches(
+                        broadcast_id, current_document_id, source_snapshot or {},
+                    )
+                    evidence_brief = official_structured_view(
+                        comparison, evidence_brief, brief["brief_id"],
+                        detail_material.get("utterances") or [], integration.get("changes") or [],
+                        snapshot=source_snapshot,
+                        source_matches=detail_source_matches,
+                    )
                 integration = None
             if integration and integration.get("status") == "READY":
                 evidence_brief = attach_official_evidence_from_changes(
@@ -2285,7 +2340,7 @@ def ended_live_broadcast_brief_evidence(
                 if not topic:
                     raise HTTPException(status_code=404, detail="요약 주제를 찾을 수 없습니다.")
                 evidence_ids = list(topic.get("evidence_ids") or [])
-                official_ids = []
+                official_ids = list(topic.get("official_evidence_ids") or [])
             elif entity_type == "topic_group":
                 group = next(
                     (
@@ -2320,7 +2375,7 @@ def ended_live_broadcast_brief_evidence(
                 )
             live_utterances = []
             if is_structured:
-                source_snapshot = TopicStructureRepository(connection).snapshot(
+                source_snapshot = source_snapshot or TopicStructureRepository(connection).snapshot(
                     evidence_brief['topic_structure']['revision_id'],
                 )
                 live_utterances = snapshot_evidence_items(source_snapshot, evidence_ids)
@@ -2369,11 +2424,14 @@ def ended_live_broadcast_brief_evidence(
                 if official_ids
                 else []
             )
-            material = live_repository.broadcast_official_material(
+            material = detail_material or live_repository.broadcast_official_material(
                 broadcast_id, document_id=current_document_id,
             )
             document = material.get("document") or {}
             current_official_rows = list(material.get("utterances") or [])
+            if is_structured and view == "official":
+                from .services.official_structured_presentation import present_structured_source_speakers
+                live_utterances = present_structured_source_speakers(live_utterances, current_official_rows)
             current_official_ids = [
                 value
                 for value in official_ids
@@ -2430,8 +2488,17 @@ def ended_live_broadcast_brief_evidence(
                 if current_official_rows and not is_structured
                 else []
             )
+            if is_structured and view == "official":
+                from .services.official_structured_presentation import structured_official_comparisons
+                official_utterances = structured_official_comparisons(
+                    live_utterances, detail_source_matches, current_official_rows,
+                    current_official_ids,
+                    publication_stage=str(document.get("publication_stage") or "UNKNOWN"),
+                    authority_status=str(document.get("authority_status") or "PROVISIONAL"),
+                )
             utterances = (
-                official_presentations or live_utterances or official_utterances
+                live_utterances if is_structured
+                else official_presentations or live_utterances or official_utterances
             )
             direct_task_spans = []
             if is_structured and entity_type == "task":
@@ -2449,6 +2516,7 @@ def ended_live_broadcast_brief_evidence(
         "entity_type": entity_type,
         "entity_id": entity_id,
         "items": utterances,
+        "official_items": official_utterances if is_structured and view == "official" else [],
         "direct_task_spans": direct_task_spans,
         "count": len(utterances),
         "authority_status": (
@@ -2463,9 +2531,9 @@ def ended_live_broadcast_brief_evidence(
             if live_utterances
             else "OFFICIAL_TRANSCRIPT_UTTERANCE"
         ),
-        "official_reference_count": len(official_presentations),
+        "official_reference_count": len(official_utterances) if is_structured and view == "official" else len(official_presentations),
         "publication_stage": (
-            document.get("publication_stage") if official_presentations else None
+            document.get("publication_stage") if official_presentations or (is_structured and view == "official" and official_utterances) else None
         ),
         "live_baseline_count": len(live_utterances),
     }

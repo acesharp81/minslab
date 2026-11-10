@@ -363,6 +363,7 @@ function stopMagazine(institution) {
 }
 
 function stopAssemblyTranscript() {
+  setMeetingReportSourceControl();
   assemblyTranscriptState.active = false;
   assemblyTranscriptState.generation += 1;
   if (assemblyTranscriptState.pollTimer) window.clearTimeout(assemblyTranscriptState.pollTimer);
@@ -2130,27 +2131,41 @@ async function renderOfficialMeetingPanel(item) {
   }
 }
 
+function meetingLiveResolutionSummary(resolution) {
+  const linked = resolution.linked_cluster_count ?? resolution.linked_count;
+  const pending = resolution.pending_review_count ?? resolution.review_count;
+  const limited = resolution.source_limited_cluster_count || 0;
+  return `실시간 ${resolution.cluster_count}묶음 중 ${linked}묶음에 주제가 연결되어 있습니다.`
+    + (resolution.procedural_count ? ` 회의 진행·의례 ${resolution.procedural_count}묶음은 별도 보존합니다.` : "")
+    + (limited ? ` ${limited}묶음에 포함된 불명확 원문 ${resolution.source_limited_evidence_count}건은 문맥 재검토 후 별도로 보존했습니다.` : "")
+    + (pending ? ` 추가 연결 확인이 필요한 항목은 ${pending}묶음입니다.` : " 추가 연결 확인 대기 항목은 없습니다.");
+}
+
 function renderMeetingLiveResolution(item, record, options = {}) {
   const resolution = record.live_topic_resolution;
+  const pendingCount = resolution.pending_review_count ?? resolution.review_count;
+  const limitedCount = resolution.source_limited_cluster_count || 0;
   const panel = magazineElement("details", "meeting-lineage-unmapped meeting-live-resolution", "");
   panel.append(
-    magazineElement("summary", "", `실시간 논의 자동 분류 결과 · 미분류 ${resolution.review_count}묶음`),
-    magazineElement("p", "", `기존 요약에서 연결되지 않았던 ${resolution.legacy_pending_count}묶음: 원문 기반 쟁점 연결 ${resolution.legacy_pending_linked_count} · 절차성 발언 ${resolution.legacy_pending_procedural_count} · 미분류 ${resolution.legacy_pending_review_count}.`),
-    magazineElement("p", "", "아래 연결은 LIVE 원문을 재검토한 AI 잠정 결과입니다. 공식 대조본은 보존하며, 미분류 발언은 시스템이 앞뒤 문맥과 함께 재분석합니다. 재분석 후에도 원문이 불명확하면 그 사유를 표시합니다."),
+    magazineElement("summary", "", pendingCount
+      ? `주제 연결 확인 필요 ${pendingCount}묶음${limitedCount ? ` · 원문 불명확 ${limitedCount}묶음` : ""}`
+      : limitedCount ? `재검토 후 원문 불명확 ${limitedCount}묶음` : "실시간 주제 연결 내역"),
+    magazineElement("p", "", meetingLiveResolutionSummary(resolution)),
+    magazineElement("p", "", "아래는 실시간 원문을 재검토한 AI 잠정 연결입니다. 공식 발언의 대조 결과와는 구분하며, 불명확한 원문과 기존 연결 이력을 보존합니다."),
   );
   const pending = resolution.entries.filter((entry) => ["PARTIAL", "UNRESOLVED"].includes(entry.status));
   for (const entry of pending) {
     const section = magazineElement("section", "meeting-live-resolution-pending", "");
     section.append(magazineElement("strong", "", entry.title), magazineElement("p", "",
-      `연결된 세부 쟁점 ${entry.topics.length}개 · 자동 재분류·원문 한계 ${entry.review_evidence_ids.length}개`));
+      `연결된 세부 쟁점 ${entry.topics.length}개 · ${entry.review_state === "SOURCE_LIMITED" ? "재검토 후 원문 불명확" : "추가 연결 확인 필요"} ${entry.review_evidence_ids.length}건`));
     for (const review of entry.review_items) {
       const button = meetingEvidenceButton(item, "structure_review", review.id, "", "분류 근거 원문 보기");
       button.append(magazineElement("strong", "", review.title), magazineElement("p", "", review.summary));
       if (review.reason) button.append(magazineElement("small", "", review.reason));
       section.append(button);
     }
-    if (!entry.review_items.length && entry.structured_cluster_id) {
-      section.append(meetingEvidenceButton(item, "live_topic_cluster", entry.structured_cluster_id, "", "묶음 원문 확인"));
+    if (!entry.review_items.length) {
+      section.append(meetingEvidenceButton(item, "live_topic_cluster", entry.structured_cluster_id || entry.source_cluster_id, "", "묶음 원문 확인"));
     }
     panel.append(section);
   }
@@ -2158,7 +2173,9 @@ function renderMeetingLiveResolution(item, record, options = {}) {
   resolved.append(magazineElement("summary", "", `기존 미연결 항목의 처리 결과 ${resolution.legacy_pending_count}묶음`));
   for (const entry of resolution.entries.filter((entry) => entry.legacy_pending)) {
     const section = magazineElement("section", "", "");
-    const label = entry.status === "LINKED" ? "쟁점 연결" : entry.status === "PROCEDURAL" ? "절차성 발언" : "미분류";
+    const label = entry.review_state === "SOURCE_LIMITED"
+      ? (entry.topics.length ? "쟁점 연결·불명확 원문 보존" : "재검토 후 원문 불명확")
+      : entry.status === "LINKED" ? "쟁점 연결" : entry.status === "PROCEDURAL" ? "절차성 발언" : "추가 연결 확인 필요";
     section.append(magazineElement("strong", "", `${label} · ${entry.title}`));
     for (const topic of entry.topics) {
       const button = magazineElement("button", "", `연결 쟁점 보기 · ${topic.title}`);
@@ -2261,6 +2278,7 @@ function renderMeetingBrief(item, record, options = {}) {
   const openTasks = (brief.tasks || []).filter((task) => task.status !== "RESOLVED");
   stage.replaceChildren();
   const root = magazineElement("section", "meeting-brief-view", "");
+  root.dataset.briefView = briefView;
   const hero = magazineElement("header", "meeting-brief-hero", "");
   const identity = magazineElement("div", "", "");
   const labels = magazineElement("div", "meeting-brief-labels", "");
@@ -2318,23 +2336,25 @@ function renderMeetingBrief(item, record, options = {}) {
           : "쟁점 재구조화 대기 중 · 기존 보고서와 근거를 표시합니다.",
     ));
   }
-  if (!structure && topicGrouping.quality_status === "REVIEW_REQUIRED") {
-    const unclassified = Number(topicGrouping.unclassified_topic_count || 0);
-    const singletons = Number(topicGrouping.singleton_unclassified_group_count || 0);
+  if (!structure && topicGrouping.integrity_status === "REVIEW_REQUIRED") {
     identity.append(magazineElement(
       "p", "meeting-lineage-summary is-partial",
-      `자동 분류 검토 필요 · 정책 대상 사전 미등록 ${unclassified.toLocaleString("ko-KR")}개 · 단독 보류 ${singletons.toLocaleString("ko-KR")}개`,
+      `보고서 연결 확인 필요 · 주제 누락 ${topicGrouping.missing_topic_count || 0}개 · 중복 ${topicGrouping.duplicate_topic_count || 0}개 · 실시간 주제 누락 ${topicGrouping.missing_live_topic_count || 0}개 · 과제 미연결 ${topicGrouping.unlinked_task_count || 0}개`,
     ));
   }
   const lineageTotal = Number(liveTopicLineage.cluster_count || 0);
   let sourceProcessingDetails = null;
-  if (lineageTotal > 0 && structure) {
+  if ((lineageTotal > 0 && structure) || liveResolution) {
     const details = magazineElement("details", "meeting-source-processing-details", "");
     details.append(magazineElement("summary", "", "주제 연결·원문 처리 내역"));
-    details.append(magazineElement("p", "meeting-brief-scope-note", structuredLineageSummary(brief)));
+    details.append(magazineElement("p", "meeting-brief-scope-note", record.live_topic_resolution
+      ? meetingLiveResolutionSummary(record.live_topic_resolution) : structuredLineageSummary(brief)));
+    if (!structure && topicGrouping.unclassified_topic_count) details.append(magazineElement(
+      "p", "", `공식 대조본의 정책 주제 ${topicGrouping.policy_topic_count}개 중 ${topicGrouping.unclassified_topic_count}개는 분류 사전에 없는 명칭으로 묶었습니다. 사전 일치 여부는 주제·근거의 연결 누락과 다릅니다.`,
+    ));
     sourceProcessingDetails = details;
   }
-  if (lineageTotal > 0 && !structure) {
+  if (lineageTotal > 0 && !structure && !liveResolution) {
     const lineageMapped = Number(liveTopicLineage.mapped_cluster_count || 0);
     const lineageAmbiguous = Number(liveTopicLineage.ambiguous_cluster_count || 0);
     const lineageUnmapped = Number(liveTopicLineage.unmapped_cluster_count || 0);
@@ -2407,16 +2427,16 @@ function renderMeetingBrief(item, record, options = {}) {
   hero.append(meetingTopicSearchControl(item, metrics, printButton));
   identity.append(reportTools);
 
-  if (officialBrief) {
+  {
     const sourceSwitch = meetingBriefViewSwitch(briefView === "official" ? "official" : "provisional", (view) => {
       const nextView = view === "official" ? "official" : structuredBrief ? "structured" : "provisional";
       renderMeetingBrief(item, {...record, _brief_view: nextView, _focus_topic_id: null}, options);
-    }, sourceOnly);
-    sourceSwitch.querySelector('[data-brief-view="provisional"]').textContent = "실시간 회의록(비공식)";
-    sourceSwitch.title = sourceOnly
+    }, sourceOnly, Boolean(officialBrief));
+    sourceSwitch.title = !officialBrief ? "방송 발언을 바탕으로 정리한 비공식 회의록입니다."
+      : sourceOnly
       ? "공식 화자·발언 원문이 반영됐으며 요약 내용 대조는 지연 중입니다."
       : "공식 원문 대조본과 방송 발언 기반의 비공식 정리를 전환합니다.";
-    reportTools.append(sourceSwitch);
+    setMeetingReportSourceControl(sourceSwitch);
   }
   const officialChangeReport = renderOfficialChangeReport(record);
   if (record?.brief_upgrade_pending) {
@@ -2570,7 +2590,9 @@ function renderMeetingBrief(item, record, options = {}) {
     }));
     const summarySection = magazineElement("section", "meeting-narrative-summary", "");
     summarySection.setAttribute("aria-label", "대주제별 AI 논의 요약");
-    summarySection.append(magazineElement("p", "meeting-brief-scope-note", "AI 요약 · 잠정 · 근거 원문은 각 요약에서 확인할 수 있습니다."));
+    summarySection.append(magazineElement("p", "meeting-brief-scope-note", brief.official_detail_presentation
+      ? "세부 요약은 실시간 원문 기반 AI 잠정 요약입니다. 연결된 공식 발언은 근거 보기에서 함께 확인할 수 있으며, 공식 대조의 추가·수정 사항은 ‘공식 대조 보완 내용’에 보존합니다."
+      : "AI 요약 · 잠정 · 근거 원문은 각 요약에서 확인할 수 있습니다."));
     for (const group of summaryGroups) {
       const section = magazineElement("details", "meeting-topic-group meeting-summary-group", "");
       section.id = group.id;
@@ -2595,14 +2617,25 @@ function renderMeetingBrief(item, record, options = {}) {
         rows.id = card.id + "-speakers";
         summary.append(" ", meetingTopicEvidenceToggle(item, topic, topic.evidence_type || "summary_topic", rows));
         copy.append(officialTextElement("h4", "", topic.title, topic, "title"), summary);
+        if (topic.summary_verification) copy.append(magazineElement("small", "meeting-official-source-status",
+          topic.summary_verification === "OFFICIAL_SOURCE_LINKED"
+            ? `공식 근거 ${topic.official_evidence_ids.length}건 연결` : "실시간 근거"));
         head.append(copy);
         card.append(head);
+        const liveOnlyPoints = magazineElement("details", "meeting-draft-only-speakers", "");
+        const liveOnlyRows = magazineElement("div", "", "");
         for (const point of topic.speaker_points || []) {
+          const liveOnly = briefView === "official" && brief.official_detail_presentation
+            && !(point.official_evidence_ids?.length && point.speaker_label && !point.speaker_label.startsWith("화자"));
           const button = meetingEvidenceButton(item, point.evidence_type || "summary_speaker", point.id, "", topic.title);
           button.classList.add("meeting-summary-point");
-          button.append(magazineElement("strong", "", point.speaker_label || "화자 미확인"),
+          button.append(magazineElement("strong", "", liveOnly ? "실시간 요약" : point.speaker_label || "화자 미확인"),
             magazineElement("span", "", point.summary), magazineElement("i", "", "발언 확인"));
-          rows.append(button);
+          (liveOnly ? liveOnlyRows : rows).append(button);
+        }
+        if (liveOnlyRows.children.length) {
+          liveOnlyPoints.append(magazineElement("summary", "", `실시간 요약 · 공식 화자 연결 미확인 ${liveOnlyRows.children.length}건`), liveOnlyRows);
+          rows.append(liveOnlyPoints);
         }
         card.append(rows);
         const taskRows = magazineElement("div", "meeting-speaker-points meeting-summary-tasks", "");
@@ -2711,7 +2744,8 @@ function renderMeetingBrief(item, record, options = {}) {
     for (const point of topic.speaker_points || []) {
       const pointRow = meetingEvidenceButton(item, "speaker", point.id, "", topic.title + " · " + point.speaker_label);
       pointRow.append(
-        magazineElement("strong", "", point.speaker_label || "화자 미확인"),
+        magazineElement("strong", "", brief.official_detail_presentation && !point.speaker_official
+          ? "실시간 원문" : point.speaker_label || "화자 미확인"),
         magazineElement("span", "", point.summary),
         magazineElement("i", "", "발언 확인"),
       );
@@ -2905,6 +2939,37 @@ function renderOfficialUtteranceBrowser(item) {
   return section;
 }
 
+function appendMeetingEvidenceComparisonNotes(row, utterance) {
+  if (utterance.comparison_status === "PARTIAL_BASELINE") {
+    row.append(magazineElement("small", "meeting-evidence-compare-note",
+      "비공식 발언의 일부만 연결되어 문구 변경 비교는 생략했습니다."));
+  } else if (utterance.comparison_status === "LOW_CONFIDENCE") {
+    row.append(magazineElement(
+      "small", "meeting-evidence-compare-note",
+      "공식 문장을 반영했습니다 · LIVE 자막과 문장 구조 차이가 커 세부 변경 표시는 생략합니다.",
+    ));
+  } else if (Number(utterance.change_count || 0) > 0) {
+    row.append(magazineElement(
+      "small", "meeting-evidence-compare-note",
+      "색상 문구에 마우스를 올리거나 키보드로 선택하면 기존 LIVE 자막 문구를 확인할 수 있습니다.",
+    ));
+  }
+  const liveOnly = Array.isArray(utterance.live_only_fragments)
+    ? utterance.live_only_fragments.filter(Boolean) : [];
+  if (liveOnly.length) {
+    const disclosure = magazineElement(
+      "details", "meeting-evidence-live-only", "",
+    );
+    disclosure.append(magazineElement(
+      "summary", "", `LIVE에만 기록된 문구 ${liveOnly.length.toLocaleString("ko-KR")}곳`,
+    ));
+    for (const fragment of liveOnly) {
+      disclosure.append(magazineElement("p", "", fragment));
+    }
+    row.append(disclosure);
+  }
+}
+
 async function openMeetingBriefEvidence(item, entityType, entityId, title) {
   const panel = document.querySelector("#meetingBriefEvidence");
   if (!panel) return;
@@ -2918,13 +2983,15 @@ async function openMeetingBriefEvidence(item, entityType, entityId, title) {
   );
   try {
     const params = new URLSearchParams({ entity_type: entityType, entity_id: entityId });
+    const view = panel.closest(".meeting-brief-view")?.dataset.briefView;
+    if (view) params.set("view", view);
     const response = await fetch(
       "api/live/broadcasts/" + encodeURIComponent(item.broadcast_id) + "/brief/evidence?" + params,
       { cache: "no-store" },
     );
     const payload = await response.json();
-    if (!isCurrentRequest()) return;
     if (!response.ok) throw new Error(payload.detail || "HTTP " + response.status);
+    if (!isCurrentRequest()) return;
     panel.replaceChildren();
     const head = magazineElement("header", "", "");
     const close = magazineElement("button", "", "선택 해제");
@@ -2939,13 +3006,13 @@ async function openMeetingBriefEvidence(item, entityType, entityId, title) {
     const publicationLabel = payload.publication_stage === "FINAL"
       ? "공식 최종본"
       : payload.publication_stage === "TEMPORARY" ? "임시회의록 반영" : "공식 회의록";
-    const changedCount = (payload.items || []).reduce(
+    const changedCount = [...(payload.official_items || []), ...(payload.items || [])].reduce(
       (total, utterance) => total + Number(utterance.change_count || 0), 0,
     );
     head.firstElementChild.append(
       magazineElement(
         "span", "",
-        officialPresentation
+        payload.official_items?.length ? "발언 확인 · 실시간·공식 근거" : officialPresentation
           ? `발언 확인 · ${publicationLabel}`
           : payload.source === "LIVE_STRUCTURE_SNAPSHOT"
             ? "발언 확인 · 구조화 시점의 LIVE 저장본" : "발언 확인 · LIVE 저장본",
@@ -2953,7 +3020,7 @@ async function openMeetingBriefEvidence(item, entityType, entityId, title) {
       magazineElement("strong", "", title),
       magazineElement(
         "small", "",
-        officialPresentation
+        payload.official_items?.length ? `${payload.count}개 실시간 발언 · 공식 근거 ${payload.official_items.length}건 · 비공식 대비 수정 문구 ${changedCount}곳` : officialPresentation
           ? `${payload.count}개 공식 발언 · LIVE 대비 수정 문구 ${changedCount}곳`
           : entityType === "task"
             ? payload.count + "개 발언 묶음 · " + ((payload.direct_task_spans || []).length ? "과제 직접 언급 구간 표시" : "과제 직접 언급 구간 확인 필요")
@@ -2961,6 +3028,21 @@ async function openMeetingBriefEvidence(item, entityType, entityId, title) {
       ),
     );
     panel.append(head);
+    if (payload.official_items?.length) {
+      const officialSources = magazineElement("details", "meeting-linked-official-sources", "");
+      officialSources.open = true;
+      officialSources.append(magazineElement("summary", "", `연결된 공식 발언 ${payload.official_items.length}건`));
+      for (const speech of payload.official_items) {
+        const source = magazineElement("article", "meeting-evidence-utterance is-official", "");
+        const transcript = magazineElement("p", "meeting-evidence-transcript", "");
+        appendOfficialInlineDiff(transcript, speech.text, speech.diff_spans);
+        source.append(magazineElement("strong", "", speech.speaker_label || "공식 발언자"), transcript);
+        appendMeetingEvidenceComparisonNotes(source, speech);
+        officialSources.append(source);
+      }
+      panel.append(officialSources);
+      panel.append(magazineElement("p", "meeting-brief-scope-note", "아래는 요약에 사용한 실시간 원문입니다. 공식 발언과 별도로 보존합니다."));
+    }
     const evidenceItems = payload.items || [];
     const highlightPlan = entityType === "task"
       ? new Map(evidenceItems.flatMap((utterance, index) => {
@@ -2973,7 +3055,7 @@ async function openMeetingBriefEvidence(item, entityType, entityId, title) {
       }))
       : selectMeetingEvidenceHighlights(evidenceItems, title);
     if (!evidenceItems.length) {
-      panel.append(magazineElement("p", "meeting-result-empty", "이 주제에 연결된 발언을 다시 대조하고 있습니다."));
+      if (!payload.official_items?.length) panel.append(magazineElement("p", "meeting-result-empty", "이 주제에 연결된 발언을 다시 대조하고 있습니다."));
       return;
     }
     for (const [utteranceIndex, utterance] of evidenceItems.entries()) {
@@ -2990,7 +3072,8 @@ async function openMeetingBriefEvidence(item, entityType, entityId, title) {
           : "임시회의록"
         : (utterance.segment_count || 1) + "개 자막 연결";
       speaker.append(
-        magazineElement("strong", "", utterance.speaker_label || "화자 미확인"),
+        magazineElement("strong", "", view === "official" && !official && !utterance.speaker_official
+          ? "실시간 화자 연결 미확인" : utterance.speaker_label || "화자 미확인"),
         magazineElement(
           "small", "",
           [utterance.speaker_role, sourceLabel].filter(Boolean).join(" · "),
@@ -3012,34 +3095,11 @@ async function openMeetingBriefEvidence(item, entityType, entityId, title) {
         );
       }
       row.append(speaker, transcript);
-      if (official && utterance.comparison_status === "LOW_CONFIDENCE") {
-        row.append(magazineElement(
-          "small", "meeting-evidence-compare-note",
-          "공식 문장을 반영했습니다 · LIVE 자막과 문장 구조 차이가 커 세부 변경 표시는 생략합니다.",
-        ));
-      } else if (official && Number(utterance.change_count || 0) > 0) {
-        row.append(magazineElement(
-          "small", "meeting-evidence-compare-note",
-          "색상 문구에 마우스를 올리거나 키보드로 선택하면 기존 LIVE 자막 문구를 확인할 수 있습니다.",
-        ));
-      }
-      const liveOnly = Array.isArray(utterance.live_only_fragments)
-        ? utterance.live_only_fragments.filter(Boolean) : [];
-      if (official && liveOnly.length) {
-        const disclosure = magazineElement(
-          "details", "meeting-evidence-live-only", "",
-        );
-        disclosure.append(magazineElement(
-          "summary", "", `LIVE에만 기록된 문구 ${liveOnly.length.toLocaleString("ko-KR")}곳`,
-        ));
-        for (const fragment of liveOnly) {
-          disclosure.append(magazineElement("p", "", fragment));
-        }
-        row.append(disclosure);
-      }
+      if (official) appendMeetingEvidenceComparisonNotes(row, utterance);
       panel.append(row);
     }
   } catch (error) {
+
     if (!isCurrentRequest()) return;
     panel.replaceChildren(
       magazineElement("header", "", title),
@@ -3369,6 +3429,7 @@ function expandMeetingBrief(item, row, options = {}) {
     briefView: options.briefView || requested.view,
   };
   stopAssemblyTranscript();
+  setMeetingReportSourceControl(meetingBriefViewSwitch("provisional", () => {}, false, false));
   const requestGeneration = assemblyTranscriptState.generation;
   rememberMeetingReportSelection(item.broadcast_id);
   assemblyTranscriptState.expanded = true;
@@ -4009,7 +4070,7 @@ function executiveReportSourceSwitch(meeting, row, view) {
     || Number(capture.segment_count || 0) > 0
   ));
   const section = magazineElement("section", "executive-report-source-switch", "");
-  const controls = magazineElement("div", "meeting-source-tabs", "");
+  const controls = magazineElement("div", "meeting-brief-view-switch", "");
   controls.setAttribute("role", "group");
   controls.setAttribute("aria-label", "국무회의 자료 선택");
   for (const [key, label] of [["official", "공식 자료"], ["provisional", "실시간 회의록(비공식)"]]) {
@@ -4031,7 +4092,8 @@ function executiveReportSourceSwitch(meeting, row, view) {
     : available
       ? "공식 배포 자료 기준입니다. 방송에서 오간 상세 논의는 실시간 회의록(비공식)에서 확인할 수 있습니다."
       : "공식 배포 자료 기준입니다. 연결된 실시간 회의록(비공식)이 없습니다.";
-  section.append(controls, magazineElement("p", "executive-report-source-note", note));
+  setMeetingReportSourceControl(controls);
+  section.append(magazineElement("p", "executive-report-source-note", note));
   return section;
 }
 

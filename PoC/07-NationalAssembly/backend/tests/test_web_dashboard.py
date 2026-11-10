@@ -729,7 +729,10 @@ class WebDashboardTests(unittest.TestCase):
         self.assertIn("function meetingBriefViewSwitch", integration)
         self.assertIn('part.kind === "deleted"', integration)
         self.assertIn("meeting-brief-view-switch", styles)
-        self.assertIn("official-integration.js?v=20260927-2", html)
+        self.assertRegex(
+            html,
+            r'<script\b[^>]*\bsrc="assets/official-integration\.js\?v=[^"\s]+"[^>]*></script>',
+        )
 
 if __name__ == "__main__":
     unittest.main()

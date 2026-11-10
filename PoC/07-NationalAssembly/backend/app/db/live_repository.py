@@ -839,6 +839,36 @@ class LiveRepository:
             }
         return result
 
+    def snapshot_official_source_matches(
+        self, broadcast_id: uuid.UUID, official_document_id: uuid.UUID,
+        snapshot: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        """Read existing matches for the exact saved revisions and speaker parts."""
+        from ..services.transcript_presentation import expand_source_speaker_segments
+        revision_ids = list({uuid.UUID(str(value)) for atom in snapshot.get("atoms", [])
+                             for value in atom.get("revision_ids", [])})
+        if not revision_ids:
+            return []
+        records = self.connection.execute(
+            """SELECT segment.id, revision.id, revision.text, revision.source_payload
+               FROM transcript_segment_revisions revision
+               JOIN transcript_segments segment ON segment.id = revision.segment_id
+               WHERE segment.broadcast_id = %s AND revision.id = ANY(%s)""",
+            (broadcast_id, revision_ids),
+        ).fetchall()
+        whole = self.broadcast_reconciliation_details(
+            broadcast_id, official_document_id=official_document_id, revision_ids=revision_ids)
+        parts = self.broadcast_part_reconciliation_details(
+            broadcast_id, official_document_id=official_document_id, revision_ids=revision_ids)
+        segments = []
+        for segment_id, revision_id, text, payload in records:
+            segments.append({"segment_id": str(segment_id), "revision_id": str(revision_id),
+                             "text": text, "source_speaker_segments": (payload or {}).get("speaker_segments"),
+                             "official_reconciliation": whole.get(revision_id),
+                             "source_part_reconciliations": parts.get(revision_id, {})})
+        return [part for part in expand_source_speaker_segments(segments)
+                if (part.get("official_reconciliation") or {}).get("status") == "MATCHED"]
+
     def list_ended_broadcasts(
         self,
         committee_name: str | None = None,

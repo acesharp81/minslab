@@ -31,19 +31,29 @@ function appendOfficialInlineDiff(container, value, diffSpans, changeKind = "") 
   return container;
 }
 
-function meetingBriefViewSwitch(activeView, onChange, sourceOnly = false) {
+function setMeetingReportSourceControl(control = null) {
+  const host = document.querySelector("#meetingReportSourceControl");
+  if (!host) return;
+  host.replaceChildren(...(control ? [control] : []));
+  host.hidden = !control;
+}
+
+function meetingBriefViewSwitch(activeView, onChange, sourceOnly = false, hasOfficial = true) {
   const control = magazineElement("div", "meeting-brief-view-switch", "");
   control.setAttribute("role", "group");
   control.setAttribute("aria-label", "회의 보고서 자료 기준");
   for (const [view, label] of [
     ["official", sourceOnly ? "공식 발언·화자" : "공식 대조본"],
-    ["provisional", "LIVE/STT 초안"],
+    ["provisional", "실시간 회의록(비공식)"],
   ]) {
+    if (view === "official" && !hasOfficial) continue;
     const button = magazineElement("button", "", label);
     button.type = "button";
     button.dataset.briefView = view;
     button.setAttribute("aria-pressed", String(activeView === view));
-    button.addEventListener("click", () => onChange(view));
+    button.addEventListener("click", () => {
+      if (activeView !== view) onChange(view);
+    });
     control.append(button);
   }
   return control;

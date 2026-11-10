@@ -1,0 +1,3161 @@
+[
+  {
+    "id": "24be1685-9070-4522-ab28-456cde194ae1",
+    "title": "제439회 국회(정기회) 제05차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 12,
+      "detailed_topic_count": 26,
+      "policy_topic_count": 26,
+      "ontology_topic_count": 22,
+      "ontology_coverage": 0.8462,
+      "dynamic_topic_count": 2,
+      "unclassified_topic_count": 4,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 2,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 26,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 40,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 26,
+      "source_insight_count": 360,
+      "unmapped_cluster_count": 13,
+      "ambiguous_cluster_count": 1,
+      "source_topic_title_count": 343
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "9ca777d3-6248-48de-854e-36bd6d13d5ea",
+      "revision_id": "6277e7ce-84d5-41b1-9b2f-dda673560653",
+      "source_hash": "9709253d219ddc21c7f780e2b6e82e5c53e93079772fd2371c8e7deaa0d0c9b7",
+      "cluster_count": 40,
+      "linked_count": 37,
+      "procedural_count": 2,
+      "review_count": 1,
+      "legacy_pending_count": 14,
+      "legacy_pending_linked_count": 12,
+      "legacy_pending_procedural_count": 2,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [
+      {
+        "title": "권력분립과 대법원장 탄핵·국정조사 논란",
+        "status": "PARTIAL",
+        "evidence": [
+          "eff86af6-f8d1-415c-a49e-5c41ec585034:1"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-cbe0a16cd3ac22e1",
+            "title": "기관이나 조직의 동등성 및 기능적 차이 평가",
+            "summary": "인용적인",
+            "evidence_ids": [
+              "eff86af6-f8d1-415c-a49e-5c41ec585034:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "현재 발언 원문이 단일 단어 수준으로 훼손되어 있어 앞뒤 맥락상 기관·조직 비교에 관한 답변 흐름은 보이지만 구체 논점을 안전하게 확정하기 어려워 UNCERTAIN으로 분류했다."
+          }
+        ]
+      }
+    ],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 66,
+      "summarized_issue_count": 66,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 18
+  },
+  {
+    "id": "0e170e67-9235-4c4e-ab46-07545cd2c12c",
+    "title": "제439회 국회(정기회) 제12차 본회의",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 11,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 17,
+      "ontology_coverage": 0.7083,
+      "dynamic_topic_count": 2,
+      "unclassified_topic_count": 7,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 5,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "REVIEW_REQUIRED",
+      "review_reasons": [
+        "ONTOLOGY_COVERAGE_LOW",
+        "UNCLASSIFIED_SINGLETONS_HIGH"
+      ]
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 37,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 32,
+      "source_insight_count": 171,
+      "unmapped_cluster_count": 3,
+      "ambiguous_cluster_count": 2,
+      "source_topic_title_count": 171
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "449be876-c9cd-46b0-a774-be27874c309a",
+      "revision_id": "db7b9006-cedf-4cf4-84e3-20aab762232a",
+      "source_hash": "59514e7ffcb18296a0d8ecf1b3f4512bcbb0907d7281d298396148eef028e99b",
+      "cluster_count": 37,
+      "linked_count": 37,
+      "procedural_count": 0,
+      "review_count": 0,
+      "legacy_pending_count": 5,
+      "legacy_pending_linked_count": 5,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 80,
+      "summarized_issue_count": 80,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 2
+  },
+  {
+    "id": "64c5e92a-5cbc-42a2-8d2f-fc3eb0550ca6",
+    "title": "제439회 국회(정기회) 제04차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 16,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 17,
+      "ontology_coverage": 0.7083,
+      "dynamic_topic_count": 4,
+      "unclassified_topic_count": 7,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 3,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "REVIEW_REQUIRED",
+      "review_reasons": [
+        "ONTOLOGY_COVERAGE_LOW"
+      ]
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 123,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 37,
+      "source_insight_count": 1321,
+      "unmapped_cluster_count": 85,
+      "ambiguous_cluster_count": 1,
+      "source_topic_title_count": 1228
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "18b5bb72-2eec-4c90-a9cd-0c7cf2a07116",
+      "revision_id": "a5c2d1e7-78ff-4562-a5e3-1db92dcd1551",
+      "source_hash": "e36792255a02d70083342617b3957e1c9ad1a6962450386fbba2cf113f57f3d9",
+      "cluster_count": 123,
+      "linked_count": 119,
+      "procedural_count": 0,
+      "review_count": 4,
+      "legacy_pending_count": 86,
+      "legacy_pending_linked_count": 85,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 1
+    },
+    "reviews": [
+      {
+        "title": "미래대응기금",
+        "status": "PARTIAL",
+        "evidence": [
+          "1d90c6d3-b8c9-4752-8ecf-13b51fbdf327:8",
+          "1d90c6d3-b8c9-4752-8ecf-13b51fbdf327:9"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-0287fe9eec996f0c",
+            "title": "업무 내용에 관한 발언",
+            "summary": "일을",
+            "evidence_ids": [
+              "1d90c6d3-b8c9-4752-8ecf-13b51fbdf327:8"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "원문이 '일을'만 남아 있어 구체적 대상과 논점을 안전하게 특정할 수 없어 관련 업무에 관한 불명확 발언으로 처리했다."
+          },
+          {
+            "id": "structured-review-271dd48c99724e99",
+            "title": "어떤 일을 대략적으로 해 달라는 취지",
+            "summary": "대략적으로",
+            "evidence_ids": [
+              "1d90c6d3-b8c9-4752-8ecf-13b51fbdf327:9"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "원문과 앞뒤 맥락상 어떤 일을 해 달라는 취지는 보이지만 구체 대상과 정책 쟁점이 드러나지 않아 불확실한 발언으로 분류했다."
+          }
+        ]
+      },
+      {
+        "title": "지방재정 분권과 교부세 변동 문제",
+        "status": "PARTIAL",
+        "evidence": [
+          "f0bb2b9c-9806-4311-9827-a2eb0076e9e7:2"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-7b4a7d9c28d513f7",
+            "title": "산림 현장 방문 필요성과 현장 점검 여부",
+            "summary": "이",
+            "evidence_ids": [
+              "f0bb2b9c-9806-4311-9827-a2eb0076e9e7:2"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "source_spans에는 '이'만 남아 있어 현재 발언의 실질 주장이나 답변 내용을 원문만으로 확정할 수 없어, 산림 현장 점검 맥락만 반영해 UNCERTAIN으로 분류했다."
+          }
+        ]
+      },
+      {
+        "title": "소나무재선충병 국가적 대응",
+        "status": "PARTIAL",
+        "evidence": [
+          "60ffd1ed-a70a-448d-95eb-6f029e1cc1d9:0",
+          "f0bb2b9c-9806-4311-9827-a2eb0076e9e7:3"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-f8815328355120a1",
+            "title": "산림 현장 방문 필요성과 현장 점검 여부",
+            "summary": "부분",
+            "evidence_ids": [
+              "f0bb2b9c-9806-4311-9827-a2eb0076e9e7:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "source_spans에는 '부분'만 있어 현재 발언 자체의 실질 내용은 확정하기 어렵지만, 앞뒤 문맥상 산림 현장 방문과 점검 필요성 관련 맥락으로만 좁혀 UNCERTAIN으로 분류했다."
+          },
+          {
+            "id": "structured-review-445ef50c013f6a53",
+            "title": "문맥 부족으로 정책 대상과 논점을 특정할 수 없는 발언",
+            "summary": "그런",
+            "evidence_ids": [
+              "60ffd1ed-a70a-448d-95eb-6f029e1cc1d9:0"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "원문이 '그런'으로만 끊겨 있고 앞뒤 문맥만으로도 구체적 정책 대상이나 논점을 안전하게 특정할 수 없어 불확실로 분류했다."
+          }
+        ]
+      },
+      {
+        "title": "국가첨단전략산업 특화단지와 첨단항공 엔진 예산 반영 지연",
+        "status": "PARTIAL",
+        "evidence": [
+          "1a7d77f4-b1ca-4e5f-accc-c96325bb85c4:1",
+          "1a7d77f4-b1ca-4e5f-accc-c96325bb85c4:2"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-dd568ae1d9231d94",
+            "title": "경제안보를 경제 분야와 비경제 분야로 나누어 보는 기준",
+            "summary": "부분들이",
+            "evidence_ids": [
+              "1a7d77f4-b1ca-4e5f-accc-c96325bb85c4:2"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "원문이 '부분들이'로만 끊겨 있어 단정은 어렵지만 앞뒤 문맥상 경제안보를 경제·비경제 분야로 구분하는 논의의 일부로 보이며 발언 단편이라 UNCERTAIN으로 분류했다."
+          },
+          {
+            "id": "structured-review-fdcb37072d240516",
+            "title": "경제안보를 경제 분야와 비경제 분야로 나누어 보는 기준",
+            "summary": "보는",
+            "evidence_ids": [
+              "1a7d77f4-b1ca-4e5f-accc-c96325bb85c4:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "원문이 '보는'만 남아 있어 완전한 취지를 확정하기 어렵지만 앞뒤 문맥상 경제안보와 분야 구분에 관한 설명의 일부로 보여 UNCERTAIN으로 분류했다."
+          }
+        ]
+      }
+    ],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 281,
+      "summarized_issue_count": 281,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 60
+  },
+  {
+    "id": "e79d3383-55ae-428d-821f-96d15ce35294",
+    "title": "제439회 국회(정기회) 제11차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 13,
+      "detailed_topic_count": 25,
+      "policy_topic_count": 25,
+      "ontology_topic_count": 19,
+      "ontology_coverage": 0.76,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 6,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 6,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 25,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "REVIEW_REQUIRED",
+      "review_reasons": [
+        "ONTOLOGY_COVERAGE_LOW",
+        "UNCLASSIFIED_SINGLETONS_HIGH"
+      ]
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 36,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 33,
+      "source_insight_count": 197,
+      "unmapped_cluster_count": 2,
+      "ambiguous_cluster_count": 1,
+      "source_topic_title_count": 195
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "e4feef3f-301d-4c02-9d33-dbd157050001",
+      "revision_id": "a0fca47d-17f8-4ffe-a051-ab42bb2986bd",
+      "source_hash": "bb68da36e0eff446e46dea1f2d18fa9e4893e49929647fc79bf15a31ee354e5f",
+      "cluster_count": 36,
+      "linked_count": 34,
+      "procedural_count": 1,
+      "review_count": 1,
+      "legacy_pending_count": 3,
+      "legacy_pending_linked_count": 3,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [
+      {
+        "title": "회의 진행·의사일정·발언권 운영",
+        "status": "PARTIAL",
+        "evidence": [
+          "3de4074a-d093-404f-9066-f9d531c31216:0"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-1bb50c61b6d3cbe9",
+            "title": "정회 직후 단편적 발언",
+            "summary": "지치지",
+            "evidence_ids": [
+              "3de4074a-d093-404f-9066-f9d531c31216:0"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "단어 하나만으로는 구체적 대상이나 논점을 특정할 수 없어 정회 직후의 단편적 발언으로만 파악되어 UNCERTAIN으로 분류했다."
+          }
+        ]
+      }
+    ],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 135,
+      "summarized_issue_count": 135,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 75
+  },
+  {
+    "id": "1d00ebf4-24da-4443-9eb9-907864e59829",
+    "title": "제439회 국회(정기회) 제03차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 15,
+      "detailed_topic_count": 30,
+      "policy_topic_count": 30,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 0.8,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 6,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 6,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 30,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "REVIEW_REQUIRED",
+      "review_reasons": [
+        "UNCLASSIFIED_SINGLETONS_HIGH"
+      ]
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 102,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 37,
+      "source_insight_count": 1405,
+      "unmapped_cluster_count": 62,
+      "ambiguous_cluster_count": 3,
+      "source_topic_title_count": 1296
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "38b43308-2f27-40e5-aa36-0cc672fc94c1",
+      "revision_id": "6577af8c-2dbf-4526-a60b-75a3aee4d741",
+      "source_hash": "cb03ac7f2ff80812ed7403481420b370679726c3082c15ea44ffce86a0a81bcb",
+      "cluster_count": 102,
+      "linked_count": 79,
+      "procedural_count": 2,
+      "review_count": 21,
+      "legacy_pending_count": 65,
+      "legacy_pending_linked_count": 54,
+      "legacy_pending_procedural_count": 2,
+      "legacy_pending_review_count": 9
+    },
+    "reviews": [
+      {
+        "title": "AI·첨단전략산업 중심의 미래성장 투자",
+        "status": "PARTIAL",
+        "evidence": [
+          "0b983d8a-d1bf-4e66-886e-da4c2d691d38:1",
+          "0b983d8a-d1bf-4e66-886e-da4c2d691d38:2",
+          "0b983d8a-d1bf-4e66-886e-da4c2d691d38:3",
+          "0b983d8a-d1bf-4e66-886e-da4c2d691d38:4",
+          "0b983d8a-d1bf-4e66-886e-da4c2d691d38:5",
+          "0b983d8a-d1bf-4e66-886e-da4c2d691d38:6",
+          "0b983d8a-d1bf-4e66-886e-da4c2d691d38:7",
+          "0b983d8a-d1bf-4e66-886e-da4c2d691d38:8",
+          "0b983d8a-d1bf-4e66-886e-da4c2d691d38:9",
+          "af61ffde-eb69-4758-a975-a929b6838db0:2",
+          "cc783da7-5a7e-453a-81df-2d62d41bb0bf:1",
+          "f6e47c80-4a74-4e84-bf9a-1fca4cc0ddaf:1"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-c11d4eb62e0ab1d0",
+            "title": "윤 정부 시기 대응장치 관련 언급",
+            "summary": "지난 윤 정부 때",
+            "evidence_ids": [
+              "f6e47c80-4a74-4e84-bf9a-1fca4cc0ddaf:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "윤 정부 시기와 대응장치가 언급되지만 그 대상과 구체적 논점은 알 수 없다."
+          },
+          {
+            "id": "structured-review-25914412a17aad31",
+            "title": "앞선 이야기의 청취 여부",
+            "summary": "일찍 한",
+            "evidence_ids": [
+              "0b983d8a-d1bf-4e66-886e-da4c2d691d38:9"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤로 청취 여부를 묻는 문장이 이어지지만 어떤 이야기를 들었는지는 알 수 없다."
+          },
+          {
+            "id": "structured-review-9c73f00f12de6189",
+            "title": "AI 프로젝트와 정부 예산안 이관 시점",
+            "summary": "것이 사실상",
+            "evidence_ids": [
+              "0b983d8a-d1bf-4e66-886e-da4c2d691d38:2"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "AI 프로젝트 관련 발언이 이어지는 문맥이나 원문이 끊겨 발언의 취지를 판단하기 어렵다."
+          },
+          {
+            "id": "structured-review-c78fcf39aa078d40",
+            "title": "AI 프로젝트와 정부 예산안 이관 시점",
+            "summary": "6월 기준으로 해서",
+            "evidence_ids": [
+              "0b983d8a-d1bf-4e66-886e-da4c2d691d38:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "AI 프로젝트의 시점 관련 문맥에서 6월을 언급하지만 문장이 끊겨 질문이나 주장 여부를 판단하기 어렵다."
+          },
+          {
+            "id": "structured-review-d37c86136508bfac",
+            "title": "AI 프로젝트와 정부 예산안 이관 시점",
+            "summary": "하는",
+            "evidence_ids": [
+              "0b983d8a-d1bf-4e66-886e-da4c2d691d38:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞 문맥에 AI 프로젝트와 정부 예산안 이관 시점이 나오지만 해당 원문만으로 발언의 취지를 판단하기 어렵다."
+          },
+          {
+            "id": "structured-review-f3c7f07891f439aa",
+            "title": "관련 대상과 논점",
+            "summary": "보도모들이니까요 관련돼서",
+            "evidence_ids": [
+              "0b983d8a-d1bf-4e66-886e-da4c2d691d38:6"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "관련 대상의 명칭과 논점을 원문에서 판별하기 어렵다."
+          },
+          {
+            "id": "structured-review-5c21414066ecfa1b",
+            "title": "처음 상황에 관한 언급",
+            "summary": "조금 그러니까 처음 그런",
+            "evidence_ids": [
+              "0b983d8a-d1bf-4e66-886e-da4c2d691d38:5"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "끊긴 발언과 앞뒤 문맥만으로 처음 언급된 상황의 대상을 알 수 없다."
+          },
+          {
+            "id": "structured-review-3d824235defcca8e",
+            "title": "앞선 발언의 내용",
+            "summary": "그러신 게 일지각치의",
+            "evidence_ids": [
+              "0b983d8a-d1bf-4e66-886e-da4c2d691d38:7"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "끊긴 발언과 불명확한 표현으로 인해 대상과 논점을 판별하기 어렵다."
+          },
+          {
+            "id": "structured-review-83919bb281ed1801",
+            "title": "특검에서의 대상이 생략된 발언",
+            "summary": "어떤 특검에서",
+            "evidence_ids": [
+              "af61ffde-eb69-4758-a975-a929b6838db0:2"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "특검이 언급되지만 해당 발언만으로는 구체적인 사건이나 논점을 확인할 수 없다."
+          },
+          {
+            "id": "structured-review-f589efe4153898dc",
+            "title": "16조 원 규모 정부·민간 출자 구상",
+            "summary": "제가",
+            "evidence_ids": [
+              "cc783da7-5a7e-453a-81df-2d62d41bb0bf:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥에는 정부·민간 출자 구상이 나오지만 해당 발언은 ‘제가’만 있어 화자의 입장을 판별할 수 없다."
+          },
+          {
+            "id": "structured-review-6490b82c491de6e5",
+            "title": "이전에 얘기만 했다는 발언의 대상",
+            "summary": "얘기만 했다고 그랬는데",
+            "evidence_ids": [
+              "0b983d8a-d1bf-4e66-886e-da4c2d691d38:8"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "누가 무엇에 관해 얘기했는지 원문과 앞뒤 문맥에서 확인되지 않는다."
+          },
+          {
+            "id": "structured-review-42a2db3f2bafbae2",
+            "title": "6월 기준과 그보다 이전 시점의 대상",
+            "summary": "말고도 훨씬 더 이전에",
+            "evidence_ids": [
+              "0b983d8a-d1bf-4e66-886e-da4c2d691d38:4"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "6월보다 이전이라는 시점은 나타나지만 그 시점에 해당하는 대상이 확인되지 않는다."
+          }
+        ]
+      },
+      {
+        "title": "2027년도 예산안의 총괄 방향과 재정운용 기조",
+        "status": "PARTIAL",
+        "evidence": [
+          "9b7e75c0-799c-42c1-a6f6-cce536dbc6fb:3"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-6fbc66656fdb257e",
+            "title": "일본에 대한 표시 여부 언급",
+            "summary": "있지만 일본은 또 표시",
+            "evidence_ids": [
+              "9b7e75c0-799c-42c1-a6f6-cce536dbc6fb:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "일본과 표시가 언급되지만 무엇을 어떻게 표시하는지 대상이 드러나지 않아 불확실한 발언으로 분류했다."
+          }
+        ]
+      },
+      {
+        "title": "미래대응기금의 재원·국회통제·지방계정과 재정분권",
+        "status": "PARTIAL",
+        "evidence": [
+          "3fb9da38-a6ce-48fc-85cd-4bc7b0373f8f:1",
+          "8ae2498b-cefb-4f45-be1e-1485c249198a:5"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-bbb0ab0623d8975b",
+            "title": "대상을 어떻게 특정할지에 관한 언급",
+            "summary": "어떻게",
+            "evidence_ids": [
+              "3fb9da38-a6ce-48fc-85cd-4bc7b0373f8f:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "'어떻게'와 '특정할 것이냐'라는 맥락만 있을 뿐 특정 대상이 확인되지 않아 불확실한 발언으로 보았다."
+          },
+          {
+            "id": "structured-review-8e301ab29fe82005",
+            "title": "언급된 부분의 구체적 내용",
+            "summary": "부분에",
+            "evidence_ids": [
+              "8ae2498b-cefb-4f45-be1e-1485c249198a:5"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "끊긴 발언과 제공된 앞뒤 문맥만으로는 언급된 부분의 구체적 대상을 알 수 없다."
+          }
+        ]
+      },
+      {
+        "title": "북한 도발 대응과 총리의 안보 책임·대북예산",
+        "status": "PARTIAL",
+        "evidence": [
+          "431f227c-733d-4b3d-8309-21b40690a5c6:2",
+          "431f227c-733d-4b3d-8309-21b40690a5c6:5",
+          "431f227c-733d-4b3d-8309-21b40690a5c6:6",
+          "431f227c-733d-4b3d-8309-21b40690a5c6:7",
+          "431f227c-733d-4b3d-8309-21b40690a5c6:8",
+          "431f227c-733d-4b3d-8309-21b40690a5c6:9",
+          "c86720f7-45f9-4209-ab99-add62db492e4:3"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-e919c678f3761279",
+            "title": "국민에 관한 발언",
+            "summary": "국민은",
+            "evidence_ids": [
+              "431f227c-733d-4b3d-8309-21b40690a5c6:6"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "국민이 언급되지만 관련된 대상과 주장을 확인할 수 없다."
+          },
+          {
+            "id": "structured-review-ac43f0626066f29d",
+            "title": "말씀을 많이 듣는다는 언급",
+            "summary": "말씀을 많이",
+            "evidence_ids": [
+              "431f227c-733d-4b3d-8309-21b40690a5c6:9"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "말씀을 많이 듣는다는 단편만으로 어떤 발언을 가리키는지 확인할 수 없다."
+          },
+          {
+            "id": "structured-review-709e2daf236198d2",
+            "title": "국방예산 증액과 국방위 논의",
+            "summary": "국방위에서",
+            "evidence_ids": [
+              "c86720f7-45f9-4209-ab99-add62db492e4:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞 문맥에 국방예산 증액이 나오지만 해당 발언은 끊겨 화자의 논지와 역할을 판별하기 어렵다."
+          },
+          {
+            "id": "structured-review-0cd6422da21e2e09",
+            "title": "국민에 관한 끊긴 발언",
+            "summary": "민간돼서",
+            "evidence_ids": [
+              "431f227c-733d-4b3d-8309-21b40690a5c6:7"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥을 보아도 끊긴 발언의 대상과 논지를 알기 어렵다."
+          },
+          {
+            "id": "structured-review-9fe4cab1dc56f52b",
+            "title": "안보에 필요한 부분에 대한 군의 판단",
+            "summary": "부분은",
+            "evidence_ids": [
+              "431f227c-733d-4b3d-8309-21b40690a5c6:2"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "군의 안보상 판단이 언급되지만 무엇에 관한 판단인지와 발언의 역할이 불명확하다."
+          },
+          {
+            "id": "structured-review-217029d844d69a37",
+            "title": "민간 관련 발언의 취지",
+            "summary": "그렇게",
+            "evidence_ids": [
+              "431f227c-733d-4b3d-8309-21b40690a5c6:8"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥을 포함해도 민간과 관련된 구체적인 대상이나 논점을 판단하기 어렵다."
+          },
+          {
+            "id": "structured-review-7dec66ab77d34212",
+            "title": "안보와 국민에 관한 발언의 취지",
+            "summary": "관련해서는 우리",
+            "evidence_ids": [
+              "431f227c-733d-4b3d-8309-21b40690a5c6:5"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "안보와 국민을 언급하지만 구체적인 주장이나 논점이 드러나지 않는다."
+          }
+        ]
+      },
+      {
+        "title": "브라질 달걀 언급 공방",
+        "status": "PARTIAL",
+        "evidence": [
+          "fa1e6e48-d120-44b9-bcfc-485d63f4c92d:1"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-0cefa3e7cdb85157",
+            "title": "브라질 달걀 관련 언급",
+            "summary": "브라질 달걀 이야기가 또 나오고요",
+            "evidence_ids": [
+              "fa1e6e48-d120-44b9-bcfc-485d63f4c92d:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "브라질 달걀이 언급되지만 구체적인 사건과 논점은 제시되지 않았다."
+          }
+        ]
+      },
+      {
+        "title": "체감경기·양극화·민생예산과 사회안전 투자",
+        "status": "PARTIAL",
+        "evidence": [
+          "fa1e6e48-d120-44b9-bcfc-485d63f4c92d:2",
+          "fa1e6e48-d120-44b9-bcfc-485d63f4c92d:4",
+          "fa1e6e48-d120-44b9-bcfc-485d63f4c92d:5"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-755105cf19446e9a",
+            "title": "브라질 달걀과 정부의 할 일에 관한 언급",
+            "summary": "현재 정부가 할 일들은 앞쪽에서",
+            "evidence_ids": [
+              "fa1e6e48-d120-44b9-bcfc-485d63f4c92d:2"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞서 브라질 달걀이 언급되지만 정부가 할 일의 구체적 내용은 확인되지 않는다."
+          },
+          {
+            "id": "structured-review-55dfef5381c2f1c4",
+            "title": "규제 관련 사항에 관한 언급",
+            "summary": "규제가 관련된",
+            "evidence_ids": [
+              "fa1e6e48-d120-44b9-bcfc-485d63f4c92d:4"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "규제와 예산이 언급되지만 규제의 대상과 구체적 논점이 불명확하다."
+          },
+          {
+            "id": "structured-review-cb1470e8538f4283",
+            "title": "규제 관련 예산과 통일에 관한 발언의 취지",
+            "summary": "예산은",
+            "evidence_ids": [
+              "fa1e6e48-d120-44b9-bcfc-485d63f4c92d:5"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "규제 관련 예산과 통일을 언급하지만 끊긴 문맥만으로 구체적인 논점을 판단하기 어렵다."
+          }
+        ]
+      },
+      {
+        "title": "거시경제 전망·잠재성장률·재정건전성 평가",
+        "status": "PARTIAL",
+        "evidence": [
+          "38cb112c-3e16-48a8-81e0-2063d206a31c:0",
+          "83f02dfe-08e7-405f-9983-17902b80c5f2:1"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-5e585dcded40a2eb",
+            "title": "상임위원회 증인 요청에 대한 대응",
+            "summary": "저는",
+            "evidence_ids": [
+              "38cb112c-3e16-48a8-81e0-2063d206a31c:0"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞선 질문은 증인 요청에 대한 대응을 다루지만 발언이 끊겨 답변 내용을 알 수 없다."
+          },
+          {
+            "id": "structured-review-2aafe942d2ed964f",
+            "title": "공소시효 관련 발언 내용",
+            "summary": "저는",
+            "evidence_ids": [
+              "83f02dfe-08e7-405f-9983-17902b80c5f2:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞 문맥에 공소시효가 언급되지만 해당 발언은 끊겨 실질 내용을 알 수 없다."
+          }
+        ]
+      },
+      {
+        "title": "도심 공동화 대응과 주택 공급·교통 인프라",
+        "status": "PARTIAL",
+        "evidence": [
+          "7562c4a6-5231-4fae-95bf-b3f57be57ee0:2",
+          "7562c4a6-5231-4fae-95bf-b3f57be57ee0:3",
+          "7562c4a6-5231-4fae-95bf-b3f57be57ee0:6",
+          "a58ecb89-9e9a-425a-b88c-b9450060c8df:3",
+          "a58ecb89-9e9a-425a-b88c-b9450060c8df:4",
+          "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:2"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-3b32032496198af3",
+            "title": "연결 발언의 구체 대상",
+            "summary": "그리고",
+            "evidence_ids": [
+              "7562c4a6-5231-4fae-95bf-b3f57be57ee0:6"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "접속어만 있어 구체적인 발언 대상을 알 수 없다."
+          },
+          {
+            "id": "structured-review-5c2a828a59fc0ddc",
+            "title": "정부 대책 설명의 구체 대상",
+            "summary": "압축해서 말씀드릴 수",
+            "evidence_ids": [
+              "a58ecb89-9e9a-425a-b88c-b9450060c8df:4"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "정부 대책을 압축해 설명하는 문장의 일부이나 대책의 구체적 대상이 제시되지 않았다."
+          },
+          {
+            "id": "structured-review-b268e3c29116e09c",
+            "title": "정부 대책 설명의 구체 대상",
+            "summary": "이렇게",
+            "evidence_ids": [
+              "a58ecb89-9e9a-425a-b88c-b9450060c8df:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥은 정부 대책을 언급하지만 대책의 구체적 대상은 제시하지 않는다."
+          },
+          {
+            "id": "structured-review-1da3fb6d3bb10c82",
+            "title": "설명 사항의 구체 대상",
+            "summary": "것도",
+            "evidence_ids": [
+              "7562c4a6-5231-4fae-95bf-b3f57be57ee0:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥에서 설명의 중요성을 언급하지만 설명 대상이 무엇인지 알 수 없다."
+          },
+          {
+            "id": "structured-review-be534684a2d1722a",
+            "title": "설명에 관한 대상 불명 발언",
+            "summary": "설명드리는",
+            "evidence_ids": [
+              "7562c4a6-5231-4fae-95bf-b3f57be57ee0:2"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "설명에 관한 끊긴 구절로 설명 대상과 논점을 알 수 없다."
+          },
+          {
+            "id": "structured-review-f89c87a9fabb71b9",
+            "title": "결과와 최고 수위에 관한 언급",
+            "summary": "이렇게",
+            "evidence_ids": [
+              "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:2"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤에 결과와 수위가 언급되지만 그 대상과 구체적인 논점은 확인되지 않는다."
+          }
+        ]
+      },
+      {
+        "title": "농지 전수조사·신고포상금·농지은행 문제",
+        "status": "PARTIAL",
+        "evidence": [
+          "9d81b508-d47d-40ee-8cd2-1cafd3bf203c:10",
+          "9d81b508-d47d-40ee-8cd2-1cafd3bf203c:8",
+          "9d81b508-d47d-40ee-8cd2-1cafd3bf203c:9",
+          "be478ec2-80b7-4979-a305-dd37c85c380d:5",
+          "be478ec2-80b7-4979-a305-dd37c85c380d:6",
+          "f9578887-0806-4140-ba01-59b3c57fecb4:2"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-4ac87d53bd5ca88a",
+            "title": "농지조사에 관한 발언",
+            "summary": "잘 아시는 것처럼 농지조사가",
+            "evidence_ids": [
+              "9d81b508-d47d-40ee-8cd2-1cafd3bf203c:8"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "농지조사를 언급하지만 이어지는 원문이 불명확해 구체적 논점과 입장을 판단하기 어렵다."
+          },
+          {
+            "id": "structured-review-d9a8ad5b754e2d62",
+            "title": "농지조사에 관한 발언",
+            "summary": "일이었지요",
+            "evidence_ids": [
+              "9d81b508-d47d-40ee-8cd2-1cafd3bf203c:10"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "농지조사 언급에 이어지는 발언의 끝부분이나 앞 구절이 불명확해 구체적 논점을 판단하기 어렵다."
+          },
+          {
+            "id": "structured-review-36c30d7cd27ce031",
+            "title": "농지조사에 관한 발언",
+            "summary": "꼭 폭유한",
+            "evidence_ids": [
+              "9d81b508-d47d-40ee-8cd2-1cafd3bf203c:9"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞 발언의 대상은 농지조사이나 해당 구절의 의미가 불명확해 구체적 논점을 판단하기 어렵다."
+          },
+          {
+            "id": "structured-review-dc877b1bc6601740",
+            "title": "대상이 특정되지 않은 항목의 증가와 다른 분야 비교",
+            "summary": "업주는 것",
+            "evidence_ids": [
+              "be478ec2-80b7-4979-a305-dd37c85c380d:6"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥에서 증가 항목을 다른 분야와 비교하지만 대상과 발언의 뜻이 명확하지 않다."
+          },
+          {
+            "id": "structured-review-2a60c18d601ef270",
+            "title": "대상이 특정되지 않은 항목의 증가와 다른 분야 비교",
+            "summary": "저것은 다른 분야에 비해서 이 부분이",
+            "evidence_ids": [
+              "be478ec2-80b7-4979-a305-dd37c85c380d:5"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "증가 이유에 대한 질문에 이어 다른 분야와 비교하지만 증가한 대상과 답변 내용이 불명확하다."
+          },
+          {
+            "id": "structured-review-14c4da6966631c57",
+            "title": "불법 농지 신고포상금 예산 증액",
+            "summary": "보니까",
+            "evidence_ids": [
+              "f9578887-0806-4140-ba01-59b3c57fecb4:2"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥상 신고포상금 예산에 관한 발언이지만 끊긴 원문만으로 발언의 역할을 판단하기 어렵다."
+          }
+        ]
+      },
+      {
+        "title": "바이오헬스산업 육성과 국가바이오혁신위원회",
+        "status": "PARTIAL",
+        "evidence": [
+          "a022320e-4785-4ef3-836f-8b36438bc45c:1"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-4b2d1210a8e6a67b",
+            "title": "국가바이오혁신위원회 회의 개최",
+            "summary": "얼마 전에도",
+            "evidence_ids": [
+              "a022320e-4785-4ef3-836f-8b36438bc45c:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥은 국가바이오혁신위원회 회의를 가리키지만 끊긴 원문만으로 발언의 역할을 판단하기 어렵다."
+          }
+        ]
+      },
+      {
+        "title": "KAI 민영화·방산비리 제재·방산 생태계 경쟁구조",
+        "status": "PARTIAL",
+        "evidence": [
+          "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:3",
+          "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:4",
+          "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:5",
+          "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:6",
+          "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:7"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-922d65f21b07e5dd",
+            "title": "발언 마무리의 대상과 논점",
+            "summary": "겁니다 예",
+            "evidence_ids": [
+              "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:7"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "끊긴 발언의 마무리만 있어 대상과 논점을 특정할 수 없다."
+          },
+          {
+            "id": "structured-review-38b6c050d7f3d1b7",
+            "title": "한 가지 언급의 대상과 논점",
+            "summary": "가지만",
+            "evidence_ids": [
+              "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:4"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "한 가지를 언급하는 단편으로는 실질 대상과 논점을 알 수 없다."
+          },
+          {
+            "id": "structured-review-5ad2865bbed2be12",
+            "title": "최고 수위 언급의 대상과 논점",
+            "summary": "최고 수위를 내신 것은 BB를 아니 한",
+            "evidence_ids": [
+              "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "최고 수위와 관련된 단편이지만 정확한 대상과 논점을 판단하기 어렵다."
+          },
+          {
+            "id": "structured-review-3f72db3d614b7330",
+            "title": "말씀을 드린다는 언급",
+            "summary": "좀 드리는",
+            "evidence_ids": [
+              "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:6"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "말씀을 드린다는 표현만 있고 구체적인 대상이나 논점은 확인되지 않는다."
+          },
+          {
+            "id": "structured-review-f2d1e875ee816708",
+            "title": "말씀을 드린다는 언급",
+            "summary": "말씀",
+            "evidence_ids": [
+              "b4df5e4e-9570-4c1c-9f3b-cdf771a9b36a:5"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "말씀을 드린다는 표현의 일부로서 구체적인 대상이나 논점은 확인되지 않는다."
+          }
+        ]
+      },
+      {
+        "title": "공공기관 지방이전과 지역인재 의무채용 개선",
+        "status": "PARTIAL",
+        "evidence": [
+          "ff47e864-a0ae-471d-b0f9-e66309d36c0a:3",
+          "ff47e864-a0ae-471d-b0f9-e66309d36c0a:4",
+          "ff47e864-a0ae-471d-b0f9-e66309d36c0a:5"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-1b94fecf5ade540f",
+            "title": "공공기관의 행위에 관한 언급",
+            "summary": "공공기관이 하지 않습니까 어느 격이라도 마찬가지예요",
+            "evidence_ids": [
+              "ff47e864-a0ae-471d-b0f9-e66309d36c0a:4"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "공공기관이 언급되지만 끊긴 문맥상 어떤 행위와 논점을 말하는지 확인되지 않는다."
+          },
+          {
+            "id": "structured-review-18f7e98036f45c37",
+            "title": "2차에 관한 끊긴 발언",
+            "summary": "실제 2차",
+            "evidence_ids": [
+              "ff47e864-a0ae-471d-b0f9-e66309d36c0a:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "2차가 무엇을 가리키는지와 발언의 취지를 알 수 없다."
+          },
+          {
+            "id": "structured-review-d72605acf1bd7825",
+            "title": "소명 가능 여부에 관한 끊긴 발언",
+            "summary": "소명이",
+            "evidence_ids": [
+              "ff47e864-a0ae-471d-b0f9-e66309d36c0a:5"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "소명의 대상과 발언자의 질문 또는 주장 여부를 확정하기 어렵다."
+          }
+        ]
+      },
+      {
+        "title": "사이버보안 대응체계 개편과 AI 기반 해킹 대책",
+        "status": "PARTIAL",
+        "evidence": [
+          "1987e62e-b263-4c24-9813-d989b80904c6:1",
+          "8bb87576-c71f-4542-aa2d-9430cc1a5a7f:9"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-9148f04c5d8ab270",
+            "title": "공공기관 해킹에 관한 행정안전부 언급",
+            "summary": "제대로",
+            "evidence_ids": [
+              "8bb87576-c71f-4542-aa2d-9430cc1a5a7f:9"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞 문맥상 공공기관 해킹과 행정안전부가 언급되지만 현재 발언만으로 구체적인 취지를 알 수 없다."
+          },
+          {
+            "id": "structured-review-c5421da4610e3d7a",
+            "title": "사이버위기대책본부 관련 발언",
+            "summary": "혹시",
+            "evidence_ids": [
+              "1987e62e-b263-4c24-9813-d989b80904c6:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞 문맥상 사이버위기대책본부가 논의되지만 현재 발언만으로 발언자의 구체적인 취지를 알 수 없다."
+          }
+        ]
+      },
+      {
+        "title": "신규 제도·합의 경위 관련 불명확 단편 발언",
+        "status": "UNRESOLVED",
+        "evidence": [
+          "627b15d9-dc47-4072-a347-97c181e87965:0"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-e65dd2402cf7e539",
+            "title": "미국에서의 합의 관련 발언",
+            "summary": "왜 미국에서 그것을 위한지 합의하는",
+            "evidence_ids": [
+              "627b15d9-dc47-4072-a347-97c181e87965:0"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "미국과 합의가 언급되지만 합의의 대상과 논점을 안전하게 파악하기 어렵다."
+          }
+        ]
+      },
+      {
+        "title": "자살예방 예산·인력·시설·지자체 대책",
+        "status": "PARTIAL",
+        "evidence": [
+          "ddadacc2-dac5-4a71-b81f-4492a842eae3:3"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-bd889af53be9d501",
+            "title": "200억 원 증액 관련 논의",
+            "summary": "이거를 재처하기 쉽지",
+            "evidence_ids": [
+              "ddadacc2-dac5-4a71-b81f-4492a842eae3:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "200억 원 증액이 앞에 언급되지만 해당 발언에서 무엇을 하기 어렵다는 것인지 확인하기 어렵다."
+          }
+        ]
+      },
+      {
+        "title": "대구 군공항 이전 사업비와 지방재정 부담",
+        "status": "PARTIAL",
+        "evidence": [
+          "669b2cda-5593-46fb-a41f-f9e0669ff637:1"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-d15bd56954ab6db4",
+            "title": "관계부처의 사업 추진 대안과 장관 발언",
+            "summary": "그러니까 저것을 누가 저렇게 제가 발언하겠다고 얘기를 한",
+            "evidence_ids": [
+              "669b2cda-5593-46fb-a41f-f9e0669ff637:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "사업 추진 대안과 장관 발언에 관한 맥락은 있으나 사업 대상과 해당 발언의 구체적 내용은 확인되지 않는다."
+          }
+        ]
+      },
+      {
+        "title": "청와대 정책실·서별관회의의 회의록과 자료 제출",
+        "status": "PARTIAL",
+        "evidence": [
+          "c327d8ac-7fee-48be-a859-738149d87f9f:5",
+          "c327d8ac-7fee-48be-a859-738149d87f9f:6"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-a2893c4badedbd25",
+            "title": "언급된 방식에 관한 설명",
+            "summary": "이렇게 해야",
+            "evidence_ids": [
+              "c327d8ac-7fee-48be-a859-738149d87f9f:5"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 원문을 포함해도 어떤 대상에 무엇을 해야 한다는 것인지 알 수 없다."
+          },
+          {
+            "id": "structured-review-2e20cf0d5cb30bcd",
+            "title": "앞선 조치에 관한 단편 발언",
+            "summary": "되는 것이고",
+            "evidence_ids": [
+              "c327d8ac-7fee-48be-a859-738149d87f9f:6"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥에도 ‘이렇게 해야’의 구체적인 대상이 나타나지 않는다."
+          }
+        ]
+      },
+      {
+        "title": "SPC 사업의 회계 전환과 관련 회의 기록",
+        "status": "PARTIAL",
+        "evidence": [
+          "1099df43-57d8-4bf5-9a8b-e27accc46fc4:3",
+          "1099df43-57d8-4bf5-9a8b-e27accc46fc4:5"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-7e509f4a50d7b794",
+            "title": "사업 실행에 관한 단편 발언",
+            "summary": "실행을 하는데 하나만",
+            "evidence_ids": [
+              "1099df43-57d8-4bf5-9a8b-e27accc46fc4:5"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "사업 실행을 언급하지만 사업의 대상과 구체적인 논점이 드러나지 않는다."
+          },
+          {
+            "id": "structured-review-daf42980c8e4868c",
+            "title": "부처에 관한 단편 발언",
+            "summary": "부처하고",
+            "evidence_ids": [
+              "1099df43-57d8-4bf5-9a8b-e27accc46fc4:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "부처를 언급하는 단편만으로는 관련 정책이나 논점을 특정할 수 없다."
+          }
+        ]
+      },
+      {
+        "title": "확인 가능한 발언 내용 없음",
+        "status": "UNRESOLVED",
+        "evidence": [
+          "6e7d60b4-1c9e-45a3-92dd-5bcc428acb87:0",
+          "83f02dfe-08e7-405f-9983-17902b80c5f2:3"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-e2dbd04955df7766",
+            "title": "정회 직후 불명확한 발언의 내용",
+            "summary": "De.",
+            "evidence_ids": [
+              "6e7d60b4-1c9e-45a3-92dd-5bcc428acb87:0"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "정회 직후의 짧은 표기만으로 발언의 의미를 판단할 수 없다."
+          },
+          {
+            "id": "structured-review-0ea7e8354665c717",
+            "title": "대통령 지시를 언급한 부분의 대상",
+            "summary": "부분은 대통령이",
+            "evidence_ids": [
+              "83f02dfe-08e7-405f-9983-17902b80c5f2:3"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "대통령 지시를 언급하지만 지시의 구체적 대상은 앞뒤 원문에서 확인되지 않는다."
+          }
+        ]
+      },
+      {
+        "title": "관양역 관련 불명확한 발언",
+        "status": "UNRESOLVED",
+        "evidence": [
+          "06394bb5-9091-411b-a18b-713b3b68143e:0"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-e7a9adff1497549e",
+            "title": "관양역을 언급한 발언의 내용",
+            "summary": "아 저기 관양역을 예는... 아 전투요?",
+            "evidence_ids": [
+              "06394bb5-9091-411b-a18b-713b3b68143e:0"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "발언이 끊겨 관양역 언급의 의미와 논점을 안전하게 판단할 수 없다."
+          }
+        ]
+      },
+      {
+        "title": "포항·영덕 고속도로와 영일만대교 건설",
+        "status": "PARTIAL",
+        "evidence": [
+          "1b072083-841e-4249-8fc5-1a73becef2c1:1"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-8074bf9c090f7780",
+            "title": "예비타당성조사 면제사업 관련 발언 내용",
+            "summary": "이 시간 나와서",
+            "evidence_ids": [
+              "1b072083-841e-4249-8fc5-1a73becef2c1:1"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "앞뒤 문맥에 예비타당성조사 면제사업이 언급되지만 해당 발언만으로 화자의 논점을 알 수 없다."
+          }
+        ]
+      }
+    ],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 520,
+      "summarized_issue_count": 520,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 174
+  },
+  {
+    "id": "070525e3-359d-4d55-b0a0-ef892d390129",
+    "title": "제439회 국회(정기회) 제11차 본회의",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 8,
+      "detailed_topic_count": 12,
+      "policy_topic_count": 12,
+      "ontology_topic_count": 11,
+      "ontology_coverage": 0.9167,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 1,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 1,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 12,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_LEXICAL_CANDIDATES",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 7,
+      "coverage_status": "COMPLETE",
+      "additional_llm_calls": 0,
+      "mapped_cluster_count": 7,
+      "source_insight_count": 10,
+      "unmapped_cluster_count": 0,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 10
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "79ba84d4-95e2-4f77-b5ca-b6caba3b1500",
+      "revision_id": "bdd28297-c782-46be-9c99-b3d78377471d",
+      "source_hash": "909abdca55c42653a876e8aa4e8b7da4e81c6dab3c745161943c07b33e9b1caa",
+      "cluster_count": 7,
+      "linked_count": 5,
+      "procedural_count": 2,
+      "review_count": 0,
+      "legacy_pending_count": 0,
+      "legacy_pending_linked_count": 0,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 8,
+      "summarized_issue_count": 8,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 3
+  },
+  {
+    "id": "8809d5e4-13bc-41dd-a9b4-291afca60c0c",
+    "title": "제439회 국회(정기회) 제02차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 14,
+      "detailed_topic_count": 26,
+      "policy_topic_count": 26,
+      "ontology_topic_count": 22,
+      "ontology_coverage": 0.8462,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 4,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 4,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 26,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 44,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 37,
+      "source_insight_count": 233,
+      "unmapped_cluster_count": 4,
+      "ambiguous_cluster_count": 3,
+      "source_topic_title_count": 226
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "48284c6c-df3f-4d45-b5c6-f4866a7fd53f",
+      "revision_id": "823da7ed-6616-450f-9e27-714be5b31d35",
+      "source_hash": "2a585b7fc7ee7dd63d3f919e82f43e278533d27f600829cb339d434adf76b669",
+      "cluster_count": 44,
+      "linked_count": 44,
+      "procedural_count": 0,
+      "review_count": 0,
+      "legacy_pending_count": 7,
+      "legacy_pending_linked_count": 7,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 120,
+      "summarized_issue_count": 120,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 14
+  },
+  {
+    "id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+    "title": "제439회 국회(정기회) 제07차 행정안전위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 8,
+      "detailed_topic_count": 25,
+      "policy_topic_count": 25,
+      "ontology_topic_count": 23,
+      "ontology_coverage": 0.92,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 2,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 2,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 25,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_LEXICAL_CANDIDATES",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 52,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 0,
+      "mapped_cluster_count": 26,
+      "source_insight_count": 247,
+      "unmapped_cluster_count": 21,
+      "ambiguous_cluster_count": 5,
+      "source_topic_title_count": 247
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "7795ad77-a77a-40c1-a04e-4fb9495999f7",
+      "revision_id": "3c89ce8e-a613-4444-a094-132f45e5da7f",
+      "source_hash": "61c502652b1ade64d62e4464dd5cf7c3fffe375b5e160d851af97f253e984e27",
+      "cluster_count": 52,
+      "linked_count": 48,
+      "procedural_count": 4,
+      "review_count": 0,
+      "legacy_pending_count": 26,
+      "legacy_pending_linked_count": 22,
+      "legacy_pending_procedural_count": 4,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 190,
+      "summarized_issue_count": 190,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 12
+  },
+  {
+    "id": "86948faa-40de-44b5-aa53-93dd81a56957",
+    "title": "제439회 국회(정기회) 제10차 본회의",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 12,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 21,
+      "ontology_coverage": 0.875,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 3,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 3,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 23,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 18,
+      "source_insight_count": 54,
+      "unmapped_cluster_count": 5,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 53
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "ece0fe2f-49c6-49d9-bc6a-6ed205b1235c",
+      "revision_id": "163f00e9-daad-42f0-a54f-27ca583d948d",
+      "source_hash": "4ea28f8f8f2a39e06cfa9bc84fd9e74f9cd934a45bb48e146f0c46a0f66d612c",
+      "cluster_count": 23,
+      "linked_count": 21,
+      "procedural_count": 2,
+      "review_count": 0,
+      "legacy_pending_count": 5,
+      "legacy_pending_linked_count": 5,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 79,
+      "summarized_issue_count": 79,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 6
+  },
+  {
+    "id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+    "title": "제439회 국회(정기회) 제08차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 17,
+      "detailed_topic_count": 27,
+      "policy_topic_count": 27,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 0.8889,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 3,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 3,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 27,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 63,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 23,
+      "source_insight_count": 120,
+      "unmapped_cluster_count": 37,
+      "ambiguous_cluster_count": 3,
+      "source_topic_title_count": 120
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "39ac51ad-7398-4276-91f1-53fea51d8ea8",
+      "revision_id": "15bb6cac-d865-4922-93b4-e2601ff73ff7",
+      "source_hash": "863df6133d460168b351743bd767cdb79709fa372bdc2f3ed58494496e6175a4",
+      "cluster_count": 63,
+      "linked_count": 58,
+      "procedural_count": 4,
+      "review_count": 1,
+      "legacy_pending_count": 40,
+      "legacy_pending_linked_count": 37,
+      "legacy_pending_procedural_count": 2,
+      "legacy_pending_review_count": 1
+    },
+    "reviews": [
+      {
+        "title": "대법원장 국정감사 증인 채택 반대",
+        "status": "PARTIAL",
+        "evidence": [
+          "f294f453-46f0-499c-b117-75a54f76bd96:0"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-3c36bbc166c2497e",
+            "title": "대법원장의 정책적·법적 대응 방식 부재",
+            "summary": "라도 얘기해야 뭔가 풀릴 것 아닙니까",
+            "evidence_ids": [
+              "f294f453-46f0-499c-b117-75a54f76bd96:0"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "대법원장의 대응 방식에 대한 질문과 정확한 뜻을 명확히 하라는 요구가 있으나, 후반부는 불명확한 표현으로 인해 UNCERTAIN으로 처리함."
+          }
+        ]
+      }
+    ],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 70,
+      "summarized_issue_count": 70,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 11
+  },
+  {
+    "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+    "title": "제439회 국회(정기회) 제03차 행정안전위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 3,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 22,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 14,
+      "source_insight_count": 51,
+      "unmapped_cluster_count": 6,
+      "ambiguous_cluster_count": 2,
+      "source_topic_title_count": 50
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "39fe1954-723c-4e05-b205-c73939c659ec",
+      "revision_id": "ce07f9dd-1297-49c9-8451-68d61074d949",
+      "source_hash": "c8a36c5f850f34f49d291a30db75dbbe33b43396544d9958d1a10446d52a9d57",
+      "cluster_count": 22,
+      "linked_count": 21,
+      "procedural_count": 1,
+      "review_count": 0,
+      "legacy_pending_count": 8,
+      "legacy_pending_linked_count": 8,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 59,
+      "summarized_issue_count": 59,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 7
+  },
+  {
+    "id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+    "title": "제439회 국회(정기회) 제07차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 4,
+      "detailed_topic_count": 10,
+      "policy_topic_count": 10,
+      "ontology_topic_count": 10,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 10,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_LEXICAL_CANDIDATES",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 4,
+      "coverage_status": "COMPLETE",
+      "additional_llm_calls": 0,
+      "mapped_cluster_count": 4,
+      "source_insight_count": 7,
+      "unmapped_cluster_count": 0,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 7
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "a42b73d1-af02-44ab-9907-03ee773a5ca5",
+      "revision_id": "65f03f69-9894-4135-a95f-30612ac10a1c",
+      "source_hash": "692b5db3e3e52549249a2c51e780b3dac955aa9cf3645b45d36f7b786825a3d2",
+      "cluster_count": 4,
+      "linked_count": 4,
+      "procedural_count": 0,
+      "review_count": 0,
+      "legacy_pending_count": 0,
+      "legacy_pending_linked_count": 0,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 7,
+      "summarized_issue_count": 7,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 14
+  },
+  {
+    "id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+    "title": "제439회 국회(정기회) 제06차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 7,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 22,
+      "ontology_topic_count": 22,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 2,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 32,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 24,
+      "source_insight_count": 50,
+      "unmapped_cluster_count": 7,
+      "ambiguous_cluster_count": 1,
+      "source_topic_title_count": 50
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "bc9b146a-bdc4-4c09-98fd-1b6f52f4d18b",
+      "revision_id": "ed8da5e0-c43e-4c13-aeb3-b90ccb468031",
+      "source_hash": "0cf5a4fa9ba528420475b52942dbcb40ddcb156ec7474abe95215c0266527baa",
+      "cluster_count": 32,
+      "linked_count": 30,
+      "procedural_count": 2,
+      "review_count": 0,
+      "legacy_pending_count": 8,
+      "legacy_pending_linked_count": 7,
+      "legacy_pending_procedural_count": 1,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 81,
+      "summarized_issue_count": 81,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 13
+  },
+  {
+    "id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+    "title": "제439회 국회(정기회) 제09차 본회의",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 7,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 15,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 14,
+      "source_insight_count": 44,
+      "unmapped_cluster_count": 1,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 42
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "ffddc3aa-a102-43b4-a400-691c0d83550f",
+      "revision_id": "bbd9b0dc-5901-4239-b175-7d1d46250ddd",
+      "source_hash": "030234d09d39a97a94786ba5c8e340fcd7c1c67fe468546dd04c57480dcb575e",
+      "cluster_count": 15,
+      "linked_count": 12,
+      "procedural_count": 3,
+      "review_count": 0,
+      "legacy_pending_count": 1,
+      "legacy_pending_linked_count": 1,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 34,
+      "summarized_issue_count": 34,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 57
+  },
+  {
+    "id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+    "title": "제439회 국회(정기회) 제05차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 9,
+      "detailed_topic_count": 25,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 1,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 25,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "REVIEW_REQUIRED",
+      "review_reasons": [
+        "REPORT_ARTIFACT_SOURCE_UNVERIFIED"
+      ]
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_LEXICAL_CANDIDATES",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 14,
+      "coverage_status": "COMPLETE",
+      "additional_llm_calls": 0,
+      "mapped_cluster_count": 14,
+      "source_insight_count": 22,
+      "unmapped_cluster_count": 0,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 22
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "9bd1edc4-438a-4a2d-a643-8431faa47374",
+      "revision_id": "688bae12-12dc-419c-b6f5-086534a0b0d9",
+      "source_hash": "7aeb877000520db7235f89913cb7be27d56c78e7b34792a671b3e5a193293a46",
+      "cluster_count": 14,
+      "linked_count": 11,
+      "procedural_count": 3,
+      "review_count": 0,
+      "legacy_pending_count": 0,
+      "legacy_pending_linked_count": 0,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 59,
+      "summarized_issue_count": 59,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 23
+  },
+  {
+    "id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+    "title": "제439회 국회(정기회) 제04차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 8,
+      "detailed_topic_count": 25,
+      "policy_topic_count": 25,
+      "ontology_topic_count": 25,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 25,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 26,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 19,
+      "source_insight_count": 57,
+      "unmapped_cluster_count": 4,
+      "ambiguous_cluster_count": 3,
+      "source_topic_title_count": 57
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "a9ff620a-7cf7-492d-9e23-585eb070eb88",
+      "revision_id": "013db0e9-049f-42b8-b89b-d9e4c5bffec2",
+      "source_hash": "a477ba5b58ec87941248476d7b280612c6740ff578cbf1b605ac674f6677adfe",
+      "cluster_count": 26,
+      "linked_count": 20,
+      "procedural_count": 6,
+      "review_count": 0,
+      "legacy_pending_count": 7,
+      "legacy_pending_linked_count": 6,
+      "legacy_pending_procedural_count": 1,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 79,
+      "summarized_issue_count": 79,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 22
+  },
+  {
+    "id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+    "title": "제439회 국회(정기회) 제03차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 8,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 121,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 63,
+      "source_insight_count": 193,
+      "unmapped_cluster_count": 58,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 193
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "c6488bdf-d1f9-4895-a225-3b95b4cc76e8",
+      "revision_id": "ed8efa53-47a9-478f-b6b6-2f46746e7327",
+      "source_hash": "4c3e20b24aa52c2fa35da486929299e0f8764e9be5f354d5d09b6fe6c7e0d28d",
+      "cluster_count": 121,
+      "linked_count": 119,
+      "procedural_count": 2,
+      "review_count": 0,
+      "legacy_pending_count": 58,
+      "legacy_pending_linked_count": 57,
+      "legacy_pending_procedural_count": 1,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 156,
+      "summarized_issue_count": 156,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 24
+  },
+  {
+    "id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+    "title": "제439회 국회(정기회) 제02차 행정안전위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 7,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 25,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 23,
+      "source_insight_count": 33,
+      "unmapped_cluster_count": 2,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 33
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "818a59c9-5c9f-46da-9e3f-1989aa6a9ac3",
+      "revision_id": "265ae1ee-276d-481c-9564-11438ba7ca2a",
+      "source_hash": "94725f2064b46a9a196aa8a76c50c7a4fc5f0067778a3d6070ca19a625bb28a2",
+      "cluster_count": 25,
+      "linked_count": 20,
+      "procedural_count": 5,
+      "review_count": 0,
+      "legacy_pending_count": 2,
+      "legacy_pending_linked_count": 1,
+      "legacy_pending_procedural_count": 1,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 23,
+      "summarized_issue_count": 23,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 16
+  },
+  {
+    "id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+    "title": "제439회 국회(정기회) 제08차 본회의",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 16,
+      "detailed_topic_count": 32,
+      "policy_topic_count": 32,
+      "ontology_topic_count": 30,
+      "ontology_coverage": 0.9375,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 2,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 2,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 32,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 84,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 19,
+      "source_insight_count": 122,
+      "unmapped_cluster_count": 63,
+      "ambiguous_cluster_count": 2,
+      "source_topic_title_count": 122
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "68a522cb-f971-4c1f-8d23-296d29344438",
+      "revision_id": "1170a501-9494-422d-8500-c9d2909d967b",
+      "source_hash": "313b185a5bddf35e3b0461d7b54d4126f0b41b44deaff489e27b548b654ed7f6",
+      "cluster_count": 84,
+      "linked_count": 84,
+      "procedural_count": 0,
+      "review_count": 0,
+      "legacy_pending_count": 65,
+      "legacy_pending_linked_count": 65,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 131,
+      "summarized_issue_count": 131,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 2
+  },
+  {
+    "id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+    "title": "제439회 국회(정기회) 제07차 본회의",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 15,
+      "detailed_topic_count": 30,
+      "policy_topic_count": 30,
+      "ontology_topic_count": 28,
+      "ontology_coverage": 0.9333,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 2,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 2,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 30,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 81,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 19,
+      "source_insight_count": 132,
+      "unmapped_cluster_count": 54,
+      "ambiguous_cluster_count": 8,
+      "source_topic_title_count": 127
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "468c0a13-cc39-46e5-8647-9c1a9e6f4076",
+      "revision_id": "22202d00-a44c-495d-9466-21278c569913",
+      "source_hash": "b41f0aaf36a2cfbb94bf8877b9adf42435b03a20509ddcd64b4c7ec389f6c140",
+      "cluster_count": 81,
+      "linked_count": 81,
+      "procedural_count": 0,
+      "review_count": 0,
+      "legacy_pending_count": 62,
+      "legacy_pending_linked_count": 62,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 147,
+      "summarized_issue_count": 147,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 1
+  },
+  {
+    "id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+    "title": "제439회 국회(정기회) 제06차 본회의",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 16,
+      "detailed_topic_count": 29,
+      "policy_topic_count": 29,
+      "ontology_topic_count": 26,
+      "ontology_coverage": 0.8966,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 3,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 3,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 29,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 87,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 59,
+      "source_insight_count": 139,
+      "unmapped_cluster_count": 28,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 137
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "50fbdf82-5588-42c4-b3a4-07a2e46354a4",
+      "revision_id": "2f0f5b82-f2f2-4600-a2d3-88285124185b",
+      "source_hash": "7e6d89cd9553f76fabb8f37b1644b2eadd8773f99cc16975364b6634ec844b0a",
+      "cluster_count": 87,
+      "linked_count": 87,
+      "procedural_count": 0,
+      "review_count": 0,
+      "legacy_pending_count": 28,
+      "legacy_pending_linked_count": 28,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 151,
+      "summarized_issue_count": 151,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 0
+  },
+  {
+    "id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+    "title": "제439회 국회(정기회) 제05차 본회의",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 12,
+      "detailed_topic_count": 28,
+      "policy_topic_count": 28,
+      "ontology_topic_count": 26,
+      "ontology_coverage": 0.9286,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 2,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 2,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 28,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 83,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 20,
+      "source_insight_count": 127,
+      "unmapped_cluster_count": 53,
+      "ambiguous_cluster_count": 10,
+      "source_topic_title_count": 123
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "98662fda-12b0-4e81-bfd3-0f7b8bcbfe83",
+      "revision_id": "69266909-8e10-4db1-ba5a-d6eb21411933",
+      "source_hash": "43d9de83bdc422fe57f26caf51d367ffe7b8a01e4fbbcdbee45e860a28cbd61a",
+      "cluster_count": 83,
+      "linked_count": 80,
+      "procedural_count": 3,
+      "review_count": 0,
+      "legacy_pending_count": 63,
+      "legacy_pending_linked_count": 60,
+      "legacy_pending_procedural_count": 3,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 149,
+      "summarized_issue_count": 149,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 5
+  },
+  {
+    "id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+    "title": "제439회 국회(정기회) 제02차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 7,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 23,
+      "ontology_topic_count": 23,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 1,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 46,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 20,
+      "source_insight_count": 80,
+      "unmapped_cluster_count": 23,
+      "ambiguous_cluster_count": 3,
+      "source_topic_title_count": 79
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "740101da-7ceb-497d-b53e-9b47f6f4927c",
+      "revision_id": "7cfb19e7-3b8b-4f9b-b716-b80187625a51",
+      "source_hash": "bf513f420fa66be236e65c5140c31202f03357a2ac4095e027329bfdae8e0a8f",
+      "cluster_count": 46,
+      "linked_count": 44,
+      "procedural_count": 2,
+      "review_count": 0,
+      "legacy_pending_count": 26,
+      "legacy_pending_linked_count": 25,
+      "legacy_pending_procedural_count": 1,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 150,
+      "summarized_issue_count": 150,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 19
+  },
+  {
+    "id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+    "title": "제439회 국회(정기회) 제01차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 6,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 23,
+      "ontology_topic_count": 23,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 1,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 19,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 17,
+      "source_insight_count": 46,
+      "unmapped_cluster_count": 2,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 45
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "1de56e9b-ea21-4bb3-9724-6ebc4e80f343",
+      "revision_id": "019ad1c7-e0c5-43b3-ad56-3556e353fea6",
+      "source_hash": "eb26875e306664ef0c76b3aadc9a5fb055d05c89450410d1cb6b7c28dc2eee1b",
+      "cluster_count": 19,
+      "linked_count": 17,
+      "procedural_count": 2,
+      "review_count": 0,
+      "legacy_pending_count": 2,
+      "legacy_pending_linked_count": 2,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 43,
+      "summarized_issue_count": 43,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 19
+  },
+  {
+    "id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+    "title": "제439회 국회(정기회) 제01차 행정안전위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 9,
+      "detailed_topic_count": 26,
+      "policy_topic_count": 26,
+      "ontology_topic_count": 25,
+      "ontology_coverage": 0.9615,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 1,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 1,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 26,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 18,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 17,
+      "source_insight_count": 49,
+      "unmapped_cluster_count": 1,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 49
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "97ba0394-91ac-4fa1-bf3b-63431b27d5ca",
+      "revision_id": "2f70b1c8-a1b3-4738-be93-cc49e463edd7",
+      "source_hash": "a60800a5a870626823266e5c2a61a6b52c37484b411527773b3fb857fbc1230e",
+      "cluster_count": 18,
+      "linked_count": 17,
+      "procedural_count": 1,
+      "review_count": 0,
+      "legacy_pending_count": 1,
+      "legacy_pending_linked_count": 1,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 57,
+      "summarized_issue_count": 57,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 27
+  },
+  {
+    "id": "8bd13bcf-3484-46de-857f-c511574be758",
+    "title": "제439회 국회(정기회) 제01차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 8,
+      "detailed_topic_count": 18,
+      "policy_topic_count": 16,
+      "ontology_topic_count": 16,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 2,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 18,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "REVIEW_REQUIRED",
+      "review_reasons": [
+        "REPORT_ARTIFACT_SOURCE_UNVERIFIED"
+      ]
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_LEXICAL_CANDIDATES",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 20,
+      "coverage_status": "COMPLETE",
+      "additional_llm_calls": 0,
+      "mapped_cluster_count": 20,
+      "source_insight_count": 27,
+      "unmapped_cluster_count": 0,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 26
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "561e5d30-588f-488d-8c53-a2a1b3031e1c",
+      "revision_id": "48842db8-ed7c-4c9f-becf-9a47879d6d12",
+      "source_hash": "6e957a67433ef0f9bfcdb7d2602d33485ed3aa44a82a3bdb8d3e519608f3a87a",
+      "cluster_count": 20,
+      "linked_count": 19,
+      "procedural_count": 0,
+      "review_count": 1,
+      "legacy_pending_count": 0,
+      "legacy_pending_linked_count": 0,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [
+      {
+        "title": "불명확한 반복 발언으로 인한 의사소통 장애",
+        "status": "UNRESOLVED",
+        "evidence": [
+          "2e18d592-245a-466f-86ee-329fd77f2289:0"
+        ],
+        "review_items": [
+          {
+            "id": "structured-review-f8eb011d6b12f947",
+            "title": "UNCERTAIN",
+            "summary": "지치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치 사치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치자치시",
+            "evidence_ids": [
+              "2e18d592-245a-466f-86ee-329fd77f2289:0"
+            ],
+            "review_state": "SOURCE_LIMITED",
+            "reason": "원문이 반복된 무의미한 음절로 구성되어 있어 정책 대상, 사건, 논점 등을 파악할 수 없음."
+          }
+        ]
+      }
+    ],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 32,
+      "summarized_issue_count": 32,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 7
+  },
+  {
+    "id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+    "title": "제438회 국회(임시회) 제05차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 10,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 186,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 41,
+      "source_insight_count": 345,
+      "unmapped_cluster_count": 130,
+      "ambiguous_cluster_count": 15,
+      "source_topic_title_count": 343
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "4253c34d-fd84-46f9-ba23-9426ddaa8d29",
+      "revision_id": "1ff9ee05-5e42-4c18-8936-9971bb2b68b8",
+      "source_hash": "ab559725a123e05262eb88aa07d61a41d8e909635e89743bd82e753249115082",
+      "cluster_count": 186,
+      "linked_count": 183,
+      "procedural_count": 3,
+      "review_count": 0,
+      "legacy_pending_count": 145,
+      "legacy_pending_linked_count": 142,
+      "legacy_pending_procedural_count": 3,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 295,
+      "summarized_issue_count": 295,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 8
+  },
+  {
+    "id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+    "title": "제438회 국회(임시회) 제04차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 12,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 37,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 28,
+      "source_insight_count": 59,
+      "unmapped_cluster_count": 9,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 59
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "f2c76f0e-5621-455e-bcab-54995cc2f06f",
+      "revision_id": "f6a3b9f3-c610-4fb4-a23a-e974b0296053",
+      "source_hash": "5ba94e3dad03d1d4e244c573c1ecf21104d049cf0fa6654fb5d43a48acfa6941",
+      "cluster_count": 37,
+      "linked_count": 37,
+      "procedural_count": 0,
+      "review_count": 0,
+      "legacy_pending_count": 9,
+      "legacy_pending_linked_count": 9,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 108,
+      "summarized_issue_count": 108,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 2
+  },
+  {
+    "id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+    "title": "제438회 국회(임시회) 제03차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 9,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 44,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 26,
+      "source_insight_count": 66,
+      "unmapped_cluster_count": 18,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 66
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "5381898d-6541-49e2-8d93-49cb9a7256d4",
+      "revision_id": "444ad610-27bd-49d3-a1db-e0af5f8cc2ee",
+      "source_hash": "91c8fe6912b648995cec622fbdc6f6db2963ba355406532fad7416be3ffcdb9e",
+      "cluster_count": 44,
+      "linked_count": 35,
+      "procedural_count": 9,
+      "review_count": 0,
+      "legacy_pending_count": 18,
+      "legacy_pending_linked_count": 15,
+      "legacy_pending_procedural_count": 3,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 78,
+      "summarized_issue_count": 78,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 27
+  },
+  {
+    "id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+    "title": "제438회 국회(임시회) 제03차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 12,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 22,
+      "ontology_topic_count": 21,
+      "ontology_coverage": 0.9545,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 1,
+      "report_artifact_topic_count": 2,
+      "singleton_unclassified_group_count": 1,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 198,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 32,
+      "source_insight_count": 307,
+      "unmapped_cluster_count": 149,
+      "ambiguous_cluster_count": 17,
+      "source_topic_title_count": 306
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "de74a687-269a-4410-a4ac-3db2958b2526",
+      "revision_id": "b335ff2a-5381-4bd2-a94e-7397e98e3985",
+      "source_hash": "c99a96ef697a4a6f3ab80201708722e92994c8d4f7ab084cda11e1376801f5ba",
+      "cluster_count": 198,
+      "linked_count": 196,
+      "procedural_count": 2,
+      "review_count": 0,
+      "legacy_pending_count": 166,
+      "legacy_pending_linked_count": 164,
+      "legacy_pending_procedural_count": 2,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 224,
+      "summarized_issue_count": 224,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 9
+  },
+  {
+    "id": "66265612-921e-432d-adae-36c3f164f0bf",
+    "error": "HTTP Error 404: Not Found"
+  },
+  {
+    "id": "33fae667-d853-43be-9500-c7335df4771e",
+    "title": "제438회 국회(임시회) 제02차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 13,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 196,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 39,
+      "source_insight_count": 353,
+      "unmapped_cluster_count": 154,
+      "ambiguous_cluster_count": 3,
+      "source_topic_title_count": 351
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "a5901e5c-f820-4dfc-8f4e-93e8f619009d",
+      "revision_id": "ebe7eb78-0e28-4a3c-b867-501ff1ba9566",
+      "source_hash": "0e93ee8fadc9240b2bd6c3bd5422cbfe28f65f9c351ed547f96b74b98703c644",
+      "cluster_count": 196,
+      "linked_count": 194,
+      "procedural_count": 2,
+      "review_count": 0,
+      "legacy_pending_count": 157,
+      "legacy_pending_linked_count": 156,
+      "legacy_pending_procedural_count": 1,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 318,
+      "summarized_issue_count": 318,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 6
+  },
+  {
+    "id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+    "title": "제438회 국회(임시회) 제01차 행정안전위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 13,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 24,
+      "ontology_topic_count": 24,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 89,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 35,
+      "source_insight_count": 171,
+      "unmapped_cluster_count": 45,
+      "ambiguous_cluster_count": 9,
+      "source_topic_title_count": 165
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "8ce27f4f-3606-47c5-abe3-0003babf76b4",
+      "revision_id": "cdb5d943-5c79-4ab8-b052-9b4584209c1b",
+      "source_hash": "f777ea1350e2716d6f243fb3cf1441014ef1ea986a7828fb8154734528c32c63",
+      "cluster_count": 89,
+      "linked_count": 86,
+      "procedural_count": 3,
+      "review_count": 0,
+      "legacy_pending_count": 54,
+      "legacy_pending_linked_count": 52,
+      "legacy_pending_procedural_count": 2,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 145,
+      "summarized_issue_count": 145,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 8
+  },
+  {
+    "id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+    "title": "제438회 국회(임시회) 제01차 예산결산특별위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 9,
+      "detailed_topic_count": 24,
+      "policy_topic_count": 23,
+      "ontology_topic_count": 23,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 1,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 24,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "EVIDENCE_WITH_OPENROUTER_SEMANTIC",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 171,
+      "coverage_status": "PARTIAL",
+      "additional_llm_calls": 1,
+      "mapped_cluster_count": 46,
+      "source_insight_count": 302,
+      "unmapped_cluster_count": 120,
+      "ambiguous_cluster_count": 5,
+      "source_topic_title_count": 290
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "8af1d205-b403-4ff0-a8e1-6a17a26ad759",
+      "revision_id": "bedf9522-c877-46ee-80f4-18f746307765",
+      "source_hash": "9f9ee4a475b5ab3a27bec61ce0cde84ef45f68bb6464d46b7d87c3387f35cb7a",
+      "cluster_count": 171,
+      "linked_count": 170,
+      "procedural_count": 1,
+      "review_count": 0,
+      "legacy_pending_count": 125,
+      "legacy_pending_linked_count": 124,
+      "legacy_pending_procedural_count": 1,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 264,
+      "summarized_issue_count": 264,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 10
+  },
+  {
+    "id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+    "title": "제438회 국회(임시회) 제02차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 5,
+      "detailed_topic_count": 13,
+      "policy_topic_count": 13,
+      "ontology_topic_count": 13,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 13,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "DETERMINISTIC_EVIDENCE_AND_LEXICAL",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 0,
+      "coverage_status": "COMPLETE",
+      "additional_llm_calls": 0,
+      "mapped_cluster_count": 0,
+      "source_insight_count": 0,
+      "unmapped_cluster_count": 0,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 0
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "86a76558-a239-4c88-bf28-a2cb2de28840",
+      "revision_id": "9a1531e2-5e61-444c-9ce0-7e11199a0e4e",
+      "source_hash": "312c83f6d11494e91e52b736877c25af2ee915e8053514d7399aaac88d039001",
+      "cluster_count": 0,
+      "linked_count": 0,
+      "procedural_count": 0,
+      "review_count": 0,
+      "legacy_pending_count": 0,
+      "legacy_pending_linked_count": 0,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 37,
+      "summarized_issue_count": 37,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 1
+  },
+  {
+    "id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+    "title": "제438회 국회(임시회) 제01차 법제사법위원회",
+    "grouping": {
+      "version": "assembly-meeting-topic-grouping/1.17",
+      "method": "TARGET_ONTOLOGY_WITH_ARTIFACT_SEPARATION_AND_AUDIT",
+      "group_count": 5,
+      "detailed_topic_count": 8,
+      "policy_topic_count": 8,
+      "ontology_topic_count": 8,
+      "ontology_coverage": 1.0,
+      "dynamic_topic_count": 0,
+      "unclassified_topic_count": 0,
+      "report_artifact_topic_count": 0,
+      "singleton_unclassified_group_count": 0,
+      "integrity_status": "PASS",
+      "assigned_topic_count": 8,
+      "missing_topic_count": 0,
+      "duplicate_topic_count": 0,
+      "missing_live_topic_count": 0,
+      "unlinked_task_count": 0,
+      "quality_status": "PASS",
+      "review_reasons": []
+    },
+    "lineage": {
+      "method": "DETERMINISTIC_EVIDENCE_AND_LEXICAL",
+      "version": "live-topic-lineage/1.0",
+      "cluster_count": 0,
+      "coverage_status": "COMPLETE",
+      "additional_llm_calls": 0,
+      "mapped_cluster_count": 0,
+      "source_insight_count": 0,
+      "unmapped_cluster_count": 0,
+      "ambiguous_cluster_count": 0,
+      "source_topic_title_count": 0
+    },
+    "resolution": {
+      "version": "live-topic-resolution/1.0",
+      "authority_status": "PROVISIONAL",
+      "source_brief_id": "558fcb23-a980-4e2a-9aad-0ab1d6407b87",
+      "revision_id": "f7ffd8df-dbc9-4a28-b2fe-1e1316616090",
+      "source_hash": "8d1eec9d52458c60d42e4b69b3a38e3f71f32e657788e50e1a5d5804de10dc11",
+      "cluster_count": 0,
+      "linked_count": 0,
+      "procedural_count": 0,
+      "review_count": 0,
+      "legacy_pending_count": 0,
+      "legacy_pending_linked_count": 0,
+      "legacy_pending_procedural_count": 0,
+      "legacy_pending_review_count": 0
+    },
+    "reviews": [],
+    "structured_coverage": {
+      "profile": "structured-narrative/1.2",
+      "issue_count": 37,
+      "summarized_issue_count": 37,
+      "status": "COMPLETE"
+    },
+    "structure_review_count": 1
+  }
+]

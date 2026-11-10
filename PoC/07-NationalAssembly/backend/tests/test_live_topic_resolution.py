@@ -71,3 +71,67 @@ def test_stale_or_incomplete_structure_is_not_used(damage):
     if damage == 'incomplete': structure['topic_structure']['consolidation_status'] = 'PENDING'
     if damage == 'revision': structure['topic_structure']['revision_id'] = ''
     assert build_live_topic_resolution(legacy, structure, 'b1') is None
+
+
+def test_reviewed_source_fragments_are_not_queued_and_partial_links_are_counted():
+    legacy, structure = fixture()
+    before = deepcopy((legacy, structure))
+    structure['structure_review_items'][0]['review_state'] = 'SOURCE_LIMITED'
+    result = build_live_topic_resolution(legacy, structure, 'b1')
+    assert result['entries'][2]['status'] == 'PARTIAL'
+    assert result['entries'][2]['review_state'] == 'SOURCE_LIMITED'
+    assert result['linked_cluster_count'] == 2
+    assert result['source_limited_cluster_count'] == 1
+    assert result['source_limited_evidence_count'] == 1
+    assert result['pending_review_count'] == 0
+    assert result['review_count'] == 1  # compatible historical mapping counter
+    assert legacy == before[0]
+    assert structure['topics'] == before[1]['topics']
+
+
+@pytest.mark.parametrize('damage', ['missing_review', 'pending_review', 'failed_review', 'uncovered_evidence', 'stale_evidence'])
+def test_unfinished_or_unverified_reviews_are_never_hidden_as_source_limited(damage):
+    legacy, structure = fixture()
+    review = structure['structure_review_items'][0]
+    review['review_state'] = 'SOURCE_LIMITED'
+    if damage == 'missing_review':
+        structure['structure_review_items'] = []
+    elif damage == 'pending_review':
+        review['review_state'] = 'AUTO_PENDING'
+    elif damage == 'failed_review':
+        review['review_state'] = 'ANALYSIS_FAILED'
+    elif damage == 'uncovered_evidence':
+        structure['live_topic_lineage']['clusters'][2]['review_evidence_ids'].append('u3')
+    else:
+        structure['live_topic_lineage']['clusters'][2]['utterance_ids'] = ['changed']
+    result = build_live_topic_resolution(legacy, structure, 'b1')
+    assert result['pending_review_count'] == 1
+    assert result['source_limited_cluster_count'] == 0
+    assert result['entries'][2]['review_state'] == 'PENDING'
+
+
+def test_source_limited_without_topic_is_preserved_and_not_claimed_linked():
+    legacy, structure = fixture()
+    structure['live_topic_lineage']['clusters'][2]['final_topic_ids'] = []
+    structure['structure_review_items'][0]['review_state'] = 'REQUEST_SOURCE_LIMITED'
+    result = build_live_topic_resolution(legacy, structure, 'b1')
+    assert result['entries'][2]['topics'] == []
+    assert result['entries'][2]['status'] == 'UNRESOLVED'
+    assert result['linked_cluster_count'] == 1
+    assert result['source_limited_cluster_count'] == 1
+    assert result['pending_review_count'] == 0
+
+
+def test_markdown_separates_current_review_from_historical_unmapped_counts():
+    from app.main import _meeting_brief_markdown
+    legacy, structure = fixture()
+    structure['structure_review_items'][0]['review_state'] = 'SOURCE_LIMITED'
+    resolution = build_live_topic_resolution(legacy, structure, 'b1')
+    legacy['live_topic_lineage'].update(cluster_count=3, unmapped_cluster_count=2)
+    legacy['report_summary'] = {'topics': []}
+    text = _meeting_brief_markdown({'brief': legacy, 'live_topic_resolution': resolution})
+    assert '쟁점 연결 2' in text
+    assert '추가 연결 확인 0' in text
+    assert '재검토 후 원문 불명확 1묶음 (1건)' in text
+    assert '대조 당시 실시간 주제 연결 이력' in text
+    assert '당시 상위 주제 연결 보류 항목 (보존 이력)' in text

@@ -8,6 +8,7 @@ PENDING_STATUSES = frozenset({
     'UNMAPPED', 'LEXICAL_CANDIDATE', 'AMBIGUOUS',
     'MULTIPLE_FINAL_TOPICS', 'REVIEW_REQUIRED',
 })
+SOURCE_LIMITED_STATES = frozenset({'SOURCE_LIMITED', 'REQUEST_SOURCE_LIMITED'})
 
 
 def build_live_topic_resolution(
@@ -45,11 +46,23 @@ def build_live_topic_resolution(
             for r in structured.get('structure_review_items', [])
             if r.get('role') != 'PROCEDURE' and review_ids.intersection(r.get('evidence_ids') or [])
         ] if status in {'PARTIAL', 'UNRESOLVED'} and valid else []
+        # A preserved, already reviewed fragment is not a queued classification.
+        # Only accept that conclusion when every outstanding evidence ID is
+        # covered and every associated review has an explicit terminal state.
+        reviewed_evidence = {e for r in reviews for e in r['evidence_ids']}
+        source_limited = bool(
+            valid and review_ids and reviews
+            and review_ids <= reviewed_evidence
+            and all(r['review_state'] in SOURCE_LIMITED_STATES for r in reviews)
+        )
+        review_state = ('NOT_REQUIRED' if status in {'LINKED', 'PROCEDURAL'}
+                        else 'SOURCE_LIMITED' if source_limited else 'PENDING')
         entries.append({
             'source_cluster_id': source_id, 'title': original.get('title', ''),
             'legacy_status': original.get('mapping_status'),
             'legacy_pending': original.get('mapping_status') in PENDING_STATUSES,
             'status': status, 'authority_status': 'PROVISIONAL',
+            'review_state': review_state,
             'structured_cluster_id': current.get('id') if valid else None,
             'topics': [{'id': t, 'title': topics[t]['title']} for t in ids] if valid else [],
             'review_items': reviews,
@@ -58,12 +71,27 @@ def build_live_topic_resolution(
     totals = Counter(e['status'] for e in entries)
     pending = Counter(e['status'] for e in entries if e['legacy_pending'])
     return {
-        'version': 'live-topic-resolution/1.0', 'authority_status': 'PROVISIONAL',
+        'version': 'live-topic-resolution/1.1', 'authority_status': 'PROVISIONAL',
         'source_brief_id': str(brief_id), 'revision_id': meta['revision_id'],
         'source_hash': meta['source_hash'], 'entries': entries,
         'cluster_count': len(entries), 'linked_count': totals['LINKED'],
         'procedural_count': totals['PROCEDURAL'],
         'review_count': totals['PARTIAL'] + totals['UNRESOLVED'],
+        # Keep the v1.0 mapping counters for consumers/history. These additional
+        # counters distinguish processing state from partial evidence linkage.
+        'linked_cluster_count': sum(bool(e['topics']) for e in entries),
+        'pending_review_count': sum(e['review_state'] == 'PENDING' for e in entries),
+        'source_limited_cluster_count': sum(e['review_state'] == 'SOURCE_LIMITED' for e in entries),
+        'source_limited_evidence_count': len({
+            evidence for e in entries if e['review_state'] == 'SOURCE_LIMITED'
+            for evidence in e['review_evidence_ids']
+        }),
+        'legacy_pending_active_review_count': sum(
+            e['legacy_pending'] and e['review_state'] == 'PENDING' for e in entries
+        ),
+        'legacy_pending_source_limited_count': sum(
+            e['legacy_pending'] and e['review_state'] == 'SOURCE_LIMITED' for e in entries
+        ),
         'legacy_pending_count': sum(pending.values()),
         'legacy_pending_linked_count': pending['LINKED'],
         'legacy_pending_procedural_count': pending['PROCEDURAL'],
