@@ -6,18 +6,19 @@ from .engine import warnings_for
 LOCK=threading.Lock()
 BASE='inheritance-demo-v1-base';TARGET='inheritance-demo-v1-next'
 
-def seed(store,runner,root, *, source_id=BASE,target_id=TARGET,title="이어서 작성 · 11월 현행화·신규 업무",owner=2,recipient=3,previous=1):
+def seed(store,runner,root, *, source_id=BASE,target_id=TARGET,title="이어서 작성 · 11월 현행화·신규 업무",owner=2,recipient=3,previous=1,base_pack="01_이전인계_원본.zip",target_packs=("02_현행화_신규업무.zip",)):
  with LOCK:
-  for ident,case_title,from_person,to_person,pack in [(source_id,title+' · 이전 인계 보고서',previous,owner,'01_이전인계_원본.zip'),(target_id,title,owner,recipient,'02_현행화_신규업무.zip')]:
+  for ident,case_title,from_person,to_person,pack in [(source_id,title+' · 이전 인계 보고서',previous,owner,(base_pack,)),(target_id,title,owner,recipient,target_packs)]:
    if store.one('SELECT id FROM cases WHERE id=?',(ident,)):continue
    stamp='2026-01-10T00:00:00+00:00' if ident==source_id else now()
    with store.connect(write=True) as db:
     db.execute('INSERT INTO cases VALUES (?,?,?,?,?,?,?,?)',(ident,case_title,f'직원 {from_person}',f'직원 {to_person}',stamp,None,None,None))
     db.execute('INSERT INTO case_members VALUES (?,?,?)',(ident,f'employee{from_person}',f'employee{to_person}'))
-    with zipfile.ZipFile(root/'release/public'/pack) as z:
-     for path in z.namelist():
-      data=z.read(path);sha=digest(data);(store.root/'raw'/sha).write_bytes(data)
-      db.execute('INSERT INTO documents VALUES (?,?,?,?,?,?)',(uid(),ident,path,sha,'.'+path.rsplit('.',1)[1],stamp))
+    for archive in pack:
+     with zipfile.ZipFile(root/'release/public'/archive) as z:
+      for path in z.namelist():
+       data=z.read(path);sha=digest(data);(store.root/'raw'/sha).write_bytes(data)
+       db.execute('INSERT INTO documents VALUES (?,?,?,?,?,?)',(uid(),ident,path,sha,'.'+path.rsplit('.',1)[1],stamp))
     store.audit(db,ident,'CONTINUATION_DEMO',{'synthetic':True,'historical_date':ident==source_id})
    if ident==source_id:
     cfg={'document_ids':[d['id'] for d in store.rows('SELECT id FROM documents WHERE case_id=?',(source_id,))],'mode':'rules','model':'label-rules-v1','parent':None,'parser':PARSER_VERSION,'image_consent':False}

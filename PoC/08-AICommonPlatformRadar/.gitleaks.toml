@@ -1,0 +1,14 @@
+# These exact lines are public Chrome storage/API identifiers, not credentials.
+# All default secret detection rules remain active.
+[extend]
+useDefault = true
+
+[[rules]]
+id = "generic-api-key"
+[rules.allowlist]
+description = "Exact public storage identifier and environment variable names"
+regexTarget = "line"
+regexes = [
+  '''^const JOB_KEY = 'poc08PendingOpinionJob';$''',
+  '''^\s*for name in \(\"STAGE2_API_KEY\", \"STAGE3_PRIMARY_API_KEY\", \"STAGE3_FALLBACK_API_KEY\"\):\s*$''',
+]

@@ -3,6 +3,18 @@ import hashlib,json
 from pathlib import Path
 root=Path(__file__).resolve().parents[1];out=root/'release/public'
 CATALOG=[
+ ('comprehensive-report.html','종합 시연 완성 보고서 HTML','동일 확정본의 차트·업무별 실무·공통 예산'),
+ ('comprehensive-report.pdf','종합 시연 완성 보고서 PDF','인쇄용 완성 예시'),
+ ('comprehensive-report.docx','종합 시연 완성 보고서 DOCX','편집 가능한 동일 확정본'),
+ ('comprehensive-report.md','종합 시연 완성 보고서 Markdown','원문 인용과 수정 기록'),
+ ('comprehensive-validation.json','종합 시연 검증 결과','규칙 기반 종단 기능 검증 · 유료 AI 호출 없음'),
+ ('comprehensive-kit.zip','샘플1 · 종합 인수인계 실무 시연','21개 원본·5개 사업·표 95개 · 계승·판본·묶기·인계'),
+ ('comprehensive-base.zip','종합 시연 · 이전 인수 원본','이전 보고서 2개'),
+ ('comprehensive-current.zip','종합 시연 · 최신 자료 먼저 등록','최신 확정본·실적대장·담당 확인서 10개'),
+ ('comprehensive-old.zip','종합 시연 · 같은 이름 구판 나중 등록','5개 구판 · 같은 날짜의 차수·시각 비교'),
+ ('comprehensive-draft.zip','종합 시연 · 미승인 초안 마지막 등록','4개 초안·검토중·대체됨·폐기 판본 제외'),
+ ('comprehensive-guide.md','종합 시연 점검 안내','묶기·판본·그림·보고서·전달·인수 점검 순서'),
+ ('comprehensive-expected.json','종합 시연 정답표','5개 업무·진척·예산·연락망 기대 결과'),
  ('v160-review.md','v1.6 개선·검증 기록','보고서 계승·시연 3종·원문 팝업·가상 안내'),
  ('inheritance-kit.zip','이전 인계 보고서 이어서 작성 샘플','HWPX 이전본 2개 · XLSX 현행화 · PDF 신규 업무'),
  ('01_이전인계_원본.zip','이어서 작성 1단계 · 이전 보고서 원본','직원 1→2 인수 완료 보고서용 HWPX 2개'),
@@ -44,8 +56,8 @@ CATALOG=[
  ('practice-review.md','최종 보고서 검토 결과','개선 내용·점검 결과·검증 범위'),
  ('quality-report.md','기존 모델 품질 비교 결과','이전 7개 업무 샘플의 GPT 1회 검증 보존'),
  ('quality-results.json','기존 품질 측정 JSON','이전 7개 업무에 한정된 측정 결과'),
- ('handover-source-v1.6.4.zip','프로그램 소스·실행 패키지','설치·테스트·라이선스 고지 포함'),
- ('handover-demo-kit-v1.6.4.zip','체험 자료 한 번에 받기','샘플·안내서·최종 보고서·검증 기록'),
+ ('handover-source-v1.6.7.zip','프로그램 소스·실행 패키지','설치·테스트·라이선스 고지 포함'),
+ ('handover-demo-kit-v1.6.7.zip','체험 자료 한 번에 받기','샘플·안내서·최종 보고서·검증 기록'),
  ('flow-samples.zip','이전 단계별 보고 샘플 11개','호환 체험 자료'),
  ('flow-report.html','이전 간트 중심 보고서 HTML','이전 확정본 보존'),
  ('flow-report.pdf','이전 간트 중심 보고서 PDF','이전 확정본 보존'),
@@ -54,5 +66,5 @@ files=[]
 for name,title,description in CATALOG:
  p=out/name
  if p.is_file():files.append({'file':name,'title':title,'description':description,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
-(out/'manifest.json').write_text(json.dumps({'version':'1.6.4','synthetic_only':True,'files':files},ensure_ascii=False,indent=2)+'\n')
+(out/'manifest.json').write_text(json.dumps({'version':'1.6.7','synthetic_only':True,'files':files},ensure_ascii=False,indent=2)+'\n')
 print('Public deliverables:',len(files))

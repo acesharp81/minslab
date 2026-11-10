@@ -21,7 +21,6 @@ from ..models import ActionItem, AnalysisRun, Notice, NoticeDecision
 from ..schemas import CompactDeepAnalysis, DeepAnalysis, Evidence, SimpleAnalysis
 from .attachment_policy import select_preferred_documents
 from .filter_rules import FilterResult, evaluate_notice, evaluate_service_scope
-from .jev_shadow import record_jev_shadow
 from .platform_usage import (
     COMMON_PLATFORM_MENTION as _COMMON_PLATFORM_MENTION,
     COMMON_PLATFORM_NON_USE as _COMMON_PLATFORM_NON_USE,
@@ -1715,16 +1714,6 @@ def record_non_ai_screen(db: Session, notice: Notice, rule: FilterResult) -> boo
     context = notice_context(notice)
     gate_hash = _input_hash(context, "deep_ai", CURRENT_CRITERIA_VERSION)
     result = _rule_screen_result(rule)
-    shadow_added = record_jev_shadow(
-        db,
-        notice,
-        context,
-        reference_business_type=(
-            "ai_related_out_of_scope" if rule.scope_status == "non_target" else "non_ai_service"
-        ),
-        reference_needs_deep_review=False,
-        reference_ai_relevance=result.ai_relevance,
-    )
     existing = next((
         run for run in sorted(notice.analysis_runs, key=lambda row: row.id or 0, reverse=True)
         if run.run_type == "deep_ai" and run.status == "skipped"
@@ -1732,8 +1721,6 @@ def record_non_ai_screen(db: Session, notice: Notice, rule: FilterResult) -> boo
         and is_current_deep_result(run.result_json)
     ), None)
     if existing:
-        if shadow_added:
-            db.commit()
         return False
     db.add(AnalysisRun(
         notice_id=notice.id,
@@ -1779,32 +1766,6 @@ def analyze_notice(db: Session, notice: Notice, *, deep: bool = True, force: boo
         ).order_by(AnalysisRun.id.desc()))
         if cached:
             cached_result = (DeepAnalysis if deep else SimpleAnalysis).model_validate_json(cached.result_json)
-            if isinstance(cached_result, DeepAnalysis):
-                reference_business_type = (
-                    "ai_related_out_of_scope" if cached_result.service_scope == "non_target"
-                    else "non_ai_service" if cached_result.classification_code == "6" or cached_result.ai_relevance == "low"
-                    else "ai_service" if cached_result.service_scope == "target"
-                    else "uncertain"
-                )
-                reference_needs_deep_review = (
-                    cached_result.service_scope != "non_target"
-                    and cached_result.classification_code != "6"
-                )
-            else:
-                reference_business_type = (
-                    "ai_service" if cached_result.ai_relevance in {"high", "medium"} else "non_ai_service"
-                )
-                reference_needs_deep_review = cached_result.needs_deep_review
-            if record_jev_shadow(
-                db,
-                notice,
-                context,
-                reference_business_type=reference_business_type,
-                reference_needs_deep_review=reference_needs_deep_review,
-                reference_ai_relevance=cached_result.ai_relevance,
-                settings=settings,
-            ):
-                db.commit()
             return cached_result
 
     active_run_type = "simple_ai"
@@ -1852,17 +1813,6 @@ def analyze_notice(db: Session, notice: Notice, *, deep: bool = True, force: boo
                 cost_prompt_tokens=int(simple_usage["prompt_tokens"]),
                 cost_completion_tokens=int(simple_usage["completion_tokens"]),
             ))
-        record_jev_shadow(
-            db,
-            notice,
-            context,
-            reference_business_type=(
-                "ai_service" if simple.ai_relevance in {"high", "medium"} else "non_ai_service"
-            ),
-            reference_needs_deep_review=simple.needs_deep_review,
-            reference_ai_relevance=simple.ai_relevance,
-            settings=settings,
-        )
         if not deep:
             db.commit()
             return simple

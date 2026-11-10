@@ -27,10 +27,6 @@ services:
       STAGE3_FALLBACK_BASE_URL: ${STAGE3_FALLBACK_BASE_URL:-https://integrate.api.nvidia.com/v1}
       STAGE3_FALLBACK_MODEL: ${STAGE3_FALLBACK_MODEL:-nvidia/nemotron-3-super-120b-a12b}
       STAGE3_ROUTING_MODE: ${STAGE3_ROUTING_MODE:-balanced}
-      JEV_SHADOW_ENABLED: ${JEV_SHADOW_ENABLED:-true}
-      JEV_BASE_URL: ${JEV_BASE_URL:-https://www.jevai.org}
-      JEV_MODEL: ${JEV_MODEL:-typesafe-ai/jev}
-      JEV_SHADOW_END_DATE: ${JEV_SHADOW_END_DATE:-2026-09-25}
     ports:
       - "${HOST_BIND:-127.0.0.1}:${HOST_PORT:-18080}:8000"
     volumes:

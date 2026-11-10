@@ -1,0 +1,55 @@
+{
+  "documents": 21,
+  "same_name_versions": 3,
+  "draft_candidates": 7,
+  "final_tasks": 5,
+  "progress": {
+    "지역생활서비스 통합지원": 65,
+    "문화시설 통합예약 개선": 75,
+    "보조금 정산 승인": 40,
+    "공공시설 안전점검": 100,
+    "공공데이터 개방 품질개선": 60
+  },
+  "unique_budgets": 6,
+  "unique_contacts": 6,
+  "budget_totals": {
+    "편성액": 400000000,
+    "집행액": 259000000,
+    "지급예정액": 45000000,
+    "가용잔액": 96000000
+  },
+  "inheritance_preserved": true,
+  "version_selection": true,
+  "same_day_revision_selection": true,
+  "same_revision_timestamp_selection": true,
+  "excluded_states": [
+    "초안",
+    "검토중",
+    "대체됨",
+    "폐기"
+  ],
+  "three_way_grouping": true,
+  "field_review": true,
+  "report_exports": [
+    "html",
+    "md",
+    "docx"
+  ],
+  "delivery_and_acceptance": true,
+  "image_selection_mocked": {
+    "latest": 1,
+    "excluded": 2
+  },
+  "paid_model_calls": 0,
+  "scope": "합성 라벨 자료 기능 검증; Solar 응답·실제 그림 판독 정확도 평가 아님",
+  "table_extraction": {
+    "business_report_documents": 19,
+    "business_report_tables": 95,
+    "table_only_markers_verified": 76,
+    "formats": {
+      ".hwpx": 9,
+      ".xlsx": 5,
+      ".pdf": 5
+    }
+  }
+}

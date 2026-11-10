@@ -2,7 +2,7 @@ name: poc13-handover
 services:
   app:
     build: .
-    image: poc13-handover:1.6.4
+    image: poc13-handover:1.6.7
     restart: unless-stopped
     ports:
       - "127.0.0.1:18130:8000"

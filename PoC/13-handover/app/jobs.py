@@ -36,6 +36,7 @@ class JobRunner:
         job = store.one("SELECT * FROM jobs WHERE id=?", (job_id,))
         config = json.loads(job["config"])
         case_id = job["case_id"]
+        active_doc = None
         try:
             if config["mode"] == "llm" and (not self.model_config["key"] or config["model"] != self.model_config["model"] or config.get("model_url") != self.model_config["url"]):
                 raise ValueError("작업 생성 시점의 모델 연결이 달라졌습니다. 같은 설정을 복원하거나 새 초안을 생성하세요.")
@@ -45,6 +46,7 @@ class JobRunner:
             documents = [store.one("SELECT * FROM documents WHERE id=? AND case_id=?", (doc_id, case_id)) for doc_id in config["document_ids"]]
             results, coverage, snapshots = [], [], []
             for n, doc in enumerate(documents):
+                active_doc = doc
                 parsed = store.one("SELECT * FROM parses WHERE doc_id=? AND parser=?", (doc["id"], PARSER_VERSION))
                 if not parsed:
                     status, warnings, blocks = parse(store.root / "raw" / doc["sha"], doc["format"])
@@ -106,6 +108,8 @@ class JobRunner:
         except Exception as exc:
             if hasattr(exc, "diagnostic"):
                 with store.connect(write=True) as db:
-                    store.audit(db, case_id, "MODEL_FAILURE", {"job_id": job_id, **exc.diagnostic})
+                    store.audit(db, case_id, "MODEL_FAILURE", {"job_id": job_id, "document_id": active_doc["id"] if active_doc else None, "document_path": active_doc["path"] if active_doc else None, **exc.diagnostic})
             error = str(exc) if isinstance(exc, ValueError) else f"처리 오류 ({type(exc).__name__}). 완료된 문서 단계는 보존했습니다."
+            if active_doc and hasattr(exc, "diagnostic"):
+                error = active_doc["path"] + ": " + error
             self.update(job_id, status="FAILED", error=error, stage="ERROR")

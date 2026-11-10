@@ -19,6 +19,7 @@ from .filename import SAFE_EXTENSIONS
 
 OLE_MAGIC = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 ZIP_MAGIC = b"PK\x03\x04"
+DRM_MARKERS = (b"DRMONE", b"Fasoo DRM")
 
 
 @dataclass(frozen=True)
@@ -113,21 +114,59 @@ def _parse_xlsx(content: bytes, max_uncompressed_bytes: int = 100 * 1024 * 1024)
         return "\n".join(lines)
 
 
+def _parse_hwp_preview_text(content: bytes) -> str:
+    """Recover readable preview text from HWP containers rejected by the CLI."""
+    decoded = content.decode("utf-16le", errors="ignore")
+    chunks = [
+        re.sub(r"\s+", " ", value).strip()
+        for value in re.findall(
+            r"[가-힣ㄱ-ㅎㅏ-ㅣA-Za-z0-9][가-힣ㄱ-ㅎㅏ-ㅣA-Za-z0-9 \t.,:;()\[\]{}<>/+%&_-]{3,}",
+            decoded,
+        )
+    ]
+    ignored = {
+        "Root Entry", "FileHeader", "DocInfo", "BodyText", "PrvImage",
+        "BinData", "PrvText", "DocOptions", "Scripts", "Section0",
+        "HwpSummaryInformation", "JScriptVersion", "DefaultJScript", "_LinkDoc",
+    }
+    recovered: list[str] = []
+    for chunk in chunks:
+        if chunk == "PrvImage" and sum(map(len, recovered)) >= 200:
+            break
+        if not chunk or chunk in ignored or re.fullmatch(r"BIN\d+\.[A-Za-z0-9]+", chunk):
+            continue
+        # Compressed binary sometimes decodes into a long Hangul-only noise run.
+        if len(chunk) > 20 and " " not in chunk and not re.search(r"[0-9A-Za-z]", chunk):
+            continue
+        recovered.append(chunk)
+    text = "\n".join(recovered)
+    return text if len(text) >= 200 else ""
+
+
 def _parse_hwp_cli(content: bytes) -> str:
     settings = get_settings()
     max_output = settings.hwp_parse_max_output_mb * 1024 * 1024
     with tempfile.NamedTemporaryFile(suffix=".hwp") as source:
         source.write(content)
         source.flush()
-        completed = subprocess.run(
-            [settings.hwp_cli_path, "cat", "--format", "markdown", source.name],
-            capture_output=True,
-            check=False,
-            timeout=settings.hwp_parse_timeout_seconds,
-            env={**os.environ, "RUST_BACKTRACE": "0"},
-            start_new_session=True,
-        )
+        try:
+            completed = subprocess.run(
+                [settings.hwp_cli_path, "cat", "--format", "markdown", source.name],
+                capture_output=True,
+                check=False,
+                timeout=settings.hwp_parse_timeout_seconds,
+                env={**os.environ, "RUST_BACKTRACE": "0"},
+                start_new_session=True,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            recovered = _parse_hwp_preview_text(content)
+            if recovered:
+                return recovered
+            raise
     if completed.returncode:
+        recovered = _parse_hwp_preview_text(content)
+        if recovered:
+            return recovered
         detail = completed.stderr.decode("utf-8", errors="replace").strip()
         raise RuntimeError(f"hwp-cli 종료 코드 {completed.returncode}: {detail[:400]}")
     if len(completed.stdout) > max_output:
@@ -158,6 +197,11 @@ def parse_bytes(content: bytes, extension: str) -> ParseResult:
     ext = extension.lower().lstrip(".")
     if not content:
         return ParseResult("failed", error="0바이트 파일")
+    if any(marker in content[:512] for marker in DRM_MARKERS):
+        return ParseResult(
+            "unsupported",
+            error="Fasoo DRM 보호 문서로 서버에서 본문을 해독할 수 없음",
+        )
     try:
         if ext == "txt":
             text = _decode_text(content)

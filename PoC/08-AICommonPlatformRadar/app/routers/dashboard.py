@@ -10,7 +10,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..db import get_db
-from ..models import ActionItem, AnalysisRun, Notice, NoticeDecision
+from ..models import ActionItem, AnalysisRun, Notice
 from ..services.statistics_builder import build_final_status_snapshot
 from ..services.workflow_view import workflow_summary
 from .notices import current_classification_notice_ids, deadline_label, format_datetime
@@ -53,7 +53,6 @@ def _count(db: Session, *conditions) -> int:
 @router.get("/", response_class=HTMLResponse)
 def dashboard(
     request: Request,
-    page: int = Query(1, ge=1),
     progress_page: int = Query(1, ge=1),
     db: Session = Depends(get_db),
 ):
@@ -85,36 +84,6 @@ def dashboard(
     action_condition = Notice.id.in_(action_ids)
     action_total = _count(db, action_condition, pending_action)
     page_size = 10
-    total_pages = max(1, math.ceil(action_total / page_size))
-    current_page = min(page, total_pages)
-    action_notices = db.scalars(
-        select(Notice)
-        .options(
-            selectinload(Notice.analysis_runs).load_only(
-                AnalysisRun.id, AnalysisRun.run_type, AnalysisRun.model_name,
-                AnalysisRun.status, AnalysisRun.result_json, AnalysisRun.error_message,
-            ),
-            selectinload(Notice.action),
-        )
-        .outerjoin(NoticeDecision)
-        .where(action_condition, pending_action)
-        .order_by(
-            (Notice.stage != "prenotice").asc(),
-            Notice.deadline_at.asc().nullslast(),
-            NoticeDecision.priority_score.desc().nullslast(),
-        )
-        .offset((current_page - 1) * page_size)
-        .limit(page_size)
-    ).all()
-    priorities = [
-        {
-            "notice": notice,
-            "workflow": workflow_summary(notice),
-            "deadline": deadline_label(notice.deadline_at),
-        }
-        for notice in action_notices
-    ]
-
 
     def stage_priorities(stage: str) -> list[dict]:
         rows = db.scalars(
@@ -126,11 +95,11 @@ def dashboard(
                 ),
                 selectinload(Notice.action),
             )
-            .outerjoin(NoticeDecision)
             .where(action_condition, pending_action, Notice.stage == stage)
             .order_by(
-                Notice.deadline_at.asc().nullslast(),
-                NoticeDecision.priority_score.desc().nullslast(),
+                Notice.posted_at.desc().nullslast(),
+                Notice.created_at.desc(),
+                Notice.id.desc(),
             )
             .limit(page_size)
         ).all()
@@ -205,29 +174,24 @@ def dashboard(
             Notice.id.in_(classification_ids.get("1", ())),
             Notice.action.has(ActionItem.status == "completed_uses"),
         ))
-        .order_by(Notice.updated_at.desc())
+        .order_by(
+            Notice.posted_at.desc().nullslast(),
+            Notice.created_at.desc(),
+            Notice.id.desc(),
+        )
         .limit(10)
     ).all()
-
-    def page_url(target_page: int) -> str:
-        params = dict(request.query_params)
-        params["page"] = str(target_page)
-        return f"{request.url_for('dashboard').path}?{urlencode(params)}#action-required"
 
     def progress_page_url(target_page: int) -> str:
         params = dict(request.query_params)
         params["progress_page"] = str(target_page)
         return f"{request.url_for('dashboard').path}?{urlencode(params)}#actions-in-progress"
 
-    first_page = max(1, current_page - 2)
-    last_page = min(total_pages, first_page + 4)
-    first_page = max(1, last_page - 4)
     progress_first_page = max(1, current_progress_page - 2)
     progress_last_page = min(progress_total_pages, progress_first_page + 4)
     progress_first_page = max(1, progress_last_page - 4)
 
     return request.app.state.templates.TemplateResponse(request, "dashboard.html", {
-        "priorities": priorities,
         "prenotice_priorities": prenotice_priorities,
         "bid_priorities": bid_priorities,
         "prenotice_action_total": prenotice_action_total,
@@ -240,16 +204,6 @@ def dashboard(
         "summary_flow": summary_flow,
         "confirmed_use_notices": confirmed_use_notices,
         "format_datetime": format_datetime,
-        "pagination": {
-            "page": current_page,
-            "page_size": page_size,
-            "total": action_total,
-            "total_pages": total_pages,
-            "pages": range(first_page, last_page + 1),
-            "previous_url": page_url(current_page - 1) if current_page > 1 else None,
-            "next_url": page_url(current_page + 1) if current_page < total_pages else None,
-            "page_url": page_url,
-        },
         "progress_pagination": {
             "page": current_progress_page,
             "page_size": page_size,

@@ -4,7 +4,6 @@ import os
 import hashlib
 import hmac
 from dataclasses import dataclass
-from datetime import date
 from functools import lru_cache
 from pathlib import Path
 
@@ -134,13 +133,6 @@ class Settings:
     stage2_fallback_api_key: str
     stage2_fallback_model: str
     stage2_fallback_min_interval_seconds: float
-    jev_shadow_enabled: bool
-    jev_base_url: str
-    jev_api_key: str
-    jev_model: str
-    jev_shadow_end_date: str
-    jev_timeout_seconds: int
-    jev_max_input_chars: int
     stage3_primary_provider: str
     stage3_primary_base_url: str
     stage3_primary_api_key: str
@@ -220,11 +212,6 @@ class Settings:
             problems.append("STAGE3_MAX_CONCURRENCY는 1 이상이어야 합니다.")
         if self.stage3_routing_mode not in {"primary_fallback", "balanced"}:
             problems.append("STAGE3_ROUTING_MODE는 primary_fallback 또는 balanced여야 합니다.")
-        if self.jev_shadow_end_date:
-            try:
-                date.fromisoformat(self.jev_shadow_end_date)
-            except ValueError:
-                problems.append("JEV_SHADOW_END_DATE는 YYYY-MM-DD 형식이어야 합니다.")
         if self.stage2_min_interval_seconds < 0:
             problems.append("STAGE2_MIN_INTERVAL_SECONDS는 0 이상이어야 합니다.")
         if self.stage2_fallback_min_interval_seconds < 0:
@@ -302,13 +289,6 @@ def get_settings() -> Settings:
             "STAGE2_FALLBACK_MIN_INTERVAL_SECONDS",
             7.0 if stage2_fallback_provider == "gemini" else 0.0,
         ),
-        jev_shadow_enabled=_bool("JEV_SHADOW_ENABLED", True),
-        jev_base_url=os.getenv("JEV_BASE_URL", "https://www.jevai.org").rstrip("/"),
-        jev_api_key=_first_env("JEV_API_KEY"),
-        jev_model=os.getenv("JEV_MODEL", "typesafe-ai/jev"),
-        jev_shadow_end_date=os.getenv("JEV_SHADOW_END_DATE", "2026-09-25"),
-        jev_timeout_seconds=_int("JEV_TIMEOUT_SECONDS", 20),
-        jev_max_input_chars=_int("JEV_MAX_INPUT_CHARS", 8_000),
         stage3_primary_provider=stage3_provider,
         stage3_primary_base_url=os.getenv(
             "STAGE3_PRIMARY_BASE_URL",

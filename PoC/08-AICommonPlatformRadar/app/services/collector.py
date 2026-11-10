@@ -14,6 +14,7 @@ from ..config import get_settings
 from ..db import push_deferred_supabase_changes
 from ..models import Attachment, AuditLog, Notice, PipelineRun
 from .analyzer import LLMRateLimitExceeded, analyze_notice, is_current_deep_result, record_non_ai_screen
+from .attachment_retention import purge_attachments_by_policy
 from .attachment_policy import (
     business_document_key,
     is_business_document,
@@ -159,6 +160,8 @@ def _store_attachment(db: Session, notice: Notice, item: G2BNotice, sequence: in
     existing = db.scalar(select(Attachment).where(Attachment.notice_id == notice.id, Attachment.source_url == source_url))
     if existing and existing.parse_status in {"parsed", "skipped", "skipped_duplicate"}:
         return "cached" if existing.parse_status == "parsed" else existing.parse_status
+    if existing and existing.parse_status == "purged":
+        return "purged"
     if existing and existing.parse_status == "unsupported" and not extension_from_name(existing.original_filename):
         return "unsupported"
     attachment = existing or Attachment(notice_id=notice.id, source_url=source_url, original_filename=safe_original_name(name_hint))
@@ -418,6 +421,11 @@ async def _run_collection(
         stats["opinions_checked"] = opinion_stats["checked"]
         stats["opinions_replied"] = opinion_stats["replied"]
         stats["opinion_check_failed"] = opinion_stats["failed"]
+        retention = purge_attachments_by_policy(db, settings=settings)
+        stats["attachments_purged"] = retention["attachments_purged"]
+        stats["attachment_files_deleted"] = (
+            retention["raw_files_deleted"] + retention["parsed_files_deleted"]
+        )
         run.status = "success"
         run.stats_json = json.dumps(stats, ensure_ascii=False)
         run.finished_at = datetime.now(timezone.utc)
@@ -452,7 +460,13 @@ async def _run_collection(
 def reparse_failed(db: Session) -> dict[str, int]:
     settings = get_settings()
     _check_collection_enabled(settings)
-    stats = {"retried": 0, "parsed": 0, "failed": 0}
+    stats = {"retried": 0, "parsed": 0, "unsupported": 0, "failed": 0, "batch_recovered": 0}
+    latest_collect = db.scalar(select(PipelineRun).where(
+        PipelineRun.run_kind == "collect",
+    ).order_by(PipelineRun.started_at.desc()))
+    latest_started = latest_collect.started_at if latest_collect else None
+    if latest_started and latest_started.tzinfo is None:
+        latest_started = latest_started.replace(tzinfo=timezone.utc)
     rows = db.scalars(select(Attachment).where(
         Attachment.file_path.is_not(None),
         or_(
@@ -466,6 +480,15 @@ def reparse_failed(db: Session) -> dict[str, int]:
     try:
         for attachment in rows:
             stats["retried"] += 1
+            previous_updated = attachment.updated_at
+            if previous_updated and previous_updated.tzinfo is None:
+                previous_updated = previous_updated.replace(tzinfo=timezone.utc)
+            latest_batch_failure = bool(
+                attachment.parse_status == "failed"
+                and latest_started
+                and previous_updated
+                and previous_updated >= latest_started
+            )
             path = Path(str(attachment.file_path))
             if not path.is_absolute():
                 path = settings.project_root / path
@@ -481,14 +504,32 @@ def reparse_failed(db: Session) -> dict[str, int]:
                     attachment.text_path = _relative(text_path)
                     attachment.text_excerpt = result.text[:20_000]
                     stats["parsed"] += 1
+                elif result.status == "unsupported":
+                    stats["unsupported"] += 1
                 else:
                     stats["failed"] += 1
+                if latest_batch_failure and result.status in {"parsed", "unsupported"}:
+                    stats["batch_recovered"] += 1
             except Exception as exc:
                 attachment.parse_status = "failed"
                 attachment.parse_error = f"{type(exc).__name__}: {str(exc)[:500]}"
                 stats["failed"] += 1
             if stats["retried"] % 25 == 0:
                 db.commit()
+        if latest_collect and stats["batch_recovered"]:
+            try:
+                batch_stats = json.loads(latest_collect.stats_json or "{}")
+            except (json.JSONDecodeError, TypeError):
+                batch_stats = {}
+            unresolved = int(batch_stats.get("attachment_failed", 0) or 0)
+            recovered = min(unresolved, stats["batch_recovered"])
+            if recovered:
+                batch_stats["attachment_failed"] = unresolved - recovered
+                batch_stats["attachment_recovered"] = int(
+                    batch_stats.get("attachment_recovered", 0) or 0
+                ) + recovered
+                latest_collect.stats_json = json.dumps(batch_stats, ensure_ascii=False)
+                stats["batch_recovered"] = recovered
         db.add(AuditLog(event_type="reparse_finished", detail_json=json.dumps(stats, ensure_ascii=False)))
         db.commit()
     finally:
