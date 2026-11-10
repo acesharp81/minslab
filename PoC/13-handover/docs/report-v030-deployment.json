@@ -1,0 +1,16 @@
+{
+  "version": "0.3.0",
+  "result": "PASS",
+  "case_url": "https://www.minslab.kr/handover/#5d0db79ed1fc4436a5f7b99b7fdbdcfd",
+  "report_url": "https://www.minslab.kr/handover/api/cases/5d0db79ed1fc4436a5f7b99b7fdbdcfd/reports/confirmed",
+  "confirmed_revision": "33f60f6b7f244f24a477cd101a839938",
+  "both_parties_same_html": true,
+  "browser_errors": 0,
+  "report_css_applied": true,
+  "print_button_no_error": true,
+  "pdf_pages": 14,
+  "pdf_content_verified": true,
+  "mobile_no_horizontal_overflow": true,
+  "test_count": 24,
+  "image": "sha256:240557a82869342264e24365ef9c29ccf5c43fe3a8b6d48de74a5ffc16cc0647"
+}

@@ -1,0 +1,328 @@
+{
+  "version": "1.6.4",
+  "synthetic_only": true,
+  "files": [
+    {
+      "file": "v160-review.md",
+      "title": "v1.6 개선·검증 기록",
+      "description": "보고서 계승·시연 3종·원문 팝업·가상 안내",
+      "bytes": 9744,
+      "sha256": "2c141d554023879a7d67ea40c56108f7d654735856bb905adc18075d4c39da23"
+    },
+    {
+      "file": "inheritance-kit.zip",
+      "title": "이전 인계 보고서 이어서 작성 샘플",
+      "description": "HWPX 이전본 2개 · XLSX 현행화 · PDF 신규 업무",
+      "bytes": 69431,
+      "sha256": "266f14f671be28109fe233c8b8a1e2848c9d85fe5b80970c8759405ea107df3c"
+    },
+    {
+      "file": "01_이전인계_원본.zip",
+      "title": "이어서 작성 1단계 · 이전 보고서 원본",
+      "description": "직원 1→2 인수 완료 보고서용 HWPX 2개",
+      "bytes": 16296,
+      "sha256": "3077128af5005737d93ec67b3cf0b363d285255d79de825930794fa7ae7726c4"
+    },
+    {
+      "file": "02_현행화_신규업무.zip",
+      "title": "이어서 작성 2단계 · 현행화·신규 자료",
+      "description": "기존 20%→80% 갱신 및 신규 10% 업무",
+      "bytes": 51208,
+      "sha256": "6f0e45c1251a6499566bec0f91ac37c0b3cc544c235900b638c35612c32625c4"
+    },
+    {
+      "file": "inheritance-guide.md",
+      "title": "이전 보고서 이어 쓰기 안내",
+      "description": "체크박스 선택·이력 표시·기대 결과",
+      "bytes": 2594,
+      "sha256": "e65f44e70b96e754d16054fb2dad44fe5dd861a1fe0c4e4594594572ce9c81bf"
+    },
+    {
+      "file": "inheritance-expected.json",
+      "title": "계승 시연 기대값",
+      "description": "갱신 1건 · 유지 1건 · 신규 1건",
+      "bytes": 349,
+      "sha256": "c6c89c7160f131bc7ca7eccd083ac6abf43a085d11b80b2e5af7458be4287817"
+    },
+    {
+      "file": "employee-kit.zip",
+      "title": "직원 순환·동일 파일명·그림 후처리 샘플",
+      "description": "내부 ZIP 3개를 순서대로 등록하는 역순 판본 시험",
+      "bytes": 296096,
+      "sha256": "22503d2fd9d4886ffa2304ff415cfdaf4a7aea51818526dd5f148e393f7a6f92"
+    },
+    {
+      "file": "01_최신본_먼저등록.zip",
+      "title": "1단계 · 최신본 먼저 등록",
+      "description": "HWPX·XLSX·PDF 4개 / 본문 11월 8일 3차",
+      "bytes": 100557,
+      "sha256": "92772c95bee3b03042ef5964141fc3d41780acf2939acc7d901545bae5d519b8"
+    },
+    {
+      "file": "02_구판_나중등록.zip",
+      "title": "2단계 · 같은 이름의 구판 추가",
+      "description": "동일 경로·파일명 / 본문 11월 2일 1차",
+      "bytes": 93671,
+      "sha256": "4ca34103a4da0a1f01a2e91d01190f3314f03b2e3007400b9e0b2398954ea2f2"
+    },
+    {
+      "file": "03_미승인초안_마지막등록.zip",
+      "title": "3단계 · 같은 이름의 미승인 초안",
+      "description": "더 늦은 날짜·높은 차수라도 최신 확정본에서 제외",
+      "bytes": 96596,
+      "sha256": "29d271b55a664371c1677cf165da163bbc03f6d0c5e33eae6cf40376b411ea62"
+    },
+    {
+      "file": "employee-guide.md",
+      "title": "직원별 인수인계 시작 안내",
+      "description": "직원 전환·등록·확정·인수 확인",
+      "bytes": 2149,
+      "sha256": "605b12eb0f328ff998a0993d4ee90041e13dde9d313f2c871fec0041ec7c9386"
+    },
+    {
+      "file": "employee-expected.json",
+      "title": "직원·판본·그림 기대 결과",
+      "description": "진행률과 최신본 그림 전송 범위",
+      "bytes": 904,
+      "sha256": "97efa30327d43a18f7df2c793dd2a982a0916ba821d3ef981edf6cbd6951a538"
+    },
+    {
+      "file": "grouping-samples.zip",
+      "title": "여러 업무 묶기 샘플",
+      "description": "6개 자료 → 자동 묶음 포함 5개 후보 → 3개 업무",
+      "bytes": 3633,
+      "sha256": "7db3941d442f3b8419fba3ca6a7f13738bb5389aae7e644438bf30248f26e41b"
+    },
+    {
+      "file": "v150-review.md",
+      "title": "v1.5 개선·검증 결과",
+      "description": "직원·판본·그림·업무 그룹핑 및 알려진 제한",
+      "bytes": 8139,
+      "sha256": "8b82ffceab438505037cb8f98ec665a64a64c3b57f965c7cc8b43b5c324af408"
+    },
+    {
+      "file": "version-samples.zip",
+      "title": "파일명·버전 혼선 샘플 13개",
+      "description": "중앙부처 개조식 · HWPX 4개 / XLSX 4개 / PDF 5개",
+      "bytes": 842846,
+      "sha256": "e48be2eff707c45b8b62c6f1abdbb25903570f4255a8f4275272d0f4beae8ca6"
+    },
+    {
+      "file": "version-samples-shuffled.zip",
+      "title": "파일명·업로드 순서 변경 샘플",
+      "description": "동일 본문 13개를 무관한 파일명과 역순으로 재구성",
+      "bytes": 843100,
+      "sha256": "835d91fff5afc10c2fd1e21151137fbb80169f7429846a15b5c3e94d4f41dcb1"
+    },
+    {
+      "file": "version-edge-conflict.zip",
+      "title": "예외 1 · 같은 판본의 내용 상충",
+      "description": "최신본 자동 선택을 보류해야 하는 입력 2개",
+      "bytes": 166533,
+      "sha256": "4a7908a8c34f7cf6261915f4bc28a9d6dfa6860474bdeff1d6d22709cfdda45c"
+    },
+    {
+      "file": "version-edge-undated.zip",
+      "title": "예외 2 · 기준일 불명확",
+      "description": "날짜가 불명확할 때 자동 선택을 보류하는 입력 2개",
+      "bytes": 166540,
+      "sha256": "8de4f548c5d5aae612a27e8fddacc62fd5a492d44f3fcb1299e475fa4bab76b0"
+    },
+    {
+      "file": "version-edge-reversed.zip",
+      "title": "예외 3 · 차수와 수정일시 모순",
+      "description": "수정차수가 높아도 수정일시가 앞서면 선택 보류",
+      "bytes": 166535,
+      "sha256": "7ec5554f13aed61b29c9cce03121cfbe3784025d8fe9c26bca28843ad511e084"
+    },
+    {
+      "file": "version-expected.json",
+      "title": "파일명·버전 검증 정답표",
+      "description": "4개 사업의 채택 판본·진행률·담당·현안 및 제외 초안",
+      "bytes": 12815,
+      "sha256": "52721f9508453c8a2641868e0f639b5e1e30e64616712eeffe8b4e85ac948059"
+    },
+    {
+      "file": "version-guide.md",
+      "title": "파일명·버전 혼선 시연 방법",
+      "description": "시험 구성·기대값·판정 기준·지원 범위",
+      "bytes": 3052,
+      "sha256": "ea06650fde5f0c571ef6eb318449b9b6008f11e0e63d5142c41e94a462884428"
+    },
+    {
+      "file": "version-validation.json",
+      "title": "실제 Solar 버전 판정 검증",
+      "description": "실제 호출 결과·원문 근거·순서 변경 재검증",
+      "bytes": 27497,
+      "sha256": "4ff21bdd688399010d07eb7520cbd681d63436de96afabb40a19178dc0013879"
+    },
+    {
+      "file": "version-review.md",
+      "title": "파일명·버전 검토 결과",
+      "description": "샘플 결과와 실문서 적용 한계",
+      "bytes": 5744,
+      "sha256": "7c9372dd1565cafa805af5cfcfd04b94339aaccef3218dfa852797eee0f8077e"
+    },
+    {
+      "file": "version-report.html",
+      "title": "버전 통합 인수인계 보고서 HTML",
+      "description": "4개 사업의 최신 기준본·간트·진행 흐름",
+      "bytes": 154087,
+      "sha256": "63251e740bb0897d3039c4c6882ffb9a0ebcda5f5c9783849d956e492c401472"
+    },
+    {
+      "file": "version-report.pdf",
+      "title": "버전 통합 인수인계 보고서 PDF",
+      "description": "같은 확정본의 인쇄용 보고서",
+      "bytes": 649288,
+      "sha256": "158239a6660f1ee4d6ef13c6a3d6082c500112c8510b185a28060ab6c7f87720"
+    },
+    {
+      "file": "version-report.docx",
+      "title": "버전 통합 인수인계 보고서 DOCX",
+      "description": "동일 확정본의 편집 가능한 보고서",
+      "bytes": 64817,
+      "sha256": "80c9c4a2468adf3d442ca4a31b771c091cb4482f7276f54619a96a78b836edcb"
+    },
+    {
+      "file": "version-report.md",
+      "title": "버전 통합 인수인계 보고서 Markdown",
+      "description": "원문 근거를 포함한 텍스트",
+      "bytes": 106764,
+      "sha256": "6e2121d1af159f4e7f6b4990c8bcbf694c422e8b2f19c8c1085bc3036e3c8208"
+    },
+    {
+      "file": "practice-samples.zip",
+      "title": "4개 업무 · 상세실무 원본 15개",
+      "description": "단계별 보고·실무 기준·예산·연락망·증빙·동일업무 확인",
+      "bytes": 201137,
+      "sha256": "0505e4379bfb1d717833541ff442726212114b1158fc5466619a5c238a0e328f"
+    },
+    {
+      "file": "practice-report.html",
+      "title": "완성된 상세실무편 HTML",
+      "description": "간트·보고 흐름·실행서·공통 예산·관계자",
+      "bytes": 139625,
+      "sha256": "410d046adbe989e696556240280443e6c302ab24dedc98495cb0ba3bfe10337c"
+    },
+    {
+      "file": "practice-report.pdf",
+      "title": "완성된 상세실무편 PDF",
+      "description": "원본에서 실제 생성한 최종 보고서",
+      "bytes": 723110,
+      "sha256": "15f5e1f4c7686597936a6bd662bb0ef83b2d36d1c6d39bb6a9463b47a825fd0b"
+    },
+    {
+      "file": "practice-report.docx",
+      "title": "완성된 상세실무편 DOCX",
+      "description": "동일 확정본의 편집 가능한 사본",
+      "bytes": 69936,
+      "sha256": "0dc79f7ff43ead945d43d8e208299103e275bf9cf1492da13a6395f04aac060b"
+    },
+    {
+      "file": "practice-report.md",
+      "title": "완성된 상세실무편 Markdown",
+      "description": "원문 인용과 수정 이력을 포함한 텍스트",
+      "bytes": 109231,
+      "sha256": "59e0ac6841e350a163123a771da43746c62aff37594bd51c4269a73e7d54f8eb"
+    },
+    {
+      "file": "handover-guide.pdf",
+      "title": "사용·구동 안내서 PDF",
+      "description": "15개 원본으로 처음부터 따라 하기",
+      "bytes": 419870,
+      "sha256": "1966761f736bf121cc713247e5c7ba313c5db0cebfc0dad8cbb2386673d16877"
+    },
+    {
+      "file": "handover-guide.docx",
+      "title": "사용 안내서 DOCX",
+      "description": "편집 가능한 사용 설명서",
+      "bytes": 41870,
+      "sha256": "a75cbbb86fa52878a3c1d65b2f0917d13084d42211ee0891aa02336b94125724"
+    },
+    {
+      "file": "handover-guide.md",
+      "title": "사용 안내서 Markdown",
+      "description": "텍스트 사용 설명서",
+      "bytes": 11872,
+      "sha256": "39c1a63652706b0ff313ec05443e1ed70c15cdf0996ea5bf5ad3c2b1c4ede202"
+    },
+    {
+      "file": "practice-expected.json",
+      "title": "실무 샘플 정답표",
+      "description": "업무별 실무 내용·금액·관계자·예상 결과",
+      "bytes": 26062,
+      "sha256": "f1d5a6f316a758b23cc17a3110f7306fe890336a28dfb7fab24c0223b8214a83"
+    },
+    {
+      "file": "practice-validation.json",
+      "title": "실무 보고서 최종 검증",
+      "description": "이번 Solar 원문 대조·기능·출력 검증과 충족 기준",
+      "bytes": 3621,
+      "sha256": "238289e6aaaa1a7b0f7ec7afee87e1a1c36c8a84ff21d3508925ea59d71a15b0"
+    },
+    {
+      "file": "practice-review.md",
+      "title": "최종 보고서 검토 결과",
+      "description": "개선 내용·점검 결과·검증 범위",
+      "bytes": 3586,
+      "sha256": "8c8996f6e0e04a5e0b98fbfc0955b2646f6d8d026ea750d3ff597842988b490b"
+    },
+    {
+      "file": "quality-report.md",
+      "title": "기존 모델 품질 비교 결과",
+      "description": "이전 7개 업무 샘플의 GPT 1회 검증 보존",
+      "bytes": 4448,
+      "sha256": "157468e561aa44c7172c6908c45d506113801f5a60f37b5c0e554227d26d1d3c"
+    },
+    {
+      "file": "quality-results.json",
+      "title": "기존 품질 측정 JSON",
+      "description": "이전 7개 업무에 한정된 측정 결과",
+      "bytes": 4430,
+      "sha256": "85f61109556bd90300b12069d035c524a742126a9748df4c7d4064c6ec51d289"
+    },
+    {
+      "file": "handover-source-v1.6.4.zip",
+      "title": "프로그램 소스·실행 패키지",
+      "description": "설치·테스트·라이선스 고지 포함",
+      "bytes": 5530074,
+      "sha256": "5a8800a78cee4d0a0f13ac016e45bc53cca03c7b357a7cfcf1bb275a1ddca785"
+    },
+    {
+      "file": "handover-demo-kit-v1.6.4.zip",
+      "title": "체험 자료 한 번에 받기",
+      "description": "샘플·안내서·최종 보고서·검증 기록",
+      "bytes": 5023545,
+      "sha256": "6fa9510864b2e5ceac6b2959b0b55e8c007b857cf9b6bc328235b6fce3617a3f"
+    },
+    {
+      "file": "flow-samples.zip",
+      "title": "이전 단계별 보고 샘플 11개",
+      "description": "호환 체험 자료",
+      "bytes": 161964,
+      "sha256": "7367a4259a0ef34752d7b93d68d6225dac9f17d9f487e40c05237a493237837f"
+    },
+    {
+      "file": "flow-report.html",
+      "title": "이전 간트 중심 보고서 HTML",
+      "description": "이전 확정본 보존",
+      "bytes": 90697,
+      "sha256": "7835eee84b562454971cea2c1a6e5062b73b4e167cb14e88f4940a2bff8e4032"
+    },
+    {
+      "file": "flow-report.pdf",
+      "title": "이전 간트 중심 보고서 PDF",
+      "description": "이전 확정본 보존",
+      "bytes": 540448,
+      "sha256": "d026a45bc05bf13e11a477b806ff7a05c83ab9404c1ab5f196ce794ed2bb6013"
+    },
+    {
+      "file": "flow-validation.json",
+      "title": "이전 4개 업무 검증 결과",
+      "description": "이전 11개 원본 분석 기록",
+      "bytes": 5127,
+      "sha256": "6546f77807a233fbf33840ac78e6c8cdb50ed6fea173ea37d5100f4011e21dc9"
+    }
+  ]
+}

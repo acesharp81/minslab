@@ -1,0 +1,136 @@
+{
+  "sample_sha256": "e2146cc71e0d0e82fbbc665c0ec6333e21585e73642cd8605d1d2e55302287c8",
+  "method": "7 synthetic documents; manual pre-authored 56 substring-presence checks; evidence substring validation; non-blind GPT reference audit",
+  "gpt_inference_requests": 1,
+  "gpt_response_sha256": "42c737f67800a7ad146d2ad92ab7fbed50519fd4cad9cbf4b7badf713569e524",
+  "gpt_usage": {
+    "event_id": "poc13-final-audit-9a4daec171b79f405a893afce0284824",
+    "project": "poc13-handover",
+    "workload": "final-quality-audit",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "status": "COMPLETED",
+    "http_status": 200,
+    "input_tokens": 8277,
+    "output_tokens": 10351,
+    "cost_usd": 0.05278725
+  },
+  "results": {
+    "baseline": {
+      "expected_tasks": 7,
+      "matched_tasks": 7,
+      "returned_tasks": 7,
+      "no_extra_or_duplicate_tasks": true,
+      "field_checks": 56,
+      "field_passed": 56,
+      "field_match_percent": 100.0,
+      "missing_fields": [],
+      "quotes": 76,
+      "invalid_quotes": 0,
+      "due_conflict_preserved": true,
+      "collaborator_not_owner": true,
+      "no_false_completion": true,
+      "model": "solar-pro4",
+      "resolved_models": [
+        "solar-pro4-260806"
+      ],
+      "calls": 7,
+      "tokens": 9325,
+      "prompt_hashes": [
+        "f380d9a6f3b679e5c08e7f3fdda797e2b5ba58f2cb5c458d3ec00266fd6edba8"
+      ]
+    },
+    "improved": {
+      "expected_tasks": 7,
+      "matched_tasks": 7,
+      "returned_tasks": 7,
+      "no_extra_or_duplicate_tasks": true,
+      "field_checks": 56,
+      "field_passed": 56,
+      "field_match_percent": 100.0,
+      "missing_fields": [],
+      "quotes": 76,
+      "invalid_quotes": 0,
+      "due_conflict_preserved": true,
+      "collaborator_not_owner": true,
+      "no_false_completion": true,
+      "model": "solar-pro4",
+      "resolved_models": [
+        "solar-pro4-260806"
+      ],
+      "calls": 7,
+      "tokens": 8477,
+      "prompt_hashes": [
+        "6d90b3dcd50ad1e1c1cf09c4aafe4862b73ab0c2eb4c607381122fd381bf2bb6"
+      ]
+    },
+    "gpt_reference": {
+      "expected_tasks": 7,
+      "matched_tasks": 7,
+      "returned_tasks": 7,
+      "no_extra_or_duplicate_tasks": true,
+      "field_checks": 56,
+      "field_passed": 56,
+      "field_match_percent": 100.0,
+      "missing_fields": [],
+      "quotes": 76,
+      "invalid_quotes": 0,
+      "due_conflict_preserved": true,
+      "collaborator_not_owner": true,
+      "no_false_completion": true,
+      "model": "gpt-5.4-mini",
+      "resolved_models": [
+        "gpt-5.4-mini-2026-03-17"
+      ],
+      "calls": 1,
+      "tokens": 18628
+    }
+  },
+  "adjudication": {
+    "gpt_requests": 1,
+    "reused_for_comparison": true,
+    "findings": [
+      {
+        "index": 0,
+        "decision": "REJECT",
+        "reason": "동일 업무명+명시 담당이 같은 문서들의 통합은 요구사항이다. 11/20·11/25가 CONFLICT와 개별 근거로 모두 보존되며 자동 확정하지 않는다."
+      },
+      {
+        "index": 1,
+        "decision": "REJECT",
+        "reason": "시설점검은 같은 업무이며 예정/사전 완료 두 관측과 각 원문 근거가 보존된다. business_status는 COMPLETED가 아니므로 전체 완료 오인은 없다."
+      }
+    ],
+    "accepted_prompt_changes": [
+      "현재 문서·업무 섹션의 근거만 사용",
+      "부분 단계 한정어를 인용에 보존",
+      "블록 간 합성 인용 금지·서버 통합과 추출 책임 구분"
+    ],
+    "not_accepted": [
+      "동일 업무를 문서마다 별도 최종 업무로 유지",
+      "서버의 정상적인 다중 관측 통합 제거"
+    ],
+    "metric_note": "수동 정답표는 GPT보다 먼저 작성. GPT는 Solar 출력도 본 비맹검 참조 검토이며 독립 정답이 아님."
+  },
+  "e2e": {
+    "case_id": "69db3b6c90004a7c96220cd26e22a5a3",
+    "revision_id": "37890064d67249e8a96113fd89b40560",
+    "items": 7,
+    "downloads": [
+      "html",
+      "md",
+      "docx",
+      "pdf"
+    ],
+    "same_final_report": true,
+    "question_uses_final": true,
+    "accepted": true,
+    "javascript_errors": []
+  },
+  "limits": [
+    "Synthetic development set, not held-out institutional data",
+    "Field inclusion score is not precision or universal semantic accuracy",
+    "GPT saw Solar output; reference audit is not blinded",
+    "Prompt improved on the same set; no claim of generalization gain"
+  ]
+}

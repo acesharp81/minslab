@@ -1,0 +1,92 @@
+{
+  "sample_version": "submission-1",
+  "sample_sha256": "e2146cc71e0d0e82fbbc665c0ec6333e21585e73642cd8605d1d2e55302287c8",
+  "expected_tasks": {
+    "2027년 생활문화 사업계획": {
+      "owner": "문화기획팀",
+      "status": "초안 검토 중",
+      "due_date": [
+        "2026-11-20",
+        "2026-11-25"
+      ],
+      "completed_work": "주민 수요조사 120건 취합 및 사업계획 초안 작성",
+      "remaining_work": "예산 협의와 사업계획 결재 상신",
+      "issues": "예산팀 검토 의견 미회신으로 사업비 확정 보류",
+      "collaborators": "예산팀",
+      "contacts": "culture@example.invalid"
+    },
+    "주민참여 워크숍 운영": {
+      "owner": "주민협력팀",
+      "status": "장소 예약 완료",
+      "due_date": "2026-12-03",
+      "completed_work": "주민센터 대강당 예약 및 강사 섭외 완료",
+      "remaining_work": "참가자 모집 마감과 행사 운영표 작성",
+      "issues": "수어 통역 지원 여부 미확정",
+      "next_action": "참여자 안내문 발송"
+    },
+    "보조금 정산 검토": {
+      "owner": "사업지원팀",
+      "status": "증빙 수집 중",
+      "due_date": "11월 말",
+      "completed_work": "참여 단체 10곳 중 7곳의 정산서 접수",
+      "remaining_work": "나머지 3곳 자료 수집과 지출 적정성 검토",
+      "issues": "2개 단체의 영수증 누락으로 정산 승인 불가",
+      "next_action": "누락된 영수증 제출 요청"
+    },
+    "월간 실적 보고": {
+      "owner": "성과관리팀",
+      "status": "자료 취합 중",
+      "due_date": "매월 5일",
+      "completed_work": "5개 부서 중 4개 부서의 지표 수령",
+      "remaining_work": "누락 부서 지표 취합 후 총괄표 제출",
+      "issues": "시설운영팀 이용자 수 지표 미제출",
+      "next_action": "부서별 지표 확인"
+    },
+    "시설 안전점검": {
+      "owner": "시설운영팀",
+      "status": [
+        "점검 예정",
+        "사전 점검 완료"
+      ],
+      "due_date": "2026-12-10",
+      "completed_work": "소화기 위치와 비상구 적치물 사전 점검",
+      "remaining_work": "보수 완료 확인 후 본 점검 실시",
+      "issues": "지하 비상구 유도등 2개 고장으로 보수 요청 중",
+      "next_action": "본 점검 전 보수 결과 확인"
+    },
+    "홍보물 제작 계약": {
+      "owner": "홍보지원팀",
+      "status": "디자인 시안 검토 단계",
+      "due_date": "2026-12-04",
+      "completed_work": "과업지시서 작성과 견적서 3건 접수",
+      "remaining_work": "시안 확정 후 계약 체결",
+      "issues": "저작권 사용 동의서 미접수",
+      "next_action": "제작사에 저작권 사용 동의서를 요청",
+      "collaborators": "계약심사팀",
+      "contacts": "publicity@example.invalid"
+    },
+    "문화시설 예약 시스템 개선": {
+      "owner": "디지털지원팀",
+      "status": "사용자 시험 중",
+      "due_date": "2026-12-14",
+      "completed_work": "요구사항 12건 정리 및 화면 초안 완성",
+      "remaining_work": "접근성 점검 후 운영 반영",
+      "issues": "키보드 탐색 오류 2건 미해결",
+      "next_action": "개발사에 오류 재현 절차 전달",
+      "collaborators": "시설운영팀",
+      "contacts": "digital@example.invalid"
+    }
+  },
+  "expected_count": 7,
+  "forbidden_owner": {
+    "홍보물 제작 계약": "계약심사팀"
+  },
+  "all_tasks_incomplete": true,
+  "human_edit": {
+    "task": "2027년 생활문화 사업계획",
+    "field": "due_date",
+    "value": "2026-11-27",
+    "reason": "전임자 확인 · 최종 협의 일정 반영"
+  },
+  "notes": "원문에 명시된 값의 포함 여부를 검사하는 합성 정답표. GPT 결과 자체를 정답으로 취급하지 않음."
+}

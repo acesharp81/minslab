@@ -1,0 +1,41 @@
+{
+  "expected": [
+    {
+      "employee": 1,
+      "recipient": 2,
+      "title": "지역생활서비스 통합지원",
+      "progress": 65,
+      "selected_version": 3,
+      "reported_at": "2026-11-08"
+    },
+    {
+      "employee": 2,
+      "recipient": 3,
+      "title": "공공시설 안전관리",
+      "progress": 70,
+      "selected_version": 3,
+      "reported_at": "2026-11-08"
+    },
+    {
+      "employee": 3,
+      "recipient": 4,
+      "title": "디지털 민원안내 표준화",
+      "progress": 90,
+      "selected_version": 3,
+      "reported_at": "2026-11-08"
+    },
+    {
+      "employee": 4,
+      "recipient": 1,
+      "title": "취약계층 돌봄연계",
+      "progress": 55,
+      "selected_version": 3,
+      "reported_at": "2026-11-08"
+    }
+  ],
+  "latest_images": 1,
+  "excluded_images": 2,
+  "active_cases": 4,
+  "completed_cases": 2,
+  "visible_cases_per_employee": 3
+}

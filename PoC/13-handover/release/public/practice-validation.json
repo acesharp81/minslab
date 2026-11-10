@@ -1,0 +1,116 @@
+{
+  "version": "1.2.0",
+  "scope": "이번 합성 15개 자료의 정의된 수용 기준. 일반 업무문서 정확도·외부 인증·독립 모델 평점이 아님.",
+  "score": 100,
+  "possible": 100,
+  "criteria": [
+    {
+      "criterion": "원본 15개와 4개 업무 범위",
+      "possible": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "criterion": "원문 인용·수정 이력 추적",
+      "possible": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "criterion": "업무 개요·목표·범위·실무 상세 56항목",
+      "possible": 20,
+      "earned": 20,
+      "passed": true
+    },
+    {
+      "criterion": "보고 흐름·진척·최상단 간트",
+      "possible": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "criterion": "담당·기한·산출물·완료 기준",
+      "possible": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "criterion": "업무 현안·과거 현안 해소 근거",
+      "possible": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "criterion": "공통 예산 중복 제외·금액 정합",
+      "possible": 10,
+      "earned": 10,
+      "passed": true
+    },
+    {
+      "criterion": "관계자 연락망 중복 제외",
+      "possible": 5,
+      "earned": 5,
+      "passed": true
+    },
+    {
+      "criterion": "동일 판본 4형식·13쪽 PDF",
+      "possible": 5,
+      "earned": 5,
+      "passed": true
+    },
+    {
+      "criterion": "양측 열람·항목 편집·모바일·충돌 보호",
+      "possible": 10,
+      "earned": 10,
+      "passed": true
+    }
+  ],
+  "documents": 15,
+  "works": 4,
+  "profile_exact_fields": 56,
+  "current_exact_fields": 28,
+  "unique_source_quotes_verified": 275,
+  "extraction_methods": {
+    "llm": 11,
+    "structured": 3,
+    "REFERENCE_ONLY": 1
+  },
+  "solar_model": "solar-pro4",
+  "pdf_pages": 13,
+  "shared_budget": {
+    "편성액": 358000000,
+    "집행액": 212000000,
+    "지급예정액": 33000000,
+    "가용잔액": 113000000
+  },
+  "unique_budget_codes": 5,
+  "unique_contacts": 11,
+  "artifact_sha256": {
+    "practice-report.html": "410d046adbe989e696556240280443e6c302ab24dedc98495cb0ba3bfe10337c",
+    "practice-report.pdf": "15f5e1f4c7686597936a6bd662bb0ef83b2d36d1c6d39bb6a9463b47a825fd0b",
+    "practice-report.docx": "0dc79f7ff43ead945d43d8e208299103e275bf9cf1492da13a6395f04aac060b",
+    "practice-report.md": "59e0ac6841e350a163123a771da43746c62aff37594bd51c4269a73e7d54f8eb"
+  },
+  "case_id": "17ccc800dc2b4cf6b20238b95f0a0638",
+  "revision_id": "b3b24983075b43b78bb43c058d554ac3",
+  "revision_hash": "4f7c497de4099648ca3c4d6cd864f6a2a9de4b0bbea4263801572c645bf00385",
+  "sample_sha256": "0505e4379bfb1d717833541ff442726212114b1158fc5466619a5c238a0e328f",
+  "same_report_both_roles": true,
+  "mobile_no_page_overflow": true,
+  "field_edit_checks": {
+    "per_field_pencils": true,
+    "related_plan_evidence": true,
+    "neighbors_shown": true,
+    "only_selected_field_changed": true,
+    "history_preserved": true,
+    "stale_update_keeps_input": true,
+    "mobile_no_overflow": true,
+    "no_evidence_state": true,
+    "successor_read_only": true,
+    "llm_calls": 0,
+    "javascript_errors": []
+  },
+  "gpt_calls_this_revision": 0,
+  "prior_gpt_scope": "기존 7개 업무 샘플의 GPT 1회 평가만 보존. 신규 15개 자료 점수로 재사용하지 않음.",
+  "recovery": "긴 표의 모델 재인용 검증 실패를 발견. 명시적 기준정보를 정확한 라벨 추출로 전환하고 완료된 11개 Solar 분석 캐시를 재사용해 재개. 실패 결과는 확정하지 않음."
+}

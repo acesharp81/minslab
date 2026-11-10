@@ -1,0 +1,9 @@
+{
+  "dataset": "app.demo.demo_archive() — 직접 작성한 합성 자료",
+  "expected_titles": ["2027년 생활문화 사업계획", "주민참여 워크숍 운영", "보조금 정산 검토", "월간 실적 보고", "시설 안전점검"],
+  "known_conflicts": [{"title": "2027년 생활문화 사업계획", "field": "due_date", "values": ["2026-11-20", "2026-11-25"]}],
+  "date_precision": [{"title": "보조금 정산 검토", "original": "11월 말", "precision": "MONTH", "normalized_date": null}, {"title": "월간 실적 보고", "original": "매월 5일", "precision": "RECURRING"}],
+  "status_counterexample": {"title": "시설 안전점검", "originals": ["점검 예정", "사전 점검 완료"], "must_not_be": "COMPLETED"},
+  "human_change": {"title": "2027년 생활문화 사업계획", "field": "due_date", "new_value": "2026-11-27", "provenance": "HUMAN_ENTERED"},
+  "notes": "모델 출력이나 검색 결과로 정답을 자동 생성하지 않았음. 테스트의 문구·기한과 대조하는 수기 정답표. 형식 전체의 대표성이 있는 데이터셋은 아님."
+}

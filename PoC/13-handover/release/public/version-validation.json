@@ -1,0 +1,762 @@
+{
+  "case_id": "5f0acecb4c3b4bfaa865063ddfcc7185",
+  "revision_id": "c97e36df30df4076b6f15b7e76b38fcb",
+  "model": "solar-pro4",
+  "resolved_models": [
+    "solar-pro4-260806"
+  ],
+  "documents": 13,
+  "works": 4,
+  "checks": [
+    {
+      "check": "4개 사업으로 자동 연결",
+      "pass": true
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "본문 사업명",
+      "pass": true
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "최신 파일 선택",
+      "pass": true,
+      "actual": "1234.pdf"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "진행률",
+      "pass": true,
+      "actual": 65
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "status",
+      "pass": true,
+      "actual": "협약 원본 대조 결과 8곳 중 5곳 체결 확인",
+      "expected": "협약 원본 대조 결과 8곳 중 5곳 체결 확인"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "owner",
+      "pass": true,
+      "actual": "생활서비스정책과 김나래",
+      "expected": "생활서비스정책과 김나래"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "due_date",
+      "pass": true,
+      "actual": "2026-11-13",
+      "expected": "2026-11-13"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "issues",
+      "pass": true,
+      "actual": "1건은 미서명 사본으로 실적에서 제외; 3곳 협약 미체결",
+      "expected": "1건은 미서명 사본으로 실적에서 제외; 3곳 협약 미체결"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "remaining_work",
+      "pass": true,
+      "actual": "잔여 3곳 협약 및 8곳 담당자 교육",
+      "expected": "잔여 3곳 협약 및 8곳 담당자 교육"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "next_action",
+      "pass": true,
+      "actual": "미서명 지자체 3곳에 협약 원본 제출을 요청한다.",
+      "expected": "미서명 지자체 3곳에 협약 원본 제출을 요청한다."
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 overview",
+      "pass": true,
+      "actual": "지역 현장의 업무 편차를 줄이고 국민에게 일관된 서비스를 제공하기 위한 시범사업이\n다."
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 objectives",
+      "pass": true,
+      "actual": "8개 지자체의 접수·연계 기준을 통일하고 시범 운영 결과를 확정한다."
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 scope",
+      "pass": true,
+      "actual": "시범 지자체 8곳의 생활서비스 신청·연계 절차"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 implementation_plan",
+      "pass": true,
+      "actual": "11.1.~11.2. 계획 확정 → 11.3.~11.8. 현장 이행 → 2026-11-13 결과 보고"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 completed_work",
+      "pass": true,
+      "actual": "협약 원본 5건 확인 및 운영 매뉴얼 초안 작성"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 future_plan",
+      "pass": true,
+      "actual": "11월 10일 보완 요청 → 11월 11일 회신 대조 → 완료 기한 내 결과 보고. 지연 시 과장\n보고 후 변경 일정 별도 승인."
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 operating_steps",
+      "pass": true,
+      "actual": "자료 접수 → 증빙 대조 → 담당 검토 → 과장 결재 → 관련 기관 통보"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 completion_criteria",
+      "pass": true,
+      "actual": "잔여 과업 이행과 증빙 확인 후 결과보고 결재 및 배포까지 마친 경우 완료로 처리한다."
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 deliverables",
+      "pass": true,
+      "actual": "운영계획, 기관별 실적대장, 보완 요청 목록 및 최종 결과보고"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 approval_route",
+      "pass": true,
+      "actual": "담당자 → 사무관 → 과장; 예산 변경은 기획재정담당관 사전 협의"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 document_locations",
+      "pass": true,
+      "actual": "기관 내부 업무공유함 / MB26-01 / 실적·증빙 폴더 (시연용 가상 경로)"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 budget",
+      "pass": true,
+      "actual": "예산코드: MB26-01 | 편성액: 240,000,000원 | 집행액: 96,000,000원 | 잔액:\n144,000,000원"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 contacts",
+      "pass": true,
+      "actual": "생활서비스정책과 김나래 / 070-0000-2601 (가상 연락처)"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "상세 항목 collaborators",
+      "pass": true,
+      "actual": "기획재정담당관, 법무담당관 및 시범지역 담당부서"
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "PDF 예산 잔액까지 인용",
+      "pass": true
+    },
+    {
+      "work": "2026년 지역생활서비스 통합지원 사업",
+      "check": "PDF 추후 계획 끝까지 인용",
+      "pass": true
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "본문 사업명",
+      "pass": true
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "최신 파일 선택",
+      "pass": true,
+      "actual": "붙임.xlsx"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "진행률",
+      "pass": true,
+      "actual": 70
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "status",
+      "pass": true,
+      "actual": "20곳 중 14곳 점검 완료; 승인 기한 경과",
+      "expected": "20곳 중 14곳 점검 완료; 승인 기한 경과"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "owner",
+      "pass": true,
+      "actual": "시설안전과 박도윤",
+      "expected": "시설안전과 박도윤"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "due_date",
+      "pass": true,
+      "actual": "2026-11-06",
+      "expected": "2026-11-06"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "issues",
+      "pass": true,
+      "actual": "11월 6일 결과 승인 기한 경과; 위험시설 3곳 조치 미완료",
+      "expected": "11월 6일 결과 승인 기한 경과; 위험시설 3곳 조치 미완료"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "remaining_work",
+      "pass": true,
+      "actual": "6곳 추가 점검 및 위험시설 3곳 조치 확인",
+      "expected": "6곳 추가 점검 및 위험시설 3곳 조치 확인"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "next_action",
+      "pass": true,
+      "actual": "위험시설 3곳의 임시 통제를 재확인하고 지연 경위를 과장에게 보고한다.",
+      "expected": "위험시설 3곳의 임시 통제를 재확인하고 지연 경위를 과장에게 보고한다."
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 overview",
+      "pass": true,
+      "actual": "지역 현장의 업무 편차를 줄이고 국민에게 일관된 서비스를 제공하기 위한 시범사업이다."
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 objectives",
+      "pass": true,
+      "actual": "20개 시설의 점검을 완료하고 위험시설 3곳의 보완 조치 결과를 확인한다."
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 scope",
+      "pass": true,
+      "actual": "소관 공공시설 20곳의 안전점검 및 보완 조치"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 implementation_plan",
+      "pass": true,
+      "actual": "11.1.~11.2. 계획 확정 → 11.3.~11.8. 현장 이행 → 2026-11-06 결과 보고"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 completed_work",
+      "pass": true,
+      "actual": "점검표 14건 및 위험시설 통제 안내문 발송"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 future_plan",
+      "pass": true,
+      "actual": "11월 10일 보완 요청 → 11월 11일 회신 대조 → 완료 기한 내 결과 보고. 지연 시 과장 보고 후 변경 일정 별도 승인."
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 operating_steps",
+      "pass": true,
+      "actual": "자료 접수 → 증빙 대조 → 담당 검토 → 과장 결재 → 관련 기관 통보"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 completion_criteria",
+      "pass": true,
+      "actual": "잔여 과업 이행과 증빙 확인 후 결과보고 결재 및 배포까지 마친 경우 완료로 처리한다."
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 deliverables",
+      "pass": true,
+      "actual": "운영계획, 기관별 실적대장, 보완 요청 목록 및 최종 결과보고"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 approval_route",
+      "pass": true,
+      "actual": "담당자 → 사무관 → 과장; 예산 변경은 기획재정담당관 사전 협의"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 document_locations",
+      "pass": true,
+      "actual": "기관 내부 업무공유함 / MB26-02 / 실적·증빙 폴더 (시연용 가상 경로)"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 budget",
+      "pass": true,
+      "actual": "예산코드: MB26-02 | 편성액: 180,000,000원 | 집행액: 72,000,000원 | 잔액: 108,000,000원"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 contacts",
+      "pass": true,
+      "actual": "시설안전과 박도윤 / 070-0000-2602 (가상 연락처)"
+    },
+    {
+      "work": "2026년 공공시설 안전관리 고도화 사업",
+      "check": "상세 항목 collaborators",
+      "pass": true,
+      "actual": "기획재정담당관, 법무담당관 및 시범지역 담당부서"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "본문 사업명",
+      "pass": true
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "최신 파일 선택",
+      "pass": true,
+      "actual": "새 문서.hwpx"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "진행률",
+      "pass": true,
+      "actual": 90
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "status",
+      "pass": true,
+      "actual": "30종 중 27종 검토 완료; 최종 결재 준비",
+      "expected": "30종 중 27종 검토 완료; 최종 결재 준비"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "owner",
+      "pass": true,
+      "actual": "디지털행정지원과 정여울",
+      "expected": "디지털행정지원과 정여울"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "due_date",
+      "pass": true,
+      "actual": "2026-11-12",
+      "expected": "2026-11-12"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "issues",
+      "pass": true,
+      "actual": "법무 검토 회신 3종 미접수",
+      "expected": "법무 검토 회신 3종 미접수"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "remaining_work",
+      "pass": true,
+      "actual": "3종 법무 검토와 표준안 배포 결재",
+      "expected": "3종 법무 검토와 표준안 배포 결재"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "next_action",
+      "pass": true,
+      "actual": "법무담당관에게 3종 검토 회신을 요청하고 배포 결재안을 준비한다.",
+      "expected": "법무담당관에게 3종 검토 회신을 요청하고 배포 결재안을 준비한다."
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 overview",
+      "pass": true,
+      "actual": "지역 현장의 업무 편차를 줄이고 국민에게 일관된 서비스를 제공하기 위한 시범사업이다."
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 objectives",
+      "pass": true,
+      "actual": "30종 안내문의 접근성 점검과 부서 승인을 마치고 표준안을 배포한다."
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 scope",
+      "pass": true,
+      "actual": "민원안내 30종의 쉬운 문장·접근성 표준"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 implementation_plan",
+      "pass": true,
+      "actual": "11.1.~11.2. 계획 확정 → 11.3.~11.8. 현장 이행 → 2026-11-12 결과 보고"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 completed_work",
+      "pass": true,
+      "actual": "27종 검토 및 접근성 시험 결과 정리"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 future_plan",
+      "pass": true,
+      "actual": "11월 10일 보완 요청 → 11월 11일 회신 대조 → 완료 기한 내 결과 보고. 지연 시 과장 보고 후 변경 일정 별도 승인."
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 operating_steps",
+      "pass": true,
+      "actual": "자료 접수 → 증빙 대조 → 담당 검토 → 과장 결재 → 관련 기관 통보"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 completion_criteria",
+      "pass": true,
+      "actual": "잔여 과업 이행과 증빙 확인 후 결과보고 결재 및 배포까지 마친 경우 완료로 처리한다."
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 deliverables",
+      "pass": true,
+      "actual": "운영계획, 기관별 실적대장, 보완 요청 목록 및 최종 결과보고"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 approval_route",
+      "pass": true,
+      "actual": "담당자 → 사무관 → 과장; 예산 변경은 기획재정담당관 사전 협의"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 document_locations",
+      "pass": true,
+      "actual": "기관 내부 업무공유함 / MB26-03 / 실적·증빙 폴더 (시연용 가상 경로)"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 budget",
+      "pass": true,
+      "actual": "예산코드: MB26-03 | 편성액: 95,000,000원 | 집행액: 38,000,000원 | 잔액: 57,000,000원"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 contacts",
+      "pass": true,
+      "actual": "디지털행정지원과 정여울 / 070-0000-2603 (가상 연락처)"
+    },
+    {
+      "work": "2026년 디지털 민원안내 표준화 사업",
+      "check": "상세 항목 collaborators",
+      "pass": true,
+      "actual": "기획재정담당관, 법무담당관 및 시범지역 담당부서"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "본문 사업명",
+      "pass": true
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "최신 파일 선택",
+      "pass": true,
+      "actual": "abc.xlsx"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "진행률",
+      "pass": true,
+      "actual": 55
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "status",
+      "pass": true,
+      "actual": "5곳 협약 체결 및 연계 실적 55건 확인",
+      "expected": "5곳 협약 체결 및 연계 실적 55건 확인"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "owner",
+      "pass": true,
+      "actual": "돌봄연계정책과 최하린",
+      "expected": "돌봄연계정책과 최하린"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "due_date",
+      "pass": true,
+      "actual": "2026-11-16",
+      "expected": "2026-11-16"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "issues",
+      "pass": true,
+      "actual": "실적 증빙 8건 추가 대조 필요",
+      "expected": "실적 증빙 8건 추가 대조 필요"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "remaining_work",
+      "pass": true,
+      "actual": "추가 45건 연계 및 성과보고서 검토",
+      "expected": "추가 45건 연계 및 성과보고서 검토"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "next_action",
+      "pass": true,
+      "actual": "시범지역 담당자에게 실적 증빙 8건을 보완 요청한다.",
+      "expected": "시범지역 담당자에게 실적 증빙 8건을 보완 요청한다."
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 overview",
+      "pass": true,
+      "actual": "지역 현장의 업무 편차를 줄이고 국민에게 일관된 서비스를 제공하기 위한 시범사업이다."
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 objectives",
+      "pass": true,
+      "actual": "시범지역 5곳의 연계 절차를 검증하고 실적 100건을 확보한다."
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 scope",
+      "pass": true,
+      "actual": "시범지역 5곳의 돌봄 수요 발굴·기관 연계"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 implementation_plan",
+      "pass": true,
+      "actual": "11.1.~11.2. 계획 확정 → 11.3.~11.8. 현장 이행 → 2026-11-16 결과 보고"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 completed_work",
+      "pass": true,
+      "actual": "5곳 협약 및 개인정보 처리 협의 완료"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 future_plan",
+      "pass": true,
+      "actual": "11월 10일 보완 요청 → 11월 11일 회신 대조 → 완료 기한 내 결과 보고. 지연 시 과장 보고 후 변경 일정 별도 승인."
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 operating_steps",
+      "pass": true,
+      "actual": "자료 접수 → 증빙 대조 → 담당 검토 → 과장 결재 → 관련 기관 통보"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 completion_criteria",
+      "pass": true,
+      "actual": "잔여 과업 이행과 증빙 확인 후 결과보고 결재 및 배포까지 마친 경우 완료로 처리한다."
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 deliverables",
+      "pass": true,
+      "actual": "운영계획, 기관별 실적대장, 보완 요청 목록 및 최종 결과보고"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 approval_route",
+      "pass": true,
+      "actual": "담당자 → 사무관 → 과장; 예산 변경은 기획재정담당관 사전 협의"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 document_locations",
+      "pass": true,
+      "actual": "기관 내부 업무공유함 / MB26-04 / 실적·증빙 폴더 (시연용 가상 경로)"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 budget",
+      "pass": true,
+      "actual": "예산코드: MB26-04 | 편성액: 320,000,000원 | 집행액: 128,000,000원 | 잔액: 192,000,000원"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 contacts",
+      "pass": true,
+      "actual": "돌봄연계정책과 최하린 / 070-0000-2604 (가상 연락처)"
+    },
+    {
+      "work": "2026년 취약계층 돌봄연계 시범사업",
+      "check": "상세 항목 collaborators",
+      "pass": true,
+      "actual": "기획재정담당관, 법무담당관 및 시범지역 담당부서"
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 1",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 2",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 3",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 4",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 5",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 6",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 7",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 8",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 9",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 10",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 11",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 12",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 13",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 14",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 15",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 16",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 17",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 18",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 19",
+      "pass": true
+    },
+    {
+      "check": "추출 결과 재사용 · 파일명/문서ID/순서 변경 20",
+      "pass": true
+    }
+  ],
+  "all_checks_pass": true,
+  "verified_quotes": 104,
+  "model_calls": 13,
+  "usage": {
+    "prompt_tokens": 36619,
+    "completion_tokens": 12662,
+    "total_tokens": 49281
+  },
+  "permutation_method": "동일 Solar 원문 추출 결과를 재사용한 20회 재연결·판본선택 검사. 20회 모델 재호출은 하지 않음.",
+  "sample_sha256": "e48be2eff707c45b8b62c6f1abdbb25903570f4255a8f4275272d0f4beae8ca6",
+  "same_report_both_roles": true,
+  "mobile_no_page_overflow": true,
+  "report_formats": [
+    "html",
+    "pdf",
+    "md",
+    "docx"
+  ],
+  "initial_attempt": {
+    "checks": 57,
+    "passed": 53,
+    "failed_fields": [
+      {
+        "work": "2026년 지역생활서비스 통합지원 사업",
+        "field": "status",
+        "actual": "65%",
+        "expected": "협약 원본 대조 결과 8곳 중 5곳 체결 확인"
+      },
+      {
+        "work": "2026년 공공시설 안전관리 고도화 사업",
+        "field": "status",
+        "actual": "70%",
+        "expected": "20곳 중 14곳 점검 완료; 승인 기한 경과"
+      },
+      {
+        "work": "2026년 디지털 민원안내 표준화 사업",
+        "field": "status",
+        "actual": "90%",
+        "expected": "30종 중 27종 검토 완료; 최종 결재 준비"
+      },
+      {
+        "work": "2026년 취약계층 돌봄연계 시범사업",
+        "field": "status",
+        "actual": "55%",
+        "expected": "5곳 협약 체결 및 연계 실적 55건 확인"
+      }
+    ],
+    "model_calls": 13,
+    "usage": {
+      "prompt_tokens": 34929,
+      "completion_tokens": 12624,
+      "total_tokens": 47553
+    }
+  },
+  "total_validation_model_calls": 26,
+  "negative_tests": {
+    "actual_files_parsed": true,
+    "cases": [
+      "same-day revision conflict",
+      "undated content",
+      "revision/time inversion"
+    ],
+    "expected": "abstain",
+    "passed": 3,
+    "method": "실제 예외 HWPX/PDF를 파싱한 뒤 판본 선택기를 검사. 예외 ZIP에 별도 LLM 호출은 하지 않음."
+  },
+  "regression_tests": 61,
+  "additional_gpt_calls": 0,
+  "public_browser_checks": {
+    "new_demo_button": true,
+    "confirmed_report_four_versions": true,
+    "progress": [
+      65,
+      70,
+      90,
+      55
+    ],
+    "review_version_choice_count": 4,
+    "version_comparison_expands": true,
+    "mobile_no_page_overflow": true,
+    "downloads_available": true,
+    "javascript_errors": [],
+    "model_calls": 0
+  }
+}
