@@ -1,5 +1,20 @@
 # MinsLab
 
+<!-- thehousing-demo:start -->
+## 더주택 · 3분 16초 시연 영상
+
+공개정보 수집과 3개 AI 에이전트 협업부터 데이터 정합성 확인, 정책·사업 추진현황과 보고서, 관리자 수정·변경 이력, 공급현황 지도까지 소개합니다. **한국어 내레이션 · 자막 · 배경음악 포함**
+
+<!-- GitHub renders the attachment as a player; GitLab converts the fallback MP4 image to a player. -->
+<video src="https://github.com/user-attachments/assets/30a89472-5d3f-4ded-b9e5-e999c7099cf0" controls width="960">
+  <img src="PoC/10-home/docs/demo/thehousing-demo-3m16s.mp4" alt="더주택 — 주택공급 디지털 상황판 3분 16초 시연 영상" width="960">
+</video>
+
+[▶ 영상 크게 보기 · MP4](PoC/10-home/docs/demo/thehousing-demo-3m16s.mp4) · [한국어 자막 SRT](PoC/10-home/docs/demo/thehousing-demo-3m16s.ko.srt)
+
+음악: “Carefree” — Kevin MacLeod (incompetech.com), CC BY 4.0. [음악 출처·라이선스](PoC/10-home/docs/demo/MUSIC_LICENSE.txt)
+<!-- thehousing-demo:end -->
+
 <!-- gukjeongon-demo:start -->
 ## 국정ON · 3분 14초 시연 영상
 
@@ -12,19 +27,6 @@
 
 [▶ 영상 크게 보기 · MP4](PoC/07-NationalAssembly/docs/demo/gukjeongon-demo-3m14s.mp4) · [한국어 자막 SRT](PoC/07-NationalAssembly/docs/demo/gukjeongon-demo-3m14s.ko.srt) · [국정ON 서비스](https://kjon.aigov.go.kr/)
 <!-- gukjeongon-demo:end -->
-
-<!-- thehousing-demo:start -->
-## 더주택 · 59초 시연 영상
-
-공개정보 수집부터 AI 에이전트 검토, 정책·사업 추진현황, 공급현황 지도까지 소개합니다. **한국어 내레이션 · 자막 포함**
-
-<!-- GitHub renders the attachment as a player; GitLab converts the fallback MP4 image to a player. -->
-<video src="https://github.com/user-attachments/assets/cff65552-5cf6-43d3-90cb-c9e41f24b362" controls width="960">
-  <img src="PoC/10-home/docs/demo/thehousing-demo-59s.mp4" alt="더주택 — 주택공급 디지털 상황판 59초 시연 영상" width="960">
-</video>
-
-[▶ 영상 크게 보기 · MP4](PoC/10-home/docs/demo/thehousing-demo-59s.mp4) · [한국어 자막 SRT](PoC/10-home/docs/demo/thehousing-demo-59s.ko.srt)
-<!-- thehousing-demo:end -->
 
 오늘의 기록으로 내일의 가능성을 실험하는 곳. Python ASGI 기반 AI 채팅과 독립 서비스 포트폴리오.
 
