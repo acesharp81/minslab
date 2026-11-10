@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse, JSONResponse, Response
 from .response_compression import HistoryCompressionMiddleware
+from .file_delivery import revalidated_file
 from pydantic import BaseModel, Field, ConfigDict
 from .config import Settings, ROOT
 from .storage import Store, now
@@ -91,7 +92,8 @@ def create_app(settings=None):
             request._body=bytes(body)
         response=await call_next(request)
         response.headers.update({'X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'SAMEORIGIN',
-          'Cache-Control':'no-store','Content-Security-Policy':"default-src 'self'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"})
+          'Content-Security-Policy':"default-src 'self'; img-src 'self' blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"})
+        response.headers.setdefault('Cache-Control','no-store')
         return response
 
     def actor(request,admin=False):
@@ -123,9 +125,9 @@ def create_app(settings=None):
     @app.get('/')
     def index():return FileResponse(ROOT/'web/index.html')
     @app.get('/assets/{name}')
-    def assets(name):
+    def assets(name,request:Request):
         if name not in ('app.js','style.css'):raise HTTPException(404)
-        return FileResponse(ROOT/'web'/name)
+        return revalidated_file(ROOT/'web'/name,request,private=False)
     @app.get('/health')
     def health():return {'status':'ok','service':'poc11','parents':len(PACK['parents']),'steps':len(STEPS)}
     @app.get('/api/config')
@@ -241,7 +243,7 @@ def create_app(settings=None):
     def image(jid:str,request:Request):
         actor(request)
         if not store.exists(jid):raise HTTPException(404,'검사 자료를 찾을 수 없습니다.')
-        return FileResponse(s.data/jid/'image.png',media_type='image/png')
+        return revalidated_file(s.data/jid/'image.png',request,media_type='image/png')
     @app.get('/api/jobs/{jid}/runs/{run_id}/references/{rid}/image')
     def snapshot_reference_image(jid:str,run_id:str,rid:str,request:Request):
         actor(request)

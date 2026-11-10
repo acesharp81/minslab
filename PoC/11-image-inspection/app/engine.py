@@ -83,7 +83,7 @@ class Engine:
             refs=[r for r in self.store.references() if r['status']=='APPROVED' and (not r.get('effective_to') or r['effective_to']>=now()[:10]) and (not r.get('effective_from') or r['effective_from']<=now()[:10])]
             cache_data={'image':job['image']['normalized_sha256'],'metadata':job['metadata'],'rules':selected,'pack':pack,
                         'refs':refs,'options':{k:v for k,v in options.items() if k not in ('force','consent')},
-                        'effort':self.s.get('REASONING_EFFORT','low'),'detail':self.s.get('IMAGE_DETAIL','high'),'prompt_version':'original-checklist-v53-preserve-reading-conflicts','ocr_settings':{k:self.s.get(k) for k in ('JAMO_ISOLATED_ENABLED','HAND_AUDIT_MODEL','HAND_GEOMETRY_ENABLED','HAND_AUDIT_ENABLED','HAND_AUDIT_MAX_OBJECTS','ARTIFACT_SCREEN_ENABLED','ARTIFACT_RECHECK_ENABLED','ARTIFACT_MAX_REGIONS','PRECHECK_GUIDANCE_ENABLED','SPELLING_AUDIT_ENABLED','PIXEL_CONFIRM_ENABLED','PIXEL_TEXT_ENABLED','PIXEL_TEXT_MAX_REGIONS','TEXT_BALANCED_SELECTION','GLYPH_AUDIT_ENABLED','GLYPH_AUDIT_MODEL','GLYPH_AUDIT_MAX_REGIONS','ISOLATED_GLYPH_ENABLED','ISOLATED_GLYPH_SCALE','TEXT_ROUTING_RECHECK_ENABLED','TEXT_ROUTING_MAX_REGIONS','OCR_ENABLED','OCR_MAX_REGIONS','OCR_VISION_MAX_REGIONS','OCR_VISION_SCALE','VERIFICATION_REASONING_EFFORT','OCR_REASONING_EFFORT','OCR_HIGH_EFFORT_RECHECK','NAVER_OCR_ENABLED')}}
+                        'effort':self.s.get('REASONING_EFFORT','low'),'detail':self.s.get('IMAGE_DETAIL','high'),'prompt_version':'original-checklist-v54-review-evidence','ocr_settings':{k:self.s.get(k) for k in ('JAMO_ISOLATED_ENABLED','HAND_AUDIT_MODEL','HAND_GEOMETRY_ENABLED','HAND_AUDIT_ENABLED','HAND_AUDIT_MAX_OBJECTS','ARTIFACT_SCREEN_ENABLED','ARTIFACT_RECHECK_ENABLED','ARTIFACT_MAX_REGIONS','PRECHECK_GUIDANCE_ENABLED','SPELLING_AUDIT_ENABLED','PIXEL_CONFIRM_ENABLED','PIXEL_TEXT_ENABLED','PIXEL_TEXT_MAX_REGIONS','TEXT_BALANCED_SELECTION','GLYPH_AUDIT_ENABLED','GLYPH_AUDIT_MODEL','GLYPH_AUDIT_MAX_REGIONS','ISOLATED_GLYPH_ENABLED','ISOLATED_GLYPH_SCALE','TEXT_ROUTING_RECHECK_ENABLED','TEXT_ROUTING_MAX_REGIONS','OCR_ENABLED','OCR_MAX_REGIONS','OCR_VISION_MAX_REGIONS','OCR_VISION_SCALE','VERIFICATION_REASONING_EFFORT','OCR_REASONING_EFFORT','OCR_HIGH_EFFORT_RECHECK','NAVER_OCR_ENABLED')}}
             cache_key=hashlib.sha256(json.dumps(cache_data,sort_keys=True).encode()).hexdigest()
             inherited=copy.deepcopy(source['results'] if quality_plan else job['runs'][-1]['results']) if job['runs'] else [placeholder(r) for r in steps]
             # Crops are supplementary: preserve the whole-image result and mark the scope.
@@ -378,7 +378,7 @@ class Engine:
             found=spelling_audit.protect(run,found,ids)
             found=text_routing.protect_conflicts(run,found,ids)
             found=hand_audit.protect(run,found,ids)
-        return precheck.annotate(run,anatomy.protect(run,found),ids)
+        return precheck.annotate(run,evidence_guards.classify_document_reviews(anatomy.protect(run,found)),ids)
 
     def mock(self,job,ids,grid):
         # Only our own synthetic fixture has scripted observations; arbitrary uploads get REVIEW.

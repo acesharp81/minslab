@@ -41,3 +41,10 @@ test('local hand measurements remain visibly distinct from model topology',()=>{
  const ctx=context();const html=ctx.refinementReportHTML({hand_audit:{status:'COMPLETED',results:[],local_geometry:[{object_id:'h',measurement:{visible_protrusions:6},accepted_concerns:[{}]}]}});
  assert.match(html,/로컬 손 도안 측정/);assert.match(html,/돌출부 6개/);assert.match(html,/형태 확인 필요/);
 });
+
+test('completion summary exposes bounded and failed checks without inventing success',()=>{
+ const ctx=context(),run={verification:{deferred:[{object_id:'map',reason:'호출 시간 초과 <test>'}]},observation:{objects:[{id:'map',label:'지도'}]},glyph_audit:{status:'PARTIAL',candidate_count:24,deferred_count:20,regions:Array.from({length:4},()=>({assessment:{}}))},calls:[{status:'FAILED'}]};
+ const coverage=ctx.inspectionCoverage(run);assert.equal(coverage.partial,true);assert.equal(coverage.failedCalls,1);
+ const html=ctx.coverageSummaryHTML(run);assert.match(html,/4\/24곳/);assert.match(html,/확인 미완료/);assert.match(html,/&lt;test&gt;/);assert.ok(!html.includes('data-action')&&!html.includes('<test>'));
+ assert.equal(ctx.coverageSummaryHTML({calls:[],glyph_audit:{status:'COMPLETED'}}),'');
+});

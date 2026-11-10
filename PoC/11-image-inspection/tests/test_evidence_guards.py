@@ -112,3 +112,12 @@ def test_model_crop_defect_fail_is_retracted_but_independent_typo_is_preserved()
     row.update(status='FAIL',error_type='TYPO_CONFIRMED',reason='독립 확인된 다른 철자 오타',rects=[[.3,.3,.4,.4]])
     assert g.protect_glyphs(run,[row],['D-02-l'])[0]['status']=='FAIL'
     assert row['error_type']=='TYPO_CONFIRMED' and row['rects']==[[.3,.3,.4,.4]]
+
+
+def test_approval_reviews_are_not_visual_even_when_model_labels_anomaly():
+    rows=[dict(rule_id=rid,status='REVIEW',review_basis='OBSERVED_ANOMALY',visual_issue=True,reason='사용 동의 근거 없음') for rid in ('D-03-a','D-04-d','D-04-e')]
+    rows+=[dict(rule_id='D-02-l',status='REVIEW',review_basis='OBSERVED_ANOMALY',reason='문자 획 충돌'),dict(rule_id='D-04-e',status='FAIL',reason='별도 확정 근거')]
+    before=copy.deepcopy(rows[-2:]);g.classify_document_reviews(rows)
+    assert all(r['document_review'] and not r['visual_issue'] and r['review_basis']=='DOCUMENT_CHECK' for r in rows[:3])
+    assert rows[-2:]==before
+    snapshot=copy.deepcopy(rows);g.classify_document_reviews(rows);assert rows==snapshot

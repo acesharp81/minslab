@@ -73,10 +73,10 @@ test('multiple defects on the same measured object share one numbered group',()=
  assert.equal(groups[0].rows.length,3);assert.equal(groups[0].number,1);
 });
 
-test('observed unreadable text stays spatial while document-only review stays separate',()=>{
+test('unreadable text alone remains accessible without a defect marker',()=>{
  const row={id:'text',rule_id:'D-02-l',parent_id:'D-02',status:'REVIEW',reason:'문자 획 판독 불확실',evidence_ids:['text'],error_type:'OCR_UNREADABLE',rects:[[.2,.3,.3,.4]]};
  const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row],observation:{objects:[{id:'text',label:'작은 표지',rects:row.rects}]}});
- assert.equal(groups[0].number,1);assert.ok(groups[0].anchor);assert.equal(groups[0].status,'REVIEW');
+ assert.equal(groups[0].number,null);assert.equal(groups[0].anchor,undefined);assert.equal(groups[0].status,'REVIEW');
 });
 
 test('small background figures do not get OCR warning pins; context conflicts remain visible',()=>{
@@ -89,10 +89,10 @@ test('small background figures do not get OCR warning pins; context conflicts re
  assert.equal(fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},observation:{objects},results:rows}).filter(g=>g.number).length,1);
 });
 
-test('text reading limits remain actionable without flagging ordinary background simplification',()=>{
+test('text reading limits without damage evidence stay unmarked',()=>{
  const row={id:'text',rule_id:'D-02-l',parent_id:'D-02',status:'REVIEW',reason:'획을 판독할 수 없음',review_basis:'READING_LIMIT',error_type:'OCR_UNREADABLE',evidence_ids:['text'],rects:[[.2,.3,.3,.4]]};
  const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row],observation:{objects:[{id:'text',label:'작은 안내판',text_legibility:'UNREADABLE',rects:row.rects}]}});
- assert.equal(groups[0].number,1);
+ assert.equal(groups[0].number,null);assert.equal(groups[0].rows[0].id,row.id);
 });
 
 test('unresolved text location stays in results without using stale object coordinates',()=>{
@@ -130,13 +130,13 @@ test('OCR engine uncertainty without a visual defect stays in the diagnostic lis
  const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row],observation:{objects:[{id:'text',label:'문자',text:'안내',rects:row.rects}]}});
  assert.equal(groups[0].number,null);assert.equal(groups[0].anchor,undefined);
 });
-test('uncertain police emblem comparison is visible, generic missing paperwork is not pinned',()=>{
+test('unconfirmed emblem comparison and missing paperwork stay in extra review',()=>{
  const rows=[{id:'emblem',rule_id:'H-07-g',parent_id:'H-07',status:'REVIEW',review_basis:'REFERENCE_MISSING',document_review:true,reason:'세부 도안 비교 미확정',evidence_ids:['hat'],rects:[[.3,.3,.4,.4]]},{id:'license',rule_id:'D-03-a',parent_id:'D-03',status:'REVIEW',review_basis:'DOCUMENT_CHECK',reason:'이용권 서류 필요',evidence_ids:['hat'],rects:[[.3,.3,.4,.4]]}];
  const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:rows,observation:{objects:[{id:'hat',label:'경찰 모자 표장',rects:rows[0].rects}]},rule_pack:{steps:[{rule_id:'H-07-g',reference_requirements:['official-emblems']}]}});
- assert.equal(groups.filter(g=>g.anchor).length,1);assert.equal(groups.find(g=>g.anchor).rows[0].id,'emblem');assert.equal(groups.find(g=>g.rows.some(r=>r.id==='license')).number,null);
+ assert.equal(groups.filter(g=>g.anchor).length,0);assert.equal(groups.flatMap(g=>g.rows).length,2);
 });
 test('uncertain OCR and missing location remain discoverable without an invented image position',()=>{
- const row={id:'ocr',rule_id:'D-02-l',parent_id:'D-02',status:'REVIEW',review_basis:'READING_LIMIT',error_type:'OCR_UNCERTAIN',reason:'한복/한북 독립 판독 차이',location_unresolved:true,evidence_ids:['sign'],rects:[]};
+ const row={id:'ocr',rule_id:'D-02-l',parent_id:'D-02',status:'REVIEW',review_basis:'READING_LIMIT',error_type:'OCR_UNCERTAIN',reason:'한복/한북 독립 판독 차이',independent_reading_conflicts:[{status:'UNRESOLVED',detector_text:'한복',independent_text:'한북'}],location_unresolved:true,evidence_ids:['sign'],rects:[]};
  const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row],observation:{objects:[{id:'sign',label:'한복 체험 안내',text_legibility:'DEGRADED',rects:[[.1,.1,.3,.2]]}]}});
  assert.equal(groups[0].number,1);assert.equal(groups[0].anchor,undefined);assert.equal(groups[0].status,'REVIEW');assert.equal(groups[0].rects.length,0);
 });
@@ -162,4 +162,22 @@ test('unnumbered review list exposes every opinion and escapes model text',()=>{
  const rows=[{id:'a',rule_id:'D-03-a',status:'REVIEW',review_basis:'DOCUMENT_CHECK',reason:'서류 확인 <script>'},{id:'b',rule_id:'D-03-b',status:'REVIEW',review_basis:'DOCUMENT_CHECK',reason:'다른 조건 확인'}];
  const html=ctx.unmarkedReviewHTML([{id:'doc',label:'이용권',rows},{id:'pinned',number:1,anchor:[.1,.1],rows:[{...rows[0],id:'c'}]}],{});
  assert.match(html,/번호 없는 검토 의견 2건/);assert.ok(html.includes('data-finding="a"')&&html.includes('data-finding="b"'));assert.ok(!html.includes('data-finding="c"'));assert.ok(html.includes('&lt;script&gt;')&&!html.includes('<script>'));
+});
+
+test('approval exceptions cannot become visual anomalies through a model label',()=>{
+ const rows=['D-04-e','D-04-d','D-03-a'].map(id=>({id,rule_id:id,parent_id:id.slice(0,4),status:'REVIEW',review_basis:'OBSERVED_ANOMALY',reason:'예외 근거 없음',evidence_ids:['person'],rects:[[.1,.1,.3,.3]]}));
+ const groups=fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:rows,observation:{objects:[]}});
+ assert.equal(groups.filter(g=>g.number).length,0);assert.equal(groups.flatMap(g=>g.rows).length,3);
+});
+test('diagnostic and misbound readings cannot override the visibility guard',()=>{
+ for(const flag of ['diagnostic_only','coverage_fallback','binding_uncertain']){
+  const row={id:flag,rule_id:'D-02-l',parent_id:'D-02',status:'REVIEW',review_basis:'OBSERVED_ANOMALY',reason:'판독 차이',error_type:'OCR_MISMATCH',[flag]:true,rects:[[.1,.1,.3,.2]]};
+  assert.equal(fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row]})[0].number,null);
+ }
+});
+test('localized physical damage and independent syllable differences retain markers',()=>{
+ const row={id:'proof',rule_id:'D-02-l',parent_id:'D-02',status:'REVIEW',review_basis:'READING_LIMIT',reason:'받침 획 융합',glyph_audit_evidence:{assessment:{issue:true,location_verified:true,error_type:'VISUAL_TEXT_DEFECT'}},rects:[[.1,.1,.3,.2]]};
+ assert.equal(fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row]})[0].number,1);
+ row.glyph_audit_evidence={assessment:{issue:true,location_verified:true},isolated_glyphs:{reading_conflicts:[{contextual_char:'을',readings:{a:'울'}}]}};
+ assert.equal(fixture('FULL_IMAGE',false,{structural_checks:{flags:[]},results:[row]})[0].number,1);
 });

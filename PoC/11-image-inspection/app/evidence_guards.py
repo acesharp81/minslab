@@ -156,3 +156,15 @@ def protect_glyphs(run, rows, ids):
                     row['rects']=rects
                     row['location_evidence']={'status':'VERIFIED_REGION','rects':rects,'method':'original-crop-glyph-cells'}
     return rows
+
+
+def classify_document_reviews(rows):
+    """Approval exceptions have no visual defect location, even if the model labels them so."""
+    for row in rows:
+        if row.get('status')!='REVIEW':continue
+        rid=row.get('rule_id','')
+        if rid.startswith('D-03-') or rid in ('D-04-d','D-04-e'):
+            if row.get('review_basis')!='DOCUMENT_CHECK':
+                row.setdefault('before_review_classification',{k:row.get(k) for k in ('review_basis','visual_issue','document_review')})
+            row.update(review_basis='DOCUMENT_CHECK',visual_issue=False,document_review=True)
+    return rows

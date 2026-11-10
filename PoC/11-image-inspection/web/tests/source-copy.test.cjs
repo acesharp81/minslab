@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const source=fs.readFileSync(require('node:path').join(__dirname,'../app.js'),'utf8');
-const ctx={esc:s=>String(s).replaceAll('<','&lt;').replaceAll('>','&gt;')};vm.createContext(ctx);vm.runInContext(source.slice(source.indexOf('function sourceChecksHTML('),source.indexOf('function renderDetail(')),ctx);
+const ctx={esc:s=>String(s).replaceAll('<','&lt;').replaceAll('>','&gt;')};vm.createContext(ctx);vm.runInContext(source.slice(source.indexOf('function readingConflictHTML('),source.indexOf('function renderDetail(')),ctx);
 test('copy diff shows literal, expected, spaces and uncertainty safely',()=>{
  const html=ctx.sourceChecksHTML({source_copy_check:{literal:'안젼한하루',expected:'안전한 하루',confirmed:false,differences:[{observed:'젼',expected:'전'},{observed:'',expected:' '},{observed:'<script>',expected:'문구'}]}});
  for(const text of ['안젼한하루','안전한 하루','␠','∅','판독 미확정','&lt;script&gt;'])assert.ok(html.includes(text));

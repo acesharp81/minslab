@@ -146,3 +146,31 @@ def test_coarse_anchor_cell_can_locate_a_cross_boundary_line_without_loosening_m
     measured={**obj,'rects':t.object_rects(obj)}
     assert not t.linked_objects(region,[measured])
     assert not t.linked_objects(region,[{**obj,'cell_ids':['R11C09']}])
+
+
+def test_adjacent_equal_transcript_invalidates_coarse_anchor_without_rebinding():
+    region={'id':'OCR1','text':'행정안정부','rect':[.11,.8877,.1895,.9355]}
+    objects=[dict(id='middle',text='한글의 가치',cell_ids=['R11C02','R11C03']),dict(id='lower',text='행정안정부',cell_ids=['R12C02','R12C03'])]
+    assert t.linked_objects(region,objects)==[]
+    issue=t.anchor_binding_issue(region,objects)
+    assert issue['coarse_object_id']=='middle' and issue['nearby_candidate_ids']==['lower']
+    # A precise measured box does not inherit the coarse-grid ambiguity rule.
+    measured={**objects[0],'rects':[region['rect']]}
+    assert t.linked_objects(region,[measured,objects[1]])==[measured]
+    # Distant repeated words cannot invalidate or select this location.
+    far={**objects[1],'cell_ids':['R01C10']}
+    assert t.linked_objects(region,[objects[0],far])==[objects[0]]
+
+
+def test_reconcile_only_retires_unproven_cross_object_review_and_preserves_fail():
+    region={'id':'OCR1','text':'행정안정부','rect':[.11,.8877,.1895,.9355]}
+    objects=[dict(id='middle',text='한글의 가치',cell_ids=['R11C02','R11C03']),dict(id='lower',text='행정안정부',cell_ids=['R12C02','R12C03'])]
+    proof={'region_id':'OCR1','object_id':'middle','status':'UNRESOLVED'}
+    row=dict(id='r',rule_id='D-02-l',status='REVIEW',reason='같은 글자 판독 차이',independent_reading_conflicts=[copy.deepcopy(proof)])
+    fail={**copy.deepcopy(row),'id':'fail','status':'FAIL','reason':'독립 공식 명칭 오류'}
+    run={'observation':{'objects':objects},'pixel_text':{'detector_regions':[region]},'glyph_audit':{'regions':[dict(id='g',rect=region['rect'],detector_text=region['text'],source_ids=['middle'])]}}
+    t.reconcile_stored_bindings(run,[row,fail]);assert row['diagnostic_only'] and row['binding_uncertain']
+    assert row['before_binding_reconcile']['reason']=='같은 글자 판독 차이'
+    assert fail['status']=='FAIL' and fail['reason']=='독립 공식 명칭 오류' and not fail.get('binding_uncertain')
+    assert run['glyph_audit']['regions'][0]['source_ids']==[]
+    snapshot=copy.deepcopy([run,row,fail]);t.reconcile_stored_bindings(run,[row,fail]);assert snapshot==[run,row,fail]

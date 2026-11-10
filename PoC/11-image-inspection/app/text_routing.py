@@ -6,7 +6,7 @@ from collections import Counter
 from . import text_ocr, text_selection
 from .imaging import cell_rect
 
-VERSION = 'text-routing-v2-union-binding'
+VERSION = 'text-routing-v3-ambiguous-anchor'
 
 
 def reading_relation(region, obj):
@@ -28,6 +28,26 @@ def object_rects(obj):
     return out
 
 
+def anchor_binding_issue(region,objects,spatial=None):
+    """Do not choose an adjacent object's identity from an imprecise grid anchor.
+
+    A neighbouring equal transcript only disproves unique spatial association;
+    it must never select that neighbour as the correct reading or fix an OCR typo.
+    """
+    rect=region.get('rect',[])
+    if not text_ocr.valid_rect(rect):return None
+    if spatial is None:
+        spatial=[o for o in objects if spatial_match(rect,o) and (o.get('text') or o.get('text_legibility') in ('CLEAR','DEGRADED','UNREADABLE'))]
+    if len(spatial)!=1 or spatial[0].get('rects'):return None
+    literal=text_ocr.normalized(region.get('text'))
+    if not literal or literal==text_ocr.normalized(spatial[0].get('text')):return None
+    adjacent=[o['id'] for o in objects if o['id']!=spatial[0]['id'] and not o.get('transcription_inferred')
+              and text_ocr.normalized(o.get('text'))==literal and covered_fraction(rect,object_rects(o))>.1]
+    if not adjacent:return None
+    return dict(status='AMBIGUOUS_TARGET',coarse_object_id=spatial[0]['id'],nearby_candidate_ids=adjacent,
+                reason='격자 기반 객체 위치와 인접 문자 영역의 연결이 상충합니다. 어느 객체의 문구인지 확정하지 않습니다.')
+
+
 def linked_objects(region, objects):
     """Geometry constrains matching; repeated identical words aren't unique IDs."""
     rect = region.get('rect', [])
@@ -41,6 +61,7 @@ def linked_objects(region, objects):
     # An OCR correction could otherwise hide the very object that disagrees.
     if len(spatial)>1:return spatial
     if exact: return exact
+    if anchor_binding_issue(region,objects,spatial):return []
     if spatial: return spatial
     # Legacy imports without geometry may bind an exact, unique transcript.
     return [o for o in objects if not object_rects(o) and not o.get('transcription_inferred')
@@ -88,9 +109,10 @@ def prepare(run, artifact_routing=False):
     for region in pixel.get('detector_regions', []):
         matches = linked_objects(region, objects)
         text = region.get('text', '')
+        binding=anchor_binding_issue(region,objects)
         if not text_ocr.valid_rect(region.get('rect', [])): state = 'INVALID_LOCATION'
         elif not text.strip(): state = 'UNREAD'
-        elif len(matches) > 1: state = 'AMBIGUOUS_TARGET'
+        elif binding or len(matches) > 1: state = 'AMBIGUOUS_TARGET'
         elif not matches: state = 'NO_SCENE_MATCH'
         elif matches[0].get('transcription_inferred') or reading_relation(region,matches[0])=='DIFFERENT': state = 'DISAGREEMENT'
         elif reading_relation(region,matches[0])=='FRAGMENT': state = 'FRAGMENT_MATCH'
@@ -100,7 +122,7 @@ def prepare(run, artifact_routing=False):
         role = text_selection.role(matches[0]) if len(matches) == 1 else 'notice'
         shape = shaped.get(region.get('id'), {})
         rows.append(dict(region_id=region['id'], rect=region.get('rect'), detector_text=text,
-                         object_ids=[o['id'] for o in matches], state=state, role=role,
+                         object_ids=[o['id'] for o in matches], state=state, role=role,binding_issue=binding,
                          shape_status=shape.get('shape_status', reasons.get(region.get('id'),'NOT_MEASURED')),
                          action='SPELLING' if state == 'AGREED' else 'RECHECK' if state != 'INVALID_LOCATION' else 'UNRESOLVED'))
     run['text_routing'] = dict(version=VERSION, regions=rows, counts=dict(Counter(r['state'] for r in rows)),
@@ -174,6 +196,36 @@ def recheck(engine, job, run, raw):
     engine.checkpoint(job['id'],run)
 
 
+def reconcile_stored_bindings(run,rows):
+    """Reclassify only unsupported cross-object comparisons, preserving raw evidence."""
+    objects=run.get('observation',{}).get('objects',[])
+    regions={r['id']:r for r in (run.get('pixel_text') or {}).get('detector_regions',[])}
+    changed=[]
+    for row in rows:
+        invalid=[]
+        for proof in row.get('independent_reading_conflicts',[]):
+            region=regions.get(proof.get('region_id'))
+            issue=anchor_binding_issue(region,objects) if region else None
+            if issue:
+                proof.update(status='TARGET_UNRESOLVED',binding_issue=issue);invalid.append(issue)
+        if not invalid:continue
+        if row['status']=='REVIEW' and not row.get('glyph_audit_evidence'):
+            row.setdefault('before_binding_reconcile',{k:copy.deepcopy(row.get(k)) for k in ('status','reason','review_basis','error_type','visual_issue','document_review','diagnostic_only')})
+            row.update(binding_uncertain=True,diagnostic_only=True,visual_issue=False,review_basis='READING_LIMIT',error_type='OCR_UNCERTAIN',
+                       reason='문자 영역과 그림 객체의 위치 연결이 미확정입니다. 서로 다른 문구를 같은 위치의 판독 차이로 판단하지 않습니다.')
+        changed.append(row.get('id',row.get('instance_id')))
+    for region in (run.get('glyph_audit') or {}).get('regions',[]):
+        probe={'rect':region['rect'],'text':region.get('detector_text','')}
+        issue=anchor_binding_issue(probe,objects)
+        if issue:
+            region.setdefault('source_ids_before_binding',copy.deepcopy(region.get('source_ids',[])))
+            region.update(source_ids=[],binding_issue=issue)
+    for proof in (run.get('text_routing') or {}).get('unresolved_conflicts',[]):
+        region=regions.get(proof.get('region_id'));issue=anchor_binding_issue(region,objects) if region else None
+        if issue:proof.update(status='TARGET_UNRESOLVED',binding_issue=issue)
+    return changed
+
+
 def protect_conflicts(run, rows, ids):
     """Keep localized, comparable OCR disagreements visible; never call them typos.
 
@@ -181,6 +233,7 @@ def protect_conflicts(run, rows, ids):
     diagnostics. Two equal GPT reads do not erase a differing detector reading.
     """
     if 'D-02-l' not in ids:return rows
+    reconcile_stored_bindings(run,rows)
     from .rules import validate_batch
     from .text_location import cells_for_rects
     objects=run.get('observation',{}).get('objects',[])
