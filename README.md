@@ -10,7 +10,7 @@
   <img src="PoC/10-home/docs/demo/thehousing-demo-59s.mp4" alt="더주택 — 주택공급 디지털 상황판 59초 시연 영상" width="960">
 </video>
 
-[▶ 영상 열기](https://github.com/user-attachments/assets/95ee7346-6f42-4e7c-b343-5eebde2de5fa) · [MP4 파일](PoC/10-home/docs/demo/thehousing-demo-59s.mp4) · [한국어 자막 SRT](PoC/10-home/docs/demo/thehousing-demo-59s.ko.srt)
+[▶ 영상 크게 보기 · MP4](PoC/10-home/docs/demo/thehousing-demo-59s.mp4) · [한국어 자막 SRT](PoC/10-home/docs/demo/thehousing-demo-59s.ko.srt)
 <!-- thehousing-demo:end -->
 
 오늘의 기록으로 내일의 가능성을 실험하는 곳. Python ASGI 기반 AI 채팅과 독립 서비스 포트폴리오.

@@ -10,7 +10,7 @@
   <img src="docs/demo/thehousing-demo-59s.mp4" alt="더주택 — 주택공급 디지털 상황판 59초 시연 영상" width="960">
 </video>
 
-[▶ 영상 열기](https://github.com/user-attachments/assets/95ee7346-6f42-4e7c-b343-5eebde2de5fa) · [MP4 파일](docs/demo/thehousing-demo-59s.mp4) · [한국어 자막 SRT](docs/demo/thehousing-demo-59s.ko.srt)
+[▶ 영상 크게 보기 · MP4](docs/demo/thehousing-demo-59s.mp4) · [한국어 자막 SRT](docs/demo/thehousing-demo-59s.ko.srt)
 <!-- thehousing-demo:end -->
 
 독립 GitLab 저장소로 설치·테스트·재사용하려면 [재구성 안내](RECONSTRUCT.md)를 확인하세요.
