@@ -1,6 +1,6 @@
 {
   "version": "1.6.7",
-  "application_source_sha256": "ca5441f280adbfd564ccc084404244e730dd9746a5bce4c3adf7de5c777c7f18",
+  "application_source_sha256": "6af9c5dc1e93687ba6f5368d0dfad809e01189d8081292bbe034d2a5ff5797e6",
   "files": {
     ".dockerignore": "fa1834b157775fc727065dbb35768d73f0be75e93f4bf081ef60043ab120ccac",
     ".env.example": "0008ce097021bdaf8dcbb0666bca411ee5a2b2ae23282a8429521b934c29e9ae",
@@ -10,14 +10,14 @@
     "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "app/billing.py": "3c3a159b65e4d9b6e315b3b78f2b3f7c29490f129a052e6b97cbae252730862b",
     "app/citations.py": "e9df133f582881bbfbe6b7c33409518fadb4d72bc67be8466a6e3ba906978711",
-    "app/demo.py": "0c93080889ce38370eea14d7a18e62c6d6b69a439517f94d6756db9862a78407",
+    "app/demo.py": "e21cb646138eae8d95635f0f68ee82a9498734b22444a5be86055b4e6a4626f4",
     "app/demo_policy.py": "df58dcbcafe5f90ce4363e1decc8457802304cffbb51dc782364355586c0cd4d",
     "app/employee_demo.py": "0e06c83c9eb78162dd336fdd263237f87a8a8c3c751f59eb2687de4ed0aafcfb",
     "app/employees.py": "431a8406682f96264dffbb7704c6e752a502c4462633816c84a83a268403727d",
     "app/engine.py": "5b4561cc430294d90821deb4f73efca47c581ebee3ee907773348cf32d502cfd",
     "app/flow_demo.py": "5a0308dd8df208f244797111d1473482c9ba3e40641bd855fac7d61cb3bc2ac3",
     "app/grouping.py": "f75ce835515a352d7a5a0d80f7130142f5593e87f4cbfedee6b101bbebbf17ae",
-    "app/hwpx_text.py": "0f4dbf3e62d58573536b383d480c29d9e52d1bbfea872a319611339110fa5693",
+    "app/hwpx_text.py": "0ce94268a98d224b2a06ce79229827cec893995c7519c916c984a83be28a2d15",
     "app/inheritance.py": "d51f38f52b06312140c23389b9979c61be41f9d9e21afe1421d2690c9ade660c",
     "app/inheritance_demo.py": "76879dee679029ae8c4262ac0459ded9d59003b6b58ac9bb8f6ee58307ebaab9",
     "app/jobs.py": "272339a8524e76a456dc55de204f2cf4740f37e3992df8949c700e6ff3832184",
@@ -34,7 +34,7 @@
     "app/shared_solar.py": "918a7f137ac5a3121369f63b93dd48233dc245bbd7dc48e58d6eb5e4f7fe5af7",
     "app/store.py": "82a7025b25706240d72e8ea7749b0e6d2266c96fce56d6ebc02adb6abb0e4f7e",
     "app/streaming.py": "e62d69b13383a875ec61a93e6aeae08a83fa7f604318b63743f3f918463cf51d",
-    "app/submission.py": "c73fa14ec4ff7e4f6eea2c42a05e139103f5956523662498154a85cf4766e8a2",
+    "app/submission.py": "d9981f48af509cd8fc32da708a1cffb6f823b88feb8ebcea6db314e55d2fab8a",
     "app/timeline.py": "caf992376ec3ac0b69c50b56a9d976325c80ce8a8037ef779b1f6de914afb57b",
     "app/versions.py": "be0197daf8a1ea093a0a1b44f81626821ef1e8228773a5fa6d6c87dbfd8bb620",
     "app/vision.py": "031691028857002cbea06e857432b33692495b767c5c97041d2d952f14235d57",
@@ -116,7 +116,7 @@
     "docs/최종_인수인계_상세실무편_검토결과.md": "8c8996f6e0e04a5e0b98fbfc0955b2646f6d8d026ea750d3ff597842988b490b",
     "project.json": "952fb8626372da992983d0edf8de44b5614313a6733d549105fdd11f0eb083dc",
     "requirements-authoring.txt": "534049f3bce699e89e426f82f74c68806976c609f308d7e3062f50578a784bd1",
-    "requirements.lock": "37c202c27a743c7867e1727960d9dc9af2a764e8b196f2e5643e4f4aded87500",
+    "requirements.lock": "0b55cb26eaf135ff63f1cff97c0486a6958c09fe14f63d2042b677cd364f526c",
     "scripts/browser_smoke.py": "2ed9d6d8d3eddbaab255e8ea74b7de787464c73d402390911d61758ec13864e7",
     "scripts/build_comprehensive_samples.py": "38550a479c5253fc6df5a17fc199adf99bf32f185b4d702e557d74466f9a8799",
     "scripts/build_employee_samples.py": "1563e83940c2bab2cb9cebbb2035f95988791c73baaf79fa2155dcc352e0f498",
@@ -174,7 +174,8 @@
     "tests/test_submission.py": "1937950084a6ecc48595737ff72bc3a4b30193148298e64306009708456b9adc",
     "tests/test_successor.py": "72ca6afeee43223f67a7135f49d34c520aae9b8fa19b474444b3853b8257f306",
     "tests/test_versions.py": "8fa7a553dc0657568895fb2a13b5a4bf24c735db9b89a439b440ba2d8bf8d7a4",
-    "tests/test_vision_credit.py": "84dc106ae2ee1416913dc149bf9a0dbfb1f40888d9e7080cf0ad26a5eb6125da"
+    "tests/test_vision_credit.py": "84dc106ae2ee1416913dc149bf9a0dbfb1f40888d9e7080cf0ad26a5eb6125da",
+    "tests/test_xml_safety.py": "b4adce815c678a1778741567a706ff0c4965969b35387c7a972fad0a6cdf43ce"
   },
   "contains": "source, synthetic samples, guide and quality evidence; no runtime DB or keys",
   "video": "not included, deferred by user"

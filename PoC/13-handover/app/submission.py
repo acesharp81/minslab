@@ -1,7 +1,7 @@
 """Public synthetic demonstration material; never exports a user's workspace."""
 import io
 import zipfile
-from xml.etree import ElementTree
+from defusedxml import ElementTree
 from .demo import demo_archive
 
 SAMPLE_VERSION = 'submission-1'
@@ -13,7 +13,7 @@ def submission_archive():
         files = {n: z.read(n) for n in z.namelist()}
     # Use a real editable DOCX for the participant pack, rather than a minimal parser HWPX fixture.
     with zipfile.ZipFile(io.BytesIO(files.pop('01_사업현황.hwpx'))) as z:
-        section = ElementTree.fromstring(z.read('Contents/section0.xml'))
+        section = ElementTree.fromstring(z.read('Contents/section0.xml'), forbid_dtd=True)
     document = Document()
     document.add_heading('문화기획 업무 현황 및 인계 사항', 0)
     for p in section:

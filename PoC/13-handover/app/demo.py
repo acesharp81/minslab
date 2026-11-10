@@ -1,7 +1,7 @@
 """Synthetic fixtures, created through real format writers, never prebuilt work cards."""
 import io
 import zipfile
-from xml.sax.saxutils import escape
+from html import escape
 
 
 def demo_archive():
@@ -16,7 +16,7 @@ def demo_archive():
     with zipfile.ZipFile(hwpx, "w", zipfile.ZIP_DEFLATED) as z:
         z.writestr("mimetype", "application/hwp+zip")
         z.writestr("version.xml", '<version major="5" minor="1"/>')
-        z.writestr("Contents/section0.xml", '<hs:sec xmlns:hs="http://www.hancom.co.kr/hwpml/2011/section" xmlns:hp="http://www.hancom.co.kr/hwpml/2011/paragraph">' + "".join(f'<hp:p><hp:run><hp:t>{escape(p)}</hp:t></hp:run></hp:p>' for p in paragraphs) + '</hs:sec>')
+        z.writestr("Contents/section0.xml", '<hs:sec xmlns:hs="http://www.hancom.co.kr/hwpml/2011/section" xmlns:hp="http://www.hancom.co.kr/hwpml/2011/paragraph">' + "".join(f'<hp:p><hp:run><hp:t>{escape(p, quote=False)}</hp:t></hp:run></hp:p>' for p in paragraphs) + '</hs:sec>')
     files["01_사업현황.hwpx"] = hwpx.getvalue()
     doc = Document()
     for p in ["합성자료 · 주간 협의 메모", "업무: 2027년 생활문화 사업계획", "담당: 문화기획팀", "상태: 초안 검토 중", "기한: 2026-11-25", "다음 행동: 예산 검토 의견 수합", "참고: 기한 변경 제안이며 최종 확정 여부는 확인 필요", "업무: 보조금 정산 검토", "담당: 사업지원팀", "상태: 증빙 수집 중", "기한: 11월 말", "다음 행동: 누락된 영수증 제출 요청", "완료한 일: 참여 단체 10곳 중 7곳의 정산서 접수", "남은 업무: 나머지 3곳 자료 수집과 지출 적정성 검토", "현안: 2개 단체의 영수증 누락으로 정산 승인 불가"]:

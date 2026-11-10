@@ -121,3 +121,14 @@ def test_xlsx_extracts_shared_inline_and_numeric_cells():
 
     assert result.status == "parsed"
     assert result.text == "생성형 AI | 업무망 | 42"
+
+
+def test_office_xml_entities_are_rejected_without_expansion():
+    payload = b'<!DOCTYPE x [<!ENTITY injected "must-not-expand">]><x>&injected;</x>'
+    for extension, member in [("hwpx", "Contents/section0.xml"), ("xlsx", "xl/sharedStrings.xml")]:
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr(member, payload)
+        result = parse_bytes(buffer.getvalue(), extension)
+        assert result.status == "failed"
+        assert not result.text

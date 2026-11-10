@@ -182,10 +182,10 @@ def dashboard(
         .limit(10)
     ).all()
 
-    def progress_page_url(target_page: int) -> str:
+    def progress_page_query(target_page: int) -> str:
         params = dict(request.query_params)
         params["progress_page"] = str(target_page)
-        return f"{request.url_for('dashboard').path}?{urlencode(params)}#actions-in-progress"
+        return urlencode(params)
 
     progress_first_page = max(1, current_progress_page - 2)
     progress_last_page = min(progress_total_pages, progress_first_page + 4)
@@ -210,8 +210,8 @@ def dashboard(
             "total": progress_total,
             "total_pages": progress_total_pages,
             "pages": range(progress_first_page, progress_last_page + 1),
-            "previous_url": progress_page_url(current_progress_page - 1) if current_progress_page > 1 else None,
-            "next_url": progress_page_url(current_progress_page + 1) if current_progress_page < progress_total_pages else None,
-            "page_url": progress_page_url,
+            "previous_query": progress_page_query(current_progress_page - 1) if current_progress_page > 1 else None,
+            "next_query": progress_page_query(current_progress_page + 1) if current_progress_page < progress_total_pages else None,
+            "page_query": progress_page_query,
         },
     })
