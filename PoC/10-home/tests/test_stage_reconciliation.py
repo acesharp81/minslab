@@ -123,7 +123,8 @@ def test_approved_document_is_revisited_with_stage_evidence_without_overwriting_
  d=queue(service)['items'][0]
  assert d['status']=='APPROVED' and d['decision']['actor']=='사람 담당자'
  assert len(sr.list_items(service))==0  # Invalid quotations are rejected before proposal storage.
- assert work.latest(store,'officer')[did]['verdict']=='HOLD'
+ assert work.latest(store,'officer')[did]['verdict']=='YES'
+ assert work.latest(store,'officer')[did]['deferred_actions'][0]['status']=='HOLD'
  assert not service.rows('project_profile')
 
 
@@ -177,3 +178,11 @@ def test_unchanged_approved_input_does_not_spend_another_model_call(env,monkeypa
  run=start(store,'officer')
  with patch.object(work,'invoke') as model:work.process(service,store,run)
  assert not model.called
+
+@pytest.mark.parametrize('quantity,units', [('5명',5),('25필지',25),('68필지',68),('200세대 안전점검',200),('150만호 정책 총량',1500000),('1.8만호 모듈러 발주',18000)])
+def test_non_event_quantities_do_not_pass_automatic_proof(env,quantity,units):
+ p=proposal(env)
+ p['proposed']['units']=units
+ p['proof']['body']=p['proof']['body'].replace('100호',quantity)
+ p['proof']['date_quote']=p['proof']['units_quote']=p['proof']['body']
+ assert sr.automatic_proof(p)

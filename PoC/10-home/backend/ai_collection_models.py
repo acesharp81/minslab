@@ -14,6 +14,30 @@ RATES = {'gpt-5.4-mini': (.75, 4.5), 'gpt-5.4': (2.5, 15),
 ENDPOINTS = {'OPENAI': 'https://api.openai.com/v1/responses',
              'SOLAR': 'https://api.upstage.ai/v1/responses'}
 
+class ModelResponseError(ValueError):
+    """Transport/response failure, never an evidence-based business HOLD."""
+
+
+class ModelProviderError(ModelResponseError):
+    """Provider failure: stop the batch, never retry as a document correction."""
+
+
+def provider_failure(provider, response=None):
+    status=response.status_code if response is not None else None
+    reason='연결 실패·시간 초과'
+    if status is not None:
+        reason={400:'요청 설정 거부',401:'API 키 인증 실패',403:'API 키 접근 거부',
+                404:'모델·API 경로 확인 필요',422:'요청 규격 거부',
+                429:'요청 한도 또는 제공사 잔액 확인 필요'}.get(status,'제공사 서비스 오류')
+        # Only a fixed diagnostic is exposed, never the untrusted response body.
+        try:
+            error=response.json().get('error',{})
+            if isinstance(error,dict) and 'insufficient credit' in str(error.get('message','')).lower():
+                reason='제공사 크레딧 부족으로 API 키 정지'
+        except (ValueError,AttributeError):pass
+    return ModelProviderError(f'{provider} · '+(f'HTTP {status} · ' if status else '')+reason+
+        ' · 키·결제/한도 복구 또는 사용 가능한 모델 선택 후 남은 업무 재개 필요')
+
 
 class Quantity(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -46,7 +70,8 @@ summary와 review_question은 담당자가 확인할 내용을 한국어로 간�
 
 def key_for(provider):
     if provider == 'OPENROUTER': return os.environ.get('USAGE_METER_TOKEN','')
-    if provider == 'SOLAR': return os.environ.get('UPSTAGE_SECRET_KEY', '')
+    if provider == 'SOLAR':
+        return os.environ.get('UPSTAGE_SECRET_KEY2','') if os.environ.get('SHARED_SOLAR_POOL')=='key2' else os.environ.get('UPSTAGE_SECRET_KEY', '')
     return os.environ.get('OPENAI_API_KEY') or os.environ.get('OpenAI_API_KEY', '')
 
 
@@ -78,6 +103,7 @@ def evaluate(store, run, document, body, previous=None, transport=None):
                     dict(first_pass=passes[-1]['result'],checks=flags,task=task),transport)
                 passes.append(dict(model=model,task=task,call_id=call,result=result.model_dump()))
                 flags=checks(result,body)
+            except ModelProviderError:raise
             except (shared_budget.BudgetExceeded,ValueError):
                 return dict(result=passes[-1]['result'],passes=passes,checks=sorted(set(flags+[task+' 대기 · 한도/응답 확인 필요'])),
                     escalation_pending=True,escalated=len(passes)>1,escalation_reasons=flags,approved=False,actual_units_added=0)
@@ -87,6 +113,7 @@ def evaluate(store, run, document, body, previous=None, transport=None):
         try:
             result, call = invoke(store, run, 'gpt-5.4', document, body,
                                   dict(officer_decision=previous, first_pass=passes[0]['result'], checks=flags), transport)
+        except ModelProviderError:raise
         except (shared_budget.BudgetExceeded,ValueError):
             return dict(result=passes[0]['result'],passes=passes,checks=sorted(set(flags+checks(Analysis.model_validate(passes[0]['result']),body)+
                 ['5.4 심층 검토 대기 · 공통 한도/연결 확인 후 재시도 · mini 1차 결과 보존'])),
@@ -118,50 +145,52 @@ def checks(result, body):
     return sorted(set(issues))
 
 
-def invoke(store, run, model, document, body, previous, transport=None, schema=Analysis, instructions=INSTRUCTIONS):
+def invoke(store, run, model, document, body, previous, transport=None, schema=Analysis, instructions=INSTRUCTIONS, output_tokens=2500):
+    output_tokens=max(2500,min(6000,int(output_tokens)))
     provider = MODELS[model]['provider']; key = key_for(provider)
     if not key: raise ValueError('선택한 제공사의 API 키가 설정되지 않았습니다')
     if not store.alive(run['id']): raise InterruptedError('중지 요청')
     prompt = json.dumps(dict(title=document.get('name'), url=document.get('evidence_url'),
                              original_text=body, previous_review=previous), ensure_ascii=False)
     payload = dict(model=model, store=False, instructions=instructions, input=prompt,
-                   max_output_tokens=2500, reasoning={'effort':'none'},
+                   max_output_tokens=output_tokens, reasoning={'effort':'none'},
                    text={'format':dict(type='json_schema',name='publication_review',strict=True,
                                        schema=schema.model_json_schema())})
     if provider=='OPENAI': payload['service_tier']='default'
     # UTF-8 byte count + overhead is deliberately above ordinary token count.
     upper_input = len(json.dumps(payload, ensure_ascii=False).encode()) + 2048
     rates = RATES[model]; group = 'mini' if model=='gpt-5.4-mini' else 'large' if model in ('gpt-5.4','solar-pro4') else 'credit' if provider=='OPENAI' else 'requests'
-    reserve = (upper_input*rates[0]+2500*rates[1])/1_000_000
+    reserve = (upper_input*rates[0]+output_tokens*rates[1])/1_000_000
     store.checkpoint(run['id'],stage='ANALYZE',current=document.get('name') or '자료 분석',model=model)
-    cid = store.reserve(run['id'],provider,model,group,upper_input+2500,reserve,run['config'])
+    cid = store.reserve(run['id'],provider,model,group,upper_input+output_tokens,reserve,run['config'])
     try:
-        if provider!='OPENROUTER': shared_budget.reserve(store,cid,model,upper_input,2500)
+        if provider!='OPENROUTER': shared_budget.reserve(store,cid,model,upper_input,output_tokens)
     except shared_budget.BudgetExceeded:
         # No provider call occurred. A possibly accepted central reservation remains conservative.
         store.settle(cid,0,0,0)
         raise
-    response = None
+    response = None; usage_confirmed=False; phase='REQUEST'
     try:
         endpoint=ENDPOINTS.get(provider)
         headers={'Authorization':'Bearer '+key}
         if provider=='OPENROUTER':
             endpoint=os.environ['USAGE_GATEWAY_URL'].rstrip('/')+'/api/v1/chat/completions'
             payload=dict(model=model,messages=[dict(role='system',content=instructions),dict(role='user',content=prompt)],
-                max_tokens=2500,response_format=dict(type='json_schema',json_schema=dict(name='agent_result',strict=True,schema=schema.model_json_schema())))
+                max_tokens=output_tokens,response_format=dict(type='json_schema',json_schema=dict(name='agent_result',strict=True,schema=schema.model_json_schema())))
             headers={'x-minslab-meter-token':key,'x-minslab-project':'poc10',
                 'x-minslab-workload':'home_'+run['config'].get('agent_role','collection'),
                 'x-minslab-priority':'40','x-minslab-data-class':'public_web_news','x-idempotency-key':'poc10-'+cid}
         with httpx.Client(timeout=185 if provider=='OPENROUTER' else 90, trust_env=False, transport=transport) as client:
             response = client.post(endpoint, headers=headers, json=payload)
-        if response.status_code!=200: raise ValueError('모델 요청 실패: HTTP '+str(response.status_code))
-        data=response.json(); usage=data.get('usage') or {}
+        if response.status_code!=200: raise provider_failure(provider,response)
+        phase='RESPONSE';data=response.json(); usage=data.get('usage') or {}
         inp,out=(usage.get('prompt_tokens'),usage.get('completion_tokens')) if provider=='OPENROUTER' else (usage.get('input_tokens'),usage.get('output_tokens'))
         if type(inp) is not int or type(out) is not int or min(inp,out)<0:
             raise ValueError('모델 사용량 미확인')
         cost=(inp*rates[0]+out*rates[1])/1_000_000
         if provider!='OPENROUTER': shared_budget.settle(store,cid,inp,out,cost)
         store.settle(cid,inp,out,cost)
+        usage_confirmed=True;phase='SCHEMA'
         if provider=='OPENROUTER':
             choice=data['choices'][0]
             if choice.get('finish_reason')!='stop': raise ValueError('모델 응답 미완료')
@@ -172,9 +201,14 @@ def invoke(store, run, model, document, body, previous, transport=None, schema=A
             value=''.join(c.get('text','') for item in data.get('output',[]) if item.get('type')=='message'
                       for c in item.get('content',[]) if c.get('type')=='output_text')
         return schema.model_validate_json(value), cid
-    except Exception:
+    except Exception as error:
         rejected=response is not None and response.status_code in (400,401,403,404,422,429)
-        if provider!='OPENROUTER': shared_budget.settle(store,cid,cost=0 if rejected else None,rejected=rejected)
-        store.fail_call(cid)
+        if not usage_confirmed:
+            if provider!='OPENROUTER': shared_budget.settle(store,cid,cost=0 if rejected else None,rejected=rejected)
+            store.fail_call(cid,rejected=rejected)
+        store.event(run['id'],'MODEL_RESPONSE_ERROR',call_id=cid,phase=phase,error_type=type(error).__name__,
+                    http_status=response.status_code if response is not None else None,usage_confirmed=usage_confirmed)
         # Do not expose request headers, upstream body or echoed secrets.
-        raise ValueError('AI 응답 실패 또는 형식 불일치 · 원문은 검토 대기에 보존됩니다') from None
+        if isinstance(error,ModelProviderError):raise error from None
+        if phase=='REQUEST':raise provider_failure(provider,response) from None
+        raise ModelResponseError('AI 응답 실패 또는 형식 불일치 · '+phase+' · 원문은 검토 대기에 보존됩니다') from None

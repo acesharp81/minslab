@@ -5,3 +5,8 @@
 .pr-export{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:12px 0;padding:16px 18px;background:#edf6f2;border:1px solid #d6e6dd;border-radius:12px}.pr-export strong{font-size:14px;color:#216f60}.pr-export p{font-size:12px;line-height:1.7;margin:5px 0 0;color:#607c70;max-width:650px}.pr-export-actions{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}.pr-export-actions button{white-space:nowrap}.pr-export-actions button:disabled{opacity:.5;cursor:default}#pr-export-result{font-size:12px;line-height:1.7;color:#216f60;overflow-wrap:anywhere}#pr-export-result:empty{display:none}@media(max-width:1100px){.pr-export{align-items:flex-start;flex-direction:column}}
 /* Official download URLs and evidence identifiers may be long unbroken strings. */
 .pr-detail{overflow-wrap:anywhere}.pr-basis p,.pr-basis a,.hold-cross-review{overflow-wrap:anywhere;min-width:0}
+
+/* Let the selected detail set the row height, independently of queue length. */
+.pr-workspace>#pr-list{contain:size;align-self:stretch;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;scrollbar-gutter:stable;padding:2px 8px 2px 2px;box-sizing:border-box}
+.pr-workspace>#pr-list:focus-visible{outline:2px solid #248878;outline-offset:2px}
+@media(max-width:950px){.pr-workspace>#pr-list{contain:none;max-height:60vh}}

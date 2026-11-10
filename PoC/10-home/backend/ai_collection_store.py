@@ -183,9 +183,11 @@ class Store:
             db.execute("UPDATE calls SET input_tokens=?,output_tokens=?,cost_usd=?,status='COMPLETED' WHERE id=?",
                        (input_tokens, output_tokens, cost, cid))
 
-    def fail_call(self, cid):
+    def fail_call(self, cid, rejected=False):
         with self.db(True) as db:
-            db.execute("UPDATE calls SET status='UNKNOWN_COST' WHERE id=?", (cid,))
+            if rejected:
+                db.execute("UPDATE calls SET status='REJECTED',input_tokens=0,output_tokens=0,cost_usd=0 WHERE id=?", (cid,))
+            else:db.execute("UPDATE calls SET status='UNKNOWN_COST' WHERE id=?", (cid,))
 
     def status(self, include_events=True):
         with self.db() as db:

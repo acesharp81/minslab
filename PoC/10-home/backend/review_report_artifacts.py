@@ -6,7 +6,7 @@ REPORTS={
  'EVIDENCE_REVIEW_20261105':'20261105-integrity',
 }
 
-PRIVATE_REPORTS={'EVIDENCE_REVIEW_20261106':'20261106-integrity'}
+PRIVATE_REPORTS={'EVIDENCE_REVIEW_20261106':'20261106-integrity','EVIDENCE_REVIEW_20261109':'20261109-integrity'}
 
 def artifact_path(data_dir,report_id,include_private=False):
  available=dict(REPORTS,**PRIVATE_REPORTS) if include_private else REPORTS

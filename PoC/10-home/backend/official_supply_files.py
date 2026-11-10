@@ -3,23 +3,22 @@ import csv
 import io
 import re
 from datetime import date
-from html import unescape
+from .public_data_download import download_url
 
 from .collectors import clean, integer
 
-FILE_URL = re.compile(r'"contentUrl"\s*:\s*"(https://www\.data\.go\.kr/cmm/cmm/fileDownload\.do\?[^"\s]+)"')
 REGIONS = {'서울특별시', '경기도', '인천광역시'}
 
 
 def _download(source, fetcher, title_pattern):
     page = fetcher.get(source['url']).decode('utf-8', 'replace')
-    match = FILE_URL.search(page)
+    link = download_url(page, source, fetcher)
     version = re.search(title_pattern, page)
-    if not match or not version:
+    if not version:
         raise ValueError('공식 파일 링크·기준일 확인 실패: 원천 페이지 변경')
     day = version.group(1)
     stamp = date(int(day[:4]), int(day[4:6]), int(day[6:8])).isoformat()
-    return fetcher.get(unescape(match.group(1)), 'csv'), stamp
+    return fetcher.get(link, 'csv'), stamp
 
 
 def _csv_rows(content, required):

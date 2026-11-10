@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://the-housing.vercel.app/schemas/home-slices/manifest.schema.json",
+  "title": "HOME 원천 데이터셋 슬라이스 패키지 manifest (home-slices/1)",
+  "description": "패키지 = manifest.json + slices/<이름>.json(+ api/·golden/·web/). 정의는 schemas/home-slices/slices.json, 명세는 docs/product/HOME-데이터셋-슬라이스-명세.md.",
+  "type": "object",
+  "required": ["format", "since", "until", "source_commit", "alembic_version", "files", "current", "removed"],
+  "additionalProperties": false,
+  "$defs": {
+    "pgTime": {
+      "description": "PostgreSQL SET TimeZone='UTC' 의 ::text 꼴. 예 '2026-10-22 13:35:44.7232+00'",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}(\\.\\d{1,6})?[+-]\\d{2}(:?\\d{2})?$"
+    },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  },
+  "properties": {
+    "format": { "const": "home-slices/1" },
+    "since": {
+      "description": "이 시각 뒤(recorded_at > since)에 기록된 현재 판만 담았다. null = 전체 슬라이스(기준 판 없이 반영)",
+      "oneOf": [{ "$ref": "#/$defs/pgTime" }, { "type": "null" }]
+    },
+    "until": { "description": "스냅샷 시각(한 READ ONLY REPEATABLE READ 트랜잭션의 now())", "$ref": "#/$defs/pgTime" },
+    "source_commit": { "description": "HOME 앱 소스 커밋", "type": ["string", "null"] },
+    "alembic_version": { "description": "HOME DB 스키마 판(alembic_version.version_num)", "type": ["string", "null"] },
+    "dump_sha256": { "description": "같은 시점 pg_dump 가 있으면 그 sha256(없으면 생략·null — 우리 쪽은 manifest.json 의 sha256 을 대신 쓴다)", "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+    "files": {
+      "description": "패키지 안 파일(manifest 제외) → 행 수·sha256. slices/ 는 행 배열 JSON, api/·golden/·web/ 은 받은 응답 그대로(rows null)",
+      "type": "object",
+      "propertyNames": { "pattern": "^(slices/[a-z_]+\\.json|api/[A-Za-z0-9_.\\-]+\\.json|golden/[^/]+\\.(json|csv)|web/[A-Za-z0-9_.\\-]+\\.js)$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["rows", "sha256"],
+        "additionalProperties": false,
+        "properties": {
+          "rows": { "type": ["integer", "null"], "minimum": 0 },
+          "sha256": { "$ref": "#/$defs/sha256" },
+          "fetched_at": { "description": "API·JS 를 받은 시각(ISO)", "type": "string" }
+        }
+      }
+    },
+    "current": {
+      "description": "until 시점 현재 판 전체의 요약(revision·log 슬라이스마다). digest = sha256(entity_id 바이트 순 정렬한 'entity_id:revision_no' 를 '\\n' 로 이은 글) — log 는 id",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z_]+$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["count", "digest"],
+        "additionalProperties": false,
+        "properties": { "count": { "type": "integer", "minimum": 0 }, "digest": { "$ref": "#/$defs/sha256" } }
+      }
+    },
+    "removed": {
+      "description": "since 뒤 현재 판이 없어진 entity_id(kind 별)",
+      "type": "object",
+      "propertyNames": { "pattern": "^[a-z_]+$" },
+      "additionalProperties": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+    }
+  }
+}

@@ -6,6 +6,24 @@ import httpx
 from poc10_proxy import proxy_home
 
 class HomeProxyPerformanceTests(unittest.IsolatedAsyncioTestCase):
+    async def test_transient_read_retry_is_bounded_and_writes_are_never_replayed(self):
+        for method,failures,expected_calls,expected_status in [('GET',1,2,200),('GET',9,2,503),('POST',1,1,503)]:
+            with self.subTest(method=method,failures=failures):
+                sent=[];calls=0;client=httpx.AsyncClient
+                async def handler(request):
+                    nonlocal calls
+                    calls+=1
+                    if calls<=failures:raise httpx.ReadTimeout('private response detail',request=request)
+                    return httpx.Response(200,stream=httpx.ByteStream(b'{}'))
+                async def receive():return {'type':'http.request','body':b'{}'}
+                async def send(message):sent.append(message)
+                scope={'path':'/poc/home/api/admin/policy-information','method':method,
+                       'headers':[(b'host',b'example.test'),(b'origin',b'https://example.test')],'query_string':b'private=value'}
+                with patch('poc10_proxy.internal_secret',return_value='test'),patch('poc10_proxy.httpx.AsyncClient',side_effect=lambda **kw:client(transport=httpx.MockTransport(handler),**kw)),self.assertLogs('poc10_proxy',level='WARNING') as logs:
+                    await proxy_home(scope,receive,send,'http://home',is_admin=True)
+                self.assertEqual(calls,expected_calls);self.assertEqual(sent[0]['status'],expected_status)
+                self.assertNotIn('private',str(logs.output))
+
     async def call(self, response, headers=(), method='GET'):
         seen=[];sent=[]
         async def handler(request):

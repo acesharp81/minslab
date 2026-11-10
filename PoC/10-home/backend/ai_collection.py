@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 import hashlib
 import json
+import re
 from urllib.parse import urlencode, urlsplit, parse_qs
 from defusedxml import ElementTree as ET
 from sqlalchemy import select, Text
@@ -12,7 +13,7 @@ from .source_authority import authority
 from .publication_reviews import source_ids
 from .ai_collection_store import Store, BudgetExceeded
 from .ai_collection_fetch import Fetcher, canonical, text_content
-from .ai_collection_models import evaluate
+from .ai_collection_models import evaluate,ModelProviderError
 
 SOURCE='ai_publication'
 KIND='ai_publication_analysis'
@@ -41,28 +42,43 @@ def register(service, row, rid):
         return doc.entity_id, outcome=='new'
 
 
-def search_rows(raw, max_age_days=30, allow_undated=False):
+def search_date(raw):
+    """Bing localizes RSS dates even though RFC email-date parsers do not."""
+    match=re.fullmatch(r'[월화수목금토일],\s*(\d{1,2})\s+(\d{1,2})월\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+GMT',raw.strip())
+    if match:
+        day,month,year,hour,minute,second=map(int,match.groups())
+        return datetime(year,month,day,hour,minute,second,tzinfo=timezone.utc)
+    return parsedate_to_datetime(raw)
+
+
+def search_rows(raw, max_age_days=30, allow_undated=False, diagnostics=None):
     if len(raw)>3_000_000 or b'<!DOCTYPE' in raw.upper() or b'<!ENTITY' in raw.upper():
         raise ValueError('검색 피드 검증 실패')
     root=ET.fromstring(raw)
     if root.tag!='rss': raise ValueError('검색 피드 구조 변경')
-    rows=[]
+    rows=[];stats=dict(raw_items=0,invalid_url=0,invalid_date=0,filtered_date=0)
     for item in root.findall('./channel/item')[:20]:
+        stats['raw_items']+=1
         url=item.findtext('link') or ''
         p=urlsplit(url)
         if p.hostname and (p.hostname=='bing.com' or p.hostname.endswith('.bing.com')):
             url=(parse_qs(p.query).get('url') or [''])[0]
+        try:url=canonical(url)
+        except (ValueError,TypeError):stats['invalid_url']+=1;continue
         try:
-            url=canonical(url)
             raw_date=item.findtext('pubDate') or ''
-            published=parsedate_to_datetime(raw_date) if raw_date else None
+            published=search_date(raw_date) if raw_date else None
             if published:
                 if not published.tzinfo: published=published.replace(tzinfo=timezone.utc)
-                if published>datetime.now(timezone.utc)+timedelta(days=1):continue
-                if max_age_days is not None and published<datetime.now(timezone.utc)-timedelta(days=max_age_days):continue
-            elif not allow_undated:continue
-        except (ValueError,TypeError,OverflowError): continue
+                if published>datetime.now(timezone.utc)+timedelta(days=1):stats['filtered_date']+=1;continue
+                if max_age_days is not None and published<datetime.now(timezone.utc)-timedelta(days=max_age_days):stats['filtered_date']+=1;continue
+            elif not allow_undated:stats['filtered_date']+=1;continue
+        except (ValueError,TypeError,OverflowError):stats['invalid_date']+=1;continue
         rows.append(dict(name=item.findtext('title') or url,evidence_url=url,source_date=published.date().isoformat() if published else None))
+    stats['parsed_rows']=len(rows)
+    if diagnostics is not None:diagnostics.update(stats)
+    if stats['raw_items'] and not rows and stats['invalid_date']:
+        raise ValueError('검색 응답 날짜 해석 실패 · 후보 없음과 구분하여 재시도 필요')
     return rows
 
 
@@ -209,6 +225,10 @@ def process_run(service, store, run, fetcher=None, analyzer=evaluate, discover=d
                         checks=['비용·토큰 한도 도달 · 수집 원문 보존, AI 분석은 다음 실행에서 재시도'],
                         failure=True,approved=False,actual_units_added=0),run)
                     raise
+                except ModelProviderError as error:
+                    save_analysis(service,doc,body,fetcher.last,dict(result=None,passes=[],
+                        checks=[str(error)],failure=True,approved=False,actual_units_added=0),run)
+                    raise
                 except InterruptedError: raise
                 except Exception:
                     analysis=dict(result=None,passes=[],checks=['AI 분석 실패 · 원문 직접 검토 가능'],
@@ -228,7 +248,7 @@ def process_run(service, store, run, fetcher=None, analyzer=evaluate, discover=d
                             models=[p['model'] for p in saved['passes']],checks=saved['checks'])
                 finished=True
                 if saved.get('failure'): failed+=1
-            except (BudgetExceeded,InterruptedError): raise
+            except (BudgetExceeded,InterruptedError,ModelProviderError): raise
             except Exception as error:
                 errors+=1;failed+=1;finished=True
                 store.event(rid,'DOCUMENT_ERROR',document_id=doc['id'],title=doc.get('name'),error=type(error).__name__,
@@ -242,6 +262,7 @@ def process_run(service, store, run, fetcher=None, analyzer=evaluate, discover=d
         with store.db() as db:
             source_errors=db.execute("SELECT COUNT(*) FROM events WHERE run_id=? AND kind='SOURCE_ERROR'",(rid,)).fetchone()[0]
         store.finish(rid,'PARTIAL' if errors or source_errors else 'COMPLETED')
+    except ModelProviderError as error: store.finish(rid,'FAILED',str(error))
     except BudgetExceeded as error: store.finish(rid,'BUDGET_PAUSED',str(error))
     except InterruptedError: store.finish(rid,'CANCELLED','중지 요청 · 완료 자료와 사용량 보존')
     except Exception as error: store.finish(rid,'FAILED','실행 실패: '+type(error).__name__)

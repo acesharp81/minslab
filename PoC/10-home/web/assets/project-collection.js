@@ -69,8 +69,8 @@ const ProjectCollection = {};
     if(!c.management)return legacyCellContent(c,s);
     const m=c.management;
     const missing=(kind,r,field)=>{
-      const code=(m.remaining||[]).find(x=>x.milestone===r.milestone&&x.field===kind+'.'+field)?.code;
-      return kind==='measurement'&&code==='UPCOMING'?(field==='date'?'미도래·미진행':'해당 없음'):kind==='measurement'&&code==='NOT_OBSERVED'?'미측정':field==='date'?'일자 미확보':'수량 미확보';
+      const code=(m.remaining||[]).find(x=>x.milestone===r.milestone&&x.field===kind+'.'+field)?.code||r.field_tags?.[field]?.code||r.collection_tag?.code;
+      return kind==='measurement'&&code==='UPCOMING'?'-':kind==='measurement'&&code==='NOT_OBSERVED'?'미측정':field==='date'?'일자 미확보':'수량 미확보';
     };
     const section=(kind,label)=>{
       const list=m[kind]||[];

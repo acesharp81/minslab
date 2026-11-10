@@ -26,7 +26,7 @@ def summary(payload, source_revision_no):
                         for a in payload.get('attachments', [])]}
 
 
-def save(service, document_id, source_revision_no, body_text, summary_text, attachments, actor, raw_sha256):
+def save(service, document_id, source_revision_no, body_text, summary_text, attachments, actor, raw_sha256, *, allow_existing=False):
     from .publication_reviews import source_ids
     from .source_authority import public_url
     if not body_text.strip() or not summary_text.strip() or not actor.strip():
@@ -37,9 +37,10 @@ def save(service, document_id, source_revision_no, body_text, summary_text, atta
         if not a.get('name') or not a.get('url') or public_url(a['url']) != a['url']:
             raise ValueError('첨부 공개 원문 주소를 확인하세요')
     with service.sessions.begin() as db:
-        doc=db.scalar(select(Revision).where(Revision.entity_id == document_id,
-            Revision.kind == 'document_evidence', Revision.source_id.in_(source_ids()),
-            Revision.superseded_at.is_(None)).with_for_update())
+        query=select(Revision).where(Revision.entity_id == document_id,
+            Revision.kind == 'document_evidence',Revision.superseded_at.is_(None))
+        if not allow_existing:query=query.where(Revision.source_id.in_(source_ids()))
+        doc=db.scalar(query.with_for_update())
         if not doc or doc.revision_no != source_revision_no:
             raise ValueError('수집 대상 판본이 변경됐습니다. 원문을 다시 확인하세요')
         payload=dict(document_id=document_id, source_revision_no=source_revision_no,

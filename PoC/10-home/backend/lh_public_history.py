@@ -220,7 +220,8 @@ def collect_stock(source,fetcher):
     raw=fetcher.get(source['url']).decode('utf-8','replace')
     soup=BeautifulSoup(raw,'html.parser');title=soup.title.get_text() if soup.title else ''
     stamp=re.search(r'단지정보_(20\d{6})',title)
-    link=re.search(r'"contentUrl"\s*:\s*"(https://www\.data\.go\.kr/cmm/cmm/fileDownload\.do\?[^"\s]+)"',raw)
-    if not stamp or not link:raise ValueError('LH 단지정보 공개본 날짜·다운로드 링크 미확보')
+    from .public_data_download import download_url
+    link=download_url(raw,source,fetcher)
+    if not stamp:raise ValueError('LH 단지정보 공개본 날짜·다운로드 링크 미확보')
     version=datetime.strptime(stamp[1],'%Y%m%d').date().isoformat()
-    return parse_stock(fetcher.get(link[1],'csv'),source,link[1],version)
+    return parse_stock(fetcher.get(link,'csv'),source,link,version)

@@ -98,6 +98,8 @@ def test_officer_strong_identity_finishes_plan_reference_without_stage_actual(en
 def test_officer_does_not_accept_missing_evidence_or_concurrent_changes(env,change):
  service,s,did,pid=env;r,result=seed_officer(service,s,did,pid)
  def respond(*args,**kw):
+  from backend.ai_officer_decisions import Check
+  if kw.get('schema')==Check:return Check(accept=True,reason='원문에 사업명·주소 일치를 확인했습니다',issues=[]),'check'
   if change=='empty_quote':result.evidence=['']
   elif change=='changed_project':
    with service.sessions.begin() as db:

@@ -55,6 +55,8 @@ def automatic_proof(p):
     if not exact_date_in_quote(f.get('event_date'),quotes[0]):reasons.append('일 단위 실제 날짜 인용 확인 필요')
     qty=str(f.get('units') or '');q=re.sub(r'[,\s]','',quotes[1])
     if not re.search(r'(?<!\d)'+re.escape(qty)+r'(?:세대|가구|호)(?!실|\d)',q):reasons.append('공급호수 단위의 인용 확인 필요')
+    if re.search(r'안전\s*점검|실태\s*조사|모듈러.{0,20}발주|정책.{0,20}(?:발언|총량)',quotes[1]):
+        reasons.append('점검·조사·발주·정책 총량과 개별 사업 실적 범위 구분 필요')
     actual={'BUSINESS':r'지구.{0,8}지정|정비구역.{0,8}지정|사업.{0,8}확정',
             'APPROVAL':r'인가|허가|사업계획.{0,8}승인','CONSTRUCTION':r'착공',
             'COMPLETION':r'준공|사용승인|사용검사','SUPPLY':r'입주자.{0,8}모집.{0,8}공고|분양.{0,8}공고',
@@ -239,7 +241,7 @@ def decide(service, pid, revision_no, project_revision_no, profile_revision_no, 
         return dict(id=pid,status=p['status'],revision_no=saved.revision_no,project_id=p['project_id'],already_reflected=check['already_reflected'])
 
 
-def refresh(service, auto_apply=False):
+def refresh(service, auto_apply=False, can_continue=None):
     """Scheduled/on-demand only. No network, model calls or writes on dashboard reads."""
     projects,profiles,_,mappings=snapshot(service);created=0;skipped=0
     with service.sessions() as db:
@@ -295,6 +297,7 @@ def refresh(service, auto_apply=False):
     applied=0
     if auto_apply:
         for p in list_items(service):
+            if can_continue and not can_continue():break
             if p['status'] not in LIVE or not p['auto_eligible']:continue
             with service.sessions() as db:
                 pr=current(db,'project_profile',entity_id('project_profile','manual_project',p['project_id']))

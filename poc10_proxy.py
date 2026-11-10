@@ -1,5 +1,7 @@
 """Same-origin boundary for the independently running HOME PoC."""
+import asyncio
 import hashlib
+import logging
 import hmac
 import json
 import os
@@ -9,6 +11,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import httpx
+
+logger = logging.getLogger(__name__)
 
 PREFIX = "/poc/home"
 # HTTPX otherwise reloads CA certificates synchronously for every asset/API
@@ -87,23 +91,35 @@ async def proxy_home(scope, receive, send, upstream, is_admin=False):
                 break
     query = scope.get("query_string", b"").decode("ascii", errors="ignore")
     url = upstream.rstrip("/") + path + ("?" + query if query else "")
-    try:
-        async with httpx.AsyncClient(timeout=30, follow_redirects=False, verify=_UPSTREAM_TLS_CONTEXT) as client:
-            # Preserve the negotiated wire representation. response.content
-            # transparently decompresses, undoing HOME's gzip before the WAN.
-            async with client.stream(method, url, headers=headers, content=bytes(body)) as response:
-                buffered = response.is_stream_consumed
-                payload = b"" if method == "HEAD" else response.content if buffered else b"".join([part async for part in response.aiter_raw()])
-                output_headers = [(k.encode(), v.encode("latin1")) for k, v in response.headers.items()
-                                  if k.lower() in {"content-type", "cache-control", "location", "content-disposition", "content-security-policy", "x-frame-options", "referrer-policy", "content-encoding", "vary", "etag", "last-modified", "x-home-cache"}]
-                if buffered and method != "HEAD":
-                    # Custom/in-memory transports may already have decoded the body.
-                    output_headers = [(k,v) for k,v in output_headers if k != b"content-encoding"]
-                length = response.headers.get("content-length", "0") if method == "HEAD" else str(len(payload))
-                if response.status_code != 304:
-                    output_headers.append((b"content-length", length.encode()))
-                output_headers.append((b"x-content-type-options", b"nosniff"))
-        await send({"type": "http.response.start", "status": response.status_code, "headers": output_headers})
-        await send({"type": "http.response.body", "body": payload})
-    except httpx.RequestError:
-        await error(503, "HOME 데이터 서비스에 잠시 연결할 수 없습니다.")
+    started = time.monotonic()
+    retryable_read = method in {"GET", "HEAD"} and path.startswith(PREFIX + "/api/")
+    for attempt in range(2 if retryable_read else 1):
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(30 if attempt == 0 else 5, connect=3, pool=3), follow_redirects=False, verify=_UPSTREAM_TLS_CONTEXT) as client:
+                # Preserve the negotiated wire representation. response.content
+                # transparently decompresses, undoing HOME's gzip before the WAN.
+                async with client.stream(method, url, headers=headers, content=bytes(body)) as response:
+                    buffered = response.is_stream_consumed
+                    payload = b"" if method == "HEAD" else response.content if buffered else b"".join([part async for part in response.aiter_raw()])
+                    output_headers = [(k.encode(), v.encode("latin1")) for k, v in response.headers.items()
+                                      if k.lower() in {"content-type", "cache-control", "location", "content-disposition", "content-security-policy", "x-frame-options", "referrer-policy", "content-encoding", "vary", "etag", "last-modified", "x-home-cache"}]
+                    if buffered and method != "HEAD":
+                        # Custom/in-memory transports may already have decoded the body.
+                        output_headers = [(k,v) for k,v in output_headers if k != b"content-encoding"]
+                    length = response.headers.get("content-length", "0") if method == "HEAD" else str(len(payload))
+                    if response.status_code != 304:
+                        output_headers.append((b"content-length", length.encode()))
+                    output_headers.append((b"x-content-type-options", b"nosniff"))
+            await send({"type": "http.response.start", "status": response.status_code, "headers": output_headers})
+            await send({"type": "http.response.body", "body": payload})
+            return
+        except httpx.RequestError as exc:
+            # Log path/type/timing only: queries, credentials and upstream bodies
+            # never enter diagnostics. POST is never replayed after a timeout.
+            logger.warning("HOME upstream failure path=%s method=%s type=%s elapsed_ms=%d attempt=%d",
+                           path, method, type(exc).__name__, int((time.monotonic()-started)*1000), attempt+1)
+            transient = isinstance(exc, (httpx.ConnectError, httpx.TimeoutException, httpx.RemoteProtocolError))
+            if retryable_read and attempt == 0 and transient:
+                await asyncio.sleep(0.15)
+                continue
+            return await error(503, "HOME 데이터 서비스에 잠시 연결할 수 없습니다.")

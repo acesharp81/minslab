@@ -10,6 +10,13 @@ from backend.service import HomeService
 from backend.sources import SOURCES
 
 class MenuPerformanceTests(unittest.TestCase):
+    def test_initial_source_catalogue_never_loads_collection_history(self):
+        with patch.object(HomeService,'sources',side_effect=AssertionError('full collection query')):
+            data=self.client.get('/poc/home/api/sources/catalogue').json()
+        self.assertEqual([s['id'] for s in data['items']],[s['id'] for s in SOURCES])
+        self.assertEqual(data['items'][0]['name'],SOURCES[0]['name'])
+        self.assertTrue(all(not {'stats','snapshots','key_env','status'} & set(s) for s in data['items']))
+
     def test_document_index_preserves_live_and_historical_visibility_without_text(self):
         from datetime import timedelta
         from backend.service import today

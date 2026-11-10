@@ -92,3 +92,50 @@ def test_new_report_provenance_does_not_publish_private_attachment(tmp_path):
     with pytest.raises(ValueError):artifact_path(tmp_path,report)
     value=manifest(tmp_path,report)
     assert value['status']=='PRESENT' and value['download_url'] is None and value['access']=='PRIVATE_REVIEW_ARCHIVE'
+
+
+def test_business_revalidation_flag_does_not_claim_version_change(env):
+    s,_,did,_=env;p=proposal(env);ref=p['source_ref']
+    row=dict(subject='STA_test',result=p,body_text=p['proof']['body'],evidence=['없는 요약문'],
+        cross_review=dict(refs=[ref],selected_source_ref=ref,evidence_revalidation_required=True))
+    pkg=package(row,[row],load_registry(s,[ref]));v=pkg['reference_validation']
+    assert v['selected_comparison']=='UNCHANGED' and v['business_revalidation_required']
+    assert not v['current_drift_refs']
+    assert not pkg['quote_checks'][0]['direct_evidence_verified'] and not pkg['quote_checks'][0]['business_fact_verified']
+
+
+def test_alternative_quote_carries_ref_hash_and_reproducible_anchor(env):
+    s,_,did,_=env;p=proposal(env);ref=p['source_ref']
+    row=dict(subject=did,result={},body_text='선택 본문',evidence=['총 100호'])
+    other=dict(subject=did,role='officer',body_text='다른 저장 본문 총 100호 공급',body_ref=ref)
+    q=package(row,[row,other],{})['quote_checks'][0]
+    assert q['cause_classification']=='OTHER_STORED_VERSION' and not q['direct_evidence_verified']
+    match=q['other_agent_body_matches'][0];a=match['anchor']
+    assert match['requested_ref']==ref and other['body_text'][a['start']:a['end']]=='총 100호'
+
+
+def test_structured_events_keep_every_date_and_observation_separate(env):
+    s,_,did,_=env
+    with s.sessions.begin() as db:
+        source=sr.current(db,'document_evidence',did)
+        row,_=upsert_revision(db,'document_evidence','seoul_press_watch','test',dict(source.payload,facts=[
+            dict(stage='APPROVAL',kind='ACTUAL',date='2020-01-01',milestone='최초인가'),
+            dict(stage='APPROVAL',kind='ACTUAL',date='2021-01-01',milestone='변경인가'),
+            dict(stage='APPROVAL',kind='ACTUAL',date='2022-01-01',date_basis='OBSERVED_BY')]),'test')
+        ref=sr.reference(row)
+    row=dict(subject='STA_test',result=dict(source_ref=ref,stage='APPROVAL'))
+    pkg=package(row,[row],load_registry(s,[ref]));events=pkg['structured_events']
+    assert len(events)==3 and [e['event_type'] for e in events[:2]]==['최초인가','변경인가']
+    assert events[2]['event_date'] is None and events[2]['observed_on']=='2022-01-01'
+    assert not any(e['merge_authorized'] for e in events)
+
+
+def test_business_completion_keeps_pinned_reanalysis_task_visible():
+    from backend.ai_agents_inbox import attach_reviews
+    record=dict(subject='DOC_test',state='DONE',business_status='REGISTRATION_REQUIRED')
+    review=dict(current=True,revalidation_reasons=['복구 본문과 이전 AI 분석 동기화 필요'])
+    with patch('backend.hold_review.load',return_value={'DOC_test':review}):
+        row=attach_reviews(None,[record])[0]
+    assert row['reanalysis_required'] and row['state']=='DONE'
+    with patch('backend.hold_review.load',return_value={'DOC_test':dict(review,current=False)}):
+        assert not attach_reviews(None,[dict(subject='DOC_test')])[0].get('reanalysis_required')

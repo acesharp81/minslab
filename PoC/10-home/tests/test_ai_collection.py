@@ -148,8 +148,8 @@ def test_budget_is_reserved_before_network_and_errors_keep_reservation(env,monke
     assert not seen
     store.finish(run['id'],'BUDGET_PAUSED')
     run=run_for(store,daily_usd=2)
-    def bad(req):return httpx.Response(429,json={'secret':'not-logged'})
-    with pytest.raises(ValueError,match='AI 응답 실패') as error:
+    def bad(req):raise httpx.ReadTimeout('not-logged',request=req)
+    with pytest.raises(ValueError,match='연결 실패·시간 초과') as error:
         invoke(store,run,'gpt-5.4-mini',{},BODY,None,httpx.MockTransport(bad))
     assert 'not-logged' not in str(error.value)
     with store.db() as db:
