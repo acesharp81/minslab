@@ -21,6 +21,7 @@ from .logging_config import configure_logging
 from .models import AuditLog, Notice, PipelineRun
 from .routers import actions, collector, dashboard, extension_install, health, notices, reports, settings as settings_router
 from .services.collector import run_collection
+from .services.attachment_retention import purge_attachments_by_policy
 from .services.batch_lock import BatchAlreadyRunning
 from .services.supabase_store import get_supabase_store
 from .services.runtime_settings import verify_admin_session
@@ -45,6 +46,36 @@ async def _refresh_opinion_tracking_loop() -> None:
         except Exception:
             logger.exception("Scheduled pre-notice opinion refresh failed")
         await asyncio.sleep(15 * 60)
+
+
+async def _attachment_retention_loop() -> None:
+    """Apply file retention even while procurement collection is paused."""
+    await asyncio.sleep(60)
+    while True:
+        try:
+            def cleanup() -> None:
+                with SessionLocal() as db:
+                    purge_attachments_by_policy(db)
+
+            await asyncio.to_thread(cleanup)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Scheduled attachment retention cleanup failed")
+        await asyncio.sleep(24 * 60 * 60)
+
+
+async def _prewarm_operational_views() -> None:
+    """Warm expensive read caches without blocking health checks or startup."""
+    await asyncio.sleep(2)
+
+    def prewarm() -> None:
+        with SessionLocal() as db:
+            notices.current_classification_notice_ids(db)
+        if settings.g2b_mode == "live":
+            reports.prewarm_statistics(("30d", "month", "year", "all"))
+
+    await asyncio.to_thread(prewarm)
 
 
 def format_number(value) -> str:
@@ -115,22 +146,14 @@ async def lifespan(app: FastAPI):
                     detail_json=json.dumps({"reason": "service_restart"}, ensure_ascii=False),
                 ))
             db.commit()
-        # Prime the append-only dashboard classification projection once at
-        # startup so the first operator request does not parse run history.
-        notices.current_classification_notice_ids(db)
         local_notice_count = int(db.scalar(select(func.count(Notice.id))) or 0)
-    statistics_prewarm_task = None
-    if settings.g2b_mode == "live":
-        # Make the default statistics page hot before accepting user traffic.
-        # Less common ranges are prepared in the background.
-        reports.prewarm_statistics(("30d",))
-        statistics_prewarm_task = asyncio.create_task(asyncio.to_thread(
-            reports.prewarm_statistics, ("month", "year", "all"),
-        ))
-        app.state.statistics_prewarm_task = statistics_prewarm_task
+    statistics_prewarm_task = asyncio.create_task(_prewarm_operational_views())
+    app.state.statistics_prewarm_task = statistics_prewarm_task
     reconcile_task = None
     opinion_refresh_task = asyncio.create_task(_refresh_opinion_tracking_loop())
     app.state.opinion_refresh_task = opinion_refresh_task
+    attachment_retention_task = asyncio.create_task(_attachment_retention_loop())
+    app.state.attachment_retention_task = attachment_retention_task
     if settings.supabase_enabled and local_notice_count == 0:
         def reconcile_cache() -> None:
             with SessionLocal() as db:
@@ -148,7 +171,11 @@ async def lifespan(app: FastAPI):
     yield
     if not opinion_refresh_task.done():
         opinion_refresh_task.cancel()
-    await asyncio.gather(opinion_refresh_task, return_exceptions=True)
+    if not attachment_retention_task.done():
+        attachment_retention_task.cancel()
+    await asyncio.gather(
+        opinion_refresh_task, attachment_retention_task, return_exceptions=True,
+    )
     if reconcile_task and not reconcile_task.done():
         reconcile_task.cancel()
     if statistics_prewarm_task and not statistics_prewarm_task.done():

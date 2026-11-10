@@ -39,7 +39,7 @@ class GitLabSyncTests(unittest.TestCase):
         self.commit("initial monorepo")
         self.env = {
             key: value for key, value in os.environ.items()
-            if key not in {"GITLAB_TOKEN", "GITLAB_USERNAME", "GIT_ASKPASS", "GITLAB_KJON_TOKEN", "GITLAB_HOME_TOKEN"}
+            if key not in {"GITLAB_TOKEN", "GITLAB_USERNAME", "GIT_ASKPASS", "GITLAB_KJON_TOKEN", "GITLAB_HOME_TOKEN", "GITLAB_CHECK_TOKEN", "GITLAB_BATON_TOKEN"}
         }
         self.env["GIT_TERMINAL_PROMPT"] = "0"
 
@@ -156,6 +156,42 @@ class GitLabSyncTests(unittest.TestCase):
             sync.prepare_export(self.root, self.projects[key], old_source)
 
 
+    def test_gitlab_initializer_is_preserved_with_stable_future_updates(self):
+        key = "check"
+        original = self.projects[key]
+        remote = Path(original.remote)
+        initializer = self.base / "gitlab-initializer"
+        initializer.mkdir()
+        self.git(initializer, "init", "-b", "main")
+        self.identity(initializer)
+        (initializer / "README.md").write_text("GitLab default README")
+        self.git(initializer, "add", ".")
+        self.git(initializer, "commit", "-m", "Initial commit")
+        initial = self.git(initializer, "rev-parse", "HEAD")
+        self.git(initializer, "push", str(remote), "main")
+        bundle = self.root / "bootstrap.bundle"
+        self.git(initializer, "bundle", "create", str(bundle), "refs/heads/main")
+        source = self.git(self.root, "rev-parse", "HEAD")
+        self.projects[key] = sync.Project(original.name, original.prefix, original.remote,
+                                          original.token_env, source, initial, "bootstrap.bundle")
+        first = self.prepare(key)
+        self.assertEqual(self.git(self.root, "rev-parse", first.commit + "^"), initial)
+        self.assertEqual(self.git(self.root, "rev-parse", first.commit + "^{tree}"),
+                         self.git(self.root, "rev-parse", source + ":" + original.prefix))
+        sync.publish(self.root, first, self.env)
+        self.assertEqual(self.prepare(key).commit, first.commit)
+        (self.root / original.prefix / "README.md").write_text("next reviewed source")
+        self.commit("update selected source")
+        second = self.prepare(key)
+        sync.publish(self.root, second, self.env)
+        self.assertEqual(self.git(remote, "rev-parse", "main^"), first.commit)
+        self.assertEqual(self.git(remote, "rev-parse", "main^^"), initial)
+        self.assertEqual(self.git(self.root, "for-each-ref", "refs/replace"), "")
+        self.projects[key] = sync.Project(original.name, original.prefix, original.remote,
+                                          original.token_env, source, "a" * 40, "bootstrap.bundle")
+        with self.assertRaisesRegex(sync.SyncError, "초기 이력"):
+            self.prepare(key)
+
     def test_repeated_sync_and_other_project_commits_do_not_change_export(self):
         first = self.prepare("kjon")
         sync.publish(self.root, first, self.env)
@@ -240,9 +276,48 @@ class GitLabSyncTests(unittest.TestCase):
             self.assertEqual(self.refs("kjon"), "")
             self.assertEqual(self.refs("home"), "")
             (self.root / self.projects["home"].prefix / "README.md").write_text("dirty HOME")
-            self.assertEqual(sync.main(["all", "--push"]), 1)
+            self.assertEqual(sync.main(["all", "--source", self.git(self.root, "rev-parse", "HEAD"),
+                                            "--approve-source", self.git(self.root, "rev-parse", "HEAD"), "--push"]), 1)
             self.assertEqual(self.refs("kjon"), "")
             self.assertEqual(self.refs("home"), "")
+
+    def test_push_requires_matching_full_source_approval_before_export(self):
+        source = self.git(self.root, "rev-parse", "HEAD")
+        cases = [[], ["--source", source], ["--approve-source", source],
+                 ["--source", source, "--approve-source", "a" * 40],
+                 ["--source", "main", "--approve-source", "main"]]
+        with patch.object(sync, "__file__", str(self.root / "deploy/gitlab_sync.py")), \
+             patch.object(sync, "prepare_export") as prepare, \
+             patch("sys.stderr", new_callable=io.StringIO):
+            for args in cases:
+                with self.subTest(args=args):
+                    self.assertEqual(sync.main(["check", "--push", *args]), 1)
+            prepare.assert_not_called()
+
+    def test_approved_source_stays_pinned_when_head_advances(self):
+        source = self.git(self.root, "rev-parse", "HEAD")
+        expected = self.prepare("check").commit
+        (self.root / self.projects["check"].prefix / "README.md").write_text("not approved yet")
+        self.commit("newer unapproved version")
+        with patch.object(sync, "__file__", str(self.root / "deploy/gitlab_sync.py")), \
+             patch.object(sync, "PROJECTS", self.projects), \
+             patch.dict(os.environ, self.env, clear=True), \
+             patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(sync.main(["check", "--source", source, "--approve-source", source, "--push"]), 0)
+        self.assertEqual(self.tip("check"), expected)
+        for key in ("baton", "home", "kjon"):
+            self.assertEqual(self.refs(key), "")
+
+    def test_source_outside_controller_history_is_rejected(self):
+        self.git(self.root, "checkout", "-b", "not-merged")
+        (self.root / "parent-only.txt").write_text("unmerged")
+        source = self.commit("unmerged source")
+        self.git(self.root, "checkout", "main")
+        with patch.object(sync, "__file__", str(self.root / "deploy/gitlab_sync.py")), \
+             patch.object(sync, "prepare_export") as prepare, \
+             patch("sys.stderr", new_callable=io.StringIO):
+            self.assertEqual(sync.main(["check", "--source", source, "--approve-source", source, "--push"]), 1)
+            prepare.assert_not_called()
 
     def test_ci_askpass_reads_credentials_from_environment_and_is_removed(self):
         with patch.dict(os.environ, {"GITLAB_USERNAME": "test-user", "GITLAB_TOKEN": "test-only-token"}):
@@ -259,14 +334,18 @@ class GitLabSyncTests(unittest.TestCase):
 
     def test_each_project_receives_only_its_own_token(self):
         credentials = dict(self.env, GITLAB_KJON_TOKEN="assembly-test-token",
-                           GITLAB_HOME_TOKEN="housing-test-token", GITLAB_TOKEN="legacy-test-token")
+                           GITLAB_HOME_TOKEN="housing-test-token", GITLAB_CHECK_TOKEN="check-test-token",
+                           GITLAB_BATON_TOKEN="baton-test-token", GITLAB_TOKEN="legacy-test-token")
         with patch.dict(os.environ, credentials, clear=True):
-            for key, expected in [("kjon", "assembly-test-token"), ("home", "housing-test-token")]:
+            for key, expected in [("kjon", "assembly-test-token"), ("home", "housing-test-token"),
+                                  ("check", "check-test-token"), ("baton", "baton-test-token")]:
                 with self.subTest(project=key), sync.push_environment(self.projects[key]) as env:
                     self.assertEqual(env["GITLAB_TOKEN"], expected)
                     self.assertEqual(env["GITLAB_USERNAME"], "gitlab-sync")
                     self.assertNotIn("GITLAB_KJON_TOKEN", env)
                     self.assertNotIn("GITLAB_HOME_TOKEN", env)
+                    self.assertNotIn("GITLAB_CHECK_TOKEN", env)
+                    self.assertNotIn("GITLAB_BATON_TOKEN", env)
                     result = subprocess.run([env["GIT_ASKPASS"], "Password"], env=env,
                                             capture_output=True, text=True, check=True)
                     self.assertEqual(result.stdout.strip(), expected)
@@ -281,7 +360,8 @@ class GitLabSyncTests(unittest.TestCase):
                  patch.object(sync, "PROJECTS", self.projects), \
                  patch("sys.stdout", new_callable=io.StringIO), \
                  patch("sys.stderr", new_callable=io.StringIO):
-                self.assertEqual(sync.main(["all", "--push"]), 1)
+                self.assertEqual(sync.main(["all", "--source", self.git(self.root, "rev-parse", "HEAD"),
+                                            "--approve-source", self.git(self.root, "rev-parse", "HEAD"), "--push"]), 1)
             self.assertEqual(self.refs("kjon"), "")
             self.assertEqual(self.refs("home"), "")
 

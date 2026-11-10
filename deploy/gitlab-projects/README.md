@@ -6,32 +6,51 @@ GitHub의 MinsLab 저장소를 개발 원본으로 사용하고, 서비스별 �
 | --- | --- | --- |
 | `kjon` | `PoC/07-NationalAssembly/` | <https://gitlab.aigov.go.kr/acesharp/kjon> |
 | `home` | `PoC/10-home/` | <https://gitlab.aigov.go.kr/acesharp/HOME> |
-| `all` | 위 두 폴더 | 위 두 프로젝트 |
+| `check` | `PoC/08-AICommonPlatformRadar/` | <https://gitlab.aigov.go.kr/acesharp/check> |
+| `baton` | `PoC/13-handover/` | <https://gitlab.aigov.go.kr/acesharp/baton> |
+| `all` | 위 네 폴더 | 위 네 프로젝트 |
 
 예를 들어 `PoC/07-NationalAssembly/README.md`는 `kjon` 저장소의 `README.md`가 됩니다. 상위 `PoC/` 폴더나 다른 서비스 코드는 포함되지 않습니다. `git subtree split`으로 프로젝트 이력을 분리한 다음 `git fast-export`·`fast-import`의 경로 선택으로 `docs/evidence/`와 `data/recovery/`를 과거 이력에서도 제외합니다. 국정ON은 `e9482fd`, Home은 `1d9fd7d`의 재구성·보안 보완 버전을 최초 공개 기준으로 삼고 그 이전 이력은 GitHub에 보존합니다. 기준 버전의 전체 파일로 공유 이력을 시작하고 이후 작성자·메시지·변경 이력을 이어 갑니다. 트리는 원본에서 이 생성 증빙 경로만 제외한 결과와 일치하는지 검증합니다. 원본 branch·index·작업 파일·FETCH_HEAD는 바꾸지 않습니다. 다른 폴더만 바뀌면 분리된 커밋은 동일하여 해당 GitLab 프로젝트에는 새 변경이 생기지 않습니다.
 
-## 자동 동기화
+PoC 8·13의 최초 공개 기준 원본은 `72d1af3ffdd3cc2761f83f778dc16f9d7c7d598e`입니다. 현재 파일 전체로 독립 이력을 시작하고 이후에는 같은 기준점을 유지합니다. 이 기준점은 이미 게시한 이력을 재작성하는 용도로 바꾸지 않습니다.
 
-[sync-gitlab-projects.yml](../../.github/workflows/sync-gitlab-projects.yml)은 GitHub `main`의 두 서비스 폴더 또는 동기화 도구가 변경될 때 실행됩니다. 두 프로젝트를 각각 처리하며, 실패한 프로젝트 때문에 다른 프로젝트의 작업을 취소하지 않습니다. 프로젝트별 작업을 직렬화하고 실행 시 최신 `main`을 받아 오래된 실행이 최신 결과를 되돌리는 것을 방지합니다.
+두 신규 대상에는 GitLab이 만든 README 초기 커밋이 있어 이를 보존합니다. `bootstrap/check.bundle`은 `efc284a162c818a9ece07b15e10ef32d9442ef19`, `bootstrap/baton.bundle`은 `e0157718d5e903c616fc465d5385c8c0239e1969` 한 커밋의 공개 README만 담습니다. 원본 공개 기준 커밋의 부모를 이 초기 이력으로 연결하는 작업은 임시 bare 저장소에서 수행하며 원본 refs를 변경하지 않습니다. bundle의 SHA와 최종 이력의 선조 관계를 검사하고 이후에도 동일하게 재현합니다. GitLab 기본 README는 프로젝트 README로 교체됩니다. 새로운 원격 이력이 생기면 일반 push가 거부하므로 강제로 지우지 않습니다.
 
-GitHub 저장소의 **Settings → Secrets and variables → Actions → New repository secret**에 다음 두 값을 각각 등록합니다.
+## 승인 후 수동 게시
+
+2026-11-11부터 네 프로젝트 모두 **자동 게시를 중단**합니다. GitHub에서 개발·커밋·push·병합해도 GitLab 제출본은 변경되지 않습니다. [sync-gitlab-projects.yml](../../.github/workflows/sync-gitlab-projects.yml)은 `workflow_dispatch`만 허용합니다.
+
+GitHub **Actions → Sync service projects to GitLab → Run workflow**에서:
+
+1. 브랜치 `main`을 선택합니다.
+2. 게시할 `check`·`baton`·`kjon`·`home` 중 하나를 선택합니다. `all`은 네 프로젝트 모두를 갱신합니다.
+3. 사용자가 검토하고 승인한 GitHub 원본 커밋 SHA **40자리 전체**를 입력합니다.
+4. 제출본 갱신 승인 항목을 체크하고 실행합니다.
+
+SHA는 실행 시점의 controller 커밋에 포함된 이력이어야 합니다. 승인 입력이 없거나 형식이 다르면 게시하지 않습니다. 대기 중 새 커밋이 올라와도 입력한 SHA만 내보내며, 재실행도 같은 승인 SHA를 사용합니다. SHA가 오래되어 GitLab 이력을 되돌려야 하는 경우 일반 push가 거부합니다. 서로 다른 수동 실행도 한 번에 하나만 처리합니다. `all`은 토큰과 미커밋 상태를 사전 검사한 뒤 순서대로 게시하지만, 별도 저장소 네 개의 원격 반영은 원자적이지 않으므로 중간 서버 오류 시 일부만 반영될 수 있습니다.
+
+출품 이후 새 버전 게시 여부는 사용자가 결정합니다. 작업 요청이나 GitHub 병합 자체를 GitLab 게시 승인으로 간주하지 않습니다. 실행기 이미지의 읽기 전용 hook도 자동 `push` 이벤트와 승인 정보가 없는 과거 수동 실행의 재실행을 거부합니다. 토큰을 가진 사용자 또는 저장소 관리자가 직접 실행하는 변경까지 이 워크플로가 제한하는 것은 아닙니다.
+
+GitHub 저장소의 **Settings → Secrets and variables → Actions → New repository secret**에 다음 값을 각각 등록합니다.
 
 | Secret 이름 | 등록할 값 |
 | --- | --- |
-| `GITLAB_KJON_TOKEN` | 국정ON `acesharp/kjon`에서 발급한 프로젝트 액세스 토큰 |
-| `GITLAB_HOME_TOKEN` | the주택 `acesharp/HOME`에서 발급한 프로젝트 액세스 토큰 |
+| `GITLAB_KJON_TOKEN` | 국정ON `acesharp/kjon`의 프로젝트 액세스 토큰 |
+| `GITLAB_HOME_TOKEN` | the주택 `acesharp/HOME`의 프로젝트 액세스 토큰 |
+| `GITLAB_CHECK_TOKEN` | PoC 8 `acesharp/check`의 프로젝트 액세스 토큰 |
+| `GITLAB_BATON_TOKEN` | PoC 13 `acesharp/baton`의 프로젝트 액세스 토큰 |
 
-각 토큰은 `write_repository` 범위와 대상 `main`에 push할 수 있는 역할·브랜치 권한이 필요합니다. 프로젝트 액세스 토큰은 발급한 프로젝트에만 사용합니다. HTTPS 인증의 사용자명은 비어 있지 않은 값이면 되므로 workflow는 `gitlab-sync`를 사용하며 별도의 사용자명 secret은 필요하지 않습니다. [GitLab 프로젝트 토큰 문서](https://docs.gitlab.com/user/project/settings/project_access_tokens/)
+각 토큰은 `write_repository` 범위와 대상 `main`에 push할 수 있는 역할·브랜치 권한이 필요합니다. 기본 보호 브랜치에 맞춰 Maintainer 역할을 사용하며 `api`·`read_api`는 필요하지 않습니다. 프로젝트 액세스 토큰은 발급한 프로젝트에만 사용합니다. HTTPS 인증 사용자명은 `gitlab-sync`이며 별도 사용자명 secret은 필요하지 않습니다. [GitLab 프로젝트 토큰 문서](https://docs.gitlab.com/user/project/settings/project_access_tokens/)
 
-workflow는 프로젝트에 해당하는 secret만 해당 작업에 전달합니다. 기존 `GITLAB_TOKEN`·`GITLAB_USERNAME` secrets는 자동 동기화에서 더 이상 사용하지 않습니다. 인증값은 URL이나 파일 내용에 기록하지 않고 임시 `GIT_ASKPASS`를 통해 전달합니다. 실행기에서는 실행 가능한 작업용 `RUNNER_TEMP`에 인증 도구를 만들고 삭제하므로 시스템 `/tmp`의 실행 제한을 유지할 수 있습니다.
+workflow는 네 토큰을 게시 도구에 전달하고, 도구는 각 Git 자식 프로세스에 선택한 프로젝트의 토큰 하나만 전달합니다. 기존 `GITLAB_TOKEN`·`GITLAB_USERNAME`·`GITLAB_REPOSITORY` secrets는 workflow에서 사용하지 않습니다. 인증값은 URL이나 파일 내용에 기록하지 않고 임시 `GIT_ASKPASS`를 통해 전달합니다. 실행 가능한 `RUNNER_TEMP`에 인증 도구를 만들고 삭제합니다.
 
-최초 동기화는 이 workflow와 도구를 GitHub `main`에 반영하면 시작됩니다. 재실행이나 특정 프로젝트만 갱신하려면 GitHub **Actions → Sync service projects to GitLab → Run workflow**에서 브랜치 `main`과 `all`·`kjon`·`home`을 선택합니다. 수동 실행에서는 선택한 프로젝트의 작업만 생성합니다. 선택하지 않은 프로젝트가 게시 성공으로 표시되지 않습니다. `main` 이외의 브랜치에서는 게시하지 않습니다.
+최초 PoC 8·13 게시도 자동으로 시작하지 않습니다. 현재 버전으로 게시해 달라는 사용자 요청에 따라 검증된 초기 커밋 SHA를 지정하여 두 프로젝트만 수동 실행합니다. 기존 국정ON·the주택 제출본은 이 최초 게시에 포함하지 않습니다. 네 프로젝트 모두 이후 변경에는 별도 승인이 필요합니다.
 
-전체 저장소 미러링 workflow는 제거했습니다. 동기화 대상은 이 문서의 두 서비스이며, `GITLAB_REPOSITORY` secret은 더 이상 사용하지 않습니다. 기존 GitLab 전체 미러 저장소와 이미 게시한 코드는 별도로 유지됩니다.
+전체 저장소 미러링 workflow는 제거된 상태를 유지합니다. 기존 GitLab 전체 미러 저장소와 이미 게시한 코드는 별도로 유지됩니다.
 
 ### GitLab 네트워크 접근
 
-2026-11-02 최초 실행에서는 GitHub 기본 실행 서버에서 `gitlab.aigov.go.kr:443`으로 연결하지 못해 두 작업이 실패했습니다. workflow는 GitLab 접속이 정상인 MinsLab 서버의 [격리된 동기화 전용 실행기](../gitlab-runner/README.md)를 사용합니다. 요청 label은 `[self-hosted, linux, x64, minslab-gitlab-sync]`이며 두 프로젝트는 순서대로 처리합니다. 실행기가 중지되면 작업이 대기하므로 GitHub **Settings → Actions → Runners**와 전용 컨테이너 상태를 확인합니다. [기존 기본 실행 서버의 실패 로그](https://github.com/acesharp81/minslab/actions/runs/41363450261)
+2026-11-02 최초 실행에서는 GitHub 기본 실행 서버에서 `gitlab.aigov.go.kr:443`으로 연결하지 못해 두 작업이 실패했습니다. workflow는 GitLab 접속이 정상인 MinsLab 서버의 [격리된 동기화 전용 실행기](../gitlab-runner/README.md)를 사용합니다. 요청 label은 `[self-hosted, linux, x64, minslab-gitlab-sync]`이며 선택한 프로젝트를 순서대로 처리합니다. 실행기가 중지되면 작업이 대기하므로 GitHub **Settings → Actions → Runners**와 전용 컨테이너 상태를 확인합니다. [기존 기본 실행 서버의 실패 로그](https://github.com/acesharp81/minslab/actions/runs/41363450261)
 
 ## 로컬 실행
 
@@ -41,12 +60,13 @@ Git과 Python 3.10 이상이 필요합니다. Git subtree가 포함된 전체 cl
 # 네트워크 게시 없이 분리 결과 확인
 python3 deploy/gitlab_sync.py all
 
-# 선택한 프로젝트만 GitLab에 반영
-python3 deploy/gitlab_sync.py kjon --push
-python3 deploy/gitlab_sync.py home --push
+# 사용자가 승인한 전체 커밋 SHA를 직접 지정 (HEAD를 자동으로 선택하지 않음)
+source_sha=승인한_40자리_커밋_SHA
+python3 deploy/gitlab_sync.py check --source "$source_sha"
+python3 deploy/gitlab_sync.py check --source "$source_sha" --approve-source "$source_sha" --push
 ```
 
-로컬 push는 기존 Git credential helper를 사용할 수 있습니다. 또는 비밀관리 도구로 `GITLAB_KJON_TOKEN`·`GITLAB_HOME_TOKEN` 환경변수를 주입하면 `all --push`도 각 프로젝트의 토큰으로 나누어 인증합니다. 한 프로젝트의 토큰을 설정한 상태에서 다른 프로젝트의 토큰이 누락되면 게시 전에 중단하며 다른 프로젝트나 공통 토큰으로 대체하지 않습니다. 각 Git 프로세스에는 선택한 토큰 하나만 전달합니다.
+로컬 push는 기존 Git credential helper를 사용할 수 있습니다. 또는 비밀관리 도구로 위 네 프로젝트별 토큰 환경변수를 주입하면 승인 SHA를 지정한 `all --push`도 각 프로젝트의 토큰으로 나누어 인증합니다. 한 프로젝트의 토큰을 설정한 상태에서 다른 프로젝트의 토큰이 누락되면 게시 전에 중단하며 다른 프로젝트나 공통 토큰으로 대체하지 않습니다. 각 Git 프로세스에는 선택한 토큰 하나만 전달합니다.
 
 호환성을 위해 프로젝트별 토큰을 하나도 설정하지 않은 로컬 환경에서는 기존 공통 `GITLAB_TOKEN`과 선택적인 `GITLAB_USERNAME`도 지원합니다. 사용자명을 생략하면 `gitlab-sync`를 사용합니다. GitHub secrets의 값은 서버로 자동 전달되지 않으므로 서버에서 실행할 때는 서버의 비밀관리 환경에도 토큰을 별도로 등록해야 합니다. 토큰을 명령줄이나 저장소 파일에 쓰지 않습니다.
 
@@ -74,7 +94,7 @@ Home은 전송량과 최초 이력을 줄여도 업로드 후 약 60초 응답 �
 python3 -m unittest discover -s tests -p 'test_gitlab_sync.py' -v
 ```
 
-테스트는 임시 원본 저장소와 로컬 bare 저장소 두 개만 사용합니다. 실제 GitLab에는 접속하거나 게시하지 않습니다. 프로젝트 범위·이력 분리, 반복 실행, 선택 갱신·삭제, 미커밋 변경 차단, 대상의 독립 수정 보호를 검증합니다.
+테스트는 임시 원본 저장소와 로컬 bare 저장소 네 개만 사용합니다. 실제 GitLab에는 접속하거나 게시하지 않습니다. 프로젝트 범위·이력 분리, 반복 실행, 선택 갱신·삭제, 미커밋 변경 차단, 대상의 독립 수정 보호, 승인 누락 차단과 오래된 승인 버전의 고정 게시를 검증합니다. 실행기 검사는 `python3 -m unittest discover -s tests -p 'test_gitlab_runner_guard.py' -v`로 실행합니다.
 
 ## 2026-11-02 Home 전송 진단 및 게시 범위
 

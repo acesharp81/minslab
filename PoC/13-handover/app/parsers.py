@@ -6,7 +6,7 @@ import zipfile
 from datetime import date, datetime
 from pathlib import Path, PurePosixPath
 
-PARSER_VERSION = "source-v2-syhwp008-pdf-outline-docx12-xlsx315"
+PARSER_VERSION = "source-v3-hwpx-breaks-pdf-outline-docx12-xlsx315"
 SUPPORTED = {".hwp", ".hwpx", ".pdf", ".docx", ".xlsx", ".txt", ".md"}
 MAX_FILE = 20 * 1024 * 1024
 MAX_TOTAL = 80 * 1024 * 1024
@@ -117,7 +117,11 @@ def parse(path, extension):
             from syhwp.models import Image, Equation, Table
             if extension == ".hwp" and Path(path).read_bytes()[:8] != bytes.fromhex("d0cf11e0a1b11ae1"):
                 raise InputError("HWP 5.x 파일 형식이 아닙니다.")
-            doc = syhwp.open(path)
+            if extension == ".hwpx":
+                from .hwpx_text import open_with_breaks
+                doc = open_with_breaks(path)
+            else:
+                doc = syhwp.open(path)
             for n, block in enumerate(doc.blocks, 1):
                 if isinstance(block, (Image, Equation)):
                     warnings.append(f"블록 {n}: 그림·수식 내용은 의미 해석하지 않았습니다.")

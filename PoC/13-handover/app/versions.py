@@ -34,8 +34,12 @@ def metadata(blocks, evidence):
         matches=[]
         for block in blocks:
             # Coordinates are parser annotations, not document metadata.
-            lines=re.sub(r'(^|\|\s*)[A-Z]+\d*:\s*',r'\1',block['text']).splitlines()
-            for line in [segment for row in lines for segment in re.split(r'\s*\|\s*(?=[^|:：]+[:：])',row)]:
+            normalized=re.sub(r'(^|\|\s*)[A-Z]+\d*:\s*',r'\1',block['text'])
+            # PDF may wrap a resource record across lines within one labelled block.
+            if key=='reported_at' and re.match(r'^\s*(?:[○□-]\s*)?(?:\(예산 현황\)|예산 현황[:：]|예산코드[:：]|관계자ID[:：])',normalized):continue
+            lines=normalized.splitlines()
+            # A budget/contact record has its own date, not the report's version date.
+            for line in [segment for row in lines if not (key=='reported_at' and re.search(r'(?:예산코드|관계자ID)\s*[:：]',row)) for segment in re.split(r'\s*\|\s*(?=[^|:：]+[:：])',row)]:
                 m=pattern.match(line)
                 if not m:continue
                 raw=m.group(1).strip();v=raw

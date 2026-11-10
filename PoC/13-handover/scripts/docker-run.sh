@@ -16,4 +16,4 @@ docker run -d --name poc13-handover --restart unless-stopped \
   -p 127.0.0.1:18130:8000 \
   --mount type=volume,source=poc13-handover-data,target=/app/data \
   "${network_args[@]}" "${env_args[@]}" -e HANDOVER_DATA_DIR=/app/data \
-  poc13-handover:1.6.4
+  poc13-handover:1.6.7

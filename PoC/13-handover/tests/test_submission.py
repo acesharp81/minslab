@@ -69,7 +69,7 @@ def test_download_materials_public_while_workspace_stays_protected(tmp_path,monk
         assert c.get('/guide').status_code==200
         assert c.get('/samples/submission.zip').status_code==200
         assert c.get('/downloads/.env').status_code==404
-        assert c.get('/api/health').json()['version']=='1.6.4'
+        assert c.get('/api/health').json()['version']=='1.6.7'
 
 
 def test_public_preview_style_policy_and_private_boundary(client,tmp_path,monkeypatch):

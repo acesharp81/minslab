@@ -1,0 +1,410 @@
+{
+  "synthetic_only": true,
+  "original_documents": 21,
+  "target_documents_before_inheritance": 19,
+  "draft_candidates_with_inheritance": 7,
+  "final_work_count": 5,
+  "progress": {
+    "지역생활서비스 통합지원": 65,
+    "문화시설 통합예약 개선": 75,
+    "보조금 정산 승인": 40,
+    "공공시설 안전점검": 100,
+    "공공데이터 개방 품질개선": 60
+  },
+  "same_filename": "자료/보고서.hwpx",
+  "same_filename_versions": 3,
+  "selected_revision": 3,
+  "excluded_draft_revision": 4,
+  "latest_only_images": 1,
+  "excluded_images": 2,
+  "manual_group_titles": [
+    "문화시설 통합예약 개선",
+    "예약 화면 이용편의 개선",
+    "예약포털 접근성 보완"
+  ],
+  "inherited_unchanged": "공공시설 안전점검",
+  "updated_from_previous": "지역생활서비스 통합지원",
+  "unique_budgets": 6,
+  "unique_contacts": 6,
+  "report_tables": 95,
+  "source_formats": {
+    "hwpx": 9,
+    "xlsx": 6,
+    "pdf": 6
+  },
+  "version_scenarios": [
+    "서로 다른 기준일",
+    "동일 기준일·다른 수정차수",
+    "동일 기준일·동일 차수·다른 수정시각",
+    "초안·검토중·대체됨·폐기 제외"
+  ],
+  "version_selections": {
+    "보조금 정산 승인": {
+      "revision": 2,
+      "progress": 40
+    },
+    "공공데이터 개방 품질개선": {
+      "revision": 3,
+      "issued_at": "2026-11-08T17:30",
+      "progress": 60
+    }
+  },
+  "budget_review_required": {
+    "title": "공공시설 안전점검",
+    "evidence": "q77.xlsx / 예산 검산",
+    "field": "budget",
+    "old_date": "2026-01-08",
+    "new_date": "2026-11-08"
+  },
+  "budget_totals": {
+    "편성": 400000000,
+    "집행": 259000000,
+    "지급예정": 45000000,
+    "가용잔액": 96000000
+  },
+  "files": [
+    {
+      "pack": "comprehensive-base.zip",
+      "file": "a17.hwpx",
+      "title": "지역생활서비스 통합지원",
+      "progress": 20,
+      "date": "2026-01-08",
+      "revision": 1,
+      "issued_at": "2026-01-08T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP1-S1",
+        "TBL-CP1-R1",
+        "TBL-CP1-B1",
+        "TBL-CP1-P1"
+      ],
+      "sha256": "b4d6b4f9d1e0214267f7cdd3a8c55927bfe88ba4c9c3747687b3d33fed73f99e"
+    },
+    {
+      "pack": "comprehensive-base.zip",
+      "file": "b03.hwpx",
+      "title": "공공시설 안전점검",
+      "progress": 100,
+      "date": "2026-01-08",
+      "revision": 1,
+      "issued_at": "2026-01-08T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP4-S1",
+        "TBL-CP4-R1",
+        "TBL-CP4-B1",
+        "TBL-CP4-P1"
+      ],
+      "sha256": "415b1aafc940c2be2b016500fd13c1d0772132c2d3374dd9eb03ad846389c607"
+    },
+    {
+      "pack": "comprehensive-current.zip",
+      "file": "자료/보고서.hwpx",
+      "title": "지역생활서비스 통합지원",
+      "progress": 65,
+      "date": "2026-11-08",
+      "revision": 3,
+      "issued_at": "2026-11-08T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP1-S1",
+        "TBL-CP1-R1",
+        "TBL-CP1-B1",
+        "TBL-CP1-P1"
+      ],
+      "sha256": "84db2033ed9ff92a905248c07ab97640d00566701f2deb240ace2b98453dc3b8"
+    },
+    {
+      "pack": "comprehensive-current.zip",
+      "file": "p08.hwpx",
+      "title": "문화시설 통합예약 개선",
+      "progress": 20,
+      "date": "2026-11-03",
+      "revision": 1,
+      "issued_at": "2026-11-03T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP2-S1",
+        "TBL-CP2-R1",
+        "TBL-CP2-B1",
+        "TBL-CP2-P1"
+      ],
+      "sha256": "9701728d9599d070c3c65f8e981da57a3a756940fd2969d0c8d890f211bb6140"
+    },
+    {
+      "pack": "comprehensive-current.zip",
+      "file": "r42.xlsx",
+      "title": "예약 화면 이용편의 개선",
+      "progress": 50,
+      "date": "2026-11-06",
+      "revision": 2,
+      "issued_at": "2026-11-06T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP2-S1",
+        "TBL-CP2-R1",
+        "TBL-CP2-B1",
+        "TBL-CP2-P1"
+      ],
+      "sha256": "2267a4ee5141c2794af0e377ccb5311740cc759af6857a46d65f7d29a4a05fe7"
+    },
+    {
+      "pack": "comprehensive-current.zip",
+      "file": "scan_003.pdf",
+      "title": "예약포털 접근성 보완",
+      "progress": 75,
+      "date": "2026-11-08",
+      "revision": 3,
+      "issued_at": "2026-11-08T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP2-S1",
+        "TBL-CP2-R1",
+        "TBL-CP2-B1",
+        "TBL-CP2-P1"
+      ],
+      "sha256": "68e55f03438e1b0a09e1754b21fe9f4bd6d00a795f57edf6409b91c6561097d6"
+    },
+    {
+      "pack": "comprehensive-current.zip",
+      "file": "aa00.pdf",
+      "title": "보조금 정산 승인",
+      "progress": 20,
+      "date": "2026-11-02",
+      "revision": 1,
+      "issued_at": "2026-11-02T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP3-S1",
+        "TBL-CP3-R1",
+        "TBL-CP3-B1",
+        "TBL-CP3-P1"
+      ],
+      "sha256": "4c3e00dbe06c5035491cf5666d505064ad078c3e1e8b0edfa38c0c622a5ca8c3"
+    },
+    {
+      "pack": "comprehensive-current.zip",
+      "file": "zz99.xlsx",
+      "title": "보조금 정산 승인",
+      "progress": 40,
+      "date": "2026-11-08",
+      "revision": 2,
+      "issued_at": "2026-11-08T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP3-S1",
+        "TBL-CP3-R1",
+        "TBL-CP3-B1",
+        "TBL-CP3-P1"
+      ],
+      "sha256": "fd879a00e39a8d5968e58508ba5aa40baa928aace365ad788d4cd9e59c28ead1"
+    },
+    {
+      "pack": "comprehensive-old.zip",
+      "file": "자료/보고서.hwpx",
+      "title": "지역생활서비스 통합지원",
+      "progress": 80,
+      "date": "2026-11-06",
+      "revision": 2,
+      "issued_at": "2026-11-06T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP1-S1",
+        "TBL-CP1-R1",
+        "TBL-CP1-B1",
+        "TBL-CP1-P1"
+      ],
+      "sha256": "aa081f2903ebbd7967adc2309b3ed97cf93ee252bb61c85c821a9ee34d0e43f1"
+    },
+    {
+      "pack": "comprehensive-old.zip",
+      "file": "첨부.hwpx",
+      "title": "지역생활서비스 통합지원",
+      "progress": 20,
+      "date": "2026-11-01",
+      "revision": 1,
+      "issued_at": "2026-11-01T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP1-S1",
+        "TBL-CP1-R1",
+        "TBL-CP1-B1",
+        "TBL-CP1-P1"
+      ],
+      "sha256": "d77fb6612fc5adfb9b19013645b0a5713c52929e6b706870189e3454bd305b38"
+    },
+    {
+      "pack": "comprehensive-draft.zip",
+      "file": "자료/보고서.hwpx",
+      "title": "지역생활서비스 통합지원",
+      "progress": 100,
+      "date": "2026-11-09",
+      "revision": 4,
+      "issued_at": "2026-11-09T16:00",
+      "state": "초안",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP1-S1",
+        "TBL-CP1-R1",
+        "TBL-CP1-B1",
+        "TBL-CP1-P1"
+      ],
+      "sha256": "4609128cdcaee444633c9d09d9622f7f2c1ecb37b0808c4f73c13eed05483e7f"
+    },
+    {
+      "pack": "comprehensive-current.zip",
+      "file": "r11.pdf",
+      "title": "공공데이터 개방 품질개선",
+      "progress": 60,
+      "date": "2026-11-08",
+      "revision": 3,
+      "issued_at": "2026-11-08T17:30",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP5-S1",
+        "TBL-CP5-R1",
+        "TBL-CP5-B1",
+        "TBL-CP5-P1"
+      ],
+      "sha256": "89f487dfcb052326bf61943b244a2830627dc3bd6577c47698281a11e86282f2"
+    },
+    {
+      "pack": "comprehensive-current.zip",
+      "file": "k20.xlsx",
+      "title": "공공데이터 개방 품질개선",
+      "progress": 10,
+      "date": "2026-11-01",
+      "revision": 1,
+      "issued_at": "2026-11-01T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP5-S1",
+        "TBL-CP5-R1",
+        "TBL-CP5-B1",
+        "TBL-CP5-P1"
+      ],
+      "sha256": "6fe5f99e2993794f96d20a5a09ec5deab006291e18de1cf53fe94c22208a9d53"
+    },
+    {
+      "pack": "comprehensive-old.zip",
+      "file": "zz99.xlsx",
+      "title": "보조금 정산 승인",
+      "progress": 35,
+      "date": "2026-11-08",
+      "revision": 1,
+      "issued_at": "2026-11-08T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP3-S1",
+        "TBL-CP3-R1",
+        "TBL-CP3-B1",
+        "TBL-CP3-P1"
+      ],
+      "sha256": "d6e206be7021e24067f0accbd65227ae74b2cd888a2f5807437b07cc8ab48757"
+    },
+    {
+      "pack": "comprehensive-old.zip",
+      "file": "r11.pdf",
+      "title": "공공데이터 개방 품질개선",
+      "progress": 45,
+      "date": "2026-11-08",
+      "revision": 3,
+      "issued_at": "2026-11-08T10:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP5-S1",
+        "TBL-CP5-R1",
+        "TBL-CP5-B1",
+        "TBL-CP5-P1"
+      ],
+      "sha256": "e2aa987f44851b17386b6ac2517523834c55da050d73a14b13270b7939081e2d"
+    },
+    {
+      "pack": "comprehensive-old.zip",
+      "file": "x01.hwpx",
+      "title": "공공데이터 개방 품질개선",
+      "progress": 30,
+      "date": "2026-11-06",
+      "revision": 2,
+      "issued_at": "2026-11-06T16:00",
+      "state": "확정",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP5-S1",
+        "TBL-CP5-R1",
+        "TBL-CP5-B1",
+        "TBL-CP5-P1"
+      ],
+      "sha256": "160528a1d61acce7eeb1ff2ab6c26000aba88b167ae8fcd8dd30166c155b51fb"
+    },
+    {
+      "pack": "comprehensive-draft.zip",
+      "file": "zz99.xlsx",
+      "title": "보조금 정산 승인",
+      "progress": 90,
+      "date": "2026-11-09",
+      "revision": 4,
+      "issued_at": "2026-11-09T16:00",
+      "state": "대체됨",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP3-S1",
+        "TBL-CP3-R1",
+        "TBL-CP3-B1",
+        "TBL-CP3-P1"
+      ],
+      "sha256": "1da8b3b02002e55beeeb975b5b7d9483c29d480cbbc476d63f8ba8e2a619ae02"
+    },
+    {
+      "pack": "comprehensive-draft.zip",
+      "file": "r11.pdf",
+      "title": "공공데이터 개방 품질개선",
+      "progress": 100,
+      "date": "2026-11-09",
+      "revision": 4,
+      "issued_at": "2026-11-09T16:00",
+      "state": "검토중",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP5-S1",
+        "TBL-CP5-R1",
+        "TBL-CP5-B1",
+        "TBL-CP5-P1"
+      ],
+      "sha256": "e490adb3e475fbe187c60b19f4a3b73e68ef387c207ae87c8119534c2f1b2a98"
+    },
+    {
+      "pack": "comprehensive-draft.zip",
+      "file": "x01.hwpx",
+      "title": "공공데이터 개방 품질개선",
+      "progress": 100,
+      "date": "2026-11-10",
+      "revision": 5,
+      "issued_at": "2026-11-10T16:00",
+      "state": "폐기",
+      "tables": 5,
+      "table_markers": [
+        "TBL-CP5-S1",
+        "TBL-CP5-R1",
+        "TBL-CP5-B1",
+        "TBL-CP5-P1"
+      ],
+      "sha256": "d191967c262b6501ad066ee6a2e61679f4a6393edfc84742ac6aab6496ae4c33"
+    }
+  ],
+  "manual_ai_only": true
+}

@@ -23,10 +23,15 @@ class Project:
     remote: str
     token_env: str = ""
     base_source: str | None = None
+    initial_remote: str | None = None
+    initial_bundle: str | None = None
 
 
 KJON_PUBLICATION_BASE_SOURCE = "e9482fd1005e7a01301d908ec91d8d2de6912272"
 HOME_PUBLICATION_BASE_SOURCE = "1d9fd7d34f85190c1ca97337e8b5aa5465146d2f"
+
+CHECK_PUBLICATION_BASE_SOURCE = "72d1af3ffdd3cc2761f83f778dc16f9d7c7d598e"
+BATON_PUBLICATION_BASE_SOURCE = "72d1af3ffdd3cc2761f83f778dc16f9d7c7d598e"
 
 PROJECTS = {
     "kjon": Project(
@@ -38,6 +43,16 @@ PROJECTS = {
         "the주택", "PoC/10-home",
         "https://gitlab.aigov.go.kr/acesharp/HOME.git",
         "GITLAB_HOME_TOKEN", HOME_PUBLICATION_BASE_SOURCE,
+    ),
+    "check": Project(
+        "범정부 AI 공통기반 활용 점검", "PoC/08-AICommonPlatformRadar",
+        "https://gitlab.aigov.go.kr/acesharp/check.git", "GITLAB_CHECK_TOKEN", CHECK_PUBLICATION_BASE_SOURCE,
+        "efc284a162c818a9ece07b15e10ef32d9442ef19", "deploy/gitlab-projects/bootstrap/check.bundle",
+    ),
+    "baton": Project(
+        "바톤", "PoC/13-handover",
+        "https://gitlab.aigov.go.kr/acesharp/baton.git", "GITLAB_BATON_TOKEN", BATON_PUBLICATION_BASE_SOURCE,
+        "e0157718d5e903c616fc465d5385c8c0239e1969", "deploy/gitlab-projects/bootstrap/baton.bundle",
     ),
 }
 
@@ -79,7 +94,8 @@ def publication_tree(root: Path, tree: str) -> str:
         return git(root, "write-tree", env=env)
 
 
-def publication_history(root: Path, commit: str, excluded_parents: tuple[str, ...] = ()) -> str:
+def publication_history(root: Path, commit: str, excluded_parents: tuple[str, ...] = (),
+                        graft: tuple[str, str] | None = None) -> str:
     """Filter only generated evidence, including history, without editing refs."""
     objects = git(root, "rev-parse", "--path-format=absolute", "--git-path", "objects")
     with tempfile.TemporaryDirectory(prefix="minslab-export-history-") as directory:
@@ -89,6 +105,11 @@ def publication_history(root: Path, commit: str, excluded_parents: tuple[str, ..
             git(root, "init", "--bare", "--quiet", str(bare))
             (bare / "objects/info/alternates").write_text(objects + "\n", encoding="utf-8")
         git(source, "update-ref", "refs/heads/export", commit)
+        if graft:
+            # Preserve the reviewed GitLab initializer as the parent of the first
+            # published source snapshot. Replacement refs exist only in this
+            # disposable repository and produce stable future fast-forwards.
+            git(source, "replace", "--graft", *graft)
         # --no-data reuses existing blobs through read-only object alternates.
         # A private stream preserves arbitrary commit-message bytes exactly.
         with (base / "history.fi").open("w+b") as stream:
@@ -128,13 +149,24 @@ def prepare_export(root: Path, project: Project, source: str) -> Export:
     ))
     split = git(root, "subtree", "split", f"--prefix={project.prefix}", source)
     excluded_parents: tuple[str, ...] = ()
+    graft = None
     if project.base_source:
         # Start sharing with the reviewed, reconstructable version. Earlier
         # monorepo history remains in GitHub; subsequent history stays linear.
         git(root, "merge-base", "--is-ancestor", project.base_source, source)
         base_split = git(root, "subtree", "split", f"--prefix={project.prefix}", project.base_source)
         excluded_parents = tuple(git(root, "rev-list", "--parents", "-n", "1", base_split).split()[1:])
-    commit = publication_history(root, split, excluded_parents)
+        if project.initial_remote:
+            if not project.initial_bundle:
+                raise SyncError("GitLab 초기 이력 bundle이 필요합니다.")
+            bundle = str(root / project.initial_bundle)
+            if git(root, "bundle", "list-heads", bundle) != f"{project.initial_remote} refs/heads/main":
+                raise SyncError("GitLab 초기 이력이 검토한 커밋과 다릅니다.")
+            git(root, "fetch", "--no-tags", "--no-write-fetch-head", bundle, "refs/heads/main")
+            graft = (base_split, project.initial_remote)
+    commit = publication_history(root, split, excluded_parents, graft)
+    if project.initial_remote:
+        git(root, "merge-base", "--is-ancestor", project.initial_remote, commit)
     if git(root, "rev-parse", f"{commit}^{{tree}}") != expected_tree:
         raise SyncError(f"분리 결과가 원본 프로젝트와 다릅니다: {project.name}")
     files = len(git(root, "ls-tree", "-r", "--name-only", "-z", commit).split("\0"))
@@ -241,12 +273,21 @@ def publish(root: Path, export: Export, env: dict[str, str], *, diagnose: bool =
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("project", choices=[*PROJECTS, "all"])
+    parser.add_argument("--source", help="게시할 원본의 전체 40자리 커밋 SHA (push 시 필수)")
+    parser.add_argument("--approve-source", help="게시를 승인한 동일한 전체 커밋 SHA (push 시 필수)")
     parser.add_argument("--push", action="store_true", help="분리한 이력을 GitLab main에 반영")
     parser.add_argument("--diagnose", action="store_true", help="전송 상태와 시간만 출력 (인증값·본문 제외)")
     args = parser.parse_args(argv)
     root = Path(__file__).resolve().parents[1]
     try:
-        source = git(root, "rev-parse", "HEAD")
+        if args.push and (not args.source or args.approve_source != args.source):
+            raise SyncError("--source와 동일한 --approve-source로 게시할 커밋을 명시적으로 승인하세요.")
+        source = args.source or git(root, "rev-parse", "HEAD")
+        if not re.fullmatch(r"[0-9a-f]{40}", source):
+            raise SyncError("원본은 브랜치명 대신 전체 40자리 소문자 커밋 SHA로 지정하세요.")
+        if git(root, "cat-file", "-t", source) != "commit":
+            raise SyncError("원본 SHA는 커밋이어야 합니다.")
+        git(root, "merge-base", "--is-ancestor", source, "HEAD")
         keys = list(PROJECTS) if args.project == "all" else [args.project]
         exports = []
         for key in keys:
@@ -254,12 +295,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{project.name}: {project.prefix} → {project.remote}", flush=True)
             export = prepare_export(root, project, source)
             exports.append(export)
-            print(f"  원본 {source[:12]} / 분리 {export.commit[:12]} / 파일 {export.files}개", flush=True)
+            print(f"  원본 {source} / 분리 {export.commit} / 파일 {export.files}개", flush=True)
             print(f"  검증 증빙 제외: {', '.join(EXCLUDED_PATHS)} (GitHub 원본 보존)", flush=True)
             if export.dirty:
                 print("  미커밋 변경이 있습니다. 위 결과에는 커밋된 내용만 포함됩니다.")
         if not args.push:
-            print("미리보기 완료. GitLab에 반영하려면 --push를 추가하세요.")
+            print("미리보기 완료. 게시는 --source SHA --approve-source SHA --push로 명시적으로 승인하세요.")
             return 0
         # Check every selected project before publishing any of them.
         if any(export.dirty for export in exports):

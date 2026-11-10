@@ -1,7 +1,91 @@
 {
-  "version": "1.6.4",
+  "version": "1.6.7",
   "synthetic_only": true,
   "files": [
+    {
+      "file": "comprehensive-report.html",
+      "title": "종합 시연 완성 보고서 HTML",
+      "description": "동일 확정본의 차트·업무별 실무·공통 예산",
+      "bytes": 256009,
+      "sha256": "8a1e5b1c47577a0614f07cbc549ad1e042af5130476e9d8e3f4535df2042cb51"
+    },
+    {
+      "file": "comprehensive-report.pdf",
+      "title": "종합 시연 완성 보고서 PDF",
+      "description": "인쇄용 완성 예시",
+      "bytes": 637572,
+      "sha256": "3475ddce5cd907c19a1295ff4fcc8b39bc5170e43df82fef82f190c7707d5920"
+    },
+    {
+      "file": "comprehensive-report.docx",
+      "title": "종합 시연 완성 보고서 DOCX",
+      "description": "편집 가능한 동일 확정본",
+      "bytes": 73373,
+      "sha256": "7e6245c308e01d6af3cca4be565252b21f1b9d846c779de739c34d21c53b9624"
+    },
+    {
+      "file": "comprehensive-report.md",
+      "title": "종합 시연 완성 보고서 Markdown",
+      "description": "원문 인용과 수정 기록",
+      "bytes": 198839,
+      "sha256": "ceac696ec4f6d8fab27ed77c1c0daf7f4f9253bb6a5f34999300fc7c2b036382"
+    },
+    {
+      "file": "comprehensive-validation.json",
+      "title": "종합 시연 검증 결과",
+      "description": "규칙 기반 종단 기능 검증 · 유료 AI 호출 없음",
+      "bytes": 1316,
+      "sha256": "e722e5a757d1d49a84b3538411ef8b880f1d543d30e26debd86e80259f9b17cd"
+    },
+    {
+      "file": "comprehensive-kit.zip",
+      "title": "샘플1 · 종합 인수인계 실무 시연",
+      "description": "21개 원본·5개 사업·표 95개 · 계승·판본·묶기·인계",
+      "bytes": 1891555,
+      "sha256": "a0e2b147e6b5342ffc1e234ec91448876b696d1d27ce731c6cd1e1b54b54a5fd"
+    },
+    {
+      "file": "comprehensive-base.zip",
+      "title": "종합 시연 · 이전 인수 원본",
+      "description": "이전 보고서 2개",
+      "bytes": 23668,
+      "sha256": "9c9a608f2afada28bcc620663208be4cb188eb363b7371868002d9cfafb63f76"
+    },
+    {
+      "file": "comprehensive-current.zip",
+      "title": "종합 시연 · 최신 자료 먼저 등록",
+      "description": "최신 확정본·실적대장·담당 확인서 10개",
+      "bytes": 807237,
+      "sha256": "a932e3fa06950fe03e8a1d72c507215cfdc126119623355f5e310761cb33b2b8"
+    },
+    {
+      "file": "comprehensive-old.zip",
+      "title": "종합 시연 · 같은 이름 구판 나중 등록",
+      "description": "5개 구판 · 같은 날짜의 차수·시각 비교",
+      "bytes": 270118,
+      "sha256": "e562819e23cbb33069bdf43d2fd6520fc6bded4647b3c451457d324a3a0b9706"
+    },
+    {
+      "file": "comprehensive-draft.zip",
+      "title": "종합 시연 · 미승인 초안 마지막 등록",
+      "description": "4개 초안·검토중·대체됨·폐기 판본 제외",
+      "bytes": 259644,
+      "sha256": "d6f557ec7a2a888f1fb11a33399f2b538d41a1fdcd0d8d83b1f0f81302d36b86"
+    },
+    {
+      "file": "comprehensive-guide.md",
+      "title": "종합 시연 점검 안내",
+      "description": "묶기·판본·그림·보고서·전달·인수 점검 순서",
+      "bytes": 6841,
+      "sha256": "62a4ae5eb79c2eed19585d5fbc83531eb230bad98df1823ea33de4fe5c441247"
+    },
+    {
+      "file": "comprehensive-expected.json",
+      "title": "종합 시연 정답표",
+      "description": "5개 업무·진척·예산·연락망 기대 결과",
+      "bytes": 11166,
+      "sha256": "ec9681d8f8380b0763e0456c73d004fe5b48bc314b50e19f37b9bffac5245f5a"
+    },
     {
       "file": "v160-review.md",
       "title": "v1.6 개선·검증 기록",
@@ -13,8 +97,8 @@
       "file": "inheritance-kit.zip",
       "title": "이전 인계 보고서 이어서 작성 샘플",
       "description": "HWPX 이전본 2개 · XLSX 현행화 · PDF 신규 업무",
-      "bytes": 69431,
-      "sha256": "266f14f671be28109fe233c8b8a1e2848c9d85fe5b80970c8759405ea107df3c"
+      "bytes": 69448,
+      "sha256": "ec0e23b3421f7974b9833e22a9a999ed73c59444bea4b380e48dbe3e31d8173b"
     },
     {
       "file": "01_이전인계_원본.zip",
@@ -34,8 +118,8 @@
       "file": "inheritance-guide.md",
       "title": "이전 보고서 이어 쓰기 안내",
       "description": "체크박스 선택·이력 표시·기대 결과",
-      "bytes": 2594,
-      "sha256": "e65f44e70b96e754d16054fb2dad44fe5dd861a1fe0c4e4594594572ce9c81bf"
+      "bytes": 2615,
+      "sha256": "0ccd847929d38f744228ea290eda9bfabeffe025c1e4e02c2f7394731687c541"
     },
     {
       "file": "inheritance-expected.json",
@@ -230,22 +314,22 @@
       "file": "handover-guide.pdf",
       "title": "사용·구동 안내서 PDF",
       "description": "15개 원본으로 처음부터 따라 하기",
-      "bytes": 419870,
-      "sha256": "1966761f736bf121cc713247e5c7ba313c5db0cebfc0dad8cbb2386673d16877"
+      "bytes": 437707,
+      "sha256": "9f5508339c1bf5cfffb54869e7f8331e8db25830aac67c7ed0da6cd92dd20ca7"
     },
     {
       "file": "handover-guide.docx",
       "title": "사용 안내서 DOCX",
       "description": "편집 가능한 사용 설명서",
-      "bytes": 41870,
-      "sha256": "a75cbbb86fa52878a3c1d65b2f0917d13084d42211ee0891aa02336b94125724"
+      "bytes": 42221,
+      "sha256": "7ac7f0f52d03d12806cfc8722529ddb04369c0159bf1e596343b2f100df71aac"
     },
     {
       "file": "handover-guide.md",
       "title": "사용 안내서 Markdown",
       "description": "텍스트 사용 설명서",
-      "bytes": 11872,
-      "sha256": "39c1a63652706b0ff313ec05443e1ed70c15cdf0996ea5bf5ad3c2b1c4ede202"
+      "bytes": 12806,
+      "sha256": "f69c4db8d52984acbab4de3df799b417b77a3b67677dd1f9a16c69686692fa58"
     },
     {
       "file": "practice-expected.json",
@@ -283,18 +367,18 @@
       "sha256": "85f61109556bd90300b12069d035c524a742126a9748df4c7d4064c6ec51d289"
     },
     {
-      "file": "handover-source-v1.6.4.zip",
+      "file": "handover-source-v1.6.7.zip",
       "title": "프로그램 소스·실행 패키지",
       "description": "설치·테스트·라이선스 고지 포함",
-      "bytes": 5530074,
-      "sha256": "5a8800a78cee4d0a0f13ac016e45bc53cca03c7b357a7cfcf1bb275a1ddca785"
+      "bytes": 9363664,
+      "sha256": "6a882049349c2b271e7c40ecb8888edc3f2322efabd3af70133980be22c9f0fb"
     },
     {
-      "file": "handover-demo-kit-v1.6.4.zip",
+      "file": "handover-demo-kit-v1.6.7.zip",
       "title": "체험 자료 한 번에 받기",
       "description": "샘플·안내서·최종 보고서·검증 기록",
-      "bytes": 5023545,
-      "sha256": "6fa9510864b2e5ceac6b2959b0b55e8c007b857cf9b6bc328235b6fce3617a3f"
+      "bytes": 8818785,
+      "sha256": "0927f107940082295a07702427c82ca1d5ee139ab77b9634bea6c6745f97ee37"
     },
     {
       "file": "flow-samples.zip",

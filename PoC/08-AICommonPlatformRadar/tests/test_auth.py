@@ -26,6 +26,15 @@ def test_public_reads_remain_available_when_admin_auth_is_enabled(monkeypatch):
     assert health.status_code == 200
 
 
+def test_health_omits_inactive_optional_services(monkeypatch):
+    monkeypatch.setenv("POC08_SUPABASE_SYNC_ENABLED", "false")
+    with TestClient(main_module.app) as client:
+        payload = client.get("/health").json()
+
+    assert "supabase_rest" not in payload
+    assert "jev_shadow" not in payload["llm"]
+
+
 def test_mutations_require_admin_auth(monkeypatch):
     secured = replace(
         main_module.settings,

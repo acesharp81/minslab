@@ -62,6 +62,31 @@ def test_mislabeled_hwpx_uses_hwp_cli(monkeypatch):
     assert "OLE HWP" in result.text
 
 
+def test_hwp_cli_failure_recovers_readable_preview_text(monkeypatch):
+    class Completed:
+        returncode = 1
+        stdout = b""
+        stderr = b"FileHeader not found"
+
+    monkeypatch.setattr("app.services.parser.subprocess.run", lambda *_args, **_kwargs: Completed())
+    preview = (
+        "인공지능 사업이 아닌 행사 아카이브 운영 과업입니다. "
+        "참여 브랜드와 관람객을 관리하고 홍보 콘텐츠를 제작합니다. " * 8
+    ).encode("utf-16le")
+    result = parse_bytes(b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + preview, "hwp")
+
+    assert result.status == "parsed"
+    assert "아카이브 운영" in result.text
+
+
+def test_fasoo_drm_document_is_unsupported_not_failed():
+    content = b"\x9b DRMONE  This Document is encrypted and protected by Fasoo DRM"
+    result = parse_bytes(content, "hwpx")
+
+    assert result.status == "unsupported"
+    assert "DRM" in (result.error or "")
+
+
 def test_zero_byte_isolated_failure():
     assert parse_bytes(b"", "pdf").status == "failed"
 

@@ -1,57 +1,60 @@
 name: Sync service projects to GitLab
+run-name: "GitLab 수동 게시 · ${{ inputs.project }} · ${{ inputs.source_sha }}"
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "PoC/07-NationalAssembly/**"
-      - "PoC/10-home/**"
-      - "deploy/gitlab_sync.py"
-      - "deploy/gitlab-runner/**"
-      - ".github/workflows/sync-gitlab-projects.yml"
   workflow_dispatch:
     inputs:
       project:
-        description: "동기화할 프로젝트"
+        description: "게시를 승인할 프로젝트 (all은 네 프로젝트 모두)"
         type: choice
         required: true
-        default: all
-        options: [all, kjon, home]
+        default: check
+        options: [check, baton, kjon, home, all]
+      source_sha:
+        description: "게시할 GitHub 원본 커밋 SHA 전체 40자리"
+        type: string
+        required: true
+      approved:
+        description: "선택한 프로젝트의 제출본을 위 커밋으로 갱신하는 것을 승인합니다"
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
 
+concurrency:
+  group: gitlab-manual-publication
+  cancel-in-progress: false
+
 jobs:
   sync:
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, linux, x64, minslab-gitlab-sync]
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix: ${{ fromJSON(github.event_name == 'workflow_dispatch' && inputs.project != 'all' && (inputs.project == 'home' && '{"include":[{"project":"home","token_secret":"GITLAB_HOME_TOKEN"}]}' || '{"include":[{"project":"kjon","token_secret":"GITLAB_KJON_TOKEN"}]}') || '{"include":[{"project":"kjon","token_secret":"GITLAB_KJON_TOKEN"},{"project":"home","token_secret":"GITLAB_HOME_TOKEN"}]}') }}
-    concurrency:
-      group: gitlab-project-${{ matrix.project }}
-      cancel-in-progress: false
+    timeout-minutes: 30
     steps:
-      # Read the newest main after acquiring the project lock, so a queued old
-      # event cannot publish an older revision after a newer event.
+      # Pin the controller to the dispatch commit, and export only source_sha.
+      # Neither a queued execution nor a rerun may implicitly choose newer main.
       - name: Check out complete source history
         uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Publish selected project
+      - name: Publish approved projects and source
         env:
-          PROJECT: ${{ matrix.project }}
-          TOKEN_SECRET_NAME: ${{ matrix.token_secret }}
+          PROJECT: ${{ inputs.project }}
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          APPROVED: ${{ inputs.approved }}
           GITLAB_USERNAME: gitlab-sync
-          GITLAB_TOKEN: ${{ secrets[matrix.token_secret] }}
+          GITLAB_KJON_TOKEN: ${{ secrets.GITLAB_KJON_TOKEN }}
+          GITLAB_HOME_TOKEN: ${{ secrets.GITLAB_HOME_TOKEN }}
+          GITLAB_CHECK_TOKEN: ${{ secrets.GITLAB_CHECK_TOKEN }}
+          GITLAB_BATON_TOKEN: ${{ secrets.GITLAB_BATON_TOKEN }}
         run: |
-          if [[ -z "$GITLAB_TOKEN" ]]; then
-            echo "::error::${TOKEN_SECRET_NAME} secret에 해당 프로젝트의 액세스 토큰을 등록하세요."
+          if [[ "$APPROVED" != true ]]; then
+            echo "::error::제출본 갱신 승인이 필요합니다."
             exit 1
           fi
-          python3 deploy/gitlab_sync.py "$PROJECT" --push --diagnose
+          python3 deploy/gitlab_sync.py "$PROJECT" --source "$SOURCE_SHA" --approve-source "$SOURCE_SHA" --push --diagnose

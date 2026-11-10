@@ -31,9 +31,17 @@ def regroup(payload,groups,reason):
             if changed or target['fields'][key]['value']!=value:
                 previous=copy.deepcopy(target['fields'][key])
                 target['fields'][key]={'value':value,'provenance':'HUMAN_ENTERED','review_status':'CONFIRMED','evidence':[],'observations':[],'previous':previous,'reason':reason,'actor':'PREDECESSOR','changed_at':now()}
+        if changed and payload.get('inheritance'):
+            states={m.get('inheritance_status','신규 업무') for m in members}
+            target['inheritance_status']=('현행화 확인 필요' if any('확인 필요' in s for s in states) else '기존 업무 현행화' if '기존 업무 현행화' in states or {'신규 업무','이전 보고서 유지'}<=states else '이전 보고서 유지' if '이전 보고서 유지' in states else '신규 업무')
         if changed:
             target['merge_note']='인계자가 여러 업무를 하나로 묶고 업무명·담당자를 확인했습니다.'
             target['image_reviews']=[v for m in members for v in m.get('image_reviews',[]) if v['document_id']==target.get('latest_document_id')]
         output.append(target)
     payload['items']=annotate_items(output)
+    if payload.get('inheritance'):
+        counts={'updated':0,'carried':0,'new':0,'review':0}
+        keys={'기존 업무 현행화':'updated','이전 보고서 유지':'carried','신규 업무':'new'}
+        for item in output:counts[keys.get(item.get('inheritance_status'),'review')]+=1
+        payload['inheritance']['counts']=counts
     return payload

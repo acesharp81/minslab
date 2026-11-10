@@ -48,7 +48,7 @@ class CaseInput(BaseModel):
 
 
 class DemoSetInput(BaseModel):
-    kind: str = Field(pattern="^(practice|versions|inheritance)$")
+    kind: str = Field(pattern="^(comprehensive|practice|versions|inheritance)$")
     predecessor_id: str
     successor_id: str
 
@@ -136,7 +136,7 @@ def create_app(data_dir=None, model_config=None):
         yield
         runner.close()
 
-    app = FastAPI(title="업무바통", version="1.6.4", lifespan=lifespan)
+    app = FastAPI(title="업무바통", version="1.6.7", lifespan=lifespan)
     app.state.store, app.state.runner = store, runner
 
     @app.exception_handler(RequestValidationError)
@@ -220,7 +220,7 @@ def create_app(data_dir=None, model_config=None):
 
     @app.get("/api/health")
     def health():
-        return {"status": "ok", "version": "1.6.4"}
+        return {"status": "ok", "version": "1.6.7"}
 
     @app.post("/api/login")
     async def login(request: Request):
@@ -308,15 +308,16 @@ def create_app(data_dir=None, model_config=None):
         if owner!=body.predecessor_id:raise HTTPException(403,"선택한 인계자 화면으로 전환한 뒤 실행하세요.")
         if owner not in EMPLOYEES or body.successor_id not in EMPLOYEES or owner==body.successor_id:
             raise HTTPException(422,"인계자와 인수자를 서로 다른 직원으로 선택하세요.")
-        titles={"practice":"4개 업무 복합 처리 시연","versions":"파일명, 버전 혼선 시연","inheritance":"업무연결 시연"}
+        titles={"comprehensive":"종합 인수인계 실무 시연","practice":"4개 업무 복합 처리 시연","versions":"파일명, 버전 혼선 시연","inheritance":"업무연결 시연"}
         with store.connect(write=True) as db:
             db.execute("INSERT INTO demo_sequences VALUES (?,1) ON CONFLICT(kind) DO UPDATE SET number=number+1",(body.kind,))
             number=db.execute("SELECT number FROM demo_sequences WHERE kind=?",(body.kind,)).fetchone()[0]
         title=f"{titles[body.kind]} ({number})"
-        if body.kind=="inheritance":
+        if body.kind in {"inheritance","comprehensive"}:
             from .inheritance_demo import seed
             previous=next(i for i in range(1,5) if f"employee{i}" not in {owner,body.successor_id})
-            return seed(store,runner,ROOT,source_id=uid(),target_id=uid(),title=title,owner=int(owner[-1]),recipient=int(body.successor_id[-1]),previous=previous)
+            options={"base_pack":"comprehensive-base.zip","target_packs":("comprehensive-current.zip","comprehensive-old.zip","comprehensive-draft.zip")} if body.kind=="comprehensive" else {}
+            return seed(store,runner,ROOT,source_id=uid(),target_id=uid(),title=title,owner=int(owner[-1]),recipient=int(body.successor_id[-1]),previous=previous,**options)
         new=create_case(CaseInput(title=title,predecessor=EMPLOYEES[owner],successor=EMPLOYEES[body.successor_id],predecessor_id=owner,successor_id=body.successor_id),request,x_role="predecessor")
         filename="practice-samples.zip" if body.kind=="practice" else "version-samples.zip"
         with store.connect(write=True) as db:store.audit(db,new["id"],"DEMO_SET",{"kind":body.kind,"image_processing":"manual-only-poc7-priority"})
@@ -329,7 +330,7 @@ def create_app(data_dir=None, model_config=None):
         row.update(memberships(store,case_id))
         with store.connect() as db:row["demo_image_manual_only"]=demo_policy.is_demo(db,case_id,ROOT)
         row["my_role"] = member_role(store,case_id,employee_from(request))
-        documents = store.rows("SELECT d.*,p.id AS parse_id,p.status,p.warnings FROM documents d LEFT JOIN parses p ON p.doc_id=d.id AND p.parser=? WHERE d.case_id=? ORDER BY d.created,d.path", (PARSER_VERSION, case_id))
+        documents = store.rows("SELECT d.*,p.id AS parse_id,p.status,p.warnings FROM documents d LEFT JOIN parses p ON p.id=(SELECT id FROM parses WHERE doc_id=d.id ORDER BY (parser=?) DESC,created DESC LIMIT 1) WHERE d.case_id=? ORDER BY d.created,d.path", (PARSER_VERSION, case_id))
         for doc in documents:
             doc["warnings"] = json.loads(doc["warnings"] or "[]")
             doc["status"] = doc["status"] or "PENDING"
@@ -698,7 +699,7 @@ def create_app(data_dir=None, model_config=None):
         case(case_id)
         if not store.one("SELECT id FROM documents WHERE id=? AND case_id=?", (document_id, case_id)):
             raise HTTPException(404, "자료를 찾을 수 없습니다.")
-        return store.rows("SELECT b.* FROM blocks b JOIN parses p ON p.id=b.parse_id WHERE b.doc_id=? AND b.case_id=? AND p.parser=? ORDER BY b.ordinal", (document_id, case_id, PARSER_VERSION))
+        return store.rows("SELECT b.* FROM blocks b JOIN parses p ON p.id=b.parse_id WHERE b.doc_id=? AND b.case_id=? AND p.id=(SELECT id FROM parses WHERE doc_id=? ORDER BY (parser=?) DESC,created DESC LIMIT 1) ORDER BY b.ordinal", (document_id, case_id, document_id, PARSER_VERSION))
 
     @app.get("/api/cases/{case_id}/documents/{document_id}/raw")
     def raw_document(case_id: str, document_id: str):
@@ -844,7 +845,7 @@ def create_app(data_dir=None, model_config=None):
         path = directory / filename
         if not path.is_file():
             raise HTTPException(404, "배포 자료를 찾을 수 없습니다.")
-        return FileResponse(path, filename=filename, content_disposition_type="inline" if filename in {"flow-report.html", "practice-report.html", "version-report.html"} else "attachment", headers={"Content-Security-Policy": report_interactions.csp()} if filename in {"flow-report.html", "practice-report.html", "version-report.html"} else None)
+        return FileResponse(path, filename=filename, content_disposition_type="inline" if filename in {"flow-report.html", "practice-report.html", "version-report.html", "comprehensive-report.html"} else "attachment", headers={"Content-Security-Policy": report_interactions.csp()} if filename in {"flow-report.html", "practice-report.html", "version-report.html", "comprehensive-report.html"} else None)
 
     @app.get("/samples/submission.zip")
     def submission_sample():

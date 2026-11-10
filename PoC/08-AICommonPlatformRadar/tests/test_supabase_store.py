@@ -5,12 +5,19 @@ from dataclasses import replace
 from datetime import datetime, timezone
 
 from sqlalchemy import create_engine, select
+import pytest
 
 from app.config import get_settings
 from app.db import Base, RadarSession, push_deferred_supabase_changes
 from app.models import Notice
 from app.services import supabase_store
 from app.services.supabase_store import SupabaseRestStore, deserialize_row, serialize_model
+
+
+@pytest.fixture(autouse=True)
+def enable_mock_store(monkeypatch):
+    # These tests stub HTTP; local deployment settings must not disable the stub.
+    monkeypatch.setenv("POC08_SUPABASE_SYNC_ENABLED", "true")
 
 
 def enabled_settings():

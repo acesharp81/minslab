@@ -100,7 +100,16 @@ def validate_model_result(data, document, blocks):
             block = lookup.get(value["block_id"])
             if not block or not value["value"] or len(value["value"]) > 2000 or value["value"] not in value["quote"]:
                 raise ValueError(f"{key}: 값은 실제 원문 인용의 부분 문자열이어야 하고 블록 ID가 존재해야 합니다.")
+            recovered = False
+            if value["quote"] not in block["text"] and document.get("format") == ".pdf":
+                from .citations import exact_pdf_span
+                quote = exact_pdf_span(block["text"], value["quote"])
+                raw_value = exact_pdf_span(quote, value["value"])
+                value = {**value, "quote": quote, "value": raw_value}
+                recovered = True
             fields[key] = fact(value["value"], block, value["quote"])
+            if recovered:
+                fields[key]["citation_recovery"] = "pdf-visual-line-wrap-to-original"
         candidates.append({"id": uid(), "fields": fields, "source_documents": [document["id"]]})
     return candidates
 
@@ -271,7 +280,7 @@ def annotate_items(items):
         due["normalized_date"] = normalized
         due["precision"] = precision
         original = item["fields"]["status"]["value"].strip()
-        states = {"완료": "COMPLETED", "업무 완료": "COMPLETED", "진행 중": "IN_PROGRESS", "계획": "PLANNED", "예정": "PLANNED", "보류": "ON_HOLD", "요청": "REQUESTED"}
+        states = {"완료": "COMPLETED", "업무 완료": "COMPLETED", "사업 완료": "COMPLETED", "진행 중": "IN_PROGRESS", "계획": "PLANNED", "예정": "PLANNED", "보류": "ON_HOLD", "요청": "REQUESTED"}
         item["business_status"] = states.get(original, "IN_PROGRESS" if original.endswith(" 중") and "/" not in original else "UNKNOWN")
     return items
 

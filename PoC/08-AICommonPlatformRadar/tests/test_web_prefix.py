@@ -3,7 +3,7 @@ from __future__ import annotations
 import io
 import json
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from app.db import Base, get_db
 from app.main import app, format_number
@@ -149,6 +149,74 @@ def test_dashboard_separates_registered_prenotices_into_paginated_in_progress_se
     assert "전체 12건" in progress
     assert progress_second.count('class="action-row progress-action-row"') == 2
     assert "progress_page=2#actions-in-progress" in first.text
+
+
+def test_dashboard_lists_prenotices_bids_and_confirmed_use_newest_first():
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    Base.metadata.create_all(engine)
+    base_time = datetime(2026, 11, 1, tzinfo=timezone.utc)
+
+    def add_notice(
+        db: Session,
+        index: int,
+        stage: str,
+        title: str,
+        classification_code: str,
+        posted_offset: int,
+    ) -> None:
+        notice = Notice(
+            stage=stage,
+            notice_no=f"R26SORT{index:04d}",
+            raw_payload_json="{}",
+            agency_name="정렬검증기관",
+            title=title,
+            posted_at=base_time + timedelta(days=posted_offset),
+        )
+        notice.analysis_runs.append(AnalysisRun(
+            run_type="deep_ai",
+            model_name="test",
+            input_hash=f"{index:064d}"[-64:],
+            status="success",
+            result_json=json.dumps({
+                "criteria_version": CURRENT_CRITERIA_VERSION,
+                "classification_code": classification_code,
+            }),
+        ))
+        if classification_code == "2":
+            notice.action = ActionItem(status="new")
+        db.add(notice)
+
+    with Session(engine) as db:
+        add_notice(db, 1, "prenotice", "사전규격 오래된 공고", "2", 1)
+        add_notice(db, 2, "prenotice", "사전규격 최신 공고", "2", 4)
+        add_notice(db, 3, "bid_notice", "본공고 오래된 공고", "2", 2)
+        add_notice(db, 4, "bid_notice", "본공고 최신 공고", "2", 5)
+        add_notice(db, 5, "prenotice", "이용확인 오래된 공고", "1", 3)
+        add_notice(db, 6, "bid_notice", "이용확인 최신 공고", "1", 6)
+        db.commit()
+
+    def override_db():
+        with Session(engine) as db:
+            yield db
+
+    app.dependency_overrides[get_db] = override_db
+    try:
+        with TestClient(app) as client:
+            response = client.get("/")
+    finally:
+        app.dependency_overrides.pop(get_db, None)
+
+    required = response.text.split('id="action-required"', 1)[1].split('id="actions-in-progress"', 1)[0]
+    prenotices = required.split('class="action-stage-head bid-stage-head"', 1)[0]
+    bids = required.split('class="action-stage-head bid-stage-head"', 1)[1]
+    confirmed = response.text.split('class="panel confirmed-use-panel"', 1)[1]
+    assert prenotices.index("사전규격 최신 공고") < prenotices.index("사전규격 오래된 공고")
+    assert bids.index("본공고 최신 공고") < bids.index("본공고 오래된 공고")
+    assert confirmed.index("이용확인 최신 공고") < confirmed.index("이용확인 오래된 공고")
 
 
 def test_statistics_shows_ineligible_pie_and_removes_stacked_status_bar():
