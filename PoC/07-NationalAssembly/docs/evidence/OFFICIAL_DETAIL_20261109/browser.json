@@ -1,0 +1,20 @@
+[
+  {
+    "width": 1440,
+    "official_summaries": 290,
+    "provisional_summaries": 289,
+    "official_extra_tasks": 4,
+    "official_and_live_sources": true,
+    "no_overflow": true,
+    "errors": []
+  },
+  {
+    "width": 390,
+    "official_summaries": 290,
+    "provisional_summaries": 289,
+    "official_extra_tasks": 4,
+    "official_and_live_sources": true,
+    "no_overflow": true,
+    "errors": []
+  }
+]

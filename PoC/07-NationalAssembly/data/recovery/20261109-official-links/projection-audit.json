@@ -1,0 +1,667 @@
+[
+  {
+    "id": "070525e3-359d-4d55-b0a0-ef892d390129",
+    "official_before": 12,
+    "structured": 9,
+    "official_after": 15,
+    "tasks": 6,
+    "elapsed_ms": 6,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "bdd28297-c782-46be-9c99-b3d78377471d",
+      "detail_topic_count": 9,
+      "official_linked_topic_count": 0,
+      "live_only_topic_count": 9,
+      "supplement_topic_count": 6,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "0ba2b2f8-aad1-47da-80d8-de3c5401d760",
+    "official_before": 32,
+    "structured": 139,
+    "official_after": 148,
+    "tasks": 37,
+    "elapsed_ms": 63,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "1170a501-9494-422d-8500-c9d2909d967b",
+      "detail_topic_count": 139,
+      "official_linked_topic_count": 13,
+      "live_only_topic_count": 126,
+      "supplement_topic_count": 9,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "0e170e67-9235-4c4e-ab46-07545cd2c12c",
+    "official_before": 24,
+    "structured": 82,
+    "official_after": 84,
+    "tasks": 9,
+    "elapsed_ms": 143,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "db7b9006-cedf-4cf4-84e3-20aab762232a",
+      "detail_topic_count": 82,
+      "official_linked_topic_count": 2,
+      "live_only_topic_count": 80,
+      "supplement_topic_count": 2,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "0ed14a87-a415-47d7-a778-33abb976ba5b",
+    "official_before": 29,
+    "structured": 159,
+    "official_after": 166,
+    "tasks": 31,
+    "elapsed_ms": 56,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "2f0f5b82-f2f2-4600-a2d3-88285124185b",
+      "detail_topic_count": 159,
+      "official_linked_topic_count": 6,
+      "live_only_topic_count": 153,
+      "supplement_topic_count": 7,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "12dbbe0c-7422-4582-b0eb-5d4ac675ce55",
+    "official_before": 24,
+    "structured": 88,
+    "official_after": 88,
+    "tasks": 25,
+    "elapsed_ms": 36,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "ed8da5e0-c43e-4c13-aeb3-b90ccb468031",
+      "detail_topic_count": 88,
+      "official_linked_topic_count": 9,
+      "live_only_topic_count": 79,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "137c309b-bfb6-410a-a056-cccd21a7a84d",
+    "official_before": 24,
+    "structured": 84,
+    "official_after": 84,
+    "tasks": 26,
+    "elapsed_ms": 31,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "444ad610-27bd-49d3-a1db-e0af5f8cc2ee",
+      "detail_topic_count": 84,
+      "official_linked_topic_count": 1,
+      "live_only_topic_count": 83,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "1d00ebf4-24da-4443-9eb9-907864e59829",
+    "official_before": 30,
+    "structured": 527,
+    "official_after": 537,
+    "tasks": 154,
+    "elapsed_ms": 346,
+    "pending": 0,
+    "source_limited": 21,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "6577af8c-2dbf-4526-a60b-75a3aee4d741",
+      "detail_topic_count": 527,
+      "official_linked_topic_count": 78,
+      "live_only_topic_count": 449,
+      "supplement_topic_count": 10,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "205bacd6-10ed-46bc-b4d6-8be4293fcab1",
+    "official_before": 10,
+    "structured": 10,
+    "official_after": 12,
+    "tasks": 12,
+    "elapsed_ms": 14,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "65f03f69-9894-4135-a95f-30612ac10a1c",
+      "detail_topic_count": 10,
+      "official_linked_topic_count": 0,
+      "live_only_topic_count": 10,
+      "supplement_topic_count": 2,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "24be1685-9070-4522-ab28-456cde194ae1",
+    "official_before": 26,
+    "structured": 71,
+    "official_after": 74,
+    "tasks": 37,
+    "elapsed_ms": 61,
+    "pending": 0,
+    "source_limited": 1,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "6277e7ce-84d5-41b1-9b2f-dda673560653",
+      "detail_topic_count": 71,
+      "official_linked_topic_count": 15,
+      "live_only_topic_count": 56,
+      "supplement_topic_count": 3,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "277063ec-be24-41b3-a50b-424c40e3bd96",
+    "official_before": 24,
+    "structured": 50,
+    "official_after": 55,
+    "tasks": 30,
+    "elapsed_ms": 23,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "019ad1c7-e0c5-43b3-ad56-3556e353fea6",
+      "detail_topic_count": 50,
+      "official_linked_topic_count": 8,
+      "live_only_topic_count": 42,
+      "supplement_topic_count": 5,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "2ad2f387-1955-42b8-9c29-f098c33e258c",
+    "official_before": 24,
+    "structured": 226,
+    "official_after": 226,
+    "tasks": 46,
+    "elapsed_ms": 153,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "b335ff2a-5381-4bd2-a94e-7397e98e3985",
+      "detail_topic_count": 226,
+      "official_linked_topic_count": 4,
+      "live_only_topic_count": 222,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "33fae667-d853-43be-9500-c7335df4771e",
+    "official_before": 24,
+    "structured": 321,
+    "official_after": 321,
+    "tasks": 65,
+    "elapsed_ms": 197,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "ebe7eb78-0e28-4a3c-b867-501ff1ba9566",
+      "detail_topic_count": 321,
+      "official_linked_topic_count": 7,
+      "live_only_topic_count": 314,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "405fc847-07c0-4383-87a8-ef738ec3f97f",
+    "official_before": 25,
+    "structured": 83,
+    "official_after": 85,
+    "tasks": 21,
+    "elapsed_ms": 25,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "013db0e9-049f-42b8-b89b-d9e4c5bffec2",
+      "detail_topic_count": 83,
+      "official_linked_topic_count": 6,
+      "live_only_topic_count": 77,
+      "supplement_topic_count": 2,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "4e210f3f-45eb-441c-8d3e-05cfd3c60daf",
+    "official_before": 24,
+    "structured": 153,
+    "official_after": 154,
+    "tasks": 41,
+    "elapsed_ms": 43,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "7cfb19e7-3b8b-4f9b-b716-b80187625a51",
+      "detail_topic_count": 153,
+      "official_linked_topic_count": 1,
+      "live_only_topic_count": 152,
+      "supplement_topic_count": 1,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "590ef99a-1023-4b1f-a499-bdbc6bb15f85",
+    "official_before": 26,
+    "structured": 61,
+    "official_after": 67,
+    "tasks": 23,
+    "elapsed_ms": 25,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "2f70b1c8-a1b3-4738-be93-cc49e463edd7",
+      "detail_topic_count": 61,
+      "official_linked_topic_count": 0,
+      "live_only_topic_count": 61,
+      "supplement_topic_count": 6,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "5d5f6051-09ac-41ad-a1ff-d4654be239b5",
+    "official_before": 24,
+    "structured": 147,
+    "official_after": 147,
+    "tasks": 40,
+    "elapsed_ms": 91,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "cdb5d943-5c79-4ab8-b052-9b4584209c1b",
+      "detail_topic_count": 147,
+      "official_linked_topic_count": 3,
+      "live_only_topic_count": 144,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "5f806d14-eba2-4330-8e8a-7e627a4bae16",
+    "official_before": 24,
+    "structured": 63,
+    "official_after": 63,
+    "tasks": 23,
+    "elapsed_ms": 22,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "ce07f9dd-1297-49c9-8451-68d61074d949",
+      "detail_topic_count": 63,
+      "official_linked_topic_count": 1,
+      "live_only_topic_count": 62,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "64c5e92a-5cbc-42a2-8d2f-fc3eb0550ca6",
+    "official_before": 24,
+    "structured": 289,
+    "official_after": 290,
+    "tasks": 141,
+    "elapsed_ms": 227,
+    "pending": 0,
+    "source_limited": 4,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "a5c2d1e7-78ff-4562-a5e3-1db92dcd1551",
+      "detail_topic_count": 289,
+      "official_linked_topic_count": 57,
+      "live_only_topic_count": 232,
+      "supplement_topic_count": 1,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "6a0ed328-7f00-4be1-8627-464c96653e6a",
+    "official_before": 27,
+    "structured": 74,
+    "official_after": 81,
+    "tasks": 34,
+    "elapsed_ms": 50,
+    "pending": 0,
+    "source_limited": 1,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "15bb6cac-d865-4922-93b4-e2601ff73ff7",
+      "detail_topic_count": 74,
+      "official_linked_topic_count": 5,
+      "live_only_topic_count": 69,
+      "supplement_topic_count": 7,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "78c5fdc8-4f2a-4dd6-803d-c5cb6cc4ce4c",
+    "official_before": 28,
+    "structured": 152,
+    "official_after": 158,
+    "tasks": 30,
+    "elapsed_ms": 39,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "69266909-8e10-4db1-ba5a-d6eb21411933",
+      "detail_topic_count": 152,
+      "official_linked_topic_count": 7,
+      "live_only_topic_count": 145,
+      "supplement_topic_count": 6,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "86948faa-40de-44b5-aa53-93dd81a56957",
+    "official_before": 24,
+    "structured": 86,
+    "official_after": 87,
+    "tasks": 19,
+    "elapsed_ms": 20,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "163f00e9-daad-42f0-a54f-27ca583d948d",
+      "detail_topic_count": 86,
+      "official_linked_topic_count": 0,
+      "live_only_topic_count": 86,
+      "supplement_topic_count": 1,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "8809d5e4-13bc-41dd-a9b4-291afca60c0c",
+    "official_before": 26,
+    "structured": 126,
+    "official_after": 129,
+    "tasks": 29,
+    "elapsed_ms": 39,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "823da7ed-6616-450f-9e27-714be5b31d35",
+      "detail_topic_count": 126,
+      "official_linked_topic_count": 5,
+      "live_only_topic_count": 121,
+      "supplement_topic_count": 3,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "89252597-cfec-4e8f-9de3-788b5f5097e0",
+    "official_before": 25,
+    "structured": 63,
+    "official_after": 71,
+    "tasks": 36,
+    "elapsed_ms": 17,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "688bae12-12dc-419c-b6f5-086534a0b0d9",
+      "detail_topic_count": 63,
+      "official_linked_topic_count": 4,
+      "live_only_topic_count": 59,
+      "supplement_topic_count": 8,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "8bd13bcf-3484-46de-857f-c511574be758",
+    "official_before": 18,
+    "structured": 34,
+    "official_after": 34,
+    "tasks": 21,
+    "elapsed_ms": 14,
+    "pending": 0,
+    "source_limited": 1,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "48842db8-ed7c-4c9f-becf-9a47879d6d12",
+      "detail_topic_count": 34,
+      "official_linked_topic_count": 5,
+      "live_only_topic_count": 29,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "927fcd8a-605f-4256-ad20-d9ed9d8fcefb",
+    "official_before": 24,
+    "structured": 166,
+    "official_after": 166,
+    "tasks": 37,
+    "elapsed_ms": 91,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "ed8efa53-47a9-478f-b6b6-2f46746e7327",
+      "detail_topic_count": 166,
+      "official_linked_topic_count": 4,
+      "live_only_topic_count": 162,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "96e52910-09e4-457b-b090-19dfc3f19f4b",
+    "official_before": 25,
+    "structured": 196,
+    "official_after": 199,
+    "tasks": 44,
+    "elapsed_ms": 88,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "3c89ce8e-a613-4444-a094-132f45e5da7f",
+      "detail_topic_count": 196,
+      "official_linked_topic_count": 10,
+      "live_only_topic_count": 186,
+      "supplement_topic_count": 3,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "bbfb3f13-fb16-4f6b-bb01-2b418b6b01bb",
+    "official_before": 24,
+    "structured": 113,
+    "official_after": 114,
+    "tasks": 41,
+    "elapsed_ms": 27,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "f6a3b9f3-c610-4fb4-a23a-e974b0296053",
+      "detail_topic_count": 113,
+      "official_linked_topic_count": 6,
+      "live_only_topic_count": 107,
+      "supplement_topic_count": 1,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "c63352bc-cb49-4474-b8b1-990d8ef24153",
+    "official_before": 24,
+    "structured": 297,
+    "official_after": 297,
+    "tasks": 61,
+    "elapsed_ms": 153,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "1ff9ee05-5e42-4c18-8936-9971bb2b68b8",
+      "detail_topic_count": 297,
+      "official_linked_topic_count": 11,
+      "live_only_topic_count": 286,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "cfa253d9-5ada-46e2-9f95-bdf55fb54046",
+    "official_before": 13,
+    "structured": 39,
+    "official_after": 45,
+    "tasks": 23,
+    "elapsed_ms": 20,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "9a1531e2-5e61-444c-9ce0-7e11199a0e4e",
+      "detail_topic_count": 39,
+      "official_linked_topic_count": 1,
+      "live_only_topic_count": 38,
+      "supplement_topic_count": 6,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "e79d3383-55ae-428d-821f-96d15ce35294",
+    "official_before": 25,
+    "structured": 139,
+    "official_after": 142,
+    "tasks": 29,
+    "elapsed_ms": 40,
+    "pending": 0,
+    "source_limited": 1,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "a0fca47d-17f8-4ffe-a051-ab42bb2986bd",
+      "detail_topic_count": 139,
+      "official_linked_topic_count": 3,
+      "live_only_topic_count": 136,
+      "supplement_topic_count": 3,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "e805641b-0fee-4d73-bd32-fac043b05f9d",
+    "official_before": 8,
+    "structured": 40,
+    "official_after": 41,
+    "tasks": 13,
+    "elapsed_ms": 21,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "f7ffd8df-dbc9-4a28-b2fe-1e1316616090",
+      "detail_topic_count": 40,
+      "official_linked_topic_count": 2,
+      "live_only_topic_count": 38,
+      "supplement_topic_count": 1,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "f2cfce00-53f2-4a34-91d3-1790b4bcbb3c",
+    "official_before": 30,
+    "structured": 150,
+    "official_after": 157,
+    "tasks": 39,
+    "elapsed_ms": 42,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "22202d00-a44c-495d-9466-21278c569913",
+      "detail_topic_count": 150,
+      "official_linked_topic_count": 4,
+      "live_only_topic_count": 146,
+      "supplement_topic_count": 7,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "f722698c-f85a-40a1-a5c3-0ab906ea80ab",
+    "official_before": 24,
+    "structured": 271,
+    "official_after": 271,
+    "tasks": 51,
+    "elapsed_ms": 163,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "bedf9522-c877-46ee-80f4-18f746307765",
+      "detail_topic_count": 271,
+      "official_linked_topic_count": 3,
+      "live_only_topic_count": 268,
+      "supplement_topic_count": 0,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "fc7ce550-830d-40d8-8e9f-0716ba9abfd1",
+    "official_before": 24,
+    "structured": 38,
+    "official_after": 39,
+    "tasks": 13,
+    "elapsed_ms": 18,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "bbd9b0dc-5901-4239-b175-7d1d46250ddd",
+      "detail_topic_count": 38,
+      "official_linked_topic_count": 0,
+      "live_only_topic_count": 38,
+      "supplement_topic_count": 1,
+      "additional_llm_calls": 0
+    }
+  },
+  {
+    "id": "fe649f43-144b-442c-a36e-2f2e0e29e393",
+    "official_before": 24,
+    "structured": 27,
+    "official_after": 29,
+    "tasks": 23,
+    "elapsed_ms": 16,
+    "pending": 0,
+    "source_limited": 0,
+    "detail": {
+      "version": "official-structured-view/1.0",
+      "source_revision_id": "265ae1ee-276d-481c-9564-11438ba7ca2a",
+      "detail_topic_count": 27,
+      "official_linked_topic_count": 4,
+      "live_only_topic_count": 23,
+      "supplement_topic_count": 2,
+      "additional_llm_calls": 0
+    }
+  }
+]

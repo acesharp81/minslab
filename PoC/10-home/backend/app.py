@@ -1109,6 +1109,13 @@ def create_app(engine=None, auto_collect=None):
     def sources(compact: bool = False):
         return {"items": service.sources(compact=compact)}
 
+    @app.get(PREFIX + "/api/sources/catalogue")
+    def source_catalogue():
+        # Initial navigation needs names/IDs, not collection batches, manifests
+        # or their large statistics. Live status remains on /sources.
+        fields=('id','name','type','collection_mode','data_type','org')
+        return {"items": [{k:s[k] for k in fields if k in s} for s in SOURCES]}
+
     @app.get(PREFIX + "/api/source-summary")
     def source_summary():
         from .source_summary import build
@@ -1279,6 +1286,39 @@ def create_app(engine=None, auto_collect=None):
         matrix=json.loads(response.body)
         return Response(export(service,matrix,collection_status),media_type='text/csv; charset=utf-8',headers={
             'Content-Disposition':'attachment; filename="the-jutaek-project-dataset-'+matrix['as_of_date']+'.csv"'})
+
+    from .dataset_slices import SliceJobs, ExportError, options as slice_options
+    slice_jobs = SliceJobs(service)
+
+    @app.get(PREFIX + '/api/project-collection/slices')
+    def dataset_slice_options():
+        return slice_options()
+
+    @app.get(PREFIX + '/api/project-collection/slices/start')
+    def dataset_slice_start(request: Request, target: str = Query('the-housing', max_length=60),
+                            mode: str = Query('delta', pattern='^(delta|full)$'),
+                            since: str = Query('2026-10-22T00:00', max_length=40), golden: bool = True):
+        # The bundle includes private integrity evidence; preserve its admin boundary.
+        if not authenticated(request): raise HTTPException(401, '관리자 로그인 후 연계 데이터셋을 생성할 수 있습니다.')
+        try: result = slice_jobs.start(target, mode, since, golden)
+        except ExportError as error: raise HTTPException(422, str(error)) from None
+        return Response(json.dumps(result, ensure_ascii=False), media_type='application/json', headers={'Cache-Control':'no-store'})
+
+    @app.get(PREFIX + '/api/project-collection/slices/jobs/{job_id}')
+    def dataset_slice_job(job_id: str, request: Request):
+        if not authenticated(request): raise HTTPException(401, '관리자 로그인이 필요합니다.')
+        try: result = slice_jobs.get(job_id)
+        except ExportError as error: raise HTTPException(404, str(error)) from None
+        return Response(json.dumps(result, ensure_ascii=False), media_type='application/json', headers={'Cache-Control':'no-store'})
+
+    @app.get(PREFIX + '/api/project-collection/slices/jobs/{job_id}/download')
+    def dataset_slice_download(job_id: str, request: Request):
+        if not authenticated(request): raise HTTPException(401, '관리자 로그인이 필요합니다.')
+        try: result = slice_jobs.get(job_id)
+        except ExportError as error: raise HTTPException(404, str(error)) from None
+        if result['status'] != 'COMPLETED': raise HTTPException(409, '생성·검증 완료 후 다운로드할 수 있습니다.')
+        return FileResponse(slice_jobs.root/job_id/'dataset.zip', media_type='application/zip',
+                            filename=result['result']['filename'], headers={'Cache-Control':'no-store'})
 
     def build_collection_schema():
         from .project_collection import collection_matrix

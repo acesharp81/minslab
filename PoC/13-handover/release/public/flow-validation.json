@@ -1,0 +1,223 @@
+{
+  "version": "1.1.0",
+  "scope": "4 synthetic works / 11 stage reports; not a general accuracy guarantee",
+  "model": "solar-pro4",
+  "checks_passed": 39,
+  "checks_total": 39,
+  "historical_source_quotes_verified": 177,
+  "checks": [
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "owner",
+      "passed": true
+    },
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "status",
+      "passed": true
+    },
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "due_date",
+      "passed": true
+    },
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "completed_work",
+      "passed": true
+    },
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "remaining_work",
+      "passed": true
+    },
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "issues",
+      "passed": true
+    },
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "next_action",
+      "passed": true
+    },
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "생활문화 공모사업 추진",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "owner",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "status",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "due_date",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "completed_work",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "remaining_work",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "issues",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "next_action",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "보조금 정산 승인",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "owner",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "status",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "due_date",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "completed_work",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "remaining_work",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "issues",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "next_action",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "문화시설 안전점검",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "문화시설 통합예약 개선",
+      "field": "owner",
+      "passed": true
+    },
+    {
+      "work": "문화시설 통합예약 개선",
+      "field": "status",
+      "passed": true
+    },
+    {
+      "work": "문화시설 통합예약 개선",
+      "field": "due_date",
+      "passed": true
+    },
+    {
+      "work": "문화시설 통합예약 개선",
+      "field": "completed_work",
+      "passed": true
+    },
+    {
+      "work": "문화시설 통합예약 개선",
+      "field": "remaining_work",
+      "passed": true
+    },
+    {
+      "work": "문화시설 통합예약 개선",
+      "field": "issues",
+      "passed": true
+    },
+    {
+      "work": "문화시설 통합예약 개선",
+      "field": "next_action",
+      "passed": true
+    },
+    {
+      "work": "문화시설 통합예약 개선",
+      "field": "stage/date/progress/start",
+      "passed": true
+    },
+    {
+      "work": "문화시설 통합예약 개선",
+      "field": "stage/date/progress/start",
+      "passed": true
+    }
+  ],
+  "usage": {
+    "completion_tokens": 3799,
+    "prompt_tokens": 11392,
+    "total_tokens": 15191
+  },
+  "browser_e2e": {
+    "mode": "llm",
+    "documents": 11,
+    "tasks": 4,
+    "same_report_both_roles": true,
+    "matched_by_human": true,
+    "gantt": true,
+    "mobile_no_page_overflow": true,
+    "javascript_errors": [],
+    "model": "solar-pro4"
+  },
+  "gpt": "No additional request. Prior one-time GPT-5.4-mini audit of the 7-work dataset retained separately.",
+  "automated_tests": 37
+}

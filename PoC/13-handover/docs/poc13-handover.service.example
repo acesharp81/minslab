@@ -1,0 +1,16 @@
+[Unit]
+Description=PoC13 Handover independent demo
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/apps/myservice/PoC/13-handover
+ExecStart=/home/ubuntu/apps/myservice/PoC/13-handover/.venv/bin/python -m uvicorn app.main:create_app --factory --host 127.0.0.1 --port 18130 --workers 1 --proxy-headers
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+UMask=0077
+
+[Install]
+WantedBy=default.target

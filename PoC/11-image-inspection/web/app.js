@@ -170,39 +170,35 @@ function evidenceAnchor(rects){
 }
 function reviewMarkerKind(row,run){
  const basis=row.review_basis;
+ // Scope/identity/approval limitations take precedence over a model's category label.
+ if(row.diagnostic_only||row.coverage_fallback||row.binding_uncertain||/^D-03-/.test(row.rule_id)||/^D-04-[de]$/.test(row.rule_id))return '';
  const objects=(run?.analysis_observation||run?.observation)?.objects||[];
  const related=objects.filter(o=>row.evidence_ids?.includes(o.id));
- const text=related.some(o=>!!o.text||['CLEAR','DEGRADED','UNREADABLE'].includes(o.text_legibility)||(o.text_legibility!=='NOT_TEXT'&&/문구|문자|텍스트|표지|안내판|간판/.test(o.label||'')));
- if(['OBSERVED_ANOMALY','CONTEXT_CONFLICT'].includes(basis))return 'observed';
- if(row.diagnostic_only)return '';
- const handRule=/^D-02-[c-i]$/.test(row.rule_id);
- const handDetails=[...(row.hand_scope?.hands||[]),...related.flatMap(o=>o.hands||[])];
- if(handRule&&handDetails.some(h=>h.visible_structure==='ANOMALOUS'&&h.anomaly_evidence?.trim()))return 'observed';
- // Counting every hidden finger is not a prerequisite for a natural pose.
- if(handRule&&basis==='READING_LIMIT')return '';
- // Missing analysis coverage is not an observed defect or a completed close reading.
- if(row.coverage_fallback||basis==='DOCUMENT_CHECK')return '';
  const comparisons=[...(row.direct_comparisons||[]),...(run?.verification?.results||[]).filter(v=>row.evidence_ids?.includes(v.object_id)).flatMap(v=>(v.comparisons||[]).filter(c=>c.rule_ids?.includes(row.rule_id)))];
- if(comparisons.some(c=>c.status==='MISMATCH'))return 'observed';
- if(text&&['TYPO_CONFIRMED','VISUAL_TEXT_DEFECT','OCR_UNREADABLE','OCR_MISMATCH','OCR_UNCERTAIN','OCR_OMISSION','OCR_RECOGNITION_ERROR'].includes(row.error_type))return 'reading';
- if(comparisons.some(c=>c.status==='UNCERTAIN'))return 'comparison';
- // A contradictory model verdict alone does not establish a visual reading limit.
- if(row.decision_conflict)return '';
- const step=run?.rule_pack?.steps?.find(s=>s.rule_id===row.rule_id),objective=step?.objective||'';
- const shapeRule=/손가락|손바닥|손목|관절|인체|문양|계급장|네 괘|태극|축척|도안|형태·색/.test(objective)||/^D-02-[c-k]$/.test(row.rule_id)||/^H-07-[bceg]$/.test(row.rule_id);
- const textRule=/OCR|오탈자|오자|깨진 글자|문자.*판독/.test(objective)||['D-02-l','H-06-b','H-03-b'].includes(row.rule_id);
- if(basis==='READING_LIMIT'&&related.length&&(shapeRule||text&&textRule))return 'reading';
- if(basis==='REFERENCE_MISSING'&&related.length&&(step?.reference_requirements||[]).some(k=>['official-symbols','official-map','official-emblems'].includes(k)))return 'comparison';
- return (!basis||basis==='UNASSESSED')&&row.visual_issue?'observed':'';
+ if(comparisons.some(c=>c.status==='MISMATCH'&&c.evidence?.trim()))return 'observed';
+ const handDetails=[...(row.hand_scope?.hands||[]),...related.flatMap(o=>o.hands||[])];
+ if(/^D-02-[c-i]$/.test(row.rule_id)&&handDetails.some(h=>h.visible_structure==='ANOMALOUS'&&h.anomaly_evidence?.trim()))return 'observed';
+ if(['OBSERVED_ANOMALY','CONTEXT_CONFLICT'].includes(basis)&&row.reason?.trim())return 'observed';
+ if(row.decision_conflict||basis==='DOCUMENT_CHECK')return '';
+ const glyph=row.glyph_audit_evidence,assessment=glyph?.assessment;
+ if(assessment?.location_verified&&assessment?.issue&&(assessment.error_type==='VISUAL_TEXT_DEFECT'||glyph?.isolated_glyphs?.reading_conflicts?.length||glyph?.isolated_glyphs?.character_conflicts?.length||glyph?.retained_detector_conflict))return 'reading';
+ if(row.independent_reading_conflicts?.some(c=>c.status==='UNRESOLVED'&&c.detector_text&&c.independent_text&&c.detector_text!==c.independent_text))return 'reading';
+ if(['TYPO_CONFIRMED','VISUAL_TEXT_DEFECT'].includes(row.error_type)&&row.reason?.trim())return 'reading';
+ // Not reading a small object, lacking a reference or awaiting approval is not a located anomaly.
+ // Explicit old visual findings remain usable; bare uncertainty flags do not create pins.
+ return (!basis||basis==='UNASSESSED')&&row.visual_issue&&row.reason?.trim()?'observed':'';
 }
 function isVisualReview(row,run){return !!reviewMarkerKind(row,run)}
 function reviewDisplayLabel(row,run){
  const kind=reviewMarkerKind(row,run);
+ if(row.binding_uncertain)return '문자·객체 위치 연결 미확정';
+ if(/^D-03-/.test(row.rule_id)||/^D-04-[de]$/.test(row.rule_id))return '사용 동의·증빙 확인';
  if(kind)return ({observed:'관찰된 차이 확인',reading:'판독 한계 · 원본 확인',comparison:'기준 도안 비교 필요'})[kind];
  if(row.coverage_fallback)return '분석 미완료 · 추가 확인';
  if(row.decision_conflict)return '모델 판정 상충 · 추가 확인';
  if(/^D-02-[c-i]$/.test(row.rule_id)&&row.review_basis==='READING_LIMIT')return '손의 가림·확인 범위';
- if(row.review_basis==='REFERENCE_MISSING')return '기준자료 확인';
+ if(row.review_basis==='REFERENCE_MISSING')return '기준자료·비교 미확정';
+ if(row.review_basis==='READING_LIMIT'||['OCR_UNREADABLE','OCR_UNCERTAIN'].includes(row.error_type))return '판독 미확정 · 이상 근거 미확보';
  return row.document_review||['DOCUMENT_CHECK','NONE'].includes(row.review_basis)?'문서·맥락·승인 확인':'추가 검토';
 }
 function issueGroups(){
@@ -255,7 +251,7 @@ function unmarkedReviewHTML(groups,run,statusOf=r=>r.status){
  const extra=groups.filter(g=>!g.number&&!g.anchor).map(g=>({...g,rows:g.rows.filter(r=>statusOf(r)==='REVIEW')})).filter(g=>g.rows.length);
  if(!extra.length)return '';
  const count=new Set(extra.flatMap(g=>g.rows.map(r=>r.id))).size;
- return `<summary><strong>번호 없는 검토 의견 ${count}건</strong><span>${extra.length}개 묶음 · 펼쳐서 확인</span></summary><p>이미지 번호로 표시하지 않은 문서·기준자료·분석 확인 사항입니다. 의견을 누르면 상세 근거와 검토 기록을 볼 수 있습니다.</p><div class="unmarked-review-list">${extra.map(g=>`<div class="unmarked-review-group"><h3>${esc(g.label)}</h3>${g.rows.map(r=>`<button class="unmarked-review-row" data-group="${esc(g.id)}" data-finding="${esc(r.id)}"><b>${esc(r.rule_id)} · ${esc(reviewDisplayLabel(r,run))}</b><span>${esc(r.reason)}</span></button>`).join('')}</div>`).join('')}</div>`;
+ return `<summary><strong>번호 없는 검토 의견 ${count}건</strong><span>${extra.length}개 묶음 · 펼쳐서 확인</span></summary><p>판독·비교 미확정, 검사 미완료, 사용 동의·증빙 확인 의견입니다. 구체적인 이상 근거가 없어 그림 위 번호로 표시하지 않았습니다. 의견을 누르면 상세 근거와 검토 기록을 볼 수 있습니다.</p><div class="unmarked-review-list">${extra.map(g=>`<div class="unmarked-review-group"><h3>${esc(g.label)}</h3>${g.rows.map(r=>`<button class="unmarked-review-row" data-group="${esc(g.id)}" data-finding="${esc(r.id)}"><b>${esc(r.rule_id)} · ${esc(reviewDisplayLabel(r,run))}</b><span>${esc(r.reason)}</span></button>`).join('')}</div>`).join('')}</div>`;
 }
 // Hit testing uses saved evidence, independently of visible pins and status filters.
 function imageAnalysisTargets(run,statusOf=r=>r.status){
@@ -404,6 +400,27 @@ function refinementReportHTML(run){
  const status={COMPLETED:'완료',PARTIAL:'일부 완료',RUNNING:'진행 중',UNAVAILABLE:'미완료',NOT_NEEDED:'대상 없음'};
  return `<details class="quality-recheck-report"><summary>자동 손·글자 정밀 확인</summary><p>그림부터 새로 검사할 때 실행합니다. 판독 일치나 가림만으로 정상·오류를 확정하지 않습니다.</p>${glyph?`<p><b>글자 획 · ${esc(status[glyph.status]||glyph.status)}</b> · ${glyph.regions?.length||0}영역${glyph.deferred_count?' · 범위 밖 '+glyph.deferred_count+'영역':''}</p>${(glyph.regions||[]).map(r=>`<p>OCR: ${esc(r.detector_text||'[전사 없음]')} → 독립 획 판독: ${esc(r.assessment?.literal_text||'[미완료]')}${r.isolated_glyphs?`<br>문맥 없는 음절 판독: ${esc(r.isolated_glyphs.literal_text)} · ${r.isolated_glyphs.agreed?'두 모델 일치':'미확정'}`:''}</p>`).join('')}`:''}${hand?`<p><b>손 연결 구조 · ${esc(status[hand.status]||hand.status)}</b> · ${hand.results?.length||0}객체${hand.deferred_ids?.length?' · 범위 밖 '+hand.deferred_ids.length+'객체':''}</p>${(hand.results||[]).map(r=>`<details><summary>${esc(r.object_id)} · 구체적 이상 소견 ${r.accepted_concerns?.length||0}건</summary><p>${esc(r.summary)}</p>${(r.traces||[]).map(t=>`<p><b>${esc(t.part)}</b> · ${esc(t.visible_path)}${t.obscured_by?' · 가림: '+esc(t.obscured_by):''}</p>`).join('')}${(r.accepted_concerns||[]).map(c=>`<p>${esc(c.evidence)}<br>${esc(c.alternative_explanation)}</p>`).join('')}</details>`).join('')}${handGeometryHTML(hand)}${hand.error?`<p>${esc(hand.error)}</p>`:''}`:''}</details>`;
 }
+function inspectionCoverage(run){
+ if(!run)return {partial:false,items:[],failedCalls:0};
+ const items=[],objects=new Map(((run.analysis_observation||run.observation)?.objects||[]).map(o=>[o.id,o.label]));
+ const pending=run.verification?.deferred||[];
+ if(pending.length)items.push({label:`확대·도안 확인 미완료 ${new Set(pending.map(d=>d.object_id)).size}곳`,reasons:pending.map(d=>`${objects.get(d.object_id)||d.object_id}: ${d.reason}`)});
+ const glyph=run.glyph_audit;
+ if(glyph&&(glyph.status==='PARTIAL'||glyph.status==='UNAVAILABLE'))items.push({label:`문자 정밀 확인 ${(glyph.regions||[]).filter(r=>r.assessment).length}/${glyph.candidate_count??glyph.regions?.length??0}곳 · 일부 미완료`,reasons:[glyph.error,glyph.deferred_count?`검사 범위 밖 ${glyph.deferred_count}곳`:''].filter(Boolean)});
+ const hand=run.hand_audit;
+ if(hand&&(hand.status==='UNAVAILABLE'||hand.deferred_ids?.length))items.push({label:'손 구조 확인 일부 미완료',reasons:[hand.error,...(hand.deferred_ids||[]).map(id=>`${objects.get(id)||id}: 정밀 확인 범위 밖`)].filter(Boolean)});
+ const ocr=run.text_ocr;
+ if(ocr&&(ocr.status==='UNAVAILABLE'||ocr.status==='PARTIAL'||ocr.vision_deferred||ocr.deferred_count))items.push({label:'독립 문자 확인 일부 미완료',reasons:[ocr.error,`확인 ${ocr.vision_checked??0}곳 · 미확인 ${ocr.vision_deferred??0}곳 · 범위 밖 ${ocr.deferred_count??0}곳`].filter(Boolean)});
+ return {partial:items.length>0,items,failedCalls:(run.calls||[]).filter(c=>c.status==='FAILED').length,inheritedFailedCalls:run.local_revision?.inherited_failed_calls?.length||0};
+}
+function coverageSummaryHTML(run){
+ const coverage=inspectionCoverage(run);if(!coverage.partial&&!coverage.failedCalls&&!coverage.inheritedFailedCalls)return '';
+ return `<strong>${coverage.partial?'분석 종료 · 일부 정밀 확인 미완료':'실행 중 호출 실패 기록 있음'}</strong><p>${coverage.items.map(i=>esc(i.label)).join(' · ')}${coverage.failedCalls?` · 이번 실행 중 실패 호출 ${coverage.failedCalls}회`:''}${coverage.inheritedFailedCalls?` · 저장 검사의 실패 호출 기록 ${coverage.inheritedFailedCalls}회`:''}</p><details><summary>미완료 이유 보기</summary>${coverage.items.map(i=>`<p><b>${esc(i.label)}</b></p><ul>${i.reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`).join('')}<p>미완료는 정상이나 오류 판정이 아닙니다. 이 안내를 열어도 추가 AI 호출은 발생하지 않습니다.</p></details>`;
+}
+function renderCoverage(running){
+ let panel=$('#inspection-coverage');if(!panel){panel=document.createElement('section');panel.id='inspection-coverage';panel.className='inspection-coverage';panel.setAttribute('role','status');$('#progress-panel').before(panel)}
+ const html=coverageSummaryHTML(activeRun());panel.hidden=running||!html;panel.innerHTML=panel.hidden?'':html;
+}
 function renderTokens(){
  const run=activeRun(),totals=new Map();
  const summary=$('#stage-tokens'),html=stageTokensHTML(run);summary.hidden=!run;if(summary.innerHTML!==html)summary.innerHTML=html;
@@ -459,7 +476,7 @@ function runModelSummary(run){
  const analyses=[...new Set((run.results||[]).filter(r=>!['ERROR','NOT_RUN'].includes(r.status)&&r.model&&!r.model.startsWith('system/')).map(r=>r.model))];
  if(!analyses.length)for(const c of calls)if(c.workload==='checklist-analysis'&&c.status!=='FAILED'&&!analyses.includes(c.model))analyses.push(c.model);
  const local=!!run.local_revision&&!calls.length;
- return `그림 읽기: ${read?label(read)+(run.observation_reused_from?' (재사용)':''):'미완료'} · 분석: ${analyses.length?analyses.map(label).join(', ')+(local?' (재사용)':''):'미실행'}${local?(run.local_revision.method==='baseline-retained'?' · 이전 판정 유지(API 0회)':run.local_revision.method==='evidence-reconcile-v1'?' · 근거·위치 정리(API 0회)':run.local_revision.method==='text-location-v1'?' · 문자 위치 확인: 로컬 계산(API 0회)':' · 문양 구성 비교: 로컬 계산(API 0회)'):''}${run.spelling_audit?.calls?' · 철자 확인: GPT-5.4 mini'+(calls.some(c=>c.workload==='text-spelling-audit')?'':' (재사용)'):''}${run.pixel_text?.confirmation?.calls?' · 문자 획 확인: GPT-5.4'+(calls.some(c=>c.workload==='text-pixel-confirm')?'':' (재사용)'):''}${run.glyph_audit?' · 별도 획 검사: '+label(run.glyph_audit.model)+(run.glyph_audit.status==='COMPLETED'?'':run.glyph_audit.status==='UNAVAILABLE'?' (미실행)':' (일부 완료)'):''}`;
+ return `그림 읽기: ${read?label(read)+(run.observation_reused_from?' (재사용)':''):'미완료'} · 분석: ${analyses.length?analyses.map(label).join(', ')+(local?' (재사용)':''):'미실행'}${local?(run.local_revision.method==='baseline-retained'?' · 이전 판정 유지(API 0회)':run.local_revision.method==='evidence-reconcile-v1'?' · 근거·위치 정리(API 0회)':run.local_revision.method==='review-evidence-v1'?' · 근거·표출 정리(API 0회)':run.local_revision.method==='text-location-v1'?' · 문자 위치 확인: 로컬 계산(API 0회)':' · 문양 구성 비교: 로컬 계산(API 0회)'):''}${run.spelling_audit?.calls?' · 철자 확인: GPT-5.4 mini'+(calls.some(c=>c.workload==='text-spelling-audit')?'':' (재사용)'):''}${run.pixel_text?.confirmation?.calls?' · 문자 획 확인: GPT-5.4'+(calls.some(c=>c.workload==='text-pixel-confirm')?'':' (재사용)'):''}${run.glyph_audit?' · 별도 획 검사: '+label(run.glyph_audit.model)+(run.glyph_audit.status==='COMPLETED'?'':run.glyph_audit.status==='UNAVAILABLE'?' (미실행)':' (일부 완료)'):''}`;
 }
 function renderJob(){
  $('#work-area').hidden=false;$('#empty-state').hidden=true;$('#job-title').textContent=job.metadata.title;$('#demo-badge').hidden=activeRun()?.options.mode!=='mock';$('#preview-empty').hidden=true;$('#drop-zone').hidden=true;$('.image-stage').hidden=false;$('#inspection-image').hidden=false;$('#image-click-hint').hidden=!activeRun();
@@ -470,9 +487,9 @@ function renderJob(){
  $('#run').disabled=running||submitting;$('#text-sensitivity').disabled=running||config.role!=='admin';$('#file').disabled=running;$('#rerun').disabled=running;$('#reanalyze').disabled=running||!reusableObservation(run);$('#quality-recheck').disabled=running||!reusableObservation(run)||config.role!=='admin';$('#progress-panel').hidden=!running;$('#scanner').hidden=!running;
  if(run){$('#scanner span').textContent=run.phase==='STRUCTURE'?'원본 획 구조 비교 중':run.phase==='GLYPH_AUDIT'?'기존 판독과 별도로 원본 문자 획 검사 중':run.phase==='TEXT_OCR'?'문자 탐지 · 독립 OCR · 원본 획 비교 중':run.phase==='VERIFYING'?'확대 판독 · 공식 도안 비교 중':run.phase==='ANALYZING'?'저장된 관찰로 규칙 분석 중':'이미지 읽는 중';const failure=inspectionFailure(run);$('#notice').textContent=failure?failure.stage+' 중 오류가 발생했습니다: '+failure.reason:'자동 검수는 최종 공개 승인이 아닙니다. 오류 의심·검토 필요 항목은 담당자가 근거를 확인하세요.';$('#progress-text').textContent=run.phase==='READING'?(run.reading_retry?'1 / 3 · 공급자 오류 후 그림 읽기 1회 재시도 중':'1 / 3 · 전체 이미지 관찰 중'):run.phase==='GLYPH_AUDIT'?'2 / 3 · 독립 문자 획 검사 '+(run.glyph_audit?.regions?.filter(r=>r.assessment).length||0)+' / '+(run.glyph_audit?.regions?.length||0):run.phase==='TEXT_OCR'?'2 / 3 · 문자 탐지·원본 획 독립 검사':run.phase==='VERIFYING'?'2 / 3 · 필요한 영역 묶음 재검사':`3 / 3 · 저장된 관찰로 규칙 분석 ${run.progress} / ${run.total}`;
  $('#progress-bar').style.width=(run.total?run.progress/run.total*100:0)+'%';$('#elapsed').textContent=`${running?Math.max(0,Math.floor((Date.now()-new Date(run.created_at).getTime())/1000)):run.elapsed_seconds||0}초 · API ${run.calls.length}회`;
- if(run.reused_from)$('#job-state').textContent='동일 조건 결과 재사용 · API 0회';if(run.local_revision)$('#job-state').textContent=run.local_revision.method==='baseline-retained'?'실험 검증 후 이전 판정 유지':run.local_revision.kind==='user-feedback'?'사용자 지적 반영 · 자동 검출과 별도':'기존 검사 결과 · 누락 의견 보완 · API 0회';if(run.evidence_revision)$('#job-state').textContent='추가 독립 검증 반영 · 기존 규칙 분석 유지';}
+ if(run.reused_from)$('#job-state').textContent='동일 조건 결과 재사용 · API 0회';if(run.local_revision)$('#job-state').textContent=run.local_revision.method==='baseline-retained'?'실험 검증 후 이전 판정 유지':run.local_revision.kind==='user-feedback'?'사용자 지적 반영 · 자동 검출과 별도':'기존 검사 결과 · 누락 의견 보완 · API 0회';if(run.evidence_revision)$('#job-state').textContent='추가 독립 검증 반영 · 기존 규칙 분석 유지';if(!running&&inspectionCoverage(run).partial)$('#job-state').textContent='분석 종료 · 일부 확인 미완료';}
  const imageURL=BASE+`/api/jobs/${job.id}/image`;if($('#inspection-image').getAttribute('src')!==imageURL)$('#inspection-image').src=imageURL;
- renderFailure(running);renderIssues();renderChecklist();renderOverlay();renderDetail();renderTokens();renderOriginalReport();
+ renderFailure(running);renderCoverage(running);renderIssues();renderChecklist();renderOverlay();renderDetail();renderTokens();renderOriginalReport();
  if(running&&!timer)timer=setTimeout(poll,1700);
 }
 async function poll(){timer=null;if(!job)return;try{job=await api(`/jobs/${job.id}?view=latest`);renderJob();if(!['RUNNING','QUEUED'].includes(job.state))void refreshRemaining()}catch(e){toast(e.message);timer=setTimeout(poll,5000)}}
@@ -520,6 +537,9 @@ function precheckEvidenceHTML(row,run){
  }).join('');
 }
 
+function readingConflictHTML(row){
+ return (row.independent_reading_conflicts||[]).map(c=>`<div class="recheck-card"><strong>${c.status==='TARGET_UNRESOLVED'?'위치 연결 미확정 · 이전 비교 기록':'같은 위치의 독립 판독 비교'}</strong><p>OCR: ${esc(c.detector_text)}<br>그림 판독: ${esc(c.independent_text)}</p><p>${c.status==='TARGET_UNRESOLVED'?'서로 다른 객체의 문구가 연결됐을 가능성이 있어 이 비교는 오탈자 근거로 사용하지 않습니다. 이전 판독은 기록으로 보존합니다.':'오탈자인지 OCR 오인식인지 아직 확정되지 않았습니다. 원본 음절을 확인하세요.'}</p></div>`).join('');
+}
 function sourceChecksHTML(row){
  let html='';const name=row.official_term_check,geometry=row.symbol_geometry;
  if(row.source_copy_check){const c=row.source_copy_check;html+=`<div class="recheck-card"><strong>승인 원고 글자별 대조</strong><p>판독: ${esc(c.literal||'[판독 불가]')}<br>원고: ${esc(c.expected)}</p><table><thead><tr><th>판독 글자</th><th>원고 글자</th></tr></thead><tbody>${c.differences.map(d=>`<tr><td>${esc(d.observed.replace(/ /g,'␠')||'∅')}</td><td>${esc(d.expected.replace(/ /g,'␠')||'∅')}</td></tr>`).join('')}</tbody></table><small>␠ 공백 · ∅ 글자 없음 · ${c.confirmed?'독립 판독 일치':'판독 미확정'} · 원고 일치와 획 품질은 별개입니다.</small></div>`;}
@@ -527,7 +547,7 @@ function sourceChecksHTML(row){
  if(row.spelling_audit_evidence){const a=row.spelling_audit_evidence;html+=`<div class="recheck-card"><strong>독립 철자 검사 · GPT-5.4 mini</strong><p>확인된 원문: ${esc(a.literal)}</p>${a.correction?`<p>수정 후보: ${esc(a.correction)}</p>`:''}<p>${esc(a.reason)}</p><small>${a.source?.source==='confirmed-source-glyphs'?'원본 글자 획을 독립 비교해 확인한 문구를 검사했습니다.':'원본 관찰과 OCR이 일치한 문구를 검사했습니다.'} 철자 판단은 원본 획 품질과 별개입니다.</small></div>`;}
  if(row.pixel_text_evidence){const p=row.pixel_text_evidence,h=1000*job.image.height/job.image.width;html+=`<div class="recheck-card"><strong>원본 문자 획 대조</strong><p>${p.blur_observed?'원본에서 획 경계 번짐 측정':'독립 OCR: '+esc(p.detector_text)+'<br>픽셀 형태 후보: '+esc(p.shape_text||'미확정')}</p>${p.shape_checks?.length?`<table><thead><tr><th>원본</th><th>OCR</th><th>획 후보</th><th>추가 확인</th></tr></thead><tbody>${p.shape_checks.filter(c=>c.shape_char!==c.ocr_char&&c.accepted).map(c=>{const [x,y,z,b]=c.rect;return `<tr><td><svg width="48" height="48" viewBox="${x*1000} ${y*h} ${(z-x)*1000} ${(b-y)*h}" aria-label="원본 글자 확대"><image href="${BASE}/api/jobs/${esc(job.id)}/image" width="1000" height="${h}"/></svg></td><td>${esc(c.ocr_char)}</td><td>${esc(c.shape_char)}</td><td>${c.independent_comparison?.agrees?'형태 일치':c.independent_comparison?'미확정':'미실행'}</td></tr>`}).join('')}</tbody></table>`:''}<p class="micro">${p.blur_observed?'원본 픽셀의 경계 강도 '+esc(p.metrics.edge_strength)+' · 경계 변화량 '+esc(p.metrics.laplacian):'글꼴 형태 유사도는 오류 확률이 아닙니다. 단어를 추측하지 않고 자모 획을 비교했습니다.'}</p></div>`;}
  if(row.location_unresolved)html+=`<div class="recheck-card"><strong>위치 확인 필요</strong><p>${esc(row.location_evidence?.reason||'분석 의견은 보존했지만 이미지에서 위치를 확정하지 못했습니다.')}</p></div>`;
- if(row.independent_reading_conflicts?.length)html+=`<div class="recheck-card"><strong>같은 위치의 독립 판독 비교</strong>${row.independent_reading_conflicts.map(c=>`<p>OCR: ${esc(c.detector_text)}<br>그림 판독: ${esc(c.independent_text)}</p>`).join('')}<p>오탈자인지 OCR 오인식인지 아직 확정되지 않았습니다. 원본 음절을 확인하세요.</p></div>`;
+ html+=readingConflictHTML(row);
  if(row.hand_topology_evidence){const h=row.hand_topology_evidence;html+=`<div class="recheck-card"><strong>${h.source==='LOCAL_PIXELS'?'손 도안 외곽 측정 · 로컬 처리':'손 연결 구조 독립 확인'}</strong><p>${esc(h.summary)}</p>${(h.traces||[]).map(t=>`<p><b>${esc(t.part)}</b> · ${esc(t.visible_path)}${t.obscured_by?' · 가림: '+esc(t.obscured_by):''}</p>`).join('')}</div>`;}
  if(row.glyph_audit_evidence){const g=row.glyph_audit_evidence,a=g.assessment;html+=`<div class="recheck-card"><strong>문자 판독과 별도 획 검사</strong><p>OCR 전사: ${esc(g.detector_text||'[전사 없음]')}<br>문자 단위 판독: ${esc(a.literal_text||'[판독 불가]')}</p><p>${esc(a.reading.evidence)}</p>${g.isolated_glyphs?`<details><summary>문맥 없는 음절 판독 비교 · ${g.isolated_glyphs.agreed?'모델 간 일치 (정상 판정 아님)':'판독 불일치'}</summary><table><thead><tr><th>원본</th><th>GPT-5.4</th><th>mini</th></tr></thead><tbody>${g.isolated_glyphs.parts.map(p=>{const [x,y,z,b]=p.rect,h=1000*job.image.height/job.image.width;return `<tr><td><svg width="45" height="45" viewBox="${x*1000} ${y*h} ${(z-x)*1000} ${(b-y)*h}" role="img" aria-label="원본 음절"><image href="${BASE}/api/jobs/${esc(job.id)}/image" width="1000" height="${h}"/></svg></td>${['gpt-5.4','gpt-5.4-mini'].map(m=>`<td>${esc(p.readings[m].units.map(u=>u.char).join(''))}${p.readings[m].units.every(u=>u.certain)?'':' (미확정)'}${p.jamo_readings?.[m]?`<small>${esc(p.jamo_readings[m].onset)} · ${esc(p.jamo_readings[m].vowel)} · ${esc(p.jamo_readings[m].coda)}<br>${esc(p.jamo_readings[m].evidence)}</small>`:''}</td>`).join('')}</tr>`}).join('')}</tbody></table><p class="micro">같은 글자로 읽어도 실제 철자나 획 품질의 정상 여부는 별도 확인합니다.</p></details>`:''}<p class="micro">기존 문자열·교정안을 제공하지 않고 원본과 겹치는 부분 영역을 검사했습니다. 판독 일치만으로 정상 판정하지 않습니다.</p><details><summary>음절별 획 근거</summary>${a.reading.units.map(u=>`<p>${esc(u.char)} · ${esc(u.strokes)}${u.certain?'':' · 미확정'}</p>`).join('')}</details></div>`;}
  if(row.reported_issues)html+=`<div class="detail-label">사용자 지적 · 자동 판정과 별도</div><p class="micro">${esc(row.reported_issues.note)}</p>${row.reported_issues.parts.map(p=>`<p><b>${esc(p.part)}</b><br>${esc(p.reason)}</p>`).join('')}<p class="micro">직전 모델 판정: ${esc(labels[row.reported_issues.prior_model_status]||row.reported_issues.prior_model_status)} · ${esc(row.reported_issues.prior_model_reason)}</p>`;

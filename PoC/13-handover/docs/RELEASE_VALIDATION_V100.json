@@ -1,0 +1,50 @@
+{
+  "deployment": {
+    "image": "sha256:6f616b56a82042ae0b3ea5dc1d7c619fa273b0ce5d55e03339ec142fcad2c895",
+    "preserved_cases": 10,
+    "backup_container": "poc13-handover-before-v100-20261109",
+    "download_hashes_verified": 13,
+    "health": {
+      "status": "ok",
+      "version": "1.0.0"
+    }
+  },
+  "live_e2e": {
+    "case_id": "75efa1db2ffc4eb3b189ffa3b0f378ac",
+    "url": "https://www.minslab.kr/handover/#75efa1db2ffc4eb3b189ffa3b0f378ac",
+    "revision_id": "3a31b0e8849348aebc1d3f55fbd96a04",
+    "items": 7,
+    "downloads": [
+      "html",
+      "md",
+      "docx",
+      "pdf"
+    ],
+    "same_final_report": true,
+    "question_uses_final": true,
+    "accepted": true,
+    "javascript_errors": []
+  },
+  "live_metrics": {
+    "expected_tasks": 7,
+    "matched_tasks": 7,
+    "returned_tasks": 7,
+    "no_extra_or_duplicate_tasks": true,
+    "field_checks": 56,
+    "field_passed": 56,
+    "field_match_percent": 100.0,
+    "missing_fields": [],
+    "quotes": 76,
+    "invalid_quotes": 0,
+    "due_conflict_preserved": true,
+    "collaborator_not_owner": true,
+    "no_false_completion": true
+  },
+  "tests": 34,
+  "image_tests": 34,
+  "extracted_archive_tests": 34,
+  "live_ai_questions": true,
+  "public_downloads_verified": 13,
+  "gpt_inference_requests": 1,
+  "video": "deferred by user"
+}

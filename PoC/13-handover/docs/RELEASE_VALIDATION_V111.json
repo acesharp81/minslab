@@ -1,0 +1,29 @@
+{
+  "version": "1.1.1",
+  "deployment": {
+    "image": "sha256:41d3bdd5f11947059e558d124cfef998cbe5e383c980b4093e54bc0bf505ab47",
+    "preserved_cases": 14,
+    "backup_container": "poc13-handover-before-v111-20261109",
+    "download_hashes_verified": 14,
+    "health": {
+      "status": "ok",
+      "version": "1.1.1"
+    }
+  },
+  "browser": {
+    "case_id": "12ddbe34dc16465baeb46de37f4c7123",
+    "url": "https://www.minslab.kr/handover/#12ddbe34dc16465baeb46de37f4c7123",
+    "per_field_pencils": true,
+    "related_plan_evidence": true,
+    "neighbors_shown": true,
+    "only_selected_field_changed": true,
+    "history_preserved": true,
+    "stale_update_keeps_input": true,
+    "mobile_no_overflow": true,
+    "no_evidence_state": true,
+    "successor_read_only": true,
+    "llm_calls": 0,
+    "javascript_errors": []
+  },
+  "automated_tests": 37
+}

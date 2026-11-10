@@ -119,9 +119,9 @@ def parse_gh_stock(content,source,evidence):
 
 def collect_gh_files(source,fetcher):
     text=fetcher.get(source['url']).decode('utf-8','replace')
-    match=re.search(r'"contentUrl"\s*:\s*"(https://www\.data\.go\.kr/cmm/cmm/fileDownload\.do\?[^"\s]+)"',text)
-    if not match:raise ValueError('GH 공개 CSV 다운로드 링크 미확보')
-    return parse_gh_stock(fetcher.get(match[1],'csv'),source,match[1])
+    from .public_data_download import download_url
+    link=download_url(text,source,fetcher)
+    return parse_gh_stock(fetcher.get(link,'csv'),source,link)
 
 
 def parse_legal_dongs(content,source):

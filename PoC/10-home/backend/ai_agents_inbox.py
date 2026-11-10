@@ -16,7 +16,11 @@ def decision_after(doc,created):
 def enrich(row,doc,supplement,analysis):
  if not doc:return row
  decision=doc.get('decision') or {}
- row.update(business_status=doc['status'],business_status_label=doc['status_label'],business_reason=decision.get('reason',''))
+ row.update(business_status=doc['status'],business_status_label=doc['status_label'],business_reason=decision.get('reason',''),
+  business_decision_trace=dict(stored_status=decision.get('status'),projected_status=doc['status'],
+   review_revision_no=doc.get('review_revision_no'),actor=decision.get('actor'),reviewed_at=decision.get('reviewed_at'),
+   reason=decision.get('reason'),source_checked=decision.get('source_checked'),source_revision_no=decision.get('source_revision_no'),
+   source_changed=doc.get('source_changed'),link_changed=doc.get('link_changed'),effect=decision.get('effect')))
  row['body_refs']=[dict(value['evidence_ref'],kind=kind) for kind,value in [('publication_supplement',supplement),('ai_publication_analysis',analysis)] if value and value.get('evidence_ref')]
  source= supplement if usable(supplement,doc['source_revision_no'],analysis) else analysis
  if source and source.get('evidence_ref'):
@@ -59,6 +63,10 @@ def items(service,store,role,evidence_export=False):
      r.update(state='DONE',stage='STAGE_RESOLVED',reason='단계별 실적 제안 처리 완료 · 승인·제외 이력 확인')
    for proposal in proposals:
     p=safe_value(proposal)
+    researched=next((r for r in results if r['subject']==p['id'] and r.get('stage') in ('STAGE_RESEARCH','STAGE_RESEARCH_ERROR')),None)
+    if researched:
+     researched.update(title=p['project_name']+' · '+p['stage_label']+' 재조사',url=p['url'],candidate=p)
+     continue
     results.append(dict(role=role,subject=p['id'],state='HOLD' if p['status'] in LIVE else 'DONE',stage='STAGE_REVIEW',
      title=p['project_name']+' · '+p['stage_label']+' 실적 반영',url=p['url'],reason=' / '.join(p['blockers']+p['review_reasons']) or p['status'],
      source_revision_no=p['source_ref']['revision_no'],created=None,action='신규 자료 검토 → 단계별 실적 반영 검토에서 기존값·새 근거 확인',
@@ -74,10 +82,11 @@ def items(service,store,role,evidence_export=False):
   results=attach_reviews(service,[enrich(r,docs.get(r['subject']),supplements.get(r['subject']),ai.get(r['subject'])) for r in results])
   if role=='officer':
    for r in results:
-    if r['state']=='HOLD':r['verdict']='HOLD'
+    if r.get('verdict')=='ERROR' or r.get('stage') in ('ERROR','ANALYSIS_ERROR','STAGE_RESEARCH_ERROR'):r['verdict']='ERROR'
+    elif r['state']=='HOLD':r['verdict']='HOLD'
     elif r.get('verdict') not in ('YES','NO'):
      r['verdict']='NO' if r.get('business_status')=='EXCLUDED' or (r.get('result') or {}).get('status')=='DISMISSED' else 'YES' if r.get('business_status')=='APPROVED' or (r.get('result') or {}).get('status')=='APPLIED' else 'HOLD'
-    r['state']='HOLD' if r['verdict']=='HOLD' else 'DONE'
+    r['state']='HOLD' if r['verdict']=='HOLD' else 'ERROR' if r['verdict']=='ERROR' else 'DONE'
     if r['verdict']=='HOLD' and not r.get('missing_evidence'):
      from .ai_officer_decisions import pending
      r['missing_evidence']=[pending(r.get('reason') or '최종 판단 근거 재점검 필요')]
@@ -111,7 +120,12 @@ def attach_reviews(service, rows):
  from .hold_review import load
  reviews=load(service,[r['subject'] for r in rows if r['subject'].startswith('DOC_')])
  for r in rows:
-  if r['subject'] in reviews:r['cross_review']=reviews[r['subject']]
+  if r['subject'] in reviews:
+   review=reviews[r['subject']];r['cross_review']=review
+   # Restoring/approving a business decision does not complete collection analysis.
+   # A changed analysis revision invalidates this pinned recommendation via current.
+   if review.get('current') and '복구 본문과 이전 AI 분석 동기화 필요' in review.get('revalidation_reasons',[]):
+    r['reanalysis_required']=True
  return rows
 
 
@@ -120,7 +134,7 @@ def export_csv(service,store,role='all',unique=False,verdict='HOLD'):
  from .publication_evidence import safe_value
  import hashlib
  if role not in ('all','collection','officer'):raise ValueError('수집·업무담당 판단보류만 내보낼 수 있습니다')
- if verdict not in ('ALL','YES','NO','HOLD') or verdict!='HOLD' and role!='officer':raise ValueError('업무담당자 결정 범위를 확인하세요')
+ if verdict not in ('ALL','YES','NO','HOLD','ERROR') or verdict!='HOLD' and role!='officer':raise ValueError('업무담당자 결정 범위를 확인하세요')
  rows=[]
  for selected in ('collection','officer') if role=='all' else (role,):
   rows.extend(r for r in items(service,store,selected,evidence_export=True) if (r['state']=='HOLD' if verdict=='HOLD' else verdict=='ALL' or r.get('verdict')==verdict))
@@ -133,12 +147,12 @@ def export_csv(service,store,role='all',unique=False,verdict='HOLD'):
  for group in groups.values():
   # Keep every role's assessment, while including the longest available body once.
   original=max(group,key=lambda x:len(x.get('body_text','')));r=safe_value(original);result=dict(r.get('result') or {})
-  if r.get('role')=='officer':result.update(verdict=r.get('verdict','HOLD'),missing_evidence=r.get('missing_evidence',[]),retry_after=r.get('retry_after'),effects=r.get('effects',[]))
+  if r.get('role')=='officer':result.update(verdict=r.get('verdict','HOLD'),missing_evidence=r.get('missing_evidence',[]),retry_after=r.get('retry_after'),effects=r.get('effects',[]),deferred_actions=r.get('deferred_actions',[]))
   package=integrity_package(original,group,registry)
   r['body_text']=package['body']
   if result.get('evidence_package'):result['evidence_package']=package
   record_summaries=[{k:v for k,v in x.items() if k not in ('body_text','cross_review')} for x in group] if unique else []
-  values=[' + '.join(dict.fromkeys(ROLES[x['role']] for x in group)),r['subject'],r.get('title'),{'YES':'Yes · 업무 반영 완료','NO':'No · 제외 확정','HOLD':'보류 · 추가 자료 확보 후 재판단'}.get(r.get('verdict'),'보류') if r.get('role')=='officer' else '판단보류 · 사람 개입 필요',r.get('stage'),
+  values=[' + '.join(dict.fromkeys(ROLES[x['role']] for x in group)),r['subject'],r.get('title'),{'YES':'Yes · 업무 반영 완료','NO':'No · 제외 확정','HOLD':'보류 · 추가 자료 확보 후 재판단','ERROR':'실행 오류 · 재시도 필요'}.get(r.get('verdict'),'보류') if r.get('role')=='officer' else '판단보류 · 사람 개입 필요',r.get('stage'),
     r.get('reason'),r.get('action'),r.get('url'),r.get('source_revision_no'),r.get('model'),r.get('run_id'),
     datetime.fromtimestamp(r['created'],timezone.utc).isoformat() if r.get('created') else '',encode(r.get('evidence',[])),encode(result),r.get('body_text',''),
     r.get('business_status_label',''),r.get('business_reason',''),r.get('body_origin','AI 수집'),r.get('manual_summary',''),

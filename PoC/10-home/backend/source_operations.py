@@ -77,7 +77,7 @@ def operations(source, stats=None, scheduler_running=None):
         pdf = '이미지 표나 형식이 변경된 표는 별도 판독·파서 점검 대상으로 남깁니다.'
     elif mode == 'AGENCY_PLAN_FILE':
         discovery_tag = '파일 링크·판본 감지'
-        discovery = '등록된 공공데이터포털 상세 페이지의 contentUrl 다운로드 링크와 파일명 기준일을 매번 읽습니다. 같은 데이터셋의 교체 파일은 감지하지만 새 데이터셋 ID는 자동 등록하지 않습니다.'
+        discovery = '등록된 공공데이터포털 상세 페이지의 다운로드 링크 또는 다운로드 버튼의 공식 메타데이터와 파일명 기준일을 매번 읽고 데이터셋·판본을 대조합니다. 같은 데이터셋의 교체 파일은 감지하지만 새 데이터셋 ID는 자동 등록하지 않습니다.'
         parser = 'CSV 인코딩·필수 열·행 식별키·호수·일정 규칙으로 파싱합니다.'
         pdf = ''
     elif sid in {'policy_907', 'policy_907_plan', 'policy_129', 'urban_930'}:

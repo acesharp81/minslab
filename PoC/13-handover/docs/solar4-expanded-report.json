@@ -1,0 +1,42 @@
+{
+  "model": "solar-pro4",
+  "resolved_models": [
+    "solar-pro4-260806"
+  ],
+  "seconds": 27.96,
+  "documents": 12,
+  "items": 11,
+  "expected_items": 11,
+  "titles": [
+    "2027년 생활문화 사업계획",
+    "주민참여 워크숍 운영",
+    "보조금 정산 검토",
+    "월간 실적 보고",
+    "시설 안전점검",
+    "분기별 문화시설 이용통계",
+    "작은도서관 프로그램 개편",
+    "2027년 문화행사 예산안",
+    "지역예술인 간담회 준비",
+    "주민 공모사업 모집",
+    "동네 기록전시 준비"
+  ],
+  "quotes_verified": 67,
+  "checks": {
+    "core_coverage": true,
+    "no_extra_work": true,
+    "scan_failed": true,
+    "due_conflict": true,
+    "consulted_is_not_owner": true,
+    "no_fake_completion": true,
+    "confirm": true,
+    "successor_same_revision": true,
+    "export_md": true,
+    "export_html": true
+  },
+  "model_calls": 11,
+  "usage": {
+    "prompt_tokens": 5663,
+    "completion_tokens": 2186,
+    "total_tokens": 7849
+  }
+}

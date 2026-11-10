@@ -25,12 +25,19 @@ def evidence_type(title):
     return None
 
 
-def parse_list(content, source):
-    soup = BeautifulSoup(content, 'html.parser')
+def page_info(soup):
     summary = clean(soup.get_text(' ', strip=True))
     count = re.search(r'총게시물\s*:\s*(\d+)\s*페이지\s*:\s*(\d+)\s*/\s*(\d+)', summary)
-    if not count or int(count[2]) != 1 or int(count[3]) != 1:
+    if not count or not 1 <= int(count[2]) <= int(count[3]) <= 100:
         raise ValueError('GH 입주안내 페이지 구조·페이지 수 변경: 기존 정상 자료 유지')
+    return tuple(map(int, count.groups()))
+
+
+def parse_list(content, source, *, page=1, total=None, pages=1):
+    soup = BeautifulSoup(content, 'html.parser')
+    count, current, last = page_info(soup)
+    if current != page or last != pages or total is not None and count != total:
+        raise ValueError('GH 입주안내 페이지·총건수 변경: 전체 목록 재확인 필요')
     rows = []
     for anchor in soup.select('a[data-sn]'):
         tr = anchor.find_parent('tr')
@@ -46,7 +53,8 @@ def parse_list(content, source):
                          housing_type=clean(columns[2].get_text()), source_date=published_at,
                          evidence_type=evidence_type(title),
                          evidence_url=urljoin(source['url'], f'selectNoticeDetailView.do?bbsSn={sn}')))
-    if len(rows) != int(count[1]) or len({r['source_object_id'] for r in rows}) != len(rows):
+    expected = count if pages == 1 else min(10, count - (page - 1) * 10)
+    if not rows or len(rows) != expected or len({r['source_object_id'] for r in rows}) != len(rows):
         raise ValueError('GH 입주안내 목록 건수·중복 불일치')
     return rows
 
@@ -81,7 +89,14 @@ def pdf_facts(content, evidence_type_value):
 
 
 def collect_gh_completion(source, fetcher):
-    rows = parse_list(fetcher.get(source['url']), source)
+    content = fetcher.get(source['url'])
+    total, current, pages = page_info(BeautifulSoup(content, 'html.parser'))
+    rows = parse_list(content, source, page=1, total=total, pages=pages)
+    for page in range(2, pages + 1):
+        content = fetcher.get(source['url'], params={'pageIndex': page})
+        rows.extend(parse_list(content, source, page=page, total=total, pages=pages))
+    if len(rows) != total or len({r['source_object_id'] for r in rows}) != total:
+        raise ValueError('GH 입주안내 전체 페이지 건수·중복 불일치')
     records = []
     for row in rows:
         if not row['evidence_type']:
@@ -106,7 +121,7 @@ def collect_gh_completion(source, fetcher):
     if not records:
         raise ValueError('GH 입주안내에서 사용검사·승인 자료 미확인')
     return records, dict(complete_query=True, complete_population=False, provided=len(rows),
-        fetched=len(rows), collected=len(records), document_count=len(records),
+        fetched=len(rows), collected=len(records), document_count=len(records), pages=pages,
         full_use_approval_candidates=sum(r[2]['evidence_type']=='USE_APPROVAL_CANDIDATE' for r in records),
         provisional_count=sum(r[2]['evidence_type'].startswith('PROVISIONAL') for r in records),
         text_extractable_count=sum(r[2]['pdf_text_extracted'] for r in records),

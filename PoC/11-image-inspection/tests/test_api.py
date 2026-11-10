@@ -276,3 +276,41 @@ def test_compression_preserves_original_image_and_identity_clients(client):
     image=client.get(url+'/image',headers={'Accept-Encoding':'gzip'})
     assert 'content-encoding' not in image.headers
     assert image.content==(client.app.state.settings.data/j['id']/'image.png').read_bytes()
+
+
+@pytest.mark.parametrize('prefix',['','/poc/image-inspection'])
+def test_image_revalidation_preserves_pixels_checks_auth_and_detects_change(client,prefix):
+    login(client);j=client.post('/api/demo').json();url=prefix+f'/api/jobs/{j["id"]}/image'
+    first=client.get(url);tag=first.headers['etag']
+    assert first.status_code==200 and first.headers['cache-control']=='private, no-cache'
+    assert 'cookie' in first.headers['vary'].lower()
+    assert first.content==(client.app.state.settings.data/j['id']/'image.png').read_bytes()
+    for conditional in (tag,tag.removeprefix('W/'),'"old", '+tag):
+        cached=client.get(url,headers={'If-None-Match':conditional})
+        assert cached.status_code==304 and cached.content==b'' and cached.headers['etag']==tag
+    # A changed original can never be masked by its old ETag.
+    path=client.app.state.settings.data/j['id']/'image.png'
+    im=Image.new('RGB',(31,29),'blue');im.save(path)
+    changed=client.get(url,headers={'If-None-Match':tag})
+    assert changed.status_code==200 and changed.headers['etag']!=tag and changed.content==path.read_bytes()
+    client.post('/api/logout')
+    unauthorized=client.get(url,headers={'If-None-Match':changed.headers['etag']})
+    assert unauthorized.status_code==401 and unauthorized.headers['cache-control']=='no-store'
+    login(client,'reviewer')
+    assert client.get(url,headers={'If-None-Match':changed.headers['etag']}).status_code==304
+    login(client);assert client.delete(prefix+f'/api/jobs/{j["id"]}').status_code==200
+    assert client.get(url,headers={'If-None-Match':'*'}).status_code==404
+
+
+@pytest.mark.parametrize('path',['/','/assets/app.js','/assets/style.css','/api/rules'])
+def test_startup_text_is_compressed_without_changing_content(client,path):
+    compressed=client.get(path,headers={'Accept-Encoding':'gzip'})
+    plain=client.get(path,headers={'Accept-Encoding':'identity'})
+    assert compressed.status_code==plain.status_code==200
+    assert compressed.headers['content-encoding']=='gzip'
+    assert compressed.content==plain.content
+    if path.startswith('/assets/'):
+        cached=client.get(path,headers={'If-None-Match':compressed.headers['etag']})
+        assert cached.status_code==304 and cached.content==b''
+    else:
+        assert compressed.headers['cache-control']=='no-store'

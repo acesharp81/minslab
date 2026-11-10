@@ -40,7 +40,8 @@ def flush(store):
 def reserve(store, cid, model, inp, out):
     if not required(): return
     if not flush(store): raise BudgetExceeded('공통 사용량 미정산 · 동기화 후 재실행')
-    request('reserve',dict(event_id='poc10-'+cid,project='poc10',model=model,input_bound=inp,output_bound=out))
+    pool={'solar_pool':os.environ.get('SHARED_SOLAR_POOL','default')} if model.startswith('solar-') else {}
+    request('reserve',dict(event_id='poc10-'+cid,project='poc10',model=model,input_bound=inp,output_bound=out,**pool))
 
 
 def settle(store,cid,inp=None,out=None,cost=None,rejected=False):

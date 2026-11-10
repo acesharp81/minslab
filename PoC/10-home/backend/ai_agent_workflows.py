@@ -7,7 +7,7 @@ from .db import Revision
 from .ai_agents_store import record,latest
 from .ai_agents_inbox import items
 from .ai_collection import annotations
-from .ai_collection_models import invoke
+from .ai_collection_models import invoke,ModelProviderError
 from .ai_collection_store import BudgetExceeded
 from .publication_reviews import queue,save,normalized
 from .publication_evidence import text_quality
@@ -71,7 +71,7 @@ RECHECK='''앞선 AI 판단을 원문과 독립적으로 교차검토한다. 입
 def fingerprint(doc,analysis,models,*,role='algorithm'):
  # Officer policy changes must not invalidate completed algorithm diagnoses.
  inputs=[doc['source_revision_no'],doc.get('review_revision_no'),analysis.get('body_sha256'),analysis.get('failure_context'),analysis.get('candidate_versions')]
- if role=='officer':inputs.extend([analysis.get('evidence_epoch'),models,'officer-delegated-yes-no-hold-4'])
+ if role=='officer':inputs.extend([analysis.get('evidence_epoch'),models,'officer-delegated-yes-no-hold-5'])
  else:inputs.extend([models,'agents-stage-2'])
  if analysis.get('human_retry'):inputs.append(['human_retry',analysis['human_retry']])
  return hashlib.sha256(json.dumps(inputs,sort_keys=True).encode()).hexdigest()
@@ -96,6 +96,9 @@ def review_passes(store,run,doc,body,result):
 
 
 def process(service,store,run):
+ if run['config'].get('target_stage_ids'):
+  from .officer_stage_work import process as research_stages
+  return research_stages(service,store,run,invoke)
  role=run['config']['agent_role'];model=run['config']['selected_model'];prior=latest(store,role)
  done=held=0
  outcome=dict(model_analyzed=0,analysis_failed=0,input_held=0,documents_linked=0,documents_excluded=0,holds_saved=0,stage_proposals=0,stages_applied=0,searches=0,search_candidates=0,unchanged=0,yes=0,no=0,hold=0,projects_registered=0,policy_links=0)
@@ -144,7 +147,7 @@ def process(service,store,run):
     analysis['evidence_epoch']=evidence_epoch
    if role=='algorithm':analysis['human_retry']=reviews.get(subject,{}).get('version',0) if reviews.get(subject,{}).get('action')=='RETRY' else 0
    fp=fingerprint(dict(source_revision_no=doc.get('source_revision_no'),review_revision_no=doc.get('review_revision_no')),analysis,[model,run['config'].get('review_model')],role=role)
-   if prior.get(subject,{}).get('fingerprint')==fp and prior.get(subject,{}).get('stage') not in ('ERROR','ANALYSIS_ERROR'):
+   if not (role=='officer' and run['config'].get('force_officer_review')) and prior.get(subject,{}).get('fingerprint')==fp and prior.get(subject,{}).get('stage') not in ('ERROR','ANALYSIS_ERROR'):
     # Retry failed source recovery/search after a day, without repeatedly billing unchanged analysis.
     retry=role=='officer' and prior[subject].get('state')=='HOLD' and time.time()-prior[subject]['created']>=86400
     if not retry:
@@ -162,7 +165,7 @@ def process(service,store,run):
    try:
     if role=='officer':
      if text_quality(body,doc.get('title','')) in ('MISSING','BOILERPLATE'):
-      if recoveries<min(8,run['config']['max_documents']):
+      if recoveries<(run['config']['max_documents'] if run['config'].get('campaign_id') else min(8,run['config']['max_documents'])):
        from .ai_officer_evidence import recover
        recoveries+=1;analysis=dict(analysis,**recover(service,doc,official_only=False));body=analysis['body_text'];payload['body_text']=body
        candidates=candidate_projects(projects,body,doc)
@@ -171,7 +174,7 @@ def process(service,store,run):
       else:raise ValueError('수집 본문 미확보 · 수집 에이전트 또는 수동 원문 확인 필요')
      if analysis.get('source_revision_no')!=doc['source_revision_no']:raise ValueError('원문 판본 변경 · 먼저 재수집 필요')
      # Unofficial/unmatched material still gets a substantive analysis; approval gates stay strict.
-     if run['config'].get('search_enabled') and (doc['authority']!='OFFICIAL' or not candidates or doc['status'] in ('HOLD','REGISTRATION_REQUIRED') or prior.get(subject,{}).get('state')=='HOLD') and outcome['searches']<3:
+     if run['config'].get('search_enabled') and subject not in run['config'].get('campaign_discovered_ids',[]) and (doc['authority']!='OFFICIAL' or not candidates or doc['status'] in ('HOLD','REGISTRATION_REQUIRED') or prior.get(subject,{}).get('state')=='HOLD') and outcome['searches']<(run['config']['max_documents'] if run['config'].get('campaign_id') else 3):
       outcome['searches']+=1
       try:
        payload['official_search']=official_search(service,store,run,doc)
@@ -224,8 +227,9 @@ def process(service,store,run):
     if role=='officer':fp=fingerprint(doc,analysis,[model,run['config'].get('review_model')],role=role)
     record(store,role,subject,fp,run['id'],state,**payload)
     if state=='HOLD':held+=1
-   except (BudgetExceeded,InterruptedError):raise
+   except (BudgetExceeded,InterruptedError,ModelProviderError):raise
    except Exception as error:
+    from .ai_collection_models import ModelResponseError
     reason=str(error) if isinstance(error,ValueError) else '처리 실패 · '+type(error).__name__
     if role=='officer':
      from .ai_officer_decisions import hold_payload
@@ -237,10 +241,10 @@ def process(service,store,run):
       if saved_hold:outcome['holds_saved']+=1;payload['business_change']='HOLD'
       fp=fingerprint(doc,analysis,[model,run['config'].get('review_model')],role=role)
      except Exception:payload['decision_conflict']=True
-    record(store,role,subject,fp,run['id'],'HOLD',**dict(payload,stage='ANALYSIS_ERROR' if payload.get('analysis_requested') and 'result' not in payload else 'INPUT_HOLD' if isinstance(error,ValueError) else 'ERROR',reason=reason))
+    record(store,role,subject,fp,run['id'],'HOLD',**dict(payload,stage='ANALYSIS_ERROR' if isinstance(error,ModelResponseError) or (payload.get('analysis_requested') and 'result' not in payload) else 'INPUT_HOLD' if isinstance(error,ValueError) else 'ERROR',reason=reason))
     held+=1
    done+=1;store.checkpoint(run['id'],documents_done=done,documents_deferred=held,completed_tokens=store.confirmed_tokens(run['id']),business_outcomes=outcome)
-  if role=='officer':
+  if role=='officer' and not run['config'].get('campaign_id'):
    store.checkpoint(run['id'],stage='RECONCILE',current='검증된 단계 제안과 기존 실적 대조 · 실제 반영 여부 확인')
    applied=refresh_stages(service,auto_apply=True)
    outcome['stages_applied']+=applied['applied']
@@ -248,6 +252,7 @@ def process(service,store,run):
   remaining=max(0,len(targets)-done-skipped)
   store.checkpoint(run['id'],documents_total=done,documents_done=done,business_outcomes=outcome,queue_total=len(targets),queue_remaining=remaining)
   store.finish(run['id'],'PARTIAL' if held or remaining else 'COMPLETED')
+ except ModelProviderError as error:store.finish(run['id'],'FAILED',str(error))
  except BudgetExceeded as error:store.finish(run['id'],'BUDGET_PAUSED',str(error))
  except InterruptedError:store.finish(run['id'],'CANCELLED','중지 요청 · 처리 이력 보존')
  except Exception as error:store.finish(run['id'],'FAILED','처리 실패 · '+type(error).__name__)

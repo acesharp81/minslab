@@ -21,10 +21,14 @@ def tick(service, store):
     for role,config in settings(store).items():
         if config['enabled'] and night_open(current) and current.hour>=config['hour_kst']:
             day=current.date().isoformat()
-            try: enqueue(store,role,day if role=='collection' else role+':'+day)
+            try:
+                if role=='officer':
+                    from .officer_campaign import start
+                    start(service,store,'officer:'+day)
+                else:enqueue(store,role,day if role=='collection' else role+':'+day)
             except ValueError: continue
-    from .ai_agents_store import continue_officer
-    continue_officer(store,current)
+    from .officer_campaign import advance
+    advance(service,store,current)
     run=store.claim(allow_scheduled=night_open(current))
     if run:
         if run['config'].get('agent_role','collection')=='collection':process_run(service,store,run)

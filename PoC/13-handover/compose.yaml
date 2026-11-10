@@ -1,0 +1,34 @@
+name: poc13-handover
+services:
+  app:
+    build: .
+    image: poc13-handover:1.6.4
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18130:8000"
+    environment:
+      HANDOVER_DATA_DIR: /app/data
+      HANDOVER_ACCESS_TOKEN: ${HANDOVER_ACCESS_TOKEN:-}
+      HANDOVER_LLM_URL: ${HANDOVER_LLM_URL:-https://api.upstage.ai/v1}
+      HANDOVER_LLM_MODEL: ${HANDOVER_LLM_MODEL:-solar-pro4}
+      HANDOVER_LLM_KEY: ${HANDOVER_LLM_KEY:-}
+      HANDOVER_LLM_BUDGET_USD: ${HANDOVER_LLM_BUDGET_USD:-100}
+      HANDOVER_SOLAR_SHARED_POOL: ${HANDOVER_SOLAR_SHARED_POOL:-}
+      HANDOVER_VISION_KEY: ${HANDOVER_VISION_KEY:-}
+      HANDOVER_VISION_URL: ${HANDOVER_VISION_URL:-https://api.openai.com/v1}
+      HANDOVER_USAGE_GATEWAY_URL: ${HANDOVER_USAGE_GATEWAY_URL:-}
+      HANDOVER_USAGE_METER_TOKEN: ${HANDOVER_USAGE_METER_TOKEN:-}
+    volumes:
+      - handover-data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 1536m
+    cpus: 2
+volumes:
+  handover-data:
+    name: poc13-handover-data

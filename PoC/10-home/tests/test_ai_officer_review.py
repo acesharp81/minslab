@@ -32,7 +32,7 @@ def test_unmatched_body_is_analyzed_and_business_hold_saved_once(env,offline_sea
   upsert_revision(db,'project','test','p',dict(p.payload,name='전혀 다른 단지',address='다른 주소'),'no-match')
  result.action='HOLD';result.project_id='';result.reason='단지 블록과 사업번호가 없어 기존 사업 식별이 필요합니다'
  with patch.object(work,'invoke',side_effect=officer_response(result,'call')) as call:work.process(service,store,r)
- assert call.call_count==1 and call.call_args.args[5]['candidates']==[]
+ assert call.call_count==2 and call.call_args.args[5]['candidates']==[]
  doc=queue(service)['items'][0];assert doc['status']=='HOLD' and doc['decision']['actor']==ACTOR
  assert offline_search.call_count==1
  progress=store.status()['runs'][0]['progress'];assert progress['business_outcomes']['model_analyzed']==1
@@ -67,7 +67,7 @@ def test_unofficial_body_is_analyzed_but_never_auto_approved(env,offline_search)
   d=db.scalar(select(Revision).where(Revision.entity_id==did,Revision.superseded_at.is_(None)))
   d.payload=dict(d.payload,evidence_url='https://example.com/news')
  with patch.object(work,'invoke',side_effect=officer_response(result,'call')) as call:work.process(service,store,r)
- assert call.call_count==1 and offline_search.call_count==1
+ assert call.call_count==2 and offline_search.call_count==1
  assert queue(service)['items'][0]['status']=='HOLD'
 
 def test_batch_completion_keeps_unprocessed_backlog_visible(env):
@@ -150,3 +150,26 @@ def test_nightly_continuation_respects_window_failures_and_batch_cap(env,conditi
   assert result and not result['already_running']
   assert store.claim()['schedule_day']==day+':batch:2'
  else:assert result is None
+
+@pytest.mark.parametrize('projected', ['REGISTRATION_REQUIRED','REVIEW'])
+def test_incomplete_agent_does_not_revoke_registration_decision(env,projected):
+ from backend.ai_officer_review import save_hold
+ service,store,did,pid=env
+ saved=save(service,did,1,0,'REGISTRATION_REQUIRED','UNASSIGNED',[],['서울 면목 행복주택'],'담당자','신규 등록 후보 검토 완료',True)
+ doc=queue(service)['items'][0];doc['status']=projected
+ assert save_hold(service,doc,'정확한 인용이 없어 재분석 필요') is None
+ after=queue(service)['items'][0]
+ assert after['status']=='REGISTRATION_REQUIRED' and after['review_revision_no']==saved['revision_no']
+
+
+def test_registration_wait_and_agent_hold_stay_independent(env):
+ from backend.ai_agents_inbox import items
+ service,store,did,pid=env;r,result=seed_officer(service,store,did,pid)
+ save(service,did,1,0,'REGISTRATION_REQUIRED','UNASSIGNED',[],['서울 면목 행복주택'],'담당자','사업 등록 후보 검토 완료',True)
+ result.action='HOLD';result.reason='주소와 사업번호 대조 근거가 추가로 필요합니다';result.project_id=''
+ with patch.object(work,'invoke',side_effect=officer_response(result,'call')):work.process(service,store,r)
+ doc=queue(service)['items'][0];assert doc['status']=='REGISTRATION_REQUIRED'
+ row=next(x for x in items(service,store,'officer') if x['subject']==did)
+ assert row['state']=='HOLD' and row['business_status']=='REGISTRATION_REQUIRED'
+ assert row['business_decision_trace']['actor']=='담당자'
+ assert store.status()['runs'][0]['progress']['business_outcomes']['holds_saved']==0

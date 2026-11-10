@@ -1,0 +1,17 @@
+{
+  "result": "PASS",
+  "version": "0.2.0",
+  "url": "https://www.minslab.kr/handover/",
+  "llm_available": true,
+  "model": "solar-pro4",
+  "resolved_models": [
+    "solar-pro4-260806"
+  ],
+  "browser_errors": 0,
+  "restart_model_persisted": true,
+  "restart_confirmed_revision_persisted": true,
+  "existing_home_http_status": 200,
+  "case_id": "d7a88b2eb1234a32b993b1f639003dd1",
+  "confirmed_revision": "8ee8aa47e84b4fde9dd618c6701529ef",
+  "confirmed_hash": "2daad8b000c0e3b635e8cc9e44c660cad7b45640e5b383dce303ad2f9829647d"
+}

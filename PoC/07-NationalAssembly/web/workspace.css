@@ -206,6 +206,21 @@ main { width: min(1440px, calc(100% - 48px)); margin: 0 auto; padding: 18px 0 80
 .live-expanded > header { min-height: 56px; padding: 0 18px; border-bottom: 1px solid #26354c; }
 .live-expanded > header strong { font-size: 15px; }
 #liveExpandedTitle { color: #fff; }
+.meeting-report-title-line { display: flex; flex: 1; flex-wrap: wrap; align-items: center; gap: 8px 14px; min-width: 0; padding: 12px 0; }
+#meetingReportSourceControl { display: flex; max-width: 100%; }
+#meetingReportSourceControl[hidden] { display: none; }
+#meetingReportSourceControl .meeting-brief-view-switch { margin: 0; flex-wrap: wrap; }
+#meetingReportSourceControl button { min-height: 32px; padding: 5px 11px; border: 0; border-radius: 999px; color: #526a88; background: #fff; font-size: 12px; line-height: 1.5; white-space: nowrap; }
+#meetingReportSourceControl button[aria-pressed="true"] { color: #fff; background: #175fae; }
+#meetingReportSourceControl button:disabled { opacity: .55; cursor: default; }
+#meetingReportSourceControl button:focus-visible { outline: 2px solid #175fae; outline-offset: -3px; }
+#liveExpandedClose { flex-shrink: 0; margin-left: 12px; }
+.meeting-official-source-status { display:block; margin-top:5px; color:#667085; font-size:11px; line-height:1.5; }
+.meeting-linked-official-sources { padding:12px; border-bottom:1px solid #dce4ef; background:#f8fafc; }
+.meeting-linked-official-sources > summary { color:#344054; font-size:12px; cursor:pointer; }
+.meeting-linked-official-sources .meeting-evidence-utterance { display:block; }
+.meeting-linked-official-sources p { color:#475467; font-size:13px; line-height:1.7; white-space:pre-wrap; }
+.meeting-summary-rows > .meeting-draft-only-speakers > summary { padding:12px 16px; color:#667085; background:#f8fafc; border-top:1px solid #e9edf3; font-size:12px; cursor:pointer; }
 .live-expanded > header button { min-height: 34px; padding: 0 10px; border: 1px solid #34445c; border-radius: 9px; font-size: 12px; }
 .transcript-head { min-height: 46px; padding: 0 16px; }
 .transcript-head strong { font-size: 14px; }

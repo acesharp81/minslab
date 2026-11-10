@@ -1,0 +1,42 @@
+{
+  "version": "1.1.0",
+  "deployment": {
+    "image": "sha256:2159c1caa405533d27107124bebcbe662085064bcf3becaf66d319612d4d7b89",
+    "preserved_cases": 13,
+    "backup_container": "poc13-handover-before-v110-csp-20261109",
+    "download_hashes_verified": 14,
+    "health": {
+      "status": "ok",
+      "version": "1.1.0"
+    }
+  },
+  "live_e2e": {
+    "case_id": "23f3f895d6dc4fceaaaff7ec1cd65c6b",
+    "revision_id": "684a043f6bd84236a0e325fd7fb5e953",
+    "url": "https://www.minslab.kr/handover/#23f3f895d6dc4fceaaaff7ec1cd65c6b",
+    "mode": "llm",
+    "documents": 11,
+    "tasks": 4,
+    "same_report_both_roles": true,
+    "matched_by_human": true,
+    "gantt": true,
+    "mobile_no_page_overflow": true,
+    "javascript_errors": [],
+    "model": "solar-pro4"
+  },
+  "public_preview": {
+    "public_report_inline": true,
+    "report_styles_applied": true,
+    "four_work_gantt": true,
+    "mobile_report_no_overflow": true,
+    "downloads_verified": 14,
+    "javascript_errors": []
+  },
+  "quality": {
+    "checks_passed": 39,
+    "checks_total": 39,
+    "historical_source_quotes_verified": 177
+  },
+  "automated_tests": 37,
+  "gpt_calls_this_update": 0
+}

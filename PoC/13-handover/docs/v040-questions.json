@@ -1,0 +1,147 @@
+[
+  {
+    "revision_id": "1c430d0fd7db4f6793cb073a8dec4a26",
+    "hash": "5b7a53088cf93ad174caf946fe4d85e1efb007937ac3b04a64d65da4d31024ed",
+    "question": "생활문화 사업계획의 최종 기한은 언제인가요?",
+    "status": "FOUND",
+    "message": "확정 보고서에 기록된 내용입니다. 개별 항목의 검토 상태도 확인하세요.",
+    "facts": [
+      {
+        "id": "F4",
+        "item_id": "f680e5d3360d467cad77c90b41604104",
+        "title": "2027년 생활문화 사업계획",
+        "field": "due_date",
+        "label": "기한",
+        "value": "2026-11-27",
+        "provenance": "HUMAN_ENTERED",
+        "review_status": "CONFIRMED",
+        "evidence": [],
+        "changed_reason": "전임자 확인 · 실제 Solar 초안 검증"
+      }
+    ],
+    "background": [],
+    "mode": "llm",
+    "model": "solar-pro4-260806",
+    "usage": {
+      "prompt_tokens": 4042,
+      "completion_tokens": 16,
+      "total_tokens": 4058
+    }
+  },
+  {
+    "revision_id": "1c430d0fd7db4f6793cb073a8dec4a26",
+    "hash": "5b7a53088cf93ad174caf946fe4d85e1efb007937ac3b04a64d65da4d31024ed",
+    "question": "보조금 정산 검토에서 막힌 문제는 무엇인가요?",
+    "status": "FOUND",
+    "message": "확정 보고서에 기록된 내용입니다. 개별 항목의 검토 상태도 확인하세요.",
+    "facts": [
+      {
+        "id": "F20",
+        "item_id": "e865d59fd2894eafacadcabd6ce7fc42",
+        "title": "보조금 정산 검토",
+        "field": "issues",
+        "label": "현안·장애 사항",
+        "value": "2개 단체의 영수증 누락으로 정산 승인 불가",
+        "provenance": "SOURCE_DERIVED",
+        "review_status": "UNREVIEWED",
+        "evidence": [
+          {
+            "block_id": "58518bf82ba6febfbaff354622b07d87f8271356783980772bd40f3147debbeb",
+            "document_revision_id": "6f5124730f224228b6615db16aba87a2",
+            "id": "6857f7fd043a703602821a4f5371b746",
+            "parse_id": "a9a31fdbb4d63c05a0d8fe386fb2128c831a6ca308bee42d26a61c2fd502e06c",
+            "quote": "2개 단체의 영수증 누락으로 정산 승인 불가",
+            "quote_hash": "c6914b1cf8a87187a0e00ce6e4a0ee6961e7475cf29dcfcec00c20c9b1fe7b94",
+            "verified": true
+          }
+        ],
+        "changed_reason": ""
+      }
+    ],
+    "background": [],
+    "mode": "llm",
+    "model": "solar-pro4-260806",
+    "usage": {
+      "prompt_tokens": 4041,
+      "completion_tokens": 17,
+      "total_tokens": 4058
+    }
+  },
+  {
+    "revision_id": "1c430d0fd7db4f6793cb073a8dec4a26",
+    "hash": "5b7a53088cf93ad174caf946fe4d85e1efb007937ac3b04a64d65da4d31024ed",
+    "question": "생활문화 사업계획 협의 부서와 연락처를 알려주세요",
+    "status": "FOUND",
+    "message": "확정 보고서에 기록된 내용입니다. 개별 항목의 검토 상태도 확인하세요.",
+    "facts": [
+      {
+        "id": "F1",
+        "item_id": "f680e5d3360d467cad77c90b41604104",
+        "title": "2027년 생활문화 사업계획",
+        "field": "collaborators",
+        "label": "협의·협업 부서",
+        "value": "예산팀",
+        "provenance": "SOURCE_DERIVED",
+        "review_status": "UNREVIEWED",
+        "evidence": [
+          {
+            "block_id": "49bca46311895d29214873fc2e42d1786b597989db3f9ceae20bca227ddcb88e",
+            "document_revision_id": "45ea0bc09f204d3192b982363f9625c6",
+            "id": "35e1b60005e5f0602ad313391a7db284",
+            "parse_id": "923f241cb77e7f210683364d8a633c1a4f5b502fcd8d2f15246b0d121f416083",
+            "quote": "예산팀",
+            "quote_hash": "dd258cfa8ed5525e3bc56b84a04d9066e97b1ed7f59bbff15eaa6d89d8544610",
+            "verified": true
+          }
+        ],
+        "changed_reason": ""
+      },
+      {
+        "id": "F3",
+        "item_id": "f680e5d3360d467cad77c90b41604104",
+        "title": "2027년 생활문화 사업계획",
+        "field": "contacts",
+        "label": "연락처",
+        "value": "문화기획팀 culture@example.invalid (합성 연락처)",
+        "provenance": "SOURCE_DERIVED",
+        "review_status": "UNREVIEWED",
+        "evidence": [
+          {
+            "block_id": "5f49179296716577a73bd65b8015a1b12da45f559684b119093dc063d9fc199d",
+            "document_revision_id": "45ea0bc09f204d3192b982363f9625c6",
+            "id": "62488d4cffe02e86487cae2963c4fe0d",
+            "parse_id": "923f241cb77e7f210683364d8a633c1a4f5b502fcd8d2f15246b0d121f416083",
+            "quote": "문화기획팀 culture@example.invalid (합성 연락처)",
+            "quote_hash": "ad848a74fc046d460862f330385c11db8020f6b3016fc150e178dbeb166f09d2",
+            "verified": true
+          }
+        ],
+        "changed_reason": ""
+      }
+    ],
+    "background": [],
+    "mode": "llm",
+    "model": "solar-pro4-260806",
+    "usage": {
+      "prompt_tokens": 4087,
+      "completion_tokens": 20,
+      "total_tokens": 4107
+    }
+  },
+  {
+    "revision_id": "1c430d0fd7db4f6793cb073a8dec4a26",
+    "hash": "5b7a53088cf93ad174caf946fe4d85e1efb007937ac3b04a64d65da4d31024ed",
+    "question": "문화기획팀 담당자의 생일은 언제인가요?",
+    "status": "NOT_IN_CONFIRMED",
+    "message": "확정 보고서에서 이 질문의 답을 확인하지 못했습니다. 전임자에게 보완을 요청하세요.",
+    "facts": [],
+    "background": [],
+    "mode": "llm",
+    "model": "solar-pro4-260806",
+    "usage": {
+      "prompt_tokens": 4026,
+      "completion_tokens": 12,
+      "total_tokens": 4038
+    }
+  }
+]

@@ -39,7 +39,12 @@ def install(app,service,authenticated,prefix):
             evidence=[v for k,v in row['quotes'].items() if k in ('date_quote','units_quote')],
             url=row['url'],cross_review=row.get('cross_review',{}),source_revision_no=row['source_ref']['revision_no'])
         import json
-        return Response(json.dumps(package(record,[record],load_registry(service,references(row))),ensure_ascii=False),
+        value=package(record,[record],load_registry(service,references(row)))
+        from pathlib import Path
+        for entry in value['evidence_registry']:
+            artifact=entry['artifact_ref'];relative=artifact.get('storage')
+            artifact['availability']=('PRESENT' if (Path(service.data_dir)/relative).is_file() else 'MISSING') if relative else 'NO_ARTIFACT_REFERENCE'
+        return Response(json.dumps(value,ensure_ascii=False),
             media_type='application/json',headers={'Cache-Control':'no-store','Content-Disposition':'attachment; filename="'+proposal_id+'-evidence.json"'})
 
     @app.post(prefix+'/api/admin/stage-reviews/refresh')

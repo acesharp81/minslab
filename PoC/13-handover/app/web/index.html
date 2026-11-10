@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#153e35"><title>업무바통 · 다음 사람의 좋은 시작</title><link rel="stylesheet" href="assets/style.css"><script defer src="assets/stream.js"></script><script defer src="assets/reader.js"></script><script defer src="assets/grouping.js"></script><script defer src="assets/tour.js"></script><script defer src="assets/walkthrough.js"></script><script defer src="assets/app.js"></script></head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="./" aria-label="업무바통 홈"><span class="brand-mark"><i></i><i></i></span><span>업무바통<small>WORK, PASSED ON.</small></span></a>
+  <div class="workspace-label">나의 워크스페이스</div>
+  <button class="nav-main active" id="homeButton"><span>▦</span> 인수인계함 <span class="count" id="caseCount">0</span></button>
+  <button class="nav-main" id="helpButton"><span>◷</span> 시작 가이드</button>
+  <div class="sidebar-bottom"><span class="tiny-dot"></span> 독립 문서 워크스페이스<p>자료의 맥락까지,<br>다음 사람에게 이어집니다.</p><small>PoC 13 · 시연용 역할 선택</small></div>
+</aside>
+<div class="app-shell">
+  <header class="topbar"><div class="breadcrumb">워크스페이스 <span>/</span> <strong id="breadcrumb">인수인계함</strong></div><div class="role-control"><button id="budgetButton" class="budget-button" type="button" aria-label="Solar 추정 잔액과 사용량"><span class="budget-label"><b>Solar Pro 4</b> <em>(문서분석·답변생성)</em></span><div class="budget-value"><strong id="budgetBalance">확인 중…</strong><small id="solarUsagePercent">—</small></div><progress id="solarUsageBar" class="budget-track" max="100" value="0" aria-label="Solar 예산 잔여율"></progress></button><button id="gptBudgetButton" class="budget-button" type="button"><span class="budget-label"><b>GPT-5.4</b> <em id="imageRoute">(그림분석)</em></span><div class="budget-value"><strong id="gptBudgetBalance">확인 중…</strong><small id="gptUsagePercent">—</small></div><progress id="gptUsageBar" class="budget-track" max="100" value="0" aria-label="GPT 공유 토큰 잔여율"></progress><span class="budget-label credit-label"><b>GPT-6.1 Terra</b> <em>월 무료 예산 · 공용</em></span><div class="budget-value"><strong id="creditBudgetBalance">확인 중…</strong><small id="creditUsagePercent">—</small></div><progress id="creditUsageBar" class="budget-track" max="100" value="0" aria-label="월 공용 예산 잔여율"></progress></button><span class="role-label">시연 직원</span><select id="roleSelect" aria-label="시연 역할"><option value="employee1">직원 1</option><option value="employee2">직원 2</option><option value="employee3">직원 3</option><option value="employee4">직원 4</option></select><span class="avatar" id="avatar">전</span></div></header>
+  <main id="main" tabindex="-1"></main>
+  <footer>업무바통 <span>출처에서 시작해, 사람의 확인으로 완성하는 인수인계.</span><span id="modeFooter">로컬 모드</span></footer>
+</div>
+<dialog id="dialog"><div id="dialogBody"></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<input type="file" id="fileInput" multiple accept=".zip,.hwp,.hwpx,.pdf,.docx,.xlsx,.txt,.md" hidden>
+<input type="file" id="folderInput" webkitdirectory multiple hidden>
+</body></html>

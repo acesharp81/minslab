@@ -1,0 +1,18 @@
+{
+  "version": "0.4.0",
+  "result": "PASS",
+  "url": "https://www.minslab.kr/handover/#d12cc95895dc477595456a6d91afaac4",
+  "confirmed_revision": "e7c46144cc554dfbb1e6cd548f51bef7",
+  "both_parties_same_report": true,
+  "browser_errors": 0,
+  "live_solar_question_ui": true,
+  "multiple_file_and_folder_upload": true,
+  "readiness_ui": true,
+  "schedule_contacts_ui": true,
+  "hash_back_forward_navigation": true,
+  "old_cases_preserved": 5,
+  "model_connected": true,
+  "video_seconds": "11.000000",
+  "test_count": 30,
+  "image": "sha256:16ebe51ab5f26bb7ae022ddeb9d9eb72f0e67377073d65b820c42b45ef77753c"
+}

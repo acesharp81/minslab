@@ -14,7 +14,7 @@ class InspectionProxyTests(unittest.IsolatedAsyncioTestCase):
         async def handler(request):
             seen.append(request)
             cookie='poc11_session=; Max-Age=0; HttpOnly; Path=/poc/image-inspection' if path.endswith('/logout') else 'poc11_session=abc; HttpOnly; Path=/poc/image-inspection'
-            return httpx.Response(status,headers={'set-cookie':cookie,'content-type':'application/json'},content=b'{"ok":true}')
+            return httpx.Response(status,headers={'set-cookie':cookie,'content-type':'application/json'},stream=httpx.ByteStream(b'{"ok":true}'))
         client=httpx.AsyncClient
         with patch('poc11_proxy.secret',return_value='test-secret'),patch('poc11_proxy.httpx.AsyncClient',side_effect=lambda **kw:client(transport=httpx.MockTransport(handler),**kw)):
             await proxy_inspection({'path':path,'method':method,'query_string':b'',
@@ -46,3 +46,32 @@ class InspectionProxyTests(unittest.IsolatedAsyncioTestCase):
         for path,status,method in [('/poc/image-inspection/api/logout',403,'POST'),('/poc/image-inspection/api/logout',500,'POST'),('/poc/image-inspection/api/logout',200,'GET'),('/poc/image-inspection/api/jobs',200,'POST')]:
             _,sent=await self.invoke(admin=True,path=path,status=status,method=method)
             self.assertFalse(any(b'minslab_admin_session=' in v for k,v in sent[0]['headers'] if k==b'set-cookie'))
+
+    async def test_compressed_wire_bytes_and_validators_survive_the_proxy(self):
+        raw='검사 결과 '*1000;compressed=gzip.compress(raw.encode());sent=[];seen=[]
+        async def receive():return {'type':'http.request','body':b'','more_body':False}
+        async def send(msg):sent.append(msg)
+        async def handler(request):
+            seen.append(request)
+            if 'if-none-match' in request.headers:
+                return httpx.Response(304,headers={'etag':'W/"evidence"','cache-control':'private, no-cache','vary':'Cookie'},stream=httpx.ByteStream(b''))
+            return httpx.Response(200,headers={'content-encoding':'gzip','content-type':'application/json','etag':'W/"evidence"','vary':'Accept-Encoding'},stream=httpx.ByteStream(compressed))
+        client=httpx.AsyncClient
+        with patch('poc11_proxy.httpx.AsyncClient',side_effect=lambda **kw:client(transport=httpx.MockTransport(handler),**kw)):
+            scope={'path':'/poc/image-inspection/api/jobs/j','method':'GET','headers':[(b'accept-encoding',b'gzip')]}
+            await proxy_inspection(scope,receive,send,'http://inspection')
+            headers=dict(sent[0]['headers'])
+            self.assertEqual(seen[0].headers['accept-encoding'],'gzip')
+            self.assertEqual(headers[b'content-encoding'],b'gzip')
+            self.assertEqual(headers[b'etag'],b'W/"evidence"')
+            self.assertEqual(headers[b'vary'],b'Accept-Encoding')
+            self.assertEqual(int(headers[b'content-length']),len(compressed))
+            self.assertEqual(sent[1]['body'],compressed)
+            self.assertEqual(gzip.decompress(sent[1]['body']).decode(),raw)
+            sent.clear();scope['headers']=[(b'if-none-match',b'W/"evidence"')]
+            await proxy_inspection(scope,receive,send,'http://inspection')
+            self.assertEqual(seen[-1].headers['if-none-match'],'W/"evidence"')
+            self.assertEqual(seen[-1].headers['accept-encoding'],'identity')
+            self.assertEqual(sent[0]['status'],304)
+            self.assertNotIn(b'content-length',dict(sent[0]['headers']))
+            self.assertEqual(sent[1]['body'],b'')

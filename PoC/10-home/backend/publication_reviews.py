@@ -1,7 +1,7 @@
 """Officer inbox for discovered publications; adoption is not a stage achievement."""
 import re
 from collections import Counter
-from sqlalchemy import select
+from sqlalchemy import select,or_
 from .db import Revision, Mapping, Audit, entity_id, upsert_revision, now
 from .sources import SOURCES
 from .source_authority import public_url, authority
@@ -32,9 +32,11 @@ def triage(title):
 
 def source_ids():return [s['id'] for s in SOURCES if s.get('discovery_only')]
 
-def queue(service, include_options=True):
+def queue(service, include_options=True, include_document_ids=()):
  with service.sessions() as db:
-  docs=list(db.scalars(select(Revision).where(Revision.kind=='document_evidence',Revision.source_id.in_(source_ids()),Revision.superseded_at.is_(None))))
+  scope=Revision.source_id.in_(source_ids())
+  if include_document_ids:scope=or_(scope,Revision.entity_id.in_(include_document_ids))
+  docs=list(db.scalars(select(Revision).where(Revision.kind=='document_evidence',scope,Revision.superseded_at.is_(None))))
   decisions={r.payload['document_id']:r for r in db.scalars(select(Revision).where(Revision.kind==KIND,Revision.superseded_at.is_(None)))}
   bridge_ids={entity_id('evidence_bridge','cross_source',pid+':'+doc_id)
               for doc_id,r in decisions.items() if r.payload.get('status')=='APPROVED'
@@ -57,7 +59,7 @@ def queue(service, include_options=True):
    state='REVIEW' if stale or link_changed or not decision else decision['status'];t=triage(p.get('name',''))
    matches=[dict(project,match_basis='사업명 유사 후보 · 주소·구역 대조 전 동일 사업 미확정') for project in projects
             if any(normalized(term) in normalized(project['name']) for term in t['terms'])]
-   items.append(dict(id=doc.entity_id,source_id=doc.source_id,source_name=next(s['name'] for s in SOURCES if s['id']==doc.source_id),
+   items.append(dict(id=doc.entity_id,source_id=doc.source_id,source_name=next((s['name'] for s in SOURCES if s['id']==doc.source_id),doc.source_id),
        title=p.get('name'),source_date=p.get('source_date'),evidence_url=public_url(p.get('evidence_url')),authority=authority(p.get('evidence_url')),
        source_revision_no=doc.revision_no,source_revision_id=doc.id,source_hash=doc.payload_hash,review_revision_no=old.revision_no if old else 0,
        status=state,status_label=STATES[state],source_changed=stale,link_changed=link_changed,decision=decision,candidates=matches,guidance=guidance(p.get('name',''),matches,t['priority']) if include_options else None,**t))

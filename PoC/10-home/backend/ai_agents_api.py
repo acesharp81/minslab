@@ -19,7 +19,7 @@ def budget():
   if time.monotonic()-_budget[0]<60:return _budget[1]
   try:
    with httpx.Client(timeout=3,trust_env=False) as client:
-    response=client.get(os.environ['USAGE_GATEWAY_URL'].rstrip('/')+'/internal/status',headers={'x-minslab-meter-token':os.environ['USAGE_METER_TOKEN']})
+    response=client.get(os.environ['USAGE_GATEWAY_URL'].rstrip('/')+'/internal/status',params={'solar_pool':os.environ.get('SHARED_SOLAR_POOL','default')},headers={'x-minslab-meter-token':os.environ['USAGE_METER_TOKEN']})
     response.raise_for_status();value=response.json()
    result=dict(value['shared_budget']);result['models']=list(result.get('models',[]))
    tomorrow=(datetime.now(timezone.utc)+timedelta(days=1)).replace(hour=0,minute=0,second=0,microsecond=0)
@@ -51,8 +51,9 @@ def install(app,service,authenticated,prefix):
  @app.get(prefix+'/api/ai-agents')
  def status():
   s=store()
+  from .officer_campaign import latest as completion
   return dict(s.status(include_events=False),agents=settings(s),roles=ROLES,models=catalog(),shared_budget=budget(),economics=economics(s),
-   solar_unlimited=os.environ.get('SHARED_SOLAR_UNLIMITED','false').lower()=='true')
+   officer_completion=completion(s),solar_unlimited=os.environ.get('SHARED_SOLAR_UNLIMITED','false').lower()=='true')
  @app.get(prefix+'/api/ai-agents/history')
  def history():return dict(runs=store().status()['runs'])
  @app.get(prefix+'/api/ai-agents/holds.csv')
@@ -62,12 +63,12 @@ def install(app,service,authenticated,prefix):
    'Content-Disposition':f'attachment; filename="home-ai-{role}-holds.csv"','Cache-Control':'no-store'})
  @app.get(prefix+'/api/ai-agents/officer/decisions.csv')
  def decisions_csv(verdict:str='ALL'):
-  if verdict not in ('ALL','YES','NO','HOLD'):raise HTTPException(422,'지원하지 않는 판단 범위')
+  if verdict not in ('ALL','YES','NO','HOLD','ERROR'):raise HTTPException(422,'지원하지 않는 판단 범위')
   return Response(export_csv(service,store(),'officer',verdict=verdict),media_type='text/csv; charset=utf-8',headers={'Content-Disposition':'attachment; filename=home-officer-decisions.csv','Cache-Control':'no-store'})
  @app.get(prefix+'/api/ai-agents/{role}/items')
  def inbox(role:str):
   check(role);data=items(service,store(),role)
-  return dict(verdict_counts={v:sum(r.get('verdict')==v for r in data) for v in ('YES','NO','HOLD')},items=data,done=sum(r['state']=='DONE' for r in data),held=sum(r['state']=='HOLD' for r in data))
+  return dict(verdict_counts={v:sum(r.get('verdict')==v for r in data) for v in ('YES','NO','HOLD','ERROR')},items=data,done=sum(r['state']=='DONE' for r in data),held=sum(r['state']=='HOLD' for r in data))
  @app.post(prefix+'/api/admin/ai-agents/{role}/settings')
  def save_settings(role:str,payload:AgentSettings,request:Request):
   auth(request);check(role)
@@ -77,7 +78,22 @@ def install(app,service,authenticated,prefix):
  def start(role:str,request:Request):
   auth(request);check(role);s=store()
   if not s.status(include_events=False)['worker_online']:raise HTTPException(409,'작업자 연결 확인 필요')
-  try:result=enqueue(s,role)
+  try:
+   if role=='officer':
+    from .officer_campaign import start
+    return start(service,s)
+   result=enqueue(s,role)
   except ValueError as error:raise HTTPException(422,str(error)) from None
   if result.get('already_running'):raise HTTPException(409,'다른 작업을 포함해 이미 실행 중입니다. 완료 후 실행하세요')
   return result
+
+ @app.get(prefix+'/api/admin/ai-agents/officer/completion.csv')
+ def completion_csv(request:Request):
+  auth(request)
+  from .officer_campaign import export_csv as export_completion
+  return Response(export_completion(store()),media_type='text/csv; charset=utf-8',headers={'Content-Disposition':'attachment; filename="home-officer-final-results.csv"','Cache-Control':'no-store'})
+ @app.post(prefix+'/api/admin/ai-agents/officer/completion/stop')
+ def stop_completion(request:Request):
+  auth(request)
+  from .officer_campaign import stop
+  return stop(store())
