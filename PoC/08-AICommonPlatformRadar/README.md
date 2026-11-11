@@ -1,3 +1,19 @@
+<!-- jodalcheck-demo:start -->
+## 조달췤 · 3분 5초 시연 영상
+
+AI 사업 발굴과 근거별 분석부터 나라장터 의견 자동입력, 전체 기간 성과와 기관 회신, 공통기반 개선 방향까지 소개합니다. **한국어 내레이션 · 자막 · 배경음악 포함**
+
+<video src="docs/demo/jodalcheck-demo-3m05s.mp4" controls width="960">
+  <img src="docs/demo/jodalcheck-demo-3m05s.mp4" alt="조달췤 — 범정부 AI 공통기반 edition 3분 5초 시연 영상" width="960">
+</video>
+
+[▶ 영상 크게 보기 · MP4](docs/demo/jodalcheck-demo-3m05s.mp4) · [한국어 자막 SRT](docs/demo/jodalcheck-demo-3m05s.ko.srt)
+
+실제 확장프로그램의 의견 자동입력까지 시연했으며, 최종 등록은 실행하지 않았습니다.
+
+음악: “Carefree” — Kevin MacLeod (incompetech.com), CC BY 4.0. [음악 출처·라이선스](docs/demo/MUSIC_LICENSE.txt)
+<!-- jodalcheck-demo:end -->
+
 # 조달췤 — AI로 찾아내는 공통기반 활용 기회
 
 > 범정부 AI 공통기반 활용 촉진을 위한 지능형 조달 모니터링<br>
