@@ -1,11 +1,9 @@
-<video controls playsinline preload="metadata" width="100%" aria-label="업무바통 시연 영상 — 보고서 작성과 챗봇 업무 인수 지원">
-  <source src="../media/workbaton-demo-3m45s-chat-support.mp4" type="video/mp4">
-  이 문서 뷰어에서는 인라인 영상 재생을 지원하지 않습니다. 아래 영상 링크를 이용해 주세요.
+<!-- workbaton-demo:start -->
+<!-- GitLab converts the fallback MP4 image to a player. GitHub attachment URL is pending public-upload approval. -->
+<video src="../media/workbaton-demo-3m45s-chat-support.mp4" controls playsinline preload="metadata" width="960" aria-label="업무바통 시연 영상 — 3분 45초">
+  <img src="../media/workbaton-demo-3m45s-chat-support.mp4" alt="업무바통 — 보고서 작성과 챗봇 업무 인수 지원 시연 영상 · 3분 45초" width="960">
 </video>
-
-[▶ 업무바통 시연 영상 재생·다운로드 — 3분 45초](../media/workbaton-demo-3m45s-chat-support.mp4)
-
-> HTML 동영상 태그를 지원하는 문서 뷰어에서는 위에서 재생됩니다. Git 저장소 웹 화면 등에서 태그가 제한되면 영상 링크를 열거나 다운로드하세요. 영상은 제작 당시 화면이며, 아래 설명은 문서 기준 버전의 구현을 따릅니다.
+<!-- workbaton-demo:end -->
 
 # 업무바통 · PoC 13 — 사용자 버전
 
