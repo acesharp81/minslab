@@ -66,12 +66,18 @@ def probe_assembly_live_once(
     assembly = parse_assembly_live_list(listing_payload.content)
     play_contracts: list[dict[str, Any]] = []
     for item in assembly["items"]:
-        if not item["is_live"] or not item["meeting_external_id"]:
+        if not item["is_live"] or not item["meeting_external_id"] or item.get("capture_allowed") is False:
             continue
         url = assembly_live_play_url(str(item["channel_code"]), str(item["meeting_external_id"]))
         play_payload = fetch_public_source("assembly_live_play", url)
         artifact = store.save(play_payload, parser_version=PARSER_VERSION)
         contract = parse_assembly_live_play(play_payload.content)
+        if item.get("is_expansion_test") and (
+            str(contract["meeting_external_id"]) != str(item["meeting_external_id"])
+            or str(contract["channel_code"]) != str(item["channel_code"])
+        ):
+            # Never let a redirected/changed player expand a one-meeting grant.
+            continue
         play_contracts.append({
             **contract,
             "content_hash": artifact.content_hash,

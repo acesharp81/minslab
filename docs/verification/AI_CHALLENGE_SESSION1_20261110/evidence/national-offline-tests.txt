@@ -1,0 +1,22 @@
+
+==================================== ERRORS ====================================
+_ ERROR collecting PoC/07-NationalAssembly/backend/tests/test_summary_cache.py _
+ImportError while importing test module '/home/ubuntu/apps/myservice/PoC/07-NationalAssembly/backend/tests/test_summary_cache.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PoC/07-NationalAssembly/backend/tests/test_summary_cache.py:6: in <module>
+    from app.services.summary_cache import cache_missing_summaries
+PoC/07-NationalAssembly/backend/app/services/summary_cache.py:10: in <module>
+    from ..db.summary_repository import SummaryRepository
+PoC/07-NationalAssembly/backend/app/db/summary_repository.py:8: in <module>
+    from ..config import get_settings
+PoC/07-NationalAssembly/backend/app/config.py:6: in <module>
+    from pydantic_settings import BaseSettings, SettingsConfigDict
+E   ModuleNotFoundError: No module named 'pydantic_settings'
+=========================== short test summary info ============================
+ERROR PoC/07-NationalAssembly/backend/tests/test_summary_cache.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.49s

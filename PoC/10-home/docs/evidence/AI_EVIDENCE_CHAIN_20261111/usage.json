@@ -1,0 +1,52 @@
+[
+  {
+    "id": "73ea7319-af61-4264-9b74-db8f1556e115",
+    "run_id": "5a6623ae-f4f4-46d3-a33f-755b830bfb85",
+    "provider": "SOLAR",
+    "model": "solar-pro4",
+    "input_tokens": 1691,
+    "output_tokens": 418,
+    "cost_usd": 0.0010088999999999999,
+    "status": "COMPLETED"
+  },
+  {
+    "id": "642b5e55-a547-4308-a095-21baef527a7c",
+    "run_id": "99acd9c8-057f-4f19-8afc-b11d5af860e4",
+    "provider": "SOLAR",
+    "model": "solar-pro4",
+    "input_tokens": 2183,
+    "output_tokens": 500,
+    "cost_usd": 0.0012549000000000002,
+    "status": "COMPLETED"
+  },
+  {
+    "id": "2da14a2b-ad07-4d93-a4dd-40ae2607778f",
+    "run_id": "dfcc4d46-3692-4887-89da-0eeceba5b68a",
+    "provider": "SOLAR",
+    "model": "solar-pro4",
+    "input_tokens": 2414,
+    "output_tokens": 561,
+    "cost_usd": 0.0013973999999999998,
+    "status": "COMPLETED"
+  },
+  {
+    "id": "631c6137-d2e2-45f4-baf0-aae1e05af207",
+    "run_id": "bb6940bb-c5de-40ef-895a-862855a565fe",
+    "provider": "SOLAR",
+    "model": "solar-pro4",
+    "input_tokens": 1552,
+    "output_tokens": 508,
+    "cost_usd": 0.0010752000000000001,
+    "status": "COMPLETED"
+  },
+  {
+    "id": "fc1e8a9b-ee79-4ad3-9e19-9364a0ec0025",
+    "run_id": "bb6940bb-c5de-40ef-895a-862855a565fe",
+    "provider": "SOLAR",
+    "model": "solar-pro4",
+    "input_tokens": 2823,
+    "output_tokens": 2050,
+    "cost_usd": 0.0033069,
+    "status": "COMPLETED"
+  }
+]

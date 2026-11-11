@@ -1,0 +1,25 @@
+{
+  "schema_version": "assembly-expansion/1",
+  "entries": [
+    {
+      "committee_id": "9700513",
+      "committee_name": "문화체육관광위원회",
+      "channel_code": "59",
+      "meeting_external_id": "DCM000059224390901",
+      "scheduled_date": "2026-11-11",
+      "scheduled_time": "10:00",
+      "meeting_title": "제439회 국회(정기회) 제09차 문화체육관광위원회 [10:00]",
+      "enabled": true,
+      "capture_from": "2026-11-11T08:00:00+09:00",
+      "capture_until": "2026-11-12T09:00:00+09:00",
+      "evidence": {
+        "calendar_url": "https://assembly.webcast.go.kr/main/service/calendar.asp?qdate=202611",
+        "calendar_sha256": "3e5146a6b1c6a3c1b1d25d1fa3179c3757c3a77b5e2612f4786843e504e466ad",
+        "live_list_url": "https://assembly.webcast.go.kr/main/service/live_list.asp",
+        "live_list_sha256": "1d15c5c44ec04301cb492b8fc3f34ab579f3cd27fda6091a8eb7d863bb7e64f9",
+        "raw_directory": "raw/assembly-expansion-registration",
+        "verified_at": "2026-11-10T15:23:21.783544+00:00"
+      }
+    }
+  ]
+}

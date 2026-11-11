@@ -1,0 +1,79 @@
+[
+  {
+    "service": "poc07-national-assembly-live-monitor",
+    "base_image": "poc07-expansion-live-monitor:20261111",
+    "base_image_id": "sha256:49a04febd5fff21adee04035edb3908b10a28cdf93efde6a9d30f0a6e0f5c29c",
+    "image": "poc07-expansion-live-monitor:20261111",
+    "image_id": "sha256:76a6f9e56619826c6ef465d32f7860b98a914eb50ed2947dca6ac2ee1b831881",
+    "files": {
+      "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+      "db/live_repository.py": "8d01422e575b0fd987024a53e021f9bd2a0a69c2461fbcf404543bd90460d101",
+      "adapters/live_sources.py": "cc67b14b8409749ed518fd71caaf17cf0b2d0662a42a4c5c485b3a8c21d8c48c",
+      "ingestion/live_monitor.py": "f95c0e87c8299c978d93574c32e99b378c70fdb782863db3b24bffba6ef3170e"
+    }
+  },
+  {
+    "service": "poc07-national-assembly-caption-worker",
+    "base_image": "poc07-expansion-caption-worker:20261111",
+    "base_image_id": "sha256:6678342d0dbc6740176d827ac5d74a85e6da8043d85c001abecab2461e84d040",
+    "image": "poc07-expansion-caption-worker:20261111-lease",
+    "image_id": "sha256:e5dcd2f392e23993582d37eee67f89153785116e5bfecba206028adbb46f3bdf",
+    "files": {
+      "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+      "db/live_repository.py": "e5f4064a37dfb8eac66143d1cd97de60ef5750660b23299adb30a65129426872"
+    }
+  },
+  {
+    "service": "poc07-national-assembly-executive-caption-worker",
+    "base_image": "poc07-expansion-executive-caption-worker:20261111",
+    "base_image_id": "sha256:319c169cfdb77f6ad893e6691ec2c1cd45fb4a265a581ec0a3f268b6b6bc6b74",
+    "image": "poc07-expansion-executive-caption-worker:20261111-lease",
+    "image_id": "sha256:06190e28e41820fc9f13f53756e0855622988830b6399910eb8b82518c24f209",
+    "files": {
+      "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+      "db/live_repository.py": "e5f4064a37dfb8eac66143d1cd97de60ef5750660b23299adb30a65129426872"
+    }
+  },
+  {
+    "service": "poc07-national-assembly-summary-worker",
+    "base_image": "poc07-expansion-summary-worker:20261111",
+    "base_image_id": "sha256:9eb682f4e564bd9148ca82e43c774065a1099f17e4afc095aa47c5b741fa3cc1",
+    "image": "poc07-expansion-summary-worker:20261111",
+    "image_id": "sha256:67046f4bd5b791077a2eb607e5346506c702cd3c91468e48766cb4c01cffcaaf",
+    "files": {
+      "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+      "db/live_repository.py": "8d01422e575b0fd987024a53e021f9bd2a0a69c2461fbcf404543bd90460d101",
+      "ingestion/summary_worker.py": "5cd45c4e0aade04692a249d68ac4b47ced4df3596a13c7462874f11884943d5f"
+    }
+  },
+  {
+    "service": "poc07-national-assembly-meeting-brief-worker",
+    "base_image": "poc07-expansion-meeting-brief-worker:20261111",
+    "base_image_id": "sha256:b9e9c335ef256b1a58fd4d8a0d0bbfafc981eec0773b80c3e535b6185a3d6001",
+    "image": "poc07-expansion-meeting-brief-worker:20261111",
+    "image_id": "sha256:c9448a28c842610f66f34c596c89880214d30b40691e276e2666cccbef2203e0",
+    "files": {
+      "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+      "db/live_repository.py": "8d01422e575b0fd987024a53e021f9bd2a0a69c2461fbcf404543bd90460d101",
+      "db/meeting_brief_repository.py": "e8c001ff4c43bdfd8bf9bfdedfd8fc7d63baf33cc5a64d9d1f591508220adfa3",
+      "ingestion/meeting_brief_worker.py": "59ee9fcc394c900b8961be2f3c665c0640a503cee4bc75e243d5c978d8c983df",
+      "ingestion/live_discussion_worker.py": "efebda1958c5b9e8309f7c556ebe703ee849018a05799e5f72b3bb2baa69c680",
+      "ingestion/topic_structure_worker.py": "496d0db303098f0c752920f1165df6e9f629fca5dbca33a70c28fdb0b247b191",
+      "ingestion/structure_review_worker.py": "dd6977fb7fb84c293067bcd7a19b42de68c7d5ab3301282af974d7daa5ed38a6",
+      "ingestion/ontology_review_worker.py": "d5f1029e98bacceb539daa70b3dda91b4445bb83a9dd0f1f8e3d765b889a4030"
+    }
+  },
+  {
+    "service": "poc07-national-assembly-api",
+    "base_image": "poc07-expansion-api:20261111",
+    "base_image_id": "sha256:5522214974b3f271c520e80dba3d4ff49fcf8245176e452944c7a8d3702d7a1e",
+    "image": "poc07-expansion-api:20261111",
+    "image_id": "sha256:a6913b6a0964e3af4c2095efc26f0262f545eedb1e7e3352b57481b817ac4a42",
+    "files": {
+      "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+      "db/live_repository.py": "8d01422e575b0fd987024a53e021f9bd2a0a69c2461fbcf404543bd90460d101",
+      "db/meeting_brief_repository.py": "e8c001ff4c43bdfd8bf9bfdedfd8fc7d63baf33cc5a64d9d1f591508220adfa3",
+      "main.py": "4b788e7b918054af9da26339fe32385e20bf23a3c6540f810969e3cabe3ad958"
+    }
+  }
+]

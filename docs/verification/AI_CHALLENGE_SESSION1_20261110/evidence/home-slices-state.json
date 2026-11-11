@@ -1,0 +1,22 @@
+{
+  "id": "8e5d063476864013ac7a577efd51c822",
+  "status": "COMPLETED",
+  "message": "전달 데이터셋 생성·검증 완료",
+  "parameters": {
+    "target": "the-housing",
+    "mode": "delta",
+    "since": "2026-10-21 15:00:00+00",
+    "golden": true
+  },
+  "created_epoch": 1794300781.163433,
+  "result": {
+    "filename": "home-slices-20261110T085301Z.zip",
+    "since": "2026-10-21 15:00:00+00",
+    "until": "2026-11-10 08:53:01.171014+00",
+    "full_fallback": false,
+    "files": 106,
+    "rows": 39359,
+    "bytes": 28390282,
+    "golden": true
+  }
+}

@@ -367,7 +367,7 @@ def process_available(limit: int = 1, request_limit: int = 2, workers: int = 4) 
         return []
     with connect(s.database_url) as c:
         repo = TopicStructureRepository(c)
-        pending = [x for x in MeetingBriefRepository(c).latest_all()
+        pending = [x for x in MeetingBriefRepository(c).latest_all(include_expansion_tests=True)
                    if repo.progress(x)['status'] in ('PENDING', 'PROCESSING', 'RETRY_PENDING')]
         ended = {str(row[0]) for row in c.execute("SELECT id FROM live_broadcasts WHERE lifecycle_status='ENDED'").fetchall()}
         pending = [x for x in pending if str(x['broadcast_id']) in ended]

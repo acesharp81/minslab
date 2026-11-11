@@ -17,6 +17,7 @@ from ..db.meeting_brief_repository import MeetingBriefRepository
 from ..db.migrate import apply_migrations
 from ..db.speaker_repository import SpeakerRepository
 from ..db.summary_repository import SummaryRepository
+from ..domain.assembly_expansion import meeting_ids
 from ..domain.scope import (
     NATIONAL_ASSEMBLY_BODIES,
     TARGET_COMMITTEES,
@@ -294,7 +295,7 @@ def generate_one(
     with connect(settings.database_url) as connection:
         row = connection.execute(
             """
-            SELECT id, title, committee_name, detected_at, ended_at, institution
+            SELECT id, title, committee_name, detected_at, ended_at, institution, external_id
             FROM live_broadcasts
             WHERE id = %s
               AND (
@@ -316,6 +317,7 @@ def generate_one(
                     "detected_at",
                     "ended_at",
                     "institution",
+                    "external_id",
                 ),
                 row,
                 strict=True,
@@ -324,6 +326,7 @@ def generate_one(
         if (
             meeting["institution"] == "LEGISLATURE"
             and not is_live_transcript_scope(meeting["committee_name"])
+            and meeting["external_id"] not in meeting_ids()
         ):
             raise ValueError("broadcast is outside the configured assembly scope")
         snapshot = LiveRepository(connection).ended_transcript_snapshot(broadcast_id)
@@ -721,7 +724,7 @@ def mapping_candidate_ids(limit: int = 20) -> list[UUID]:
             WHERE broadcast.lifecycle_status = 'ENDED'
               AND (
                     broadcast.institution <> 'LEGISLATURE'
-                    OR broadcast.committee_name = ANY(%s)
+                    OR broadcast.committee_name = ANY(%s) OR broadcast.external_id = ANY(%s)
                   )
               AND (
                     COALESCE(
@@ -744,7 +747,7 @@ def mapping_candidate_ids(limit: int = 20) -> list[UUID]:
             ORDER BY broadcast.ended_at DESC NULLS LAST
             LIMIT %s
             """,
-            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], MAPPING_VERSION, limit),
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], meeting_ids(), MAPPING_VERSION, limit),
         ).fetchall()
     return [row[0] for row in rows]
 
@@ -910,7 +913,7 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
               AND lifecycle_status = 'ENDED'
               AND (
                     broadcast.institution <> 'LEGISLATURE'
-                    OR broadcast.committee_name = ANY(%s)
+                    OR broadcast.committee_name = ANY(%s) OR broadcast.external_id = ANY(%s)
                   )
               AND ended_at >= now() - interval '30 days'
               -- Start the provisional brief on the first worker cycle after
@@ -971,6 +974,7 @@ def eligible_broadcast_ids(limit: int = 1) -> list[UUID]:
             """,
             (
                 [*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],
+                meeting_ids(),
                 str(settings.meeting_brief_provider or provider).lower(),
                 provider,
                 model,

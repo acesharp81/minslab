@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import replace
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.db import Base
-from app.models import ActionItem, AnalysisRun, Attachment, Notice
+from app.models import ActionItem, AnalysisRun, Attachment, Notice, PipelineRun
 from app.services.analyzer import CURRENT_CRITERIA_VERSION
 from app.services.attachment_retention import purge_attachments_by_policy
 
@@ -47,7 +48,7 @@ def test_retention_purges_non_ai_and_ineligible_but_keeps_operational_records(tm
         notice.attachments.append(Attachment(
             original_filename=f"{index}.pdf", source_url=f"https://example.com/{index}",
             file_path=str(raw), text_path=str(parsed), text_excerpt=f"excerpt {index}",
-            download_status="downloaded", parse_status="parsed",
+            download_status="downloaded", parse_status="failed" if code in {"5", "6"} else "parsed",
         ))
         if action_status:
             notice.action = ActionItem(status=action_status)
@@ -55,6 +56,12 @@ def test_retention_purges_non_ai_and_ineligible_but_keeps_operational_records(tm
         paths[str(index)] = (raw, parsed)
 
     with Session(engine) as db:
+        batch = PipelineRun(
+            run_kind="collect", mode="live", status="success",
+            started_at=datetime.now(timezone.utc) - timedelta(minutes=1),
+            stats_json=json.dumps({"attachment_failed": 2}),
+        )
+        db.add(batch)
         for code in ("1", "2", "3", "4", "5", "6"):
             add_notice(db, int(code), code)
         add_notice(db, 7, "5", action_status="completed_uses")
@@ -67,6 +74,7 @@ def test_retention_purges_non_ai_and_ineligible_but_keeps_operational_records(tm
         }
 
     assert stats["attachments_purged"] == 2
+    assert stats["batch_failures_resolved"] == 2
     assert stats["shared_files_preserved"] == 1
     assert shared_raw.is_file()
     assert not paths["5"][0].exists() and not paths["5"][1].exists()
@@ -81,6 +89,10 @@ def test_retention_purges_non_ai_and_ineligible_but_keeps_operational_records(tm
         assert attachment.text_path is None
         assert attachment.text_excerpt is None
         assert attachment.parse_status == "purged"
+    with Session(engine) as db:
+        batch_stats = json.loads(db.scalar(select(PipelineRun)).stats_json)
+    assert batch_stats["attachment_failed"] == 0
+    assert batch_stats["attachment_recovered"] == 2
 
 
 def test_retention_dry_run_does_not_change_files_or_rows(tmp_path):

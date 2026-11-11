@@ -1,0 +1,12 @@
+{"service": "poc07-national-assembly-api", "deployed": true, "networks": ["poc07-national-assembly"]}
+poc07-national-assembly-api: environment and command preserved
+{"service": "poc07-national-assembly-caption-worker", "deployed": true, "networks": ["poc07-national-assembly"]}
+poc07-national-assembly-caption-worker: environment and command preserved
+{"service": "poc07-national-assembly-executive-caption-worker", "deployed": true, "networks": ["poc07-national-assembly"]}
+poc07-national-assembly-executive-caption-worker: environment and command preserved
+{"service": "poc07-national-assembly-summary-worker", "deployed": true, "networks": ["poc07-national-assembly"]}
+poc07-national-assembly-summary-worker: environment and command preserved
+{"service": "poc07-national-assembly-meeting-brief-worker", "deployed": true, "networks": ["poc07-national-assembly"]}
+poc07-national-assembly-meeting-brief-worker: environment and command preserved
+{"service": "poc07-national-assembly-live-monitor", "deployed": true, "networks": ["poc07-national-assembly"]}
+poc07-national-assembly-live-monitor: environment and command preserved

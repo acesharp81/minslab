@@ -1,0 +1,88 @@
+{
+  "checked_at_kst": "2026-11-10T23:58:23.094348+09:00",
+  "containers": [
+    {
+      "name": "poc10-home-api",
+      "image_tag": "poc10-home:missing-dash-20261110",
+      "image_id": "sha256:cce13e39885e64b04b4a65919633396c8964c6b61e2f36085468d4b3009d8e8f",
+      "started_at": "2026-11-10T08:01:04.153948083Z",
+      "running": true,
+      "health": "healthy",
+      "mounts": [
+        {
+          "source": "/home/ubuntu/apps/myservice/PoC/10-home/data",
+          "destination": "/app/data"
+        }
+      ]
+    },
+    {
+      "name": "poc10-home-worker",
+      "image_tag": "poc10-home:collector-repair-20261109-poc10-home-worker",
+      "image_id": "sha256:c5d918e79c389b11b2d68f65252c8a8e054ffa41ce21862fbe53d02bd7a4910e",
+      "started_at": "2026-11-09T13:50:25.501346447Z",
+      "running": true,
+      "health": "healthy",
+      "mounts": [
+        {
+          "source": "/home/ubuntu/apps/myservice/PoC/10-home/data",
+          "destination": "/app/data"
+        }
+      ]
+    },
+    {
+      "name": "poc10-home-ai-worker",
+      "image_tag": "solar-key2:20261110-poc10-home-api",
+      "image_id": "sha256:e281fe46d29d544adb7e43c2a5876870d0297992d9e5e6d8a45f5818bdb4c54b",
+      "started_at": "2026-11-09T23:14:01.967362666Z",
+      "running": true,
+      "health": "healthy",
+      "mounts": [
+        {
+          "source": "/home/ubuntu/apps/myservice/PoC/10-home/data",
+          "destination": "/app/data"
+        }
+      ]
+    },
+    {
+      "name": "poc07-national-assembly-api",
+      "image_tag": "poc07-official-evidence-diff:20261109",
+      "image_id": "sha256:49b000076653ea5ab469ec20f2986ee44a5d13d53d516f7ad5626c9ee60d5281",
+      "started_at": "2026-11-09T10:04:12.712238828Z",
+      "running": true,
+      "health": null,
+      "mounts": [
+        {
+          "source": "/home/ubuntu/apps/myservice/PoC/07-NationalAssembly/web",
+          "destination": "/app/web"
+        },
+        {
+          "source": "/home/ubuntu/apps/myservice/PoC/07-NationalAssembly/data",
+          "destination": "/app/data"
+        }
+      ]
+    },
+    {
+      "name": "poc07-national-assembly-summary-worker",
+      "image_tag": "poc07-monthly-credit:20261105",
+      "image_id": "sha256:e80cb871b1b3fd6f0cf0854b28a235bdf6042d8d3c61efeb49c205fc158e2858",
+      "started_at": "2026-11-04T23:01:45.458512386Z",
+      "running": true,
+      "health": null,
+      "mounts": []
+    },
+    {
+      "name": "poc07-national-assembly-live-monitor",
+      "image_tag": "poc07-regular-caption:20261106",
+      "image_id": "sha256:ca8225528d373ce3fff939e75b853ffd943a99034a49eff431e941d8772a688b",
+      "started_at": "2026-11-06T06:16:04.821279571Z",
+      "running": true,
+      "health": null,
+      "mounts": [
+        {
+          "source": "/home/ubuntu/apps/myservice/PoC/07-NationalAssembly/data",
+          "destination": "/app/data"
+        }
+      ]
+    }
+  ]
+}

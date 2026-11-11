@@ -40,6 +40,8 @@ class AgentSettings(BaseModel):
 
 
 def install(app,service,authenticated,prefix):
+ from .evidence_chain_api import install as install_evidence_chain
+ install_evidence_chain(app,service,prefix)
  from .algorithm_review_api import install as install_algorithm_review
  install_algorithm_review(app,service,authenticated,prefix)
  @lru_cache(maxsize=1)

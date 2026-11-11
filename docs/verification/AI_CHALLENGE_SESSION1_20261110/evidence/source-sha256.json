@@ -1,0 +1,1502 @@
+[
+  {
+    "path": "PoC/10-home/backend/api_samples.py",
+    "sha256": "eb48807edb6232e1108c818a1b9c918255433c113b6079f5e5e9a0713924a903"
+  },
+  {
+    "path": "PoC/10-home/backend/data_gaps.py",
+    "sha256": "3e232cafc82e099a6af39ce56279ef1918e354cd3debda1f05ba9ec6be6fe3a6"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_project_registry.py",
+    "sha256": "02b766efbfa6a3a71794aeea6b8e187db5351d6eda08640d2c6e532068fa621c"
+  },
+  {
+    "path": "PoC/10-home/backend/program_catalog.py",
+    "sha256": "69821a0e221c8e02336abc9cd83a510dc656146eff94cb30997d73f9a9e516c1"
+  },
+  {
+    "path": "PoC/10-home/backend/source_operations.py",
+    "sha256": "4f44ec9b53c4fdeb9628800e14d624d440c2151676b833d7ff6dd36850b400d7"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_worker_health.py",
+    "sha256": "efcf104e503c449a8979d4ab15845d6c854ff7a742044443d8254160f019f834"
+  },
+  {
+    "path": "PoC/10-home/backend/operations_window.py",
+    "sha256": "fb6e17f290e39c824a7ffcbdf44faa1132aefc5a8855de59a81d680b5a867bff"
+  },
+  {
+    "path": "PoC/10-home/backend/subject_identity.py",
+    "sha256": "ee21afb7fb9275c1aab3b3cd8717dfd5ed325dc7df9fed68b1603b1172125104"
+  },
+  {
+    "path": "PoC/10-home/backend/public_files.py",
+    "sha256": "9ada6a47c79f8f4098235afe38ecf43225eea1a408cd3b886b9a83c9c35a1ec2"
+  },
+  {
+    "path": "PoC/10-home/backend/source_preview.py",
+    "sha256": "ec2fa4f14957f4087b24dd9bf8c51e73775328c36f8a6963ae60499a2c0cd3ea"
+  },
+  {
+    "path": "PoC/10-home/backend/supply_progress.py",
+    "sha256": "d39aa77fb7c17b01393aea7fd45f586e2e36c9249aad71be4618d1f4c764a0f0"
+  },
+  {
+    "path": "PoC/10-home/backend/sources.py",
+    "sha256": "96e6b1a9d71139e3cbe3587bbfd90adc77e23d961c6d8d9aa0849d1dfee93177"
+  },
+  {
+    "path": "PoC/10-home/backend/source_summary_cache.py",
+    "sha256": "a1a7e659d75e07861fd5b38ddb2fd7de5daf82dbe5f51a4d60bf793b06657f6d"
+  },
+  {
+    "path": "PoC/10-home/backend/building_context.py",
+    "sha256": "d22506b68dd6d1c808b608e09e521653e7f957a9d69fb25a4aa1a4fd2b950442"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_907_sources.py",
+    "sha256": "cbe2f9ad0b2a8aee5863fd60bad97a5d8142bdda4d915a3bcce4648601ab7190"
+  },
+  {
+    "path": "PoC/10-home/backend/roadmap.py",
+    "sha256": "b81d49a58697251b50394e552541501fac64c2ae44165792a4f70c6618084fff"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_agents_store.py",
+    "sha256": "e606ba2ed4686e0315e6a5b767dd914d551899335fe351a46ff85ef69066bb20"
+  },
+  {
+    "path": "PoC/10-home/backend/integrity_diagnostics.py",
+    "sha256": "4b47b0720893346eda9cefa0d38a735b4973d5d0aaf71286c90ea0c10b478c6e"
+  },
+  {
+    "path": "PoC/10-home/backend/collection_policy.py",
+    "sha256": "3d9bbb3a2b545293b5f92f7d9bbb2d351164a5f800cb7112e4d7ea04efcd7bd2"
+  },
+  {
+    "path": "PoC/10-home/backend/read_scope.py",
+    "sha256": "56aeae17366f9bf7f2cbee2d574723bf4d3cf73c99b0fc8d26c248b88be32d77"
+  },
+  {
+    "path": "PoC/10-home/backend/lh_public_history.py",
+    "sha256": "fefba256e726bd80392bbed4a274bb077ee43c3ceefd3b3e4584ac38fe71c120"
+  },
+  {
+    "path": "PoC/10-home/backend/connection_confirmation.py",
+    "sha256": "80d8a4dd795e44fe526baa71a03e2b8b8910be961a8c4feda747c31d676e828b"
+  },
+  {
+    "path": "PoC/10-home/backend/stage_reconciliation_api.py",
+    "sha256": "b104d2190aab7eabc3a2e0101d83523cc476d670613871f5895ea97c99a42252"
+  },
+  {
+    "path": "PoC/10-home/backend/program_management.py",
+    "sha256": "43dafb08e4f7feb9015bbac57a164a6f6bd57db0e53a010283f7866a6da2bbea"
+  },
+  {
+    "path": "PoC/10-home/backend/complex_approvals.py",
+    "sha256": "7dec5d2f75060c81092bb16f506f22d45a3488ac67038fb4097a374e90bdea8a"
+  },
+  {
+    "path": "PoC/10-home/backend/program_availability.py",
+    "sha256": "9c640d591a3033ab3ca423c98ab8c5e551a79f6fc8b5627879bd54aca9c1bf78"
+  },
+  {
+    "path": "PoC/10-home/backend/publication_reviews.py",
+    "sha256": "ef6cd74db5b07566e427132001880a86cc001a7714c927655f649a1e527ae309"
+  },
+  {
+    "path": "PoC/10-home/backend/monthly_release.py",
+    "sha256": "970f689601875c010446b0a40438294f75fe1d24dd9e8dffc74e446cc4a925ec"
+  },
+  {
+    "path": "PoC/10-home/backend/general_building_permits.py",
+    "sha256": "09c529d44a0a6c07d708fd5716077d53735402622ba41e1b59168984415e8bb5"
+  },
+  {
+    "path": "PoC/10-home/backend/plan_schedule.py",
+    "sha256": "160763d4f7b77c392e0cc805bab5d1c6087a8c9b78aa82ab6fd7d740839e5fc6"
+  },
+  {
+    "path": "PoC/10-home/backend/collectors.py",
+    "sha256": "1dacc248dc2ec6e8e42674d3c9a92e6ac9a94fb9c4331fc89502d3038fd98fed"
+  },
+  {
+    "path": "PoC/10-home/backend/review_report_artifacts.py",
+    "sha256": "c929f0b23f516a63a6edb109596cc6a8c0b777e5eedd9c48580b149aa747cc54"
+  },
+  {
+    "path": "PoC/10-home/backend/building_details.py",
+    "sha256": "b8eadb4b62cb18c5515059be6c9c87b5a6d14fe566cff0b553190551b5068f0b"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_delivery_view.py",
+    "sha256": "ec4dbce0cb306e6ca85b6546215a8dc50f9d409557abe5b39828d0fc532c328f"
+  },
+  {
+    "path": "PoC/10-home/backend/plan_review_matching.py",
+    "sha256": "0a6c2c0394c624d7953942f0eaab0dae65ce65dbab65d9d425ce8f93d46dd2f4"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_timeline.py",
+    "sha256": "886c4c95ba786c92875056d502eaeb78eb43d4be7386fe600296fc45ddd2a35a"
+  },
+  {
+    "path": "PoC/10-home/backend/lh_policy_followup.py",
+    "sha256": "3d4590374e696d837167541a8497f69b11d4962f238fd07d5bfba272d99373d1"
+  },
+  {
+    "path": "PoC/10-home/backend/report_reproducibility.py",
+    "sha256": "029846694978ceb2a13e219483f9e52937eb6317351ce21eee675e660aae64e5"
+  },
+  {
+    "path": "PoC/10-home/backend/source_summary.py",
+    "sha256": "c583fc2e8d72238ab8701a31a78639f9f2539db936e8ecead9b936b06e08ba3d"
+  },
+  {
+    "path": "PoC/10-home/backend/ih_public.py",
+    "sha256": "094bf26ea90b3176b551bfcda8036a1cf40b73bfc7effdec2d4a0b1f629b1ec0"
+  },
+  {
+    "path": "PoC/10-home/backend/collection_schema.py",
+    "sha256": "b8d5f343f4b04fd0db631d9b4e2bc456fa38b770a7364f780f3a9a98aeadb99c"
+  },
+  {
+    "path": "PoC/10-home/backend/agency_plan_files.py",
+    "sha256": "5337d68ec2eadeec28464c89f44c49e9ef3e5e8a91e1649da809d66514671c56"
+  },
+  {
+    "path": "PoC/10-home/backend/demolition.py",
+    "sha256": "31f5cb956575ede1b6be163bbb6abcc38bcb79baf69b12e35b18ee940e2675f1"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_officer_evidence.py",
+    "sha256": "a6e492a67e77ad4ce4bf0c0fcedb4fb959b8f943d5086555bdaa9c94936692cd"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_scope_correction.py",
+    "sha256": "48abdb77e19926ac8b60fbf6390142ba709d5a3a607692a07eaa568cf7b0c4f1"
+  },
+  {
+    "path": "PoC/10-home/backend/connection_audit.py",
+    "sha256": "4bc4e34252ed92ff62d0b001206bf5d90a7ea0e25fc7ccba94e125f7e269970d"
+  },
+  {
+    "path": "PoC/10-home/backend/projection_cache.py",
+    "sha256": "3b9ba1ec798a24c19c0079feda25b315c0f6bcbe9ea51f76106a51d5f6653017"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_delivery.py",
+    "sha256": "67087effc4c17a89f0494248e5753f7c84840f023560c1f96e0d42f805deaa87"
+  },
+  {
+    "path": "PoC/10-home/backend/dataset_slices.py",
+    "sha256": "e32ba513bef9e8efb4c55420c1cc40d6c3860039a5f2c1488780c211889c9610"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_collection_worker.py",
+    "sha256": "21deb94f42ec9f531a1d3de56b71acd8c7cd6c0e60c1fa2101227b60c2233cc0"
+  },
+  {
+    "path": "PoC/10-home/backend/publication_capture.py",
+    "sha256": "69f6e2dcfcb93b29e109440b59e801e08be66159a0b7b59214ac02713993417d"
+  },
+  {
+    "path": "PoC/10-home/backend/program_identity.py",
+    "sha256": "ed2c4b95368c8f7505bc5c4f494ba148a3f8721186d855d887b1cc6fb171e45f"
+  },
+  {
+    "path": "PoC/10-home/backend/lh_progress.py",
+    "sha256": "bd230cd28a3613ef54c686550ed1656ed1cef14d5a13f3b3a8c90cc2cb94d387"
+  },
+  {
+    "path": "PoC/10-home/backend/publication_evidence_integrity.py",
+    "sha256": "4408207cfc3852351ac93d89a5f89091aba24478e7d32c54851e50722735e8e2"
+  },
+  {
+    "path": "PoC/10-home/backend/collection_jobs.py",
+    "sha256": "ae9dea14569f8987e31b68db70fc3fa439acb6145833657c5c6e0f1131c71964"
+  },
+  {
+    "path": "PoC/10-home/backend/officer_campaign.py",
+    "sha256": "c164c7be7746819682bec4b9c12fdcb3cb78be08d0769fd434a84894214d397f"
+  },
+  {
+    "path": "PoC/10-home/backend/unsold.py",
+    "sha256": "48e7ead43d49c4cb1ff83603fd7ff6feb39f279962841ca027ea21df73e4c084"
+  },
+  {
+    "path": "PoC/10-home/backend/lh_spring_followup.py",
+    "sha256": "3a9364e6f3f9b3109080276f71b64ba7ea90b61516bbc188940ac2abc0ec97f3"
+  },
+  {
+    "path": "PoC/10-home/backend/project_locations.py",
+    "sha256": "319d18916380e6862a25027f475ac7290a9df98b2a8881eed2e3bb0b751cf27e"
+  },
+  {
+    "path": "PoC/10-home/backend/apartment_prices.py",
+    "sha256": "313465fc06f4a3ede916a5254f300d19bf61ff7697ea50c1443fb1029715bbb6"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_collection_progress.py",
+    "sha256": "b36d39e20eda62ffff540fc358a3d2dec47d672d7c334aa3eb2eca2396982318"
+  },
+  {
+    "path": "PoC/10-home/backend/map_stage_state.py",
+    "sha256": "4a7e31cc69fd0354f939dd4ad5ccb014f02795ab4c898249c414d041fbe83c05"
+  },
+  {
+    "path": "PoC/10-home/backend/area_living.py",
+    "sha256": "9df26098f949216f6363200f337f998373241184ec3efd9bca36766222e9329e"
+  },
+  {
+    "path": "PoC/10-home/backend/app.py",
+    "sha256": "89a5715fef8c7fe1e63ec17f49b2451a75ccb6a691f35252ce15f10c709a8d74"
+  },
+  {
+    "path": "PoC/10-home/backend/incremental_estimates.py",
+    "sha256": "6c9057b4385973642db33525f6d8af1f6f322301eb03f0bf7c51fcc6e0a8d9f1"
+  },
+  {
+    "path": "PoC/10-home/backend/snapshot_content.py",
+    "sha256": "50512078d068258b9b7a8c0601e5912743265e00816ca35b83ff40334a2786c9"
+  },
+  {
+    "path": "PoC/10-home/backend/plan_notices.py",
+    "sha256": "b50f575c99c2a36b1a456e5c6945771b71bd3cab188fcb253c731c2faa46d941"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_delivery_comparison.py",
+    "sha256": "28d419652fca9116259f40e6bd56c95b9ab1d355a58a033c51a6122f359d996d"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_collection_api.py",
+    "sha256": "f5c28715e5811aee4a0391f4c3d9827177c9796420c1fd77c8bcea83c5da66ab"
+  },
+  {
+    "path": "PoC/10-home/backend/agency_data.py",
+    "sha256": "1867ca4358640a89e4ebe5bc9280c9c7e2a0b7da9c03cd4f0f33046d42781efc"
+  },
+  {
+    "path": "PoC/10-home/backend/tiles.py",
+    "sha256": "c2626184ff342f04597609577f393422b482a52e9559b3ee28160895c30aec63"
+  },
+  {
+    "path": "PoC/10-home/backend/october_alignment.py",
+    "sha256": "5fc4089a06c161af39dcd971a04a5ea069af5a3ad671fdf18fa5365277ddee69"
+  },
+  {
+    "path": "PoC/10-home/backend/reference_registry.py",
+    "sha256": "0125ecda250a6595eafc96b69d57ab7be26a70f48fe81b4ec7f278ea20649cc6"
+  },
+  {
+    "path": "PoC/10-home/backend/stage_field_history.py",
+    "sha256": "090e2dd162913779ecfab042cd969b134ceb4c38d3a0a9d866f413dc0ae1ec36"
+  },
+  {
+    "path": "PoC/10-home/backend/raw_archive.py",
+    "sha256": "d6680faf36d92fb8aeeda5c828201a02592f6f7cd681918ec41692074fdd001d"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_officer_review.py",
+    "sha256": "a2d83fc05a03463e127ec11fb3d13932f0539ead6c0ed2ec1afb117d87f16768"
+  },
+  {
+    "path": "PoC/10-home/backend/coverage_audit.py",
+    "sha256": "17844d3939c93674b01f926443193b8ecf02dfdb3c5755cb809855e989a32471"
+  },
+  {
+    "path": "PoC/10-home/backend/stage_chronology.py",
+    "sha256": "24188f5ad6ea812848eeec1554fdfa0aefac64ffc1ca8445157c109b03601f95"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_agents_inbox.py",
+    "sha256": "476951bab9e01c2c65bd6c121a959095c25bba6078834d47955655ab5488b421"
+  },
+  {
+    "path": "PoC/10-home/backend/matching_corrections.py",
+    "sha256": "34f3e662009b6b399f5f18fe43f16cf86e7a06b04a2be67d61c824da831184dc"
+  },
+  {
+    "path": "PoC/10-home/backend/algorithm_review.py",
+    "sha256": "5522e935a2a509448654ec624fc694bddec98c3db4fb2824a23e2ad1d16af505"
+  },
+  {
+    "path": "PoC/10-home/backend/national_statistics.py",
+    "sha256": "27b57f2508c6396d2e0baf12776d332886e85c5c01150a869d9bc34df8f311a0"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_officer_decisions.py",
+    "sha256": "8dfaf349e1313a93d518233c768599b80b40b8d5b845d2b2ce548799ef308908"
+  },
+  {
+    "path": "PoC/10-home/backend/supply_type.py",
+    "sha256": "e805f0124da81ec0ed20fe586d9ab56d1c2654c1de5edfbbee1d551830f14d76"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_monitor.py",
+    "sha256": "4be78bec21978b9cb181402e83f6f555193e56336483642f78e151d9923ffc80"
+  },
+  {
+    "path": "PoC/10-home/backend/mapping_workbench.py",
+    "sha256": "c273921da5dd2c39431df7cbd4c64aeed209ae30902c89dee438fdbaf5548a53"
+  },
+  {
+    "path": "PoC/10-home/backend/sequence_audit.py",
+    "sha256": "026fa944cdb06510bce035c7f0019bfc4a783f8b9b5d76be709ba305e9348205"
+  },
+  {
+    "path": "PoC/10-home/backend/area_snapshot.py",
+    "sha256": "df49ed34dd70d6ae1b03b27f621d79cf48f75b9aac19f6b510f96ef8cab44646"
+  },
+  {
+    "path": "PoC/10-home/backend/stage_display.py",
+    "sha256": "848721438ed644787cf6afe1d260906b4e07bbeb92311db7afbb2c0e1065081a"
+  },
+  {
+    "path": "PoC/10-home/backend/project_brief.py",
+    "sha256": "97efb87697a45c4d7974919d7ec37e27406e01c2e667076a9f128a2596dc7a11"
+  },
+  {
+    "path": "PoC/10-home/backend/db.py",
+    "sha256": "0b43f119eddaba9681e4b6624801703d9aa27ff403fce9271afbbc67e170b617"
+  },
+  {
+    "path": "PoC/10-home/backend/project_region.py",
+    "sha256": "84cd30984bacf9c6aee950c899f887f7eaf56b4791dfa6630360728f1bd790da"
+  },
+  {
+    "path": "PoC/10-home/backend/collection_worker.py",
+    "sha256": "2bedf10e12187396701951a4ba035d9dd2e54ed467f8c67d1422d8b6d50e98af"
+  },
+  {
+    "path": "PoC/10-home/backend/measurement_estimates.py",
+    "sha256": "3c47b4231fdc949f1ea7d8acbf136a23c937b0aa756f06c8b6169635ea1cd147"
+  },
+  {
+    "path": "PoC/10-home/backend/construction_plan.py",
+    "sha256": "b69667ddee7a11ab71433c79ea71966ade3e45f6e68d89d8de1acbf009df5df7"
+  },
+  {
+    "path": "PoC/10-home/backend/project_profile.py",
+    "sha256": "2e933fb944e19617c1c473d619be92684bd0dd222577afeff9f5b4ef81b8ca5c"
+  },
+  {
+    "path": "PoC/10-home/backend/collection_repairs.py",
+    "sha256": "16b2af363a34a6a7ea68489a7f04f63cf347d042e342aaa04db243571ffa1c1f"
+  },
+  {
+    "path": "PoC/10-home/backend/matching_rules.py",
+    "sha256": "ad1e4bf042d08c656e164d040f08db98951c04c49305f208dc4957a83345f096"
+  },
+  {
+    "path": "PoC/10-home/backend/mapping_decisions.py",
+    "sha256": "5e66e195ef4f74563939c31f78e68af86974752e4b0483f75931662823318fc0"
+  },
+  {
+    "path": "PoC/10-home/backend/schedule_period.py",
+    "sha256": "2b1f97857d82126f7293569557897f3054fbeee0534ec3faf39ea8a7eb080395"
+  },
+  {
+    "path": "PoC/10-home/backend/data_integrity.py",
+    "sha256": "efca0239eaab002e5557a3edc08adf936bbbe9cb9d4ea410d561d51f20e634be"
+  },
+  {
+    "path": "PoC/10-home/backend/project_collection.py",
+    "sha256": "54ac6198afdf52b50b11e1242f3ed1841697004fa70a2c805989b2b496df2963"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_collection_store.py",
+    "sha256": "fd629c70ae1e8cd35abfc6bf1386c88c00464fe7078efcffbb5b814c2739622f"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_collection_fetch.py",
+    "sha256": "82c79ceee7494c48ab5e6fab5c0df9c2414326bdb954cb232900ec08dbbcf879"
+  },
+  {
+    "path": "PoC/10-home/backend/source_authority.py",
+    "sha256": "211a1c2da0969893fe738ee7154d8341714474b07ff4104ee7d7e070104f4877"
+  },
+  {
+    "path": "PoC/10-home/backend/construction_candidates.py",
+    "sha256": "4de4b880826f9196dc4061699fa40ee4dd00ee341475e43a4e2e835427dff569"
+  },
+  {
+    "path": "PoC/10-home/backend/stage_evidence_duplicates.py",
+    "sha256": "2876b6b7248ec3f422e1b68d425f4d59d091b81dd490286f2581f46c5e3c31c3"
+  },
+  {
+    "path": "PoC/10-home/backend/housing_indicators.py",
+    "sha256": "0e718ed2a3a80714cc485ed55618cc1dbb2b1cee02fde2e2b7bda46200872a13"
+  },
+  {
+    "path": "PoC/10-home/backend/supply_geography.py",
+    "sha256": "2fc6896dd8a8523463bed29ef5ac949720fbb3cf7edba41b7496640dcd446da5"
+  },
+  {
+    "path": "PoC/10-home/backend/facility_plans.py",
+    "sha256": "6af7cfa4f045ae016b214de5e84fe3b9fa00edfe02d5fdfb826a96e96ff09534"
+  },
+  {
+    "path": "PoC/10-home/backend/attachment_text.py",
+    "sha256": "fb474fd1fcd7208639671c2fd227fb4c0fec96599bfc6c45d2443a47be964fb9"
+  },
+  {
+    "path": "PoC/10-home/backend/map_data.py",
+    "sha256": "d9b6ab0d89fe881f9ea16d0ec56412f1bc374dea7b10118348511b938bb059c0"
+  },
+  {
+    "path": "PoC/10-home/backend/publication_watch.py",
+    "sha256": "d677ab807c04210da0c7433250597ddb50e12a903f0d1f2fa26a35cc7551d4eb"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_agents_api.py",
+    "sha256": "d3f42feba085158181de8bfa67d1122e1f0ac83073a2974dff5ca57a2d8776ba"
+  },
+  {
+    "path": "PoC/10-home/backend/officer_duration.py",
+    "sha256": "d1a912118f4b6ef4594ffdbc559b10ed12f42c2ad60c87fc8e7fd0e355d534f0"
+  },
+  {
+    "path": "PoC/10-home/backend/parcel_identity.py",
+    "sha256": "8dc2639bb8170543a205f4a5627bd114e778fe5164554ae3aa1a2cbd8196d348"
+  },
+  {
+    "path": "PoC/10-home/backend/supply_conditions.py",
+    "sha256": "615e74c3e81b9649e34ef7c6b71c6ce913e0c2ef26bd4a1046e3dca3f7fbb51a"
+  },
+  {
+    "path": "PoC/10-home/backend/stage_reconciliation.py",
+    "sha256": "cb8d15574ea477f8f327c5e6bb197923617fdc1c268c69e679152bf16c4d2900"
+  },
+  {
+    "path": "PoC/10-home/backend/gh_portal.py",
+    "sha256": "17f2ab3dd9cf0223bd8fe2589c3575c8070ca41d0f73c6d0f9e708e8bd5496e3"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_geo.py",
+    "sha256": "318ae9ff1d10e25fc7f0973fc3c6eae69998735f562098afca14e0afb93a611a"
+  },
+  {
+    "path": "PoC/10-home/backend/supply_export.py",
+    "sha256": "d2a303c10183a5de81d097337262034b39b2eb37dede1b5c584b2ff0da5b603a"
+  },
+  {
+    "path": "PoC/10-home/backend/lh_reit_progress.py",
+    "sha256": "e1be5d0180ac460871004bf781c39e7ee92c7706a52a3ab1de9a2bbd435adbc6"
+  },
+  {
+    "path": "PoC/10-home/backend/occupancy_monitor.py",
+    "sha256": "b04164bac968a659d9283d49776cb3b1ed6b9bdc1be9bd41e51f3d22880382a5"
+  },
+  {
+    "path": "PoC/10-home/backend/area_stats.py",
+    "sha256": "644929902ca4d0e954952d31bdc5ee9ebf893e86efa5c528f268b67afeba5cd2"
+  },
+  {
+    "path": "PoC/10-home/backend/requirements_status.py",
+    "sha256": "7433f8e49dffbd2a098bc7398df84515bdc9763fdecf18b1879edc4415a0250e"
+  },
+  {
+    "path": "PoC/10-home/backend/publication_supplements.py",
+    "sha256": "f5ec6e776cd14024b3790f5fbf0df203b97f4b755bec15396b3c506d27afa971"
+  },
+  {
+    "path": "PoC/10-home/backend/seoul_project_documents.py",
+    "sha256": "6df2317b138b1f6fb84d58a728177d9a86790cdd5e5ed9c5493b68fda99bcbf3"
+  },
+  {
+    "path": "PoC/10-home/backend/program_hierarchy.py",
+    "sha256": "32441cf4f84661d2bec7ebcb79dfeffe2a4bc02167ac8d0361bce5ecca494ad2"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_collection_models.py",
+    "sha256": "c4162732c0fe03fa5d5087316c5d418a1e24d589df106b9562ce09b1c3c4b8b9"
+  },
+  {
+    "path": "PoC/10-home/backend/sh_apis.py",
+    "sha256": "075d1cb808cd89ef2ecb6be7b8bd38560c521e993565094d8d02869a4ac22927"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_profile.py",
+    "sha256": "e358063e56db57cede97b910e5378961d1c9be126b17e8f3447441b5e82695e1"
+  },
+  {
+    "path": "PoC/10-home/backend/hold_evidence_integrity.py",
+    "sha256": "d80287c51cf499c15fb62563026c098286b43693d820272871cd149266b1f2ec"
+  },
+  {
+    "path": "PoC/10-home/backend/facility_details.py",
+    "sha256": "173911c40caf00017bf033c5e6e49321b8a68993c2e4931e26de9f4de1fb4726"
+  },
+  {
+    "path": "PoC/10-home/backend/algorithm_review_api.py",
+    "sha256": "c2706fd7dbc75bf89cd99a03a3b0619b71c7defd6b77b1e32c7ec6ef2211fa05"
+  },
+  {
+    "path": "PoC/10-home/backend/officer_completion.py",
+    "sha256": "39dcb80b5f1f66123ca4c45b09340d33fdc0548469e9274995d096d2f6f736f0"
+  },
+  {
+    "path": "PoC/10-home/backend/occupancy_targets.py",
+    "sha256": "8c7b3b6eaaca3f286f37606e72b19e02e0c5356dc262eeed6addce434bf37f22"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_collection.py",
+    "sha256": "b0a4dc311a1d12f7cb74298d6a92550297248487d107042a48cadddd7b5ecf97"
+  },
+  {
+    "path": "PoC/10-home/backend/operations_maintenance.py",
+    "sha256": "57cfbed6b0698035467f308f618ae6909934969686b8b041922bd5760f4194e1"
+  },
+  {
+    "path": "PoC/10-home/backend/independent_metrics.py",
+    "sha256": "4e3731d27af35a04d1d5c83cc1fdf767966400c66126377835a6bcb71d55c08d"
+  },
+  {
+    "path": "PoC/10-home/backend/start_linkage.py",
+    "sha256": "40371eda7cec9a3626da4c59ead6e284ad8633725d579dcdacfe139041ca19ac"
+  },
+  {
+    "path": "PoC/10-home/backend/ih_stock.py",
+    "sha256": "02ad864a4ea4a531bed4673e47d6a59e6261c3118966a8cf19cfccd72f944481"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_attachments.py",
+    "sha256": "57b964313c967e322e6da2a8e84072d3d5f346b4214482ceae7e7047c6f4dedf"
+  },
+  {
+    "path": "PoC/10-home/backend/identity.py",
+    "sha256": "fc8f1a691f8f385723bbbc649d6d2416e4a66653d83381ecbbd0a3dda51c7708"
+  },
+  {
+    "path": "PoC/10-home/backend/integrity_first.py",
+    "sha256": "14dcc35bb8ef2944c504395148dd6f96b9354ac9faef10edf39931e1f06f7ab5"
+  },
+  {
+    "path": "PoC/10-home/backend/age_distribution.py",
+    "sha256": "25ed8558df198835cbe915b723c75e39b68665927ce6e174dc5010eeab44c15e"
+  },
+  {
+    "path": "PoC/10-home/backend/__init__.py",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "PoC/10-home/backend/supply_projection.py",
+    "sha256": "70c82cd0e3fb8f7915ef2bd12b656415265dd7302c999a9e32ab228214aac8f0"
+  },
+  {
+    "path": "PoC/10-home/backend/policy_field_evidence.py",
+    "sha256": "4b7ff43d2528002e339c01d92ca97748a5fbfb4be134d6f4f45dd46816a0e9a3"
+  },
+  {
+    "path": "PoC/10-home/backend/lh_notice_detail.py",
+    "sha256": "afe4e7e4213fb7b645146f4171e0c198f7b023c6a40c8f249ecacd3b4548260a"
+  },
+  {
+    "path": "PoC/10-home/backend/source_coverage.py",
+    "sha256": "d83f6f1c7b606b67722449a91edfa228cb948b7b71b265c76473c0a9f8ed6e62"
+  },
+  {
+    "path": "PoC/10-home/backend/input_status.py",
+    "sha256": "cebab192c3ed6812b2a74ff61890ab898fa62965a004b1b38fbe43a60e3c0565"
+  },
+  {
+    "path": "PoC/10-home/backend/public_data_download.py",
+    "sha256": "054fa85fb0641d9099bb16ef0c0203aee5b4d53e536c3886777227181af7dd02"
+  },
+  {
+    "path": "PoC/10-home/backend/area_benchmarks.py",
+    "sha256": "012a22865cd7484c021ffbaf1bb4362e2c6b6df2ff87078f5635b2b6f07703c4"
+  },
+  {
+    "path": "PoC/10-home/backend/area_snapshot_worker.py",
+    "sha256": "b554fe63cfd1de2f6cb21e55e839f395f36c910b6c6ca4652db1135186f2376c"
+  },
+  {
+    "path": "PoC/10-home/backend/supply_dashboard.py",
+    "sha256": "3b04cbc6e5ee55c3683690348f9db63e1f7b676f2ee3f81a30653d095caf4c93"
+  },
+  {
+    "path": "PoC/10-home/backend/officer_stage_work.py",
+    "sha256": "3a8fb67a25b08a34f41594225ef27f906296050e70fcbc9ef7ab82a33968b642"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_agent_catalog.py",
+    "sha256": "bc45adff45217e85d2f9a8e0a3e377dfa247e5a85dd1d771ed858192a382291f"
+  },
+  {
+    "path": "PoC/10-home/backend/collection_period.py",
+    "sha256": "186cf9368f30114967f81aec05f906689a777bb1ce2f513dc6a514a80ec607d3"
+  },
+  {
+    "path": "PoC/10-home/backend/area_outlook.py",
+    "sha256": "cdb717298e6ddfc37bae3bcc4f90c273e9b002a7040ee0a591375096f0c7b03d"
+  },
+  {
+    "path": "PoC/10-home/backend/annual_supply.py",
+    "sha256": "eb0e68aff4ce33c4c125c835b2848f06c5a4c710e028681f9cff3fffc42c0c40"
+  },
+  {
+    "path": "PoC/10-home/backend/block_identity.py",
+    "sha256": "c9be3a7e51dca53f2542a730b6745dca8049a4ce0f7df5a3007f7584163c8999"
+  },
+  {
+    "path": "PoC/10-home/backend/building_scope.py",
+    "sha256": "de32c9d9528cdc3d178e436746807c93fde282d05c33d32f41b27d40c134c4f5"
+  },
+  {
+    "path": "PoC/10-home/backend/history_data.py",
+    "sha256": "5565bdcd94e874d48ec0e17d820776c218a292cd5dae1c6848dc952647534420"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_collection_budget.py",
+    "sha256": "c344babd2cf47b2b51e0f7536c7ad2a417073011630de082732a5287e16a4c15"
+  },
+  {
+    "path": "PoC/10-home/backend/official_supply_files.py",
+    "sha256": "bc69f749b7e3fe555c4a4e55f5c5b381ea3b3df55b5264aa4cb938207b101eeb"
+  },
+  {
+    "path": "PoC/10-home/backend/route_documents.py",
+    "sha256": "94c9d39bc9afab651539df904271ca9932b024997680100efe51ffff367af3ef"
+  },
+  {
+    "path": "PoC/10-home/backend/gh_completion.py",
+    "sha256": "8576428b6fc724e018c2729a4e9dbb129bacc8b0de99adcc9698260d81bd1684"
+  },
+  {
+    "path": "PoC/10-home/backend/seoul_cleanup.py",
+    "sha256": "d5ccb728b3fbf71b9af6405181256116564dfadfa6e71df0ead7596c74cc7c13"
+  },
+  {
+    "path": "PoC/10-home/backend/construction_audit.py",
+    "sha256": "a87089e6dc63b2540092113aaf5edfd8dde336f1b9c4c88d5af3a6c77dca4812"
+  },
+  {
+    "path": "PoC/10-home/backend/api_requests.py",
+    "sha256": "a44cdc6de6b886f39e757a390b9161caae42bc6c96749c954cd18558c9765fd4"
+  },
+  {
+    "path": "PoC/10-home/backend/service.py",
+    "sha256": "873edbf0ec8fba87af3a41f7f7475a0aabe9741eac366a3a46c69a60f20f1261"
+  },
+  {
+    "path": "PoC/10-home/backend/evidence_bridge.py",
+    "sha256": "c938dc50190666afefa5307217e15de263a8ed79bf7c39ef02bcc6790d59617c"
+  },
+  {
+    "path": "PoC/10-home/backend/publication_evidence.py",
+    "sha256": "cb348f4e0e371ee42d7f19e22346a8018d31a5503b9672fbf4a56243491a8f57"
+  },
+  {
+    "path": "PoC/10-home/backend/additional_apis.py",
+    "sha256": "9bc5a2f4d3436ed036ecb5ff4cce5edf876ec528879fc2f48b8d1874802b5fcc"
+  },
+  {
+    "path": "PoC/10-home/backend/collection_exports.py",
+    "sha256": "7d46271fd5edc18a018f388ead0ec0f2523c36c2f4ed36aeae79a0f76fc71316"
+  },
+  {
+    "path": "PoC/10-home/backend/delivery_operations.py",
+    "sha256": "eca873d3dc0f5f67d0135ed09d14930298095011994732bb1d2969fdd54223d9"
+  },
+  {
+    "path": "PoC/10-home/backend/publication_review_export.py",
+    "sha256": "17a412433252730fb4badc8c1f9011364359b253c6aacc995987af0fe030e806"
+  },
+  {
+    "path": "PoC/10-home/backend/hold_review.py",
+    "sha256": "8c7466f922344fd3de762f56de7e394081c5afc4a9a10cfb4d45c9b42bac4f1a"
+  },
+  {
+    "path": "PoC/10-home/backend/program_profile.py",
+    "sha256": "ad033b1c47a3ab849db6814496aae6820960289e484e32dd56cfc6025dd84f0b"
+  },
+  {
+    "path": "PoC/10-home/backend/project_policy_relations.py",
+    "sha256": "3f746ce28747c9c8d09e294b513c24aebc10ec5719892c90d396da9a407c1076"
+  },
+  {
+    "path": "PoC/10-home/backend/lh_block_location.py",
+    "sha256": "c714b9d1695eaef7e3b2d4bce8caad76bf5e286c399ee3c9560543c695edc34c"
+  },
+  {
+    "path": "PoC/10-home/backend/municipality_geo.py",
+    "sha256": "bfdf8abdadd72903b47bb7b3122d94dec70ddb0b7bf6700a3612b7177e237644"
+  },
+  {
+    "path": "PoC/10-home/backend/stage_evidence.py",
+    "sha256": "427e04305641a461a226a3bb1c8d492cb3631c45b311bbd807d06f92254a60de"
+  },
+  {
+    "path": "PoC/10-home/backend/collection_tags.py",
+    "sha256": "32cc124fade007f7aa7f6492bfa740c473b4be607401166efc582ddbd7283edd"
+  },
+  {
+    "path": "PoC/10-home/backend/collection_lineage.py",
+    "sha256": "60cb5a0ff78574283031574d7e682fd10fcabb5e08b3eaad4b24d7955d80525c"
+  },
+  {
+    "path": "PoC/10-home/backend/ai_agent_workflows.py",
+    "sha256": "9f03f4c1012f595cf23efb9e8de23c99a69658f1882abd3f8cbfee80ba4e1b62"
+  },
+  {
+    "path": "PoC/10-home/backend/publication_review_guidance.py",
+    "sha256": "ec08b83e15673a15e7f48c8267af467b3ec95f325e1ee641887cbeb1191090d5"
+  },
+  {
+    "path": "PoC/10-home/backend/map_progress.py",
+    "sha256": "11f58a30563a2102ef7f68bf30f0f930e48626f7fba92edc65248458dbf9c5a9"
+  },
+  {
+    "path": "PoC/10-home/backend/execution_insights.py",
+    "sha256": "2bc91030564a013f59f19aa77832085f641b67b634cf08c846f96d0c1f8147b5"
+  },
+  {
+    "path": "PoC/10-home/backend/infrastructure.py",
+    "sha256": "7e88e2a170fde6db7428f6c39d729296b3b7b5938027ac43a38482bc04914986"
+  },
+  {
+    "path": "PoC/10-home/backend/slice_contract/tools/ledger/home-slice.py",
+    "sha256": "63df9101005255c2e34ca5907284e8abc8dfd460ff75cc798c02198cad23fbf2"
+  },
+  {
+    "path": "PoC/10-home/backend/slice_contract/tools/ledger/home-dump.py",
+    "sha256": "cd8d7ca54047ee25f7a49749a0760e735c87a6ee5d9dd554d0bdf038f1dc8f8b"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/topic_report_api.py",
+    "sha256": "24f5c56f25a6a93d1058ebc2f1d698ab233541fdbcd723d49db7f1efb7ac266d"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/main.py",
+    "sha256": "4b788e7b918054af9da26339fe32385e20bf23a3c6540f810969e3cabe3ad958"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/openrouter_gateway.py",
+    "sha256": "a8345f077f6a53b85d870a95e45a0cfffaf73fbb8a8fab5804f00ac91cc8d597"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/__init__.py",
+    "sha256": "ffb941d1ed31e6bbf5929b9c19787fbe07c5f429a80e1485e485d0cde0189ebb"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/config.py",
+    "sha256": "577abeb066ee9360da9615adef45ff5bcec2d549e822dbdc1e5343b7b1f784d4"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/official_minutes_body.py",
+    "sha256": "a400d949915a1b374869dfafef47f471893490658225dcc96ac9912f03eca50f"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/ktv_schedule.py",
+    "sha256": "d995a484dc9e023227dcb6a37f911a1475bba6ee7c4f85a42c5c2d37a95f43eb"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/live_sources.py",
+    "sha256": "cc67b14b8409749ed518fd71caaf17cf0b2d0662a42a4c5c485b3a8c21d8c48c"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/__init__.py",
+    "sha256": "a69dcf0bf28c9bcc179e6b1dcdca981fadc0b145a14ed31877ea707b610cd6dc"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/assembly_caption_transport.py",
+    "sha256": "f84f36996e73b87b7fbcc21c7602f12a20cbb4c3f5a65f02979469dc32d1feeb"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/storage/raw_store.py",
+    "sha256": "6d41a14b49c62d1a844e48f05df91a2f5bca8f9db605d5a84e84bebb84d798ec"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/storage/__init__.py",
+    "sha256": "abf591b2ec479dd89c2df9986898634f820594f7970fb787143057a400902d16"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/summary_worker.py",
+    "sha256": "5cd45c4e0aade04692a249d68ac4b47ced4df3596a13c7462874f11884943d5f"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/official_speaker_reproject.py",
+    "sha256": "c8506cd293408fb34ad7f8ceeb1f446b333fc6d0e9a11b76682b16afedd49fda"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/official_minutes_body.py",
+    "sha256": "61a15481346600a1bb53baff3e0a84ce4123488d81151f1b6ddca897614be51d"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/live_group_repair.py",
+    "sha256": "61f3228e2287826e44da1439939e2672d2ac859e8e3f56557c21d0dec028e070"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/live_discussion_worker.py",
+    "sha256": "efebda1958c5b9e8309f7c556ebe703ee849018a05799e5f72b3bb2baa69c680"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/summary_backfill.py",
+    "sha256": "80c7257d728c9e6dd31cfa2a8e7545840ab0d6becf47f2ee1adf787dee9ca04e"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/quick_vod_backfill.py",
+    "sha256": "80b78047fd96394650541a5b8b95f365116b67a8124dafdf039bf069838f90dd"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/report_finalization.py",
+    "sha256": "6466df7db78b44b5266df3046ee24aba8fc754c55a2720724110541da0bdaeb8"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/topic_report_worker.py",
+    "sha256": "91ec67e680590b2cc94127d7349c826eec433ac227b92a6d1777b9ef5230bc67"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/schedule_worker.py",
+    "sha256": "fbd17f1ab479c4ea5ceaa072ef128238c53d50c32c63db1ff22e5a97ce9e9474"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/watch_summary_worker.py",
+    "sha256": "50b751e257fa8def083af35b6a73d4eb1bff6c48573faa647f044f7272d96127"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/notification_worker.py",
+    "sha256": "65870cae2aebebbe25aa6f07e102f217c331a27aab16d66195181edf51ff5065"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/bill_sync.py",
+    "sha256": "47d7233060779958ae7810325bdcbbeaefcb62bc4e2ee24ffa65272a9569206a"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/topic_structure_worker.py",
+    "sha256": "496d0db303098f0c752920f1165df6e9f629fca5dbca33a70c28fdb0b247b191"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/executive_caption_worker.py",
+    "sha256": "92f66beeb3f6927d6a08c6c7d821c0c31813b33ec324ba1d0a1d189c0cee04e4"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/live_regression_audit.py",
+    "sha256": "3278eb0a8e5358915ba7207a4660f16fe25ff067cd986a52dcf3c55ed428366c"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/report_parent_review_worker.py",
+    "sha256": "9f428039c1a7c145d35caffae074dbbb12c81703cfeb82897ecc31b93aea6c9d"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/meeting_brief_worker.py",
+    "sha256": "59ee9fcc394c900b8961be2f3c665c0640a503cee4bc75e243d5c978d8c983df"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/structured_narrative_worker.py",
+    "sha256": "71a66085f5e6e799fcb9435798b35dc248bd19a984c3c998dc28d2f305fa8843"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/executive_briefings.py",
+    "sha256": "36c739c5d43176dd0c75fa8db75510782d06f1e6d5b4afd54c47767f252e5325"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/review_worker.py",
+    "sha256": "433ec9ed78fcf7edfd93c59be2d2453b3c2296210b38dd4809ce48012371730e"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/live_monitor.py",
+    "sha256": "f95c0e87c8299c978d93574c32e99b378c70fdb782863db3b24bffba6ef3170e"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/__init__.py",
+    "sha256": "b2dfa2b7b0c3b6927648bbfaa4d8050290874744206815c69e3561c194937163"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/backfill_official_part_matches.py",
+    "sha256": "a656f9ef311182047796df999ada08bb372ac8475a42f5520c8f388b99e780b1"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/ontology_review_worker.py",
+    "sha256": "d5f1029e98bacceb539daa70b3dda91b4445bb83a9dd0f1f8e3d765b889a4030"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/bill_official_documents.py",
+    "sha256": "c072170f900d87acb176f4c41d180896626ee12f14a79e534c91d02180a116a4"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/committee_sync.py",
+    "sha256": "b32200059a9e294a379e32f0aff9d2d6a70e0e5f9a119022c8e59942ffc6dce8"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/caption_worker.py",
+    "sha256": "9a2eaf55ec8e5e763fe33c3f3bed8ec03649fc4814c1e59aa319b9d9892e33dd"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/structure_review_worker.py",
+    "sha256": "dd6977fb7fb84c293067bcd7a19b42de68c7d5ab3301282af974d7daa5ed38a6"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/watch_worker.py",
+    "sha256": "16c864482937421e2461fa019e2f01ad2d96a67fd80c9d698519186847462ce0"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/narrative_jobs.py",
+    "sha256": "1993560348ddc9bf52b9292edc98867bac1f2174ba8924fc6b5704a41e1b061b"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/schedule_file.py",
+    "sha256": "fe60f768bf4f087dbb187f3d47d62b677b2d06e24f1e601b55cd167bbc1f2df5"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/official_minutes_worker.py",
+    "sha256": "cd0f5b40b09d7a38bc8dd026fd2ae4bb9beb2387ebbc3d7408ceed689cc9a43a"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/official_integration_worker.py",
+    "sha256": "f676e36ad7ab9bf66c4ba6dddde7bbc0be5bb6bbf5ef125de57892ec420c4d72"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/revalidate_official_integration.py",
+    "sha256": "17ac2155e2efa41d072f796775c90fc5913d456617944fcf3292972802a22284"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/ingestion/normalize_official_storage.py",
+    "sha256": "6ced6efcb04e2457a5463ec74f03593ab49f90a97d78984e5e56f52583c22c67"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/insight_pagination.py",
+    "sha256": "73acdecc618cd05b841c1d968d466b0d34671f3e10e6fe5b38433422eec9aa34"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/model_workloads.py",
+    "sha256": "8dae79ac15f6699128490b89a267dcce7ed43856ba264e0d00edd628452138e4"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/compact_consolidation.py",
+    "sha256": "7c498c2bae990e1eaf03889bcde24cdb749ec484d4edf5567d08400b7c4d2a96"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/summary_language.py",
+    "sha256": "7a2cdb32810a6e8095733bba9639a2de7425056157bb58a9483e746551349a3e"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/watch_replay_script.py",
+    "sha256": "4abbf697168af58c3dad7fac51321b82f99a8f540b3f71d573198ecb84b43048"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/grouped_topic_report.py",
+    "sha256": "b48d7a07798b1019a91f57e6b53ede230aeea4a5e7684de4fc110b61c072555d"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_structured_presentation.py",
+    "sha256": "47d557882aadbf19d1469149c26aa8ae57745a2da3e527a772502b2bbe5c072c"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/integrated_brief_evidence.py",
+    "sha256": "352e8f4cfe66fbd5cc5f67e4e46f75902d94623a58e237519382b61da5ae5156"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_revision_client.py",
+    "sha256": "bd85482799b9dd1f05d9d523a5257a9f6bfb8b4da02ef44603b12cb77e0c3b98"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/specific_policy_issues.py",
+    "sha256": "664fa258fcab9b7a3da7a0833d4cf9d213058ae6568c00861249ea35efda9f32"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/watch_matcher.py",
+    "sha256": "e0a717a1b263a222466ddbd4a1d64443edcfc1062a61af58d4bcf6738c00db04"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/mistral_summary.py",
+    "sha256": "33a82cb46ec1ed4725b14832376c52ebc71fec1af80c38f1cc992c4acd60faea"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/executive_official_match.py",
+    "sha256": "9b2d804f770169d00686199d4c7fcccdb159efd58c42dee5bd4f40bf1f9a21f1"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_change_report.py",
+    "sha256": "6f51e4810ae703215c3e07a75422768fb6ea690f27fddd879ffd64d6319814aa"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/ontology_snapshot.py",
+    "sha256": "94a5993e2c4198b226f2a263190bb63b0e8b41f38256756fa822b68dc3c64b59"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/meeting_task_groups.py",
+    "sha256": "92d07a60c85c336b66a0abf1c0c00ddbd6f185fe115569383b38eb6bad895877"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/topic_structure.py",
+    "sha256": "eb7c2223e53d807b18e35b8e1ccd72fb98f8cd5e8b2f4ee76405899ea1d39dee"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/mistral_budget.py",
+    "sha256": "365d95bd7a763a37f3902e259f50261bf9bd82e55280806decb5fe58412e927d"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/gemini_summary.py",
+    "sha256": "cf95b7c202c58f98d6a0014fdf9606339e3b55a07e96fe8f378c31926f82bc23"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/report_presentation.py",
+    "sha256": "ec1de939e61af37b92d30e550d18f3c546a983a3a1f669738349a70c8dacff46"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/summary_contract.py",
+    "sha256": "43d6ff05a5009861b7a9bba04087330e92ea23cd6948cd5e5ac1e8c17eeed91e"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_reconciliation.py",
+    "sha256": "007624974ef2465a3c99677f64ce0f373eabc8322f533a2e71eb1ba951bd1e71"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/structure_review.py",
+    "sha256": "a2b6268e41fa528c321b689493a64d5ad24140c01b56ef34a14d360103856323"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_edit_validation.py",
+    "sha256": "942806f0b376758d9ecfeab5224bfd08ddea58f1a311fe84f2aa44bce112040f"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/broadcast_review.py",
+    "sha256": "23d76c19e2f479bd054441885439537b00ea30cbc5de5a3659336e1520ca9ac4"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/ontology_context.py",
+    "sha256": "921593c494769cd90c092580b47e557abe0df648697f984c1f2d8937a7679089"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/summary_client.py",
+    "sha256": "b6f302fa24fa97beab814843eed89fb696903049452f5817541c94cef4a8daba"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/meeting_brief.py",
+    "sha256": "6c24ee783b1ba8e217e68e7ebcdc4ed389ddf4cb9dafc240d64372720b53ad67"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/live_topic_lineage.py",
+    "sha256": "5a5d44d5ae2df10eecb7cee22e031ed36de20203edba06de7617f2dbd5bec888"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/openrouter_summary.py",
+    "sha256": "2f47433c61742122a585ce4af45028efcd9318e882e5e4a214d58f14e3e70ca5"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/meeting_sessions.py",
+    "sha256": "5e03b4bbbfd66ed39fc6723b0b979580d05ddea4a8a5109b0a15d9f885743ad4"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/grouped_models.py",
+    "sha256": "7ea1a3c52d93a1cdd83b049ee5e4596da6795d42969b8ac660099849c02d54df"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/shared_budget.py",
+    "sha256": "b115a1855028ec8bc6a33784e93ac5e6097a2b43c5f12ee12602bc02c1a72a39"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_evidence_presentation.py",
+    "sha256": "38f36f311ffbcbadb121e9f0c7e3af3b6cc0107e33e05f931a67f882282b8751"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/live_task_evidence.py",
+    "sha256": "b1e4c2e6bfa0a96208cf4c863084e331f8c137582865bef870251e0113277065"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/broadcast_review_v2.py",
+    "sha256": "1fa12b142280a86c33fc6960f1bb52c5fb6988d6bd843c09d663fac4d15e9b91"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/live_group_review.py",
+    "sha256": "c769adac7fc42e4d81a2decc70c58bdf4b3b82158688107f147cedab297ad419"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/provider_retry_gate.py",
+    "sha256": "b4fcd4aeee009ab2bab07a006b88b62085835f0b614ecf7fd260b436c5f919e7"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/structure_retry.py",
+    "sha256": "b4b228dda9702a2e8b51fd1cfc9dc68f6a16dde00790ec6d629eb0ecbb149ff7"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/ontology_source_context.py",
+    "sha256": "b8cc74d64ed68c2c35941e29b16b04b32abb9498750c2a6dbbcd31c1e770d4a8"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/watch_lifecycle.py",
+    "sha256": "bdae66b77b8a99e2c1e9541bee7eff14994d3a43604525a98f860bcc16d3aa87"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/web_security.py",
+    "sha256": "e473ec90dabf4ab0584b3fd4d615210a4cbbe2c4abd23d64cc84cccb6135b275"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/live_topic_resolution.py",
+    "sha256": "e46692863f93dde1943d22acd99dde12114f0f00df82044fad04443e82be1124"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_brief_integration.py",
+    "sha256": "5bee65db66c0cd9aef4612d1af5b008a47d1ce5da828997cc566023943fdc75e"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/summary_cache.py",
+    "sha256": "6b488ccaa682b0500791a5384412706b69858cc0717f8cc5e1dcf0f5307032a1"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/report_parent_groups.py",
+    "sha256": "8fda8632e0c98321a19412e3be6828f1f28e270a3b0a6f9a0050351fe1b972b7"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/topic_report_coverage.py",
+    "sha256": "0559eea5a7641c62d3b3759edb5a0ab0d09a3025c4b1b072255f40041c3505d9"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/bill_official_document.py",
+    "sha256": "888b9e40a282f5d80d7ae206c29c1f9a013fea7bae75c3d714e613a268e272dc"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/openai_summary.py",
+    "sha256": "7fd70909693eb8c68b7781e0f5045f738d5470399b0db6155569d7aefe8cd0d9"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/executive_briefing_query.py",
+    "sha256": "ba33d11ab662698837e332f30ed0beb7d9bd0e7d808e7f6bfd849a03c938a850"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_speaker_context.py",
+    "sha256": "1e36f8e8fa5fc7c6afe97e3973f6f74285b4eadeae41b8f15c81363800c928ce"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/ontology_extensions.py",
+    "sha256": "7ac815961c5833e7b7432375a633a30cf06f717c6859f207c2808e15a15c6630"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/live_topic_recovery.py",
+    "sha256": "b48983e4107191c9b2c2828648bc962ea9d0510aa6552200e4d0ae2fd31a0474"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/live_discussion_classification.py",
+    "sha256": "760d9b2ef361dffc59171e24c1bbc67a78933a22f6a6a74ac071e3deef0d744d"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/fallback_meeting_brief.py",
+    "sha256": "a87d36d2582ea78f7513629afe7fce6aa1701b78be39eb8632565a87bf2ec7d7"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/__init__.py",
+    "sha256": "5cc1c861e547990641f6bfdaf77067be4139c85ece7865634d142c406fc7856c"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/live_topic_mapping.py",
+    "sha256": "81c58a2d1a137423c0f03f8b9d8a351eeae2bbb3603a7755022a4add73a4d17a"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/openrouter_quota.py",
+    "sha256": "b25052c1ac5bb231d021bfd979d583062089711c6551de62a8450b37a946c44b"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/auxiliary_models.py",
+    "sha256": "5676b3ac80174e82c43371360176464a6dfb23ad48d523c02ca7cb01f5e708b4"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/compact_brief_ids.py",
+    "sha256": "63129b169791bd061827ae72079ab6199b5217793e2ecd0c2bc5ba30072c6436"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/watch_kakao.py",
+    "sha256": "5e5d906cebc62515ede87c65e48ace570faaa2d3fe228d997b71cba5e03b1e44"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/openrouter_gateway_client.py",
+    "sha256": "9294aa0f0dcf0b5444f798c05be021c004ebbeca5aab70dd0e4bbdf9f45061c9"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/ontology_semantic.py",
+    "sha256": "586b5099c768f29205210cd16a056d3db83ba50ce08ba9ad6c6c23a2796fc03c"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/task_source_links.py",
+    "sha256": "d47d4dd8c66cc9fa8028cefcd9465c067cb4ccd59ce299e03038865f5d94360e"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/cross_institution_flow.py",
+    "sha256": "10d3aa2b4b7cef8e803fa47bbf1a68b0b3cbff786c2a06255cf0284d94f5d47f"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/topic_report.py",
+    "sha256": "3f4fa8057f576f4c8413401403a94c8f21ead4579870d227071d7cbf245dcc89"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_speaker_presentation.py",
+    "sha256": "b2dab3c585b3341423133886cf2808a064f44c7776e143f4666505bb6df5bc8f"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/structured_document_tasks.py",
+    "sha256": "faed853cefe9fab2862666e7b7e66f1e7aed01b23610151de88d2bf84e118597"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/narrative_retry.py",
+    "sha256": "627e47b2725b2f012a95ee0f23ad3f1d0cae1e94350043396a77554d9b6bf35f"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/partitioned_consolidation.py",
+    "sha256": "9e14a168507afe39805de77421e38bf1997772f0853bfa3d5ee849f32b099680"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/watch_test_script.py",
+    "sha256": "5c84a89761c58d20a914adf8ea9b9d46e3e8bfb9e4951bc7d999c20f61ac9ea9"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_transcript_insights.py",
+    "sha256": "5287abb3c1c4dca713abb9ce1feab69d576431e6443663ac2f993bcc14780bbd"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/mistral_transcription.py",
+    "sha256": "7a36a423f02d80b21732b2ca4e71355e4fd2e12390d82ae4a8682e6bb53a28d1"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/public_response_cache.py",
+    "sha256": "578d5077275c6ff3cfebedd2bb7776585ba84c9abf7f6879c25fde61dac5e262"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/ontology_sources.py",
+    "sha256": "bd9b01135f6a424375af89aefcce7484b93ca22c9cb19585608d708d1b4d7a6b"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_source_speakers.py",
+    "sha256": "35f575a4147b0419610f91e1d0ed4fbc029e6eaa93b66de363e1e046e53b0e43"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/report_parent_review.py",
+    "sha256": "078f70ddfc19572c1f8909be56086f4acf5c2d0a50bea2ee9c4c4437091f42ab"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/transcript_presentation.py",
+    "sha256": "500ac6d2d75293bf0cfa068dec9a369c455312bbacdc9623ab564edd345dbc55"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/official_brief_speakers.py",
+    "sha256": "21d738f7bffcd447dbf545245004e6d3e700a397f3d6c6cb94db95d5b59a56b9"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/meeting_topic_groups.py",
+    "sha256": "3091bf65674aabc2b5f004cebbb8e9f7e31e527ea3df8cc36bb54b4b9082b82a"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/realtime_credit.py",
+    "sha256": "34514ecee85d133493a66f5b061b0e83ba4f82bb641cc0d34fa44b6b72314e6b"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/watch_summary.py",
+    "sha256": "034bb194559e27b748a5783acda4e42449fcbe00db4692cae6268ffab4d64f57"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/meeting_progress.py",
+    "sha256": "c4d92d382719e70b48add40b088c9d74bf3b3bc07583eaa59aad12e06bcfce0f"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/services/structured_narrative.py",
+    "sha256": "961683f12f1a710cb168fc034e1b53cdf61edecd6bcb07b39632d0bd32c6a189"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/migrate.py",
+    "sha256": "88965b156c9eed655794d496f3e11b22edbf821804787ddb0ae31a59423f5ae2"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/watch_summary_repository.py",
+    "sha256": "43c5527ba9d3479d5d6a1b1eee8fece4dcb5c7d4329f96f636cdff11a9de8fd1"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/speaker_repository.py",
+    "sha256": "8e5bf2ab1e224aef5812b31a05d48910500a700f9011244beac559730ee33ceb"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/executive_briefing_repository.py",
+    "sha256": "29d4a3b650113a12a611126afa9e0b8f802f67aaff32955d7eec33ae4ef71bc7"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/meeting_brief_repository.py",
+    "sha256": "e8c001ff4c43bdfd8bf9bfdedfd8fc7d63baf33cc5a64d9d1f591508220adfa3"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/topic_report_repository.py",
+    "sha256": "cecc8e3462081ae12ccb80d55b7663d66c633ea8307962c54e322197cc04e076"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/policy_issue_repository.py",
+    "sha256": "c022b0b69ac46308377fc211eff7c5dfe755b088883fd27dfb9984ab14b14b12"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/auxiliary_model_budget.py",
+    "sha256": "8d8adc052fbbde9579c0b04b8602a9be003af52494b846436110847143aac5fd"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/watch_operations_repository.py",
+    "sha256": "90cd94b8e4ad2cfa78a03304dac9d1e31b92d11f66dbf7869cd6388274976e97"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/official_integration_job_repository.py",
+    "sha256": "fcddf17f005792f817f154625a3a066b8d2925b8397391455bf4c808c9539592"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/topic_structure_repository.py",
+    "sha256": "2463d77a80925a979eafafcb652241fb4587ae36086f23c247dbffd6e4260acf"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/openai_daily_budget.py",
+    "sha256": "7009fb39d492e893dc6067100c6801d28d5b305e6b988fc0a338a2752339a116"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/review_repository.py",
+    "sha256": "bcf58b9bb33a43569f1e68d2d757e291e51522e09e133eea4927056ef0a0cad1"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/live_repository.py",
+    "sha256": "7d1d63b45249bea5353535c5f251b78afc72bb3987fcd95c692fedd5658d833a"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/schedule_repository.py",
+    "sha256": "0cfb3aa8dec65c7a46f92f8f88dce247d818ca8d6fe71d4baa2237ea051197e7"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/executive_audio_repository.py",
+    "sha256": "b8cf4599de6c0db5b3e6073939a1f6daa26b319d9ddfbcddd54747681c02564b"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/summary_repository.py",
+    "sha256": "cd8fcb867150d82e2111396894fe5234478ab2a74fcfc7afd945fc83e046306d"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/watch_delivery_repository.py",
+    "sha256": "6e5a812c74406a6a28b3e1af25b581b475343dc4a87a9721a2945dca37f3ef7e"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/official_change_report_repository.py",
+    "sha256": "de93899b83098f97d2461d49bb1eb804ea61e3a020b480cad95ec64a465f82da"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/official_evidence_query.py",
+    "sha256": "4edef798c8185325d6c677a35e74397dd969361e4efdfdf2499b36f4ba7f189b"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/watch_lifecycle_repository.py",
+    "sha256": "17af1e3b32bc04b9a423dea2cd5d11b24ee1194ee17c67051b4636c7eb876c72"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/live_discussion_repository.py",
+    "sha256": "effd2eba345acc119f286e35ca3b2e3c6574897cf8a2787b3749a0672f6d4869"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/openai_group_budget.py",
+    "sha256": "cf102764153303fe02cfe1f6cd137fd5ccdaeefa68d0ad9f51a8f844dde6cb4a"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/official_integration_repository.py",
+    "sha256": "391912dd7e179585ead071b11f7d330c3d21f87a90a71ffcb1ccfa39d404965b"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/read_projection_cache.py",
+    "sha256": "9156a256f4e6a29f19d71ca32356bd4b5341857bcb34cba0abcf1cd4b3131030"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/watch_repository.py",
+    "sha256": "80ff25d0b6e38943f32fa26ee49e1cf743c7a5af2ce937b729bf423fecbfc5a3"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/__init__.py",
+    "sha256": "275b6f36214166552167765feee99c5186f013a994e747a17cb356385093d5b3"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/bill_repository.py",
+    "sha256": "39456b3d04b67e5882eddecb64a551ce24a6488dbf608cc2a9ba56a7c8c2ad58"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/official_publication_repository.py",
+    "sha256": "d546b4e9c36c8c4b9a8cabf6c714d1a09f6441890176534acbfdfcd9a099389a"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/watch_test_repository.py",
+    "sha256": "6a4b587e8b090f74c22c7bd87b0962f148b907d4a295619b1999d2e1489ef2d0"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/committee_repository.py",
+    "sha256": "db11d13cc80d56cc5f34a43b857a02a28f40dd00fb066e239b74cbdd5fbe1d27"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/db/connection.py",
+    "sha256": "07b229a56c2a875b273b215c7dbf83158ae6727d156042217b72130b1a286a2b"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/experiments/__init__.py",
+    "sha256": "d6f1380821ff4650c0f9b9223b671f172a5fcd3dd3ea116c98d33753dec07ede"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/domain/assembly_expansion.py",
+    "sha256": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/domain/ministry.py",
+    "sha256": "49c07e7fc65edadbc8a8997453de91ae95c7aa82dc519dc57dca8c9fb1dbbee3"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/domain/states.py",
+    "sha256": "789a4948cbacecd1cc5426a7d31fb270bb0f9b170486940618a5813d61c6dda0"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/domain/__init__.py",
+    "sha256": "13508c105ef9cead8f01a32d0127a51e651dec90cc26358147e219f3facb8050"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/domain/scope.py",
+    "sha256": "b98f2cbc2c8707e1dc5be6d28ce418ac48179339027a529f27015ba9fa2c0e41"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/domain/schedule.py",
+    "sha256": "bd4e1efe3a0c4c573bca1d43b4bbe7bcf002528789c335e4b99ecf149ce6ed4e"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/domain/committee_bundle.py",
+    "sha256": "9dcf4fb4f09b65879e81448c4795113ef8129c573bc6284f119c4fb0f1bffdcd"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/contracts.py",
+    "sha256": "81a048118b1d07806232ca89b1acf08e7b4b63b1ad10cee913a52ab261493b80"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/catalog.py",
+    "sha256": "175a2cb4cd857a273e5edbaebb495f9009f294f72fd76ae6d7938374a4d07e01"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/committee_minutes.py",
+    "sha256": "f5d67017f7e0ca8f8a19fb43deccc2e4e49b751f909d324a19f1e94200880560"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/base.py",
+    "sha256": "ab201e7efd9b935be1f2d0415bd3c5e5a58b19f9fbd09622427bbd1c8ef59625"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/xml_envelope.py",
+    "sha256": "b6e8dc8f94cfd958a2fb372a528e65018abe161b924725f2ce72f5fc6954db50"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/meeting_agendas.py",
+    "sha256": "fffc3ba7c33414e229fa2cd5527a6ee468e63ab16db1362b27470dcc3ad66a3d"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/members.py",
+    "sha256": "fbdc9d724c9a9bceefe94565d96c96aeaa0bd5942cd9273dc129b8852a15a8a4"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/json_envelope.py",
+    "sha256": "4afcdff223369c5f0e387d6a6a049f539fb30dd054c722672c09b1eca876a7ef"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/bills.py",
+    "sha256": "44e31c10f2903bc8c015ee921afabfc713958f15aba8c2a065bc30025fa362c6"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/client.py",
+    "sha256": "5fb33888eab071b19b68560351643b9b9ecc62a9dc450955a31c4cde039322d7"
+  },
+  {
+    "path": "PoC/07-NationalAssembly/backend/app/adapters/national_assembly/schedule.py",
+    "sha256": "434db9d1c09851ad73061775aa9cb3785709f57dc834aebbe910277a63f2c971"
+  }
+]

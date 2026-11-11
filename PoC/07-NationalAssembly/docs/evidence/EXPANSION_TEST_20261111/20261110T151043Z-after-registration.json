@@ -1,0 +1,133 @@
+{
+  "phase": "after-registration",
+  "checked_at": "2026-11-10T15:10:43.448252+00:00",
+  "kind": "READ_ONLY_EVIDENCE",
+  "additional_llm_calls": 0,
+  "plans": [
+    {
+      "committee_id": "9700513",
+      "committee_name": "문화체육관광위원회",
+      "channel_code": "59",
+      "meeting_external_id": "DCM000059224390901",
+      "scheduled_date": "2026-11-11",
+      "scheduled_time": "10:00",
+      "meeting_title": "제439회 국회(정기회) 제09차 문화체육관광위원회 [10:00]",
+      "enabled": true,
+      "capture_from": "2026-11-11T08:00:00+09:00",
+      "capture_until": "2026-11-12T09:00:00+09:00",
+      "evidence": {
+        "calendar_url": "https://assembly.webcast.go.kr/main/service/calendar.asp?qdate=202611",
+        "calendar_sha256": "1402b1324f55518a256230a787bd20168626abd1cb646295295fc02a8f0eeac0",
+        "live_list_url": "https://assembly.webcast.go.kr/main/service/live_list.asp",
+        "live_list_sha256": "1c2d4cfbe71f5bb31ba4b94de0a50c74a59004c8154cc1e0077191ad2308d1af",
+        "raw_directory": "raw/assembly-expansion-registration",
+        "verified_at": "2026-11-10T15:10:41.529147+00:00"
+      },
+      "label": "확장성 테스트용",
+      "state": "SCHEDULED",
+      "capture_allowed": false
+    }
+  ],
+  "live": [
+    {
+      "institution": "LEGISLATURE",
+      "committee_name": "문화체육관광위원회",
+      "is_expansion_test": true,
+      "expansion_label": "확장성 테스트용",
+      "capture_allowed": false,
+      "short_name": "문체위",
+      "monitoring_scope": "EXPANSION_TEST",
+      "channel_code": "59",
+      "meeting_external_id": "DCM000059224390901",
+      "title": "제439회 국회(정기회) 제09차 문화체육관광위원회 [10:00]",
+      "status_text": "10:00 중계예정",
+      "is_live": false,
+      "has_caption_service": true,
+      "quick_vod_available": false,
+      "quick_vod_url": null,
+      "thumbnail_url": "//thumb.webcast.go.kr/api/thumbnail/munche",
+      "stream_url": null
+    }
+  ],
+  "reports": [],
+  "services": [
+    {
+      "service": "poc07-national-assembly-live-monitor",
+      "container_id": "9da0c90e2fdfee835b28e25f075c932224e84c303754c943e46217ae557076b0",
+      "image_id": "sha256:49a04febd5fff21adee04035edb3908b10a28cdf93efde6a9d30f0a6e0f5c29c",
+      "started_at": "2026-11-10T15:03:58.110042017Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "7d1d63b45249bea5353535c5f251b78afc72bb3987fcd95c692fedd5658d833a",
+        "adapters/live_sources.py": "cc67b14b8409749ed518fd71caaf17cf0b2d0662a42a4c5c485b3a8c21d8c48c",
+        "ingestion/live_monitor.py": "f95c0e87c8299c978d93574c32e99b378c70fdb782863db3b24bffba6ef3170e"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-caption-worker",
+      "container_id": "649d00be57055f126c9a5e1412e1664d43c2af38f9cfae41be138974a54a9272",
+      "image_id": "sha256:006855c0d45e64937405cf2cfa97ff581ae613d87cba01a6385e59f338ca902e",
+      "started_at": "2026-11-10T15:01:51.479641056Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "7d1d63b45249bea5353535c5f251b78afc72bb3987fcd95c692fedd5658d833a"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-executive-caption-worker",
+      "container_id": "d2f70e4be15b1d4d2796460aa2443bc28bf901dc45fb56944a524a97e1e4d12e",
+      "image_id": "sha256:3047456bf13d25306f5ca4fa82c85df87d17a45ba25cf65589438f1cee98e508",
+      "started_at": "2026-11-10T15:02:23.084321852Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "7d1d63b45249bea5353535c5f251b78afc72bb3987fcd95c692fedd5658d833a"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-summary-worker",
+      "container_id": "7ee4e508129ecb8d5b70a24cbb3f11bd942ab41df086eac796aa4889a3359b6f",
+      "image_id": "sha256:9eb682f4e564bd9148ca82e43c774065a1099f17e4afc095aa47c5b741fa3cc1",
+      "started_at": "2026-11-10T15:08:58.202687389Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "7d1d63b45249bea5353535c5f251b78afc72bb3987fcd95c692fedd5658d833a",
+        "ingestion/summary_worker.py": "5cd45c4e0aade04692a249d68ac4b47ced4df3596a13c7462874f11884943d5f"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-meeting-brief-worker",
+      "container_id": "0458bac16909717e9eb35e95eb9629f8b816e2dfb99b2607d0d079ed351ee9d5",
+      "image_id": "sha256:b9e9c335ef256b1a58fd4d8a0d0bbfafc981eec0773b80c3e535b6185a3d6001",
+      "started_at": "2026-11-10T15:09:29.047495436Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "7d1d63b45249bea5353535c5f251b78afc72bb3987fcd95c692fedd5658d833a",
+        "db/meeting_brief_repository.py": "e8c001ff4c43bdfd8bf9bfdedfd8fc7d63baf33cc5a64d9d1f591508220adfa3",
+        "ingestion/meeting_brief_worker.py": "59ee9fcc394c900b8961be2f3c665c0640a503cee4bc75e243d5c978d8c983df",
+        "ingestion/live_discussion_worker.py": "efebda1958c5b9e8309f7c556ebe703ee849018a05799e5f72b3bb2baa69c680",
+        "ingestion/topic_structure_worker.py": "496d0db303098f0c752920f1165df6e9f629fca5dbca33a70c28fdb0b247b191",
+        "ingestion/structure_review_worker.py": "dd6977fb7fb84c293067bcd7a19b42de68c7d5ab3301282af974d7daa5ed38a6",
+        "ingestion/ontology_review_worker.py": "d5f1029e98bacceb539daa70b3dda91b4445bb83a9dd0f1f8e3d765b889a4030"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-api",
+      "container_id": "0723d63986f12d53da851c3e2ec604781b46df564175499a4175f901ce68a291",
+      "image_id": "sha256:5522214974b3f271c520e80dba3d4ff49fcf8245176e452944c7a8d3702d7a1e",
+      "started_at": "2026-11-10T15:01:15.963683059Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "7d1d63b45249bea5353535c5f251b78afc72bb3987fcd95c692fedd5658d833a",
+        "db/meeting_brief_repository.py": "e8c001ff4c43bdfd8bf9bfdedfd8fc7d63baf33cc5a64d9d1f591508220adfa3",
+        "main.py": "4b788e7b918054af9da26339fe32385e20bf23a3c6540f810969e3cabe3ad958"
+      }
+    }
+  ],
+  "interpretation": "Configuration/fixtures do not prove future live capture. Confirm actual speech counts and report completion after the broadcast."
+}

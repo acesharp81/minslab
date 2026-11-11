@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
+from datetime import timezone
 from pathlib import Path
 
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
 from ..config import Settings, get_settings
-from ..models import ActionItem, AnalysisRun, Attachment, AuditLog
+from ..models import ActionItem, AnalysisRun, Attachment, AuditLog, PipelineRun
 from .analyzer import is_current_deep_result
 
 
@@ -111,6 +112,7 @@ def purge_attachments_by_policy(
         "parsed_files_deleted": 0,
         "shared_files_preserved": 0,
         "delete_failed": 0,
+        "batch_failures_resolved": 0,
     }
     if not reasons:
         return stats
@@ -125,6 +127,24 @@ def purge_attachments_by_policy(
     )).all()
     if not candidates:
         return stats
+
+    latest_collect = db.scalar(select(PipelineRun).where(
+        PipelineRun.run_kind == "collect",
+    ).order_by(PipelineRun.started_at.desc()))
+    latest_started = latest_collect.started_at if latest_collect else None
+    if latest_started and latest_started.tzinfo is None:
+        latest_started = latest_started.replace(tzinfo=timezone.utc)
+    for attachment in candidates:
+        updated_at = attachment.updated_at
+        if updated_at and updated_at.tzinfo is None:
+            updated_at = updated_at.replace(tzinfo=timezone.utc)
+        if (
+            attachment.parse_status == "failed"
+            and latest_started
+            and updated_at
+            and updated_at >= latest_started
+        ):
+            stats["batch_failures_resolved"] += 1
 
     candidate_ids = set(reasons)
     protected_paths: set[Path] = set()
@@ -158,6 +178,20 @@ def purge_attachments_by_policy(
         attachment.parse_status = "purged"
         attachment.parse_error = f"보존 정책에 따라 {reason_label} 첨부 원문·파싱 파일 삭제"
     db.flush()
+
+    if latest_collect and stats["batch_failures_resolved"]:
+        try:
+            batch_stats = json.loads(latest_collect.stats_json or "{}")
+        except (json.JSONDecodeError, TypeError):
+            batch_stats = {}
+        unresolved = int(batch_stats.get("attachment_failed", 0) or 0)
+        recovered = min(unresolved, stats["batch_failures_resolved"])
+        batch_stats["attachment_failed"] = unresolved - recovered
+        batch_stats["attachment_recovered"] = int(
+            batch_stats.get("attachment_recovered", 0) or 0
+        ) + recovered
+        latest_collect.stats_json = json.dumps(batch_stats, ensure_ascii=False)
+        stats["batch_failures_resolved"] = recovered
 
     for kind, paths in (("raw", raw_paths), ("parsed", parsed_paths)):
         for path in paths - protected_paths:

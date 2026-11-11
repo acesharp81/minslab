@@ -2299,6 +2299,9 @@ function renderMeetingBrief(item, record, options = {}) {
   labels.append(
     magazineElement("span", "institution-label", item.institution_label || "국회"),
     magazineElement("span", "provisional-label", resultLabel),
+    ...(item.is_expansion_test || record.is_expansion_test
+      ? [magazineElement("span", "meeting-expansion-tag", "확장성 실험 · 1회성 수집")]
+      : []),
     ...(Number(brief.meeting_session_count || 0) > 0
       ? [magazineElement("span", "", `세션 ${Number(brief.meeting_session_count).toLocaleString("ko-KR")}회 통합`)]
       : []),
@@ -3230,6 +3233,9 @@ function renderMeetingBriefProcessing(item, progress = item.brief_progress || {}
   const identity = magazineElement("div", "", "");
   identity.append(
     magazineElement("span", "provisional-label", "AI 요약 · 잠정"),
+    ...(item.is_expansion_test
+      ? [magazineElement("span", "meeting-expansion-tag", "확장성 실험 · 1회성 수집")]
+      : []),
     magazineElement("h3", "", item.title || item.committee_name || "회의 결과"),
     magazineElement("p", "", staleCopy),
   );
@@ -3436,7 +3442,7 @@ function expandMeetingBrief(item, row, options = {}) {
   assemblyTranscriptState.expandedMode = "BRIEF";
   assemblyTranscriptState.selectedBroadcastId = item.broadcast_id;
   document.querySelector("#liveExpanded").hidden = false;
-  document.querySelector("#liveExpandedTitle").textContent = item.title || item.committee_name || "회의 결과";
+  document.querySelector("#liveExpandedTitle").textContent = expansionReportTitle(item);
   document.querySelectorAll(".broadcast-row").forEach((candidate) => candidate.removeAttribute("aria-current"));
   row?.setAttribute?.("aria-current", "true");
   let renderedRecord = null;
@@ -4652,6 +4658,12 @@ function showLiveReportHandoff(item, openReport) {
   banner.append(copy, button);
 }
 
+let expansionReportState = { items: [] };
+
+function expansionReportTitle(item) {
+  return item.title || item.committee_name || "회의 결과";
+}
+
 function renderBroadcastRows(statusPayload, historyPayload, executivePayload = { items: [] }) {
   const liveContainer = document.querySelector("#liveBroadcastRows");
   const reportContainer = document.querySelector("#reportBroadcastRows");
@@ -4704,13 +4716,15 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
   }
   for (const item of liveItems) {
     const onAir = Boolean(item.is_live);
-    const stateLabel = onAir ? "진행중" : item.is_recess ? "정회 · 재개 대기" : "방송 상태 확인 중";
+    const captureStopped = item.is_expansion_test && item.capture_allowed === false;
+    const stateLabel = captureStopped ? "테스트 수집 종료" : onAir ? "진행중" : item.is_recess ? "정회 · 재개 대기" : "방송 상태 확인 중";
     addMeetingRailCard(liveContainer, {
       state: onAir ? "live" : "processing", status: stateLabel, institution: "국회",
       tags: [
         { label: stateLabel, tone: onAir ? "active" : "processing" },
-        { label: onAir ? "기록 중" : "누적 기록 보기", tone: onAir ? "recording" : "provisional" },
+        { label: captureStopped ? "누적 기록 보기" : onAir ? "기록 중" : "누적 기록 보기", tone: onAir && !captureStopped ? "recording" : "provisional" },
         ...(isWatchTestSource(item.source_system) ? [{ label: "재현", tone: "processing" }] : []),
+        ...(item.is_expansion_test ? [{ label: "확장성 실험 · 1회성 수집", tone: "processing" }] : []),
         { label: "국회", tone: "institution" },
       ],
       title: item.title || item.committee_name,
@@ -4750,7 +4764,12 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
   }
   const hasLive = liveItems.some((item) => item.is_live) || statusPayload.executive?.is_live === true;
   let firstProcessingRow = null;
-  for (const ended of historyPayload.items || []) {
+  const reportItems = new Map(
+    [...(historyPayload.items || []), ...expansionReportState.items].map(item => [item.broadcast_id, item]),
+  );
+  for (const ended of reportItems.values()) {
+    const destination = reportContainer;
+    const testTags = ended.is_expansion_test ? [{ label: "확장성 실험 · 1회성 수집", tone: "processing" }] : [];
     if (ended.lifecycle_status !== "ENDED" || ongoingIds.has(String(ended.broadcast_id))) continue;
     const isExecutive = ended.institution === "EXECUTIVE";
     const meetingNumber = isExecutive ? executiveMeetingNumber(ended.title) : null;
@@ -4849,11 +4868,11 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
           expandPostProcessingBroadcast(ended, processingRow);
         }
       }
-      if (ended.meeting_brief?.brief) {
-        addMeetingRailCard(reportContainer, {
+      if (ended.meeting_brief?.brief || ended.is_expansion_test) {
+        addMeetingRailCard(destination, {
           state: "processing", status: `완료 · ${processingTag.label}`, institution: ended.institution_label,
           tags: [
-            ...stageTags,
+            ...testTags, ...stageTags,
             { label: ended.institution_label, tone: "institution" },
           ],
           title: ended.title || ended.committee_name,
@@ -4867,11 +4886,11 @@ function renderBroadcastRows(statusPayload, historyPayload, executivePayload = {
       }
       continue;
     }
-    addMeetingRailCard(reportContainer, {
+    addMeetingRailCard(destination, {
       state: "result", status: resultTags.map((tag) => tag.label).join(" · ") || "완료",
       institution: ended.institution_label,
       tags: [
-        ...resultTags,
+        ...testTags, ...resultTags,
         { label: ended.institution_label, tone: "institution" },
       ],
       title: ended.title || ended.committee_name,
@@ -5243,7 +5262,9 @@ function loadLiveStatus() {
     getJson("api/live/broadcasts?" + historyParams, { items: [] }),
     getJson("api/executive/briefings?limit=5", { items: [] }),
     getJson("api/live/transcript/snapshot", { broadcasts: [] }),
-  ]).then(([payload, schedule, history, executive, activeTranscript]) => {
+    getJson("api/live/broadcasts?collection=expansion_test&limit=20", { items: [] }),
+  ]).then(([payload, schedule, history, executive, activeTranscript, testHistory]) => {
+      expansionReportState = {items: testHistory.items || []};
       const checkedAt = Date.parse(payload?.checked_at || "");
       if (!Number.isFinite(checkedAt) || Date.now() - checkedAt > 120_000) {
         throw new Error("live status unavailable or stale");

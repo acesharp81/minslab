@@ -1,0 +1,759 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:23.944314+09:00",
+  "sql": "SELECT source_id,status,count(*) AS runs,sum(extract(epoch FROM(finished_at-started_at))) AS elapsed_seconds,min(started_at) AS first_start,max(finished_at) AS last_finish FROM home_batch WHERE started_at >= '2026-11-03T00:00:00+09' AND started_at < '2026-11-11T00:00:00+09' GROUP BY source_id,status ORDER BY source_id,status",
+  "rows": [
+    {
+      "source_id": "area_national_benchmarks",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 2.256971,
+      "first_start": "2026-11-04T16:04:30.454393+00:00",
+      "last_finish": "2026-11-04T16:04:32.711364+00:00"
+    },
+    {
+      "source_id": "building_general_permit",
+      "status": "FAILED",
+      "runs": 3,
+      "elapsed_seconds": 47.56703,
+      "first_start": "2026-11-02T19:38:09.808535+00:00",
+      "last_finish": "2026-11-06T19:51:26.076349+00:00"
+    },
+    {
+      "source_id": "building_general_permit",
+      "status": "SUCCESS",
+      "runs": 7,
+      "elapsed_seconds": 580.310719,
+      "first_start": "2026-11-02T19:40:25.964239+00:00",
+      "last_finish": "2026-11-08T19:58:58.448646+00:00"
+    },
+    {
+      "source_id": "building_hub",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 872.54016,
+      "first_start": "2026-11-02T16:27:27.025491+00:00",
+      "last_finish": "2026-11-09T16:55:11.23613+00:00"
+    },
+    {
+      "source_id": "building_hub_details",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 434.946733,
+      "first_start": "2026-11-02T19:17:41.16173+00:00",
+      "last_finish": "2026-11-09T19:30:52.017586+00:00"
+    },
+    {
+      "source_id": "building_hub_incheon",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 76.532169,
+      "first_start": "2026-11-02T16:13:56.781948+00:00",
+      "last_finish": "2026-11-09T16:27:46.079592+00:00"
+    },
+    {
+      "source_id": "building_register",
+      "status": "FAILED",
+      "runs": 1,
+      "elapsed_seconds": 28.184276,
+      "first_start": "2026-11-06T17:57:47.459456+00:00",
+      "last_finish": "2026-11-06T17:58:15.643732+00:00"
+    },
+    {
+      "source_id": "building_register",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 2037.918834,
+      "first_start": "2026-11-02T17:40:36.404638+00:00",
+      "last_finish": "2026-11-09T18:27:30.795232+00:00"
+    },
+    {
+      "source_id": "building_register_recap",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 113.464509,
+      "first_start": "2026-11-02T16:39:47.614853+00:00",
+      "last_finish": "2026-11-09T16:59:19.198672+00:00"
+    },
+    {
+      "source_id": "cheongyak",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 103.002751,
+      "first_start": "2026-11-02T16:22:06.863035+00:00",
+      "last_finish": "2026-11-09T16:43:04.287512+00:00"
+    },
+    {
+      "source_id": "complex_approval_reference",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.332871,
+      "first_start": "2026-11-02T16:21:48.689844+00:00",
+      "last_finish": "2026-11-08T16:40:37.058184+00:00"
+    },
+    {
+      "source_id": "complex_approval_reference",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 17.44906,
+      "first_start": "2026-11-09T13:51:23.333218+00:00",
+      "last_finish": "2026-11-09T13:51:40.782278+00:00"
+    },
+    {
+      "source_id": "eum_housing_notices",
+      "status": "SUCCESS",
+      "runs": 24,
+      "elapsed_seconds": 4235.543227,
+      "first_start": "2026-11-02T16:00:47.170638+00:00",
+      "last_finish": "2026-11-09T18:09:23.689996+00:00"
+    },
+    {
+      "source_id": "gh_completion_evidence",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 1.261466,
+      "first_start": "2026-11-02T16:11:40.87552+00:00",
+      "last_finish": "2026-11-08T16:29:49.347728+00:00"
+    },
+    {
+      "source_id": "gh_completion_evidence",
+      "status": "SUCCESS",
+      "runs": 2,
+      "elapsed_seconds": 1.927919,
+      "first_start": "2026-11-09T13:51:40.881478+00:00",
+      "last_finish": "2026-11-09T19:52:08.298238+00:00"
+    },
+    {
+      "source_id": "gh_files",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.695432,
+      "first_start": "2026-11-02T16:07:38.907761+00:00",
+      "last_finish": "2026-11-08T16:20:25.014437+00:00"
+    },
+    {
+      "source_id": "gh_files",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 1.063021,
+      "first_start": "2026-11-09T13:51:22.232363+00:00",
+      "last_finish": "2026-11-09T13:51:23.295384+00:00"
+    },
+    {
+      "source_id": "gh_notice",
+      "status": "FAILED",
+      "runs": 1,
+      "elapsed_seconds": 15.63339,
+      "first_start": "2026-11-04T08:20:51.432777+00:00",
+      "last_finish": "2026-11-04T08:21:07.066167+00:00"
+    },
+    {
+      "source_id": "gh_notice",
+      "status": "SUCCESS",
+      "runs": 75,
+      "elapsed_seconds": 2945.211509,
+      "first_start": "2026-11-02T15:10:08.645946+00:00",
+      "last_finish": "2026-11-10T06:28:22.581816+00:00"
+    },
+    {
+      "source_id": "gh_supply_plan",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 2.193983,
+      "first_start": "2026-11-02T16:21:47.052045+00:00",
+      "last_finish": "2026-11-09T16:42:27.89488+00:00"
+    },
+    {
+      "source_id": "ih_housing_inventory",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 38.696391,
+      "first_start": "2026-11-02T16:37:14.206356+00:00",
+      "last_finish": "2026-11-09T16:49:46.909749+00:00"
+    },
+    {
+      "source_id": "ih_notice",
+      "status": "SUCCESS",
+      "runs": 24,
+      "elapsed_seconds": 332.267568,
+      "first_start": "2026-11-02T16:13:38.109791+00:00",
+      "last_finish": "2026-11-09T20:19:00.252155+00:00"
+    },
+    {
+      "source_id": "ih_press_watch",
+      "status": "SUCCESS",
+      "runs": 189,
+      "elapsed_seconds": 79.10278,
+      "first_start": "2026-11-02T15:01:30.813823+00:00",
+      "last_finish": "2026-11-10T14:33:19.359768+00:00"
+    },
+    {
+      "source_id": "incheon_statistics",
+      "status": "SUCCESS",
+      "runs": 2,
+      "elapsed_seconds": 28.414752,
+      "first_start": "2026-11-02T16:03:16.886945+00:00",
+      "last_finish": "2026-11-09T16:09:04.75316+00:00"
+    },
+    {
+      "source_id": "kosis_age",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 7.531323,
+      "first_start": "2026-11-04T16:04:21.905665+00:00",
+      "last_finish": "2026-11-04T16:04:29.436988+00:00"
+    },
+    {
+      "source_id": "kosis_employment",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 28.418797,
+      "first_start": "2026-11-02T16:14:47.514661+00:00",
+      "last_finish": "2026-11-09T16:33:15.320233+00:00"
+    },
+    {
+      "source_id": "kosis_household_forecast",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 3.237358,
+      "first_start": "2026-11-02T16:14:52.087347+00:00",
+      "last_finish": "2026-11-09T16:33:16.812301+00:00"
+    },
+    {
+      "source_id": "kosis_household_size",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 46.872582,
+      "first_start": "2026-11-02T16:14:37.221399+00:00",
+      "last_finish": "2026-11-09T16:33:07.616981+00:00"
+    },
+    {
+      "source_id": "kosis_housing",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 217.660971,
+      "first_start": "2026-11-02T16:14:07.258564+00:00",
+      "last_finish": "2026-11-09T16:32:20.468878+00:00"
+    },
+    {
+      "source_id": "kosis_living",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 81.87689,
+      "first_start": "2026-11-02T16:14:25.973559+00:00",
+      "last_finish": "2026-11-09T16:32:30.685352+00:00"
+    },
+    {
+      "source_id": "legal_dongs",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 724.941268,
+      "first_start": "2026-11-02T16:19:56.729737+00:00",
+      "last_finish": "2026-11-09T16:42:26.51315+00:00"
+    },
+    {
+      "source_id": "lh_block_location",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 80.039301,
+      "first_start": "2026-11-02T16:14:53.537699+00:00",
+      "last_finish": "2026-11-09T16:33:29.938921+00:00"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.401272,
+      "first_start": "2026-11-02T16:07:36.148908+00:00",
+      "last_finish": "2026-11-08T16:20:22.126914+00:00"
+    },
+    {
+      "source_id": "lh_completion_plan",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 0.959122,
+      "first_start": "2026-11-09T13:50:54.477374+00:00",
+      "last_finish": "2026-11-09T13:50:55.436496+00:00"
+    },
+    {
+      "source_id": "lh_construction",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 17.824507,
+      "first_start": "2026-11-02T17:10:29.662704+00:00",
+      "last_finish": "2026-11-09T17:16:52.17939+00:00"
+    },
+    {
+      "source_id": "lh_department_plans",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 17.585102,
+      "first_start": "2026-11-02T16:07:40.257261+00:00",
+      "last_finish": "2026-11-09T16:17:17.863756+00:00"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.5135,
+      "first_start": "2026-11-02T16:03:33.121243+00:00",
+      "last_finish": "2026-11-08T16:14:47.558805+00:00"
+    },
+    {
+      "source_id": "lh_happy_plan_file",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 1.234096,
+      "first_start": "2026-11-09T13:50:46.781498+00:00",
+      "last_finish": "2026-11-09T13:50:48.015594+00:00"
+    },
+    {
+      "source_id": "lh_history",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 96.303727,
+      "first_start": "2026-11-02T16:22:38.825287+00:00",
+      "last_finish": "2026-11-09T16:46:19.923558+00:00"
+    },
+    {
+      "source_id": "lh_incheon_construction",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 17.542536,
+      "first_start": "2026-11-02T17:08:55.789434+00:00",
+      "last_finish": "2026-11-09T17:14:48.209765+00:00"
+    },
+    {
+      "source_id": "lh_incheon_rent",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 5.277716,
+      "first_start": "2026-11-02T16:14:04.017244+00:00",
+      "last_finish": "2026-11-09T16:27:49.670875+00:00"
+    },
+    {
+      "source_id": "lh_incheon_sale",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 3.73624,
+      "first_start": "2026-11-02T16:14:02.005478+00:00",
+      "last_finish": "2026-11-09T16:27:47.561139+00:00"
+    },
+    {
+      "source_id": "lh_movein_history",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 47.078963,
+      "first_start": "2026-11-02T16:15:42.541156+00:00",
+      "last_finish": "2026-11-09T16:33:49.954415+00:00"
+    },
+    {
+      "source_id": "lh_notice",
+      "status": "FAILED",
+      "runs": 20,
+      "elapsed_seconds": 1871.720108,
+      "first_start": "2026-11-07T00:28:06.412277+00:00",
+      "last_finish": "2026-11-07T06:03:24.914012+00:00"
+    },
+    {
+      "source_id": "lh_notice",
+      "status": "SUCCESS",
+      "runs": 55,
+      "elapsed_seconds": 1958.120701,
+      "first_start": "2026-11-02T16:14:04.522969+00:00",
+      "last_finish": "2026-11-10T02:26:38.826079+00:00"
+    },
+    {
+      "source_id": "lh_notice_detail",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 373.987196,
+      "first_start": "2026-11-02T16:07:54.798547+00:00",
+      "last_finish": "2026-11-09T16:10:30.692289+00:00"
+    },
+    {
+      "source_id": "lh_policy_followup",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 15.48215,
+      "first_start": "2026-11-02T16:07:14.151868+00:00",
+      "last_finish": "2026-11-09T16:17:14.27129+00:00"
+    },
+    {
+      "source_id": "lh_press_watch",
+      "status": "FAILED",
+      "runs": 40,
+      "elapsed_seconds": 3.037985,
+      "first_start": "2026-11-06T20:53:10.050618+00:00",
+      "last_finish": "2026-11-07T08:00:21.323056+00:00"
+    },
+    {
+      "source_id": "lh_press_watch",
+      "status": "SUCCESS",
+      "runs": 177,
+      "elapsed_seconds": 113.149988,
+      "first_start": "2026-11-02T15:00:29.228012+00:00",
+      "last_finish": "2026-11-10T14:30:51.804438+00:00"
+    },
+    {
+      "source_id": "lh_progress",
+      "status": "FAILED",
+      "runs": 1,
+      "elapsed_seconds": 1.638782,
+      "first_start": "2026-11-08T16:32:24.800267+00:00",
+      "last_finish": "2026-11-08T16:32:26.439049+00:00"
+    },
+    {
+      "source_id": "lh_progress",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 227.273865,
+      "first_start": "2026-11-02T16:15:09.121516+00:00",
+      "last_finish": "2026-11-09T16:36:52.107232+00:00"
+    },
+    {
+      "source_id": "lh_reit_progress",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 28.62886,
+      "first_start": "2026-11-02T16:15:04.606474+00:00",
+      "last_finish": "2026-11-09T16:33:34.61093+00:00"
+    },
+    {
+      "source_id": "lh_rent",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 5.062466,
+      "first_start": "2026-11-02T16:22:04.919174+00:00",
+      "last_finish": "2026-11-09T16:42:45.388553+00:00"
+    },
+    {
+      "source_id": "lh_sale",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 3.589198,
+      "first_start": "2026-11-02T16:22:03.120619+00:00",
+      "last_finish": "2026-11-09T16:42:43.252939+00:00"
+    },
+    {
+      "source_id": "lh_stock",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 3.301679,
+      "first_start": "2026-11-02T16:07:37.496857+00:00",
+      "last_finish": "2026-11-08T16:20:23.652517+00:00"
+    },
+    {
+      "source_id": "lh_stock",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 26.249881,
+      "first_start": "2026-11-09T13:50:55.93501+00:00",
+      "last_finish": "2026-11-09T13:51:22.184891+00:00"
+    },
+    {
+      "source_id": "lh_supply_history",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 16.798774,
+      "first_start": "2026-11-02T16:15:39.601546+00:00",
+      "last_finish": "2026-11-09T16:33:37.85585+00:00"
+    },
+    {
+      "source_id": "molit_demolition",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 3.468909,
+      "first_start": "2026-11-02T16:14:05.895306+00:00",
+      "last_finish": "2026-11-09T16:27:51.47683+00:00"
+    },
+    {
+      "source_id": "molit_monthly_release",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 52.690643,
+      "first_start": "2026-11-02T16:13:32.37441+00:00",
+      "last_finish": "2026-11-09T16:25:09.56044+00:00"
+    },
+    {
+      "source_id": "molit_press_watch",
+      "status": "SUCCESS",
+      "runs": 188,
+      "elapsed_seconds": 349.90413,
+      "first_start": "2026-11-02T16:07:05.128468+00:00",
+      "last_finish": "2026-11-10T14:29:48.635402+00:00"
+    },
+    {
+      "source_id": "molit_renewal_inventory",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.543155,
+      "first_start": "2026-11-02T16:07:34.771668+00:00",
+      "last_finish": "2026-11-08T16:20:20.776503+00:00"
+    },
+    {
+      "source_id": "molit_renewal_inventory",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 1.47178,
+      "first_start": "2026-11-09T13:50:52.950708+00:00",
+      "last_finish": "2026-11-09T13:50:54.422488+00:00"
+    },
+    {
+      "source_id": "molit_statistics",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 141.73341,
+      "first_start": "2026-11-02T16:22:19.204502+00:00",
+      "last_finish": "2026-11-09T16:46:02.101549+00:00"
+    },
+    {
+      "source_id": "newsis_housing_watch",
+      "status": "SUCCESS",
+      "runs": 189,
+      "elapsed_seconds": 106.068666,
+      "first_start": "2026-11-02T15:01:33.365801+00:00",
+      "last_finish": "2026-11-10T14:33:52.263922+00:00"
+    },
+    {
+      "source_id": "opm_press_watch",
+      "status": "SUCCESS",
+      "runs": 189,
+      "elapsed_seconds": 432.485686,
+      "first_start": "2026-11-02T15:00:26.090575+00:00",
+      "last_finish": "2026-11-10T14:32:57.800036+00:00"
+    },
+    {
+      "source_id": "policy_129",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 30.791628,
+      "first_start": "2026-11-02T16:21:52.501361+00:00",
+      "last_finish": "2026-11-09T16:42:35.404925+00:00"
+    },
+    {
+      "source_id": "policy_813",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 5.459016,
+      "first_start": "2026-11-02T16:21:57.327316+00:00",
+      "last_finish": "2026-11-09T16:42:37.532366+00:00"
+    },
+    {
+      "source_id": "policy_907",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 8.904562,
+      "first_start": "2026-11-02T16:21:50.054116+00:00",
+      "last_finish": "2026-11-09T16:42:30.702676+00:00"
+    },
+    {
+      "source_id": "policy_907_incheon_geometry",
+      "status": "SUCCESS",
+      "runs": 2,
+      "elapsed_seconds": 6.209693,
+      "first_start": "2026-11-02T16:03:11.176076+00:00",
+      "last_finish": "2026-11-09T16:08:47.424816+00:00"
+    },
+    {
+      "source_id": "policy_907_plan",
+      "status": "SUCCESS",
+      "runs": 2,
+      "elapsed_seconds": 18.638569,
+      "first_start": "2026-11-02T16:03:00.049893+00:00",
+      "last_finish": "2026-11-09T16:08:44.879963+00:00"
+    },
+    {
+      "source_id": "policy_history",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 24.027103,
+      "first_start": "2026-11-02T16:22:34.751455+00:00",
+      "last_finish": "2026-11-09T16:46:06.379431+00:00"
+    },
+    {
+      "source_id": "project_locations",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 19.379872,
+      "first_start": "2026-11-03T16:03:28.594764+00:00",
+      "last_finish": "2026-11-03T16:03:47.974636+00:00"
+    },
+    {
+      "source_id": "reb_apartment_price",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 160.786,
+      "first_start": "2026-11-02T16:07:16.731508+00:00",
+      "last_finish": "2026-11-09T16:23:16.320349+00:00"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.508961,
+      "first_start": "2026-11-02T16:03:38.847919+00:00",
+      "last_finish": "2026-11-08T16:14:53.014345+00:00"
+    },
+    {
+      "source_id": "reb_movein_plan_file",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 1.449512,
+      "first_start": "2026-11-09T13:50:50.056981+00:00",
+      "last_finish": "2026-11-09T13:50:51.506493+00:00"
+    },
+    {
+      "source_id": "seoul_cleanup",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 350.530726,
+      "first_start": "2026-11-02T16:07:07.34701+00:00",
+      "last_finish": "2026-11-09T16:09:37.960384+00:00"
+    },
+    {
+      "source_id": "seoul_press_watch",
+      "status": "SUCCESS",
+      "runs": 189,
+      "elapsed_seconds": 59.049119,
+      "first_start": "2026-11-02T15:01:32.063172+00:00",
+      "last_finish": "2026-11-10T14:33:50.71968+00:00"
+    },
+    {
+      "source_id": "sgis_area",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 14.318017,
+      "first_start": "2026-11-02T16:14:44.52158+00:00",
+      "last_finish": "2026-11-09T16:33:10.590826+00:00"
+    },
+    {
+      "source_id": "sh_contract_file",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.761404,
+      "first_start": "2026-11-02T16:03:40.255002+00:00",
+      "last_finish": "2026-11-08T16:14:54.401868+00:00"
+    },
+    {
+      "source_id": "sh_contract_file",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 1.348003,
+      "first_start": "2026-11-09T13:50:51.561729+00:00",
+      "last_finish": "2026-11-09T13:50:52.909732+00:00"
+    },
+    {
+      "source_id": "sh_files",
+      "status": "FAILED",
+      "runs": 1,
+      "elapsed_seconds": 0.122274,
+      "first_start": "2026-11-06T16:34:55.053296+00:00",
+      "last_finish": "2026-11-06T16:34:55.17557+00:00"
+    },
+    {
+      "source_id": "sh_files",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 147.164886,
+      "first_start": "2026-11-02T16:21:28.366164+00:00",
+      "last_finish": "2026-11-09T16:44:59.731468+00:00"
+    },
+    {
+      "source_id": "sh_happy_plan_file",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.378721,
+      "first_start": "2026-11-02T16:03:37.463045+00:00",
+      "last_finish": "2026-11-08T16:14:51.702422+00:00"
+    },
+    {
+      "source_id": "sh_happy_plan_file",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 0.585462,
+      "first_start": "2026-11-09T13:50:49.436044+00:00",
+      "last_finish": "2026-11-09T13:50:50.021506+00:00"
+    },
+    {
+      "source_id": "sh_inventory",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 0.966498,
+      "first_start": "2026-11-02T16:08:36.397939+00:00",
+      "last_finish": "2026-11-09T16:10:31.973502+00:00"
+    },
+    {
+      "source_id": "sh_jeonse_plan_file",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.498901,
+      "first_start": "2026-11-02T16:03:35.985312+00:00",
+      "last_finish": "2026-11-08T16:14:50.355921+00:00"
+    },
+    {
+      "source_id": "sh_jeonse_plan_file",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 0.613009,
+      "first_start": "2026-11-09T13:50:48.776282+00:00",
+      "last_finish": "2026-11-09T13:50:49.389291+00:00"
+    },
+    {
+      "source_id": "sh_national_plan_file",
+      "status": "FAILED",
+      "runs": 7,
+      "elapsed_seconds": 2.486767,
+      "first_start": "2026-11-02T16:03:34.618506+00:00",
+      "last_finish": "2026-11-08T16:14:48.914688+00:00"
+    },
+    {
+      "source_id": "sh_national_plan_file",
+      "status": "SUCCESS",
+      "runs": 1,
+      "elapsed_seconds": 0.531532,
+      "first_start": "2026-11-09T13:50:48.189717+00:00",
+      "last_finish": "2026-11-09T13:50:48.721249+00:00"
+    },
+    {
+      "source_id": "sh_notice_watch",
+      "status": "SUCCESS",
+      "runs": 189,
+      "elapsed_seconds": 603.050671,
+      "first_start": "2026-11-02T15:04:34.663925+00:00",
+      "last_finish": "2026-11-10T14:33:17.880055+00:00"
+    },
+    {
+      "source_id": "sh_redevelopment",
+      "status": "SUCCESS",
+      "runs": 2,
+      "elapsed_seconds": 0.527713,
+      "first_start": "2026-11-02T16:03:31.83319+00:00",
+      "last_finish": "2026-11-09T16:09:07.705241+00:00"
+    },
+    {
+      "source_id": "sh_supply_plan",
+      "status": "SUCCESS",
+      "runs": 2,
+      "elapsed_seconds": 1.395422,
+      "first_start": "2026-11-02T16:03:30.034627+00:00",
+      "last_finish": "2026-11-09T16:09:06.406591+00:00"
+    },
+    {
+      "source_id": "unsold_statistics",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 115.949314,
+      "first_start": "2026-11-02T16:13:41.046635+00:00",
+      "last_finish": "2026-11-09T16:26:25.207209+00:00"
+    },
+    {
+      "source_id": "urban_930",
+      "status": "SUCCESS",
+      "runs": 8,
+      "elapsed_seconds": 23.40241,
+      "first_start": "2026-11-02T16:21:58.991153+00:00",
+      "last_finish": "2026-11-09T16:42:41.326332+00:00"
+    }
+  ],
+  "error": null
+}

@@ -1,0 +1,17 @@
+{
+  "home-officer-20261105.json": "PoC/10-home/docs/evidence/OFFICER_DELEGATED_DECISIONS_20261105/verification.json",
+  "home-algorithm-20261102.md": "PoC/10-home/docs/evidence/ALGORITHM_REVIEW_20261102/README.md",
+  "home-policy-audit-20261103.json": "PoC/10-home/docs/evidence/POLICY_REVIEW_REFLECTION_20261103/audit.json",
+  "home-wangsuk2-20261017.json": "PoC/10-home/docs/evidence/HOME_WANGSUK2_OFFICIAL_REVIEW_20261017/review.json",
+  "home-yeonnam-20261020.json": "PoC/10-home/data/yeonnam-sh-20261020/applied.json",
+  "home-yeonnam-source-20261020.json": "PoC/10-home/data/yeonnam-sh-20261020/source_manifest.json",
+  "home-policy-screen-20261023.png": "PoC/10-home/docs/evidence/HOME_POLICY_BRIEF_20261023/preview.png",
+  "national-official-diff-20261109.png": "PoC/07-NationalAssembly/docs/evidence/OFFICIAL_DETAIL_20261109/restored-diff-1440.png",
+  "national-official-20261109.md": "PoC/07-NationalAssembly/docs/evidence/OFFICIAL_DETAIL_20261109/README.md",
+  "national-reports-20261107.md": "PoC/07-NationalAssembly/docs/evidence/REPORT_AUDIT_20261107/README.md",
+  "national-model-test-20261030.json": "PoC/07-NationalAssembly/docs/evidence/REAL_MINI_NEMO_10_20261030/metrics.json",
+  "national-model-comparison-20261030.md": "PoC/07-NationalAssembly/docs/evidence/MODEL_REPLACEMENT_20261030/README.md",
+  "national-cost-audit-20261030.md": "PoC/07-NationalAssembly/docs/evidence/MODEL_DAILY_20261030/README.md",
+  "national-cost-metrics-20261030.json": "PoC/07-NationalAssembly/docs/evidence/MODEL_DAILY_20261030/metrics.json",
+  "national-ontology-20261019.json": "PoC/07-NationalAssembly/docs/ONTOLOGY_COVERAGE_COMPARISON_20261019.json"
+}

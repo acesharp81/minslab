@@ -1,0 +1,47 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:23.401189+09:00",
+  "sql": "SELECT relation_status,match_rule,count(*) AS rows FROM home_identity_alias GROUP BY relation_status,match_rule ORDER BY 1,2",
+  "rows": [
+    {
+      "relation_status": "CONFIRMED",
+      "match_rule": "RESIDENTIAL_NEW_BUILD_START_CANDIDATE",
+      "rows": 51
+    },
+    {
+      "relation_status": "CONFIRMED",
+      "match_rule": "SOURCE_ANCHOR",
+      "rows": 7
+    },
+    {
+      "relation_status": "CONFIRMED",
+      "match_rule": "USER_START_LINKAGE",
+      "rows": 41
+    },
+    {
+      "relation_status": "REVIEW",
+      "match_rule": "REFERENCE_SOURCE_ANCHOR",
+      "rows": 887
+    },
+    {
+      "relation_status": "REVIEW",
+      "match_rule": "REGION_DISTRICT_BLOCK",
+      "rows": 126
+    },
+    {
+      "relation_status": "REVIEW",
+      "match_rule": "RESIDENTIAL_NEW_BUILD_START_CANDIDATE",
+      "rows": 2801
+    },
+    {
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "rows": 443
+    },
+    {
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_REFERENCE_DERIVATION",
+      "rows": 5
+    }
+  ],
+  "error": null
+}

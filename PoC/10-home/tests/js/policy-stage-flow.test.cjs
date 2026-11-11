@@ -98,7 +98,7 @@ test('cards pair current cumulative measurements with selected December saved cu
  const later=context.flow.summaryTable({asOf:'2026-10-19',year:2027,stages:{SUPPLY:'공급'},comparisons});
  assert.match(later,/예상 누적량\(&#39;27\.12\.31\. 기준\)<\/small><b>900호/);
  const missing=context.flow.summaryTable({asOf:'2026-10-19',year:2025,stages:{SUPPLY:'공급'},comparisons});
- assert.match(missing,/미측정/);
+ assert.match(missing,/<b>-<\/b>/);
 });
 
 

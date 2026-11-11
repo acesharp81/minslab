@@ -1,0 +1,59 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:26.048840+09:00",
+  "sql": "SELECT b.id AS broadcast_id,b.title,b.committee_name,b.detected_at,b.ended_at,m.id AS brief_id,m.authority_status,m.generated_at,m.model,m.review_status,jsonb_array_length(coalesce(m.brief->'topics','[]'::jsonb)) AS topics FROM live_broadcasts b JOIN meeting_briefs m ON m.broadcast_id=b.id WHERE b.committee_name LIKE '%행정안전%' ORDER BY m.generated_at DESC LIMIT 4",
+  "rows": [
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "committee_name": "행정안전위원회",
+      "detected_at": "2026-10-26T01:07:20.890545+00:00",
+      "ended_at": "2026-10-26T13:29:51.225486+00:00",
+      "brief_id": "e6a0652e-034c-4eeb-add3-b53fd4f80be5",
+      "authority_status": "PROVISIONAL",
+      "generated_at": "2026-10-26T14:41:11.829561+00:00",
+      "model": "gemini-3.1-flash-lite",
+      "review_status": "DRAFT",
+      "topics": 24
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "committee_name": "행정안전위원회",
+      "detected_at": "2026-10-26T01:07:20.890545+00:00",
+      "ended_at": "2026-10-26T13:29:51.225486+00:00",
+      "brief_id": "29930d80-2e25-4f95-9da5-0fe7d3f06520",
+      "authority_status": "PROVISIONAL",
+      "generated_at": "2026-10-26T13:39:43.261082+00:00",
+      "model": "broadcast-review-v1",
+      "review_status": "DRAFT",
+      "topics": 5
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "committee_name": "행정안전위원회",
+      "detected_at": "2026-10-26T01:07:20.890545+00:00",
+      "ended_at": "2026-10-26T13:29:51.225486+00:00",
+      "brief_id": "703bb8f7-18cc-4da3-a1c1-fe3a8734d31e",
+      "authority_status": "PROVISIONAL",
+      "generated_at": "2026-10-26T07:38:47.413496+00:00",
+      "model": "dots-studio/dots-3-note-preview:free",
+      "review_status": "DRAFT",
+      "topics": 24
+    },
+    {
+      "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+      "title": "행정안전위원회 국정감사(행정안전부 등)",
+      "committee_name": "행정안전위원회",
+      "detected_at": "2026-10-26T01:07:20.890545+00:00",
+      "ended_at": "2026-10-26T13:29:51.225486+00:00",
+      "brief_id": "b440a70c-e0b0-4449-bbbf-3abfd21d3254",
+      "authority_status": "PROVISIONAL",
+      "generated_at": "2026-10-26T07:17:04.924248+00:00",
+      "model": "broadcast-review-v1",
+      "review_status": "DRAFT",
+      "topics": 5
+    }
+  ],
+  "error": null
+}

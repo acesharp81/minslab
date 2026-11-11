@@ -1,0 +1,181 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:30.155175+09:00",
+  "result": {
+    "algorithm_reviews": 0,
+    "algorithm_review_history": 0,
+    "algorithm_validations": 0,
+    "algorithm_rules": 0,
+    "roles": [
+      {
+        "role": "algorithm",
+        "review_model": "",
+        "enabled": true
+      },
+      {
+        "role": "officer",
+        "review_model": "",
+        "enabled": true
+      }
+    ],
+    "recent_runs": [
+      {
+        "id": "03d7f4b1-0cb8-4963-8b1a-620ac0e84107",
+        "status": "BUDGET_PAUSED",
+        "created_utc": "2026-11-09 23:24:31",
+        "role": "officer",
+        "model": "solar-pro4"
+      },
+      {
+        "id": "11768a97-208f-4ec1-8060-76716203aaa0",
+        "status": "PARTIAL",
+        "created_utc": "2026-11-09 23:19:07",
+        "role": "officer",
+        "model": "solar-pro4"
+      },
+      {
+        "id": "d81c3be9-5f10-498f-a5c5-4f7d485cacb5",
+        "status": "PARTIAL",
+        "created_utc": "2026-11-09 23:14:49",
+        "role": "officer",
+        "model": "solar-pro4"
+      },
+      {
+        "id": "cb055937-c3e0-49ae-8940-226aa010ac06",
+        "status": "PARTIAL",
+        "created_utc": "2026-11-09 18:15:04",
+        "role": "officer",
+        "model": "solar-pro4"
+      },
+      {
+        "id": "ebb6b234-3a51-4271-b838-829e2fd54305",
+        "status": "PARTIAL",
+        "created_utc": "2026-11-09 18:14:03",
+        "role": "officer",
+        "model": "solar-pro4"
+      },
+      {
+        "id": "b591aefd-5a7b-46e4-a1ee-c090d0204862",
+        "status": "PARTIAL",
+        "created_utc": "2026-11-09 18:13:06",
+        "role": "officer",
+        "model": "solar-pro4"
+      },
+      {
+        "id": "87cff3ef-9769-4633-b2fa-0d9593b8be5c",
+        "status": "PARTIAL",
+        "created_utc": "2026-11-09 18:12:19",
+        "role": "officer",
+        "model": "solar-pro4"
+      },
+      {
+        "id": "19eb8921-a551-40cd-8d64-b9524a897b63",
+        "status": "COMPLETED",
+        "created_utc": "2026-11-09 18:11:35",
+        "role": "officer",
+        "model": "solar-pro4"
+      }
+    ],
+    "calls_20261103_20261110": [
+      {
+        "model": "gpt-5.4",
+        "status": "COMPLETED",
+        "calls": 22,
+        "input_tokens": 79983,
+        "output_tokens": 6583,
+        "recorded_cost_usd": 0.2987025
+      },
+      {
+        "model": "solar-pro4",
+        "status": "COMPLETED",
+        "calls": 1738,
+        "input_tokens": 6734421,
+        "output_tokens": 870890,
+        "recorded_cost_usd": 3.0653943
+      },
+      {
+        "model": "solar-pro4",
+        "status": "REJECTED",
+        "calls": 330,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "recorded_cost_usd": 0.0
+      },
+      {
+        "model": "solar-pro4",
+        "status": "UNKNOWN_COST",
+        "calls": 55,
+        "input_tokens": 64395,
+        "output_tokens": 13025,
+        "recorded_cost_usd": 0.0349485
+      }
+    ],
+    "campaigns": [
+      {
+        "id": "5846e51c-c7de-453d-b03b-93dfc80a4b0b",
+        "created": 1794247219.2687287,
+        "updated": 1794266838.0157986,
+        "status": "PAUSED_BUDGET",
+        "summary": {
+          "id": "5846e51c-c7de-453d-b03b-93dfc80a4b0b",
+          "created": 1794247219.2687287,
+          "updated": 1794266838.015754,
+          "status": "PAUSED_BUDGET",
+          "mode": "MANUAL",
+          "total": 335,
+          "documents": 195,
+          "stage_candidates": 140,
+          "reviewed": 155,
+          "yes": 0,
+          "no": 7,
+          "hold": 148,
+          "errors": 0,
+          "remaining": 180,
+          "percent": 46.3,
+          "active_run": null,
+          "batches": 20,
+          "reason": "일/월 비용 상한 도달 · 다음 실행 또는 예산 조정 필요",
+          "effects": {
+            "DOCUMENT": 3
+          },
+          "scope": "시작 시점의 미결 문서·단계 후보 및 실행 중 발견한 직접 공식 대조자료. 새 탐색자료는 한 단계까지 포함.",
+          "verified_at": 1794248152.2601895,
+          "followup_hold": 0,
+          "followup_errors": 0
+        }
+      },
+      {
+        "id": "a171ae54-3025-4bfc-aeaf-cf73f491f193",
+        "created": 1794199330.609484,
+        "updated": 1794233652.9369104,
+        "status": "COMPLETED_WITH_HOLDS",
+        "summary": {
+          "id": "a171ae54-3025-4bfc-aeaf-cf73f491f193",
+          "created": 1794199330.609484,
+          "updated": 1794233652.9368062,
+          "status": "COMPLETED_WITH_HOLDS",
+          "mode": "MANUAL",
+          "total": 332,
+          "documents": 192,
+          "stage_candidates": 140,
+          "reviewed": 332,
+          "yes": 3,
+          "no": 11,
+          "hold": 318,
+          "errors": 0,
+          "remaining": 0,
+          "percent": 100.0,
+          "active_run": null,
+          "batches": 39,
+          "reason": "전체 대상의 최종 판단과 실제 저장 결과 대조 완료. 근거 부족 보류는 승인과 구분합니다.",
+          "effects": {
+            "DOCUMENT": 10
+          },
+          "scope": "시작 시점의 미결 문서·단계 후보 및 실행 중 발견한 직접 공식 대조자료. 새 탐색자료는 한 단계까지 포함.",
+          "verified_at": 1794233652.9360201,
+          "followup_hold": 0,
+          "followup_errors": 0
+        }
+      }
+    ]
+  }
+}

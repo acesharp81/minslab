@@ -1,0 +1,24 @@
+[
+  {
+    "width": 1440,
+    "kind": "BROWSER_ONLY_FIXTURE",
+    "card_click_report_loaded": true,
+    "document_opened": true,
+    "report_md_download_checked": true,
+    "full_md_link_correct": true,
+    "regular_list_unchanged": true,
+    "fixture_requests_intercepted": 1,
+    "js_errors": []
+  },
+  {
+    "width": 390,
+    "kind": "BROWSER_ONLY_FIXTURE",
+    "card_click_report_loaded": true,
+    "document_opened": true,
+    "report_md_download_checked": true,
+    "full_md_link_correct": true,
+    "regular_list_unchanged": true,
+    "fixture_requests_intercepted": 1,
+    "js_errors": []
+  }
+]

@@ -1,4 +1,4 @@
-"""Human review of algorithm proposals; only tested, scoped CSS rules can activate."""
+"""Human review of algorithm proposals; scoped HTML/PDF rules require validation."""
 import hashlib,json,re,time,uuid
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -67,6 +67,10 @@ def extract(raw,selector):
  nodes=soup.select(selector)
  if len(nodes)!=1:raise ValueError('본문 영역이 정확히 1개여야 합니다 · 현재 '+str(len(nodes))+'개')
  body=nodes[0].get_text(' ',strip=True)
+ if any('.pdf' in f.get('src','').lower() for f in nodes[0].select('iframe[src]')):
+  meaningful=BeautifulSoup(str(nodes[0]),'html.parser')
+  for n in meaningful.select('.file,.info,.title,h1,h2,h3,iframe'):n.decompose()
+  if len(meaningful.get_text(' ',strip=True))<60:raise ValueError('선택 영역은 제목·등록일·첨부 목록뿐이고 본문은 PDF iframe에 있습니다. 실제 PDF 다운로드 링크 규칙이 필요합니다')
  if len(body)<60 or len(body)>24000:raise ValueError('추출 본문은 60~24,000자여야 합니다')
  if text_quality(body)!='TEXT_AVAILABLE_UNVERIFIED':raise ValueError('안내 메뉴·본문 부족 등 품질 검증 실패')
  return body
@@ -101,9 +105,9 @@ def detail(service,store,subject):
  try:selector_ok(proposal.get('selector',''));valid=True
  except ValueError:valid=False
  return dict(subject=subject,result_id=r['id'],title=r.get('title',subject),diagnosis=proposal.get('diagnosis') or r.get('reason'),
-  proposal=proposal,selector_valid=valid,source=src,review=review,history=history,validation=validation,rules=matching,
+  proposal=proposal,proposal_origin=r.get('proposal_origin','AI'),original_model_proposal=r.get('original_model_proposal'),selector_valid=valid,source=src,review=review,history=history,validation=validation,rules=matching,
   baseline='기존 본문 선택자 목록 → article → main → body 순서. 활성 승인 규칙이 있으면 해당 주소 범위에서 먼저 적용.',
-  boundary='현재 직접 반영 범위는 본문 추출 CSS 규칙입니다. 날짜·물량 판정 변경은 이 버튼으로 적용하지 않습니다.')
+  boundary='본문 CSS 또는 공식 PDF 링크 규칙을 시험·승인합니다. 날짜·물량·사업 실적은 별도로 검토합니다.')
 
 
 def validate(service,store,subject,result_id,selector,scope,expected_quote,fetcher=None):
@@ -121,7 +125,13 @@ def validate(service,store,subject,result_id,selector,scope,expected_quote,fetch
  # Fetcher saves the raw artifact; never render source HTML in the UI.
  try:(_,before,_),_=extract_approved(store,src['url'],raw)
  except ValueError:before=''
- after=extract(raw,selector)
+ rule_kind=(r.get('result') or {}).get('change_type','BODY_SELECTOR')
+ if rule_kind not in ('BODY_SELECTOR','PDF_ATTACHMENT'):raise ValueError('실행 가능한 추출 규칙 제안이 아닙니다')
+ capture_meta=None
+ if rule_kind=='PDF_ATTACHMENT':
+  from .attachment_rule import extract_attachment
+  (_,after,_),capture_meta=extract_attachment(raw,src['url'],selector,fetcher)
+ else:after=extract(raw,selector)
  if expected_quote not in after:raise ValueError('선택한 본문에서 보존할 핵심 문장을 찾지 못했습니다')
  checks=[dict(name='대상 원문 · 단일 본문·길이·핵심 문장',passed=True)]
  cases=[]
@@ -136,7 +146,10 @@ def validate(service,store,subject,result_id,selector,scope,expected_quote,fetch
    try:
     if scope_key(url,'PATH')!=key:continue
     seen.add(p['document_id'])
-    archive=raw_file(store,p.get('raw',{}).get('sha256'));new=extract(archive,selector)
+    archive=raw_file(store,p.get('raw',{}).get('landing_page',p.get('raw',{})).get('sha256'))
+    if rule_kind=='PDF_ATTACHMENT':
+     (_,new,_),_=extract_attachment(archive,url,selector,fetcher)
+    else:new=extract(archive,selector)
     # Preserve every character of previously successful extracted bodies, ignoring whitespace.
     passed=re.sub(r'\s','',old) in re.sub(r'\s','',new)
     cases.append(dict(document_id=p['document_id'],sha256=p['raw']['sha256'],baseline_sha256=hashlib.sha256(old.encode()).hexdigest(),passed=passed))
@@ -149,7 +162,7 @@ def validate(service,store,subject,result_id,selector,scope,expected_quote,fetch
   if result(c,subject)['id']!=result_id:raise Conflict('시험 중 새 알고리즘 진단 발생')
   old=c.execute('SELECT version FROM algorithm_rules WHERE scope_key=?',(key,)).fetchone()
   payload=dict(id=vid,subject=subject,result_id=result_id,created=time.time(),source=src,selector=selector,scope=scope,scope_key=key,
-   expected_quote=expected_quote,sha256=sha,rule_version=old[0] if old else 0,before=redact(before),after=redact(after),checks=checks,cases=cases,
+   expected_quote=expected_quote,sha256=sha,rule_kind=rule_kind,capture_metadata=capture_meta,rule_version=old[0] if old else 0,before=redact(before),after=redact(after),checks=checks,cases=cases,
    passed=all(x['passed'] for x in checks),note='텍스트 추출 시험이며 사업·실적 승인이나 사실 정확도 보증은 아닙니다.')
   c.execute('INSERT INTO algorithm_validations VALUES(?,?,?,?)',(vid,subject,payload['created'],json.dumps(payload,ensure_ascii=False)))
  return payload
@@ -172,9 +185,10 @@ def decide(service,store,subject,result_id,version,action,actor,reason,validatio
    v=json.loads(row[0]) if row else {}
    if not v.get('passed') or v.get('result_id')!=result_id or v.get('source')!=src or time.time()-v.get('created',0)>86400:raise Conflict('유효한 검증 결과가 없습니다. 원문 시험을 다시 실행하세요')
    raw_file(store,v['sha256']);selector_ok(v['selector'])
+   if v.get('rule_kind')=='PDF_ATTACHMENT':raw_file(store,(v.get('capture_metadata') or {}).get('sha256'))
    current=c.execute('SELECT * FROM algorithm_rules WHERE scope_key=?',(v['scope_key'],)).fetchone()
    if (current['version'] if current else 0)!=v['rule_version']:raise Conflict('같은 범위의 추출 규칙이 변경됐습니다. 다시 시험하세요')
-   rule=dict(scope_key=v['scope_key'],scope=v['scope'],selector=v['selector'],enabled=True,subject=subject,validation_id=validation_id,
+   rule=dict(scope_key=v['scope_key'],scope=v['scope'],selector=v['selector'],kind=v.get('rule_kind','BODY_SELECTOR'),enabled=True,subject=subject,validation_id=validation_id,
     actor=actor,reason=reason,created=review['created'],version=v['rule_version']+1)
    c.execute('INSERT INTO algorithm_rules VALUES(?,?,?) ON CONFLICT(scope_key) DO UPDATE SET version=excluded.version,payload=excluded.payload',(rule['scope_key'],rule['version'],json.dumps(rule,ensure_ascii=False)))
    review.update(rule=rule,previous_rule=json.loads(current['payload']) if current else None,effect='승인한 주소 범위의 다음 수집부터 추출 규칙 적용 · 기존 사업·실적 변경 없음')
@@ -194,15 +208,22 @@ def decide(service,store,subject,result_id,version,action,actor,reason,validatio
  return review
 
 
-def extract_approved(store,url,raw):
- """Pure local rule lookup. No model/network request; fail closed on a broken selector."""
+def extract_approved(store,url,raw,fetcher=None):
+ """No model calls. HTML is local; approved PDF rules use one bounded source fetch."""
  init(store);url=canonical(url);keys=[url,scope_key(url,'PATH')]
  with store.db() as c:
   rules={r['scope_key']:json.loads(r['payload']) for r in c.execute('SELECT * FROM algorithm_rules WHERE scope_key IN (?,?)',keys)}
  rule=next((rules[k] for k in keys if k in rules and rules[k].get('enabled') and scope_key(url,rules[k]['scope'])==k),None)
  if not rule:return text_content(raw),None
+ landing_metadata=dict(fetcher.last) if fetcher is not None else None
  try:
+  if rule.get('kind')=='PDF_ATTACHMENT':
+   if fetcher is None:raise ValueError('PDF 승인 규칙에는 원문 수집기가 필요합니다')
+   from .attachment_rule import extract_attachment
+   value,meta=extract_attachment(raw,url,rule['selector'],fetcher)
+   return value,dict(scope_key=rule['scope_key'],version=rule['version'],kind='PDF_ATTACHMENT',applied=True,source_sha256=meta['sha256'])
   body=extract(raw,rule['selector']);soup=BeautifulSoup(raw,'html.parser');title=soup.title.get_text(' ',strip=True)[:500] if soup.title else ''
   return (title,body,False),dict(scope_key=rule['scope_key'],version=rule['version'],applied=True)
  except ValueError as error:
+  if fetcher is not None and landing_metadata is not None:fetcher.last=landing_metadata
   return text_content(raw),dict(scope_key=rule['scope_key'],version=rule['version'],applied=False,reason=str(error))

@@ -1,0 +1,6 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:22.941210+09:00",
+  "sql": "SELECT kind,count(*) AS current_rows,count(DISTINCT source_id) AS sources FROM home_revision WHERE superseded_at IS NULL GROUP BY kind ORDER BY kind",
+  "rows": null,
+  "error": "ERROR:  canceling statement due to statement timeout\n"
+}

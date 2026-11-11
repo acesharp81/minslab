@@ -43,6 +43,7 @@ from .db.watch_repository import WatchRepository
 from .db.watch_test_repository import WatchTestRepository
 from .domain import AuthorityStatus, LifecycleStatus, ReconciliationStatus
 from .domain.scope import TARGET_COMMITTEES, is_live_transcript_scope
+from .domain.assembly_expansion import configured_entries, meeting_metadata, capture_allowed, LABEL as EXPANSION_LABEL
 from .ingestion.schedule_worker import (
     ASSEMBLY_REFERENCE_SCHEMA,
     UPCOMING_SCHEDULE_SCHEMA,
@@ -299,6 +300,9 @@ def _present_transcript(
     *,
     official_speakers: bool = True,
 ) -> dict[str, object]:
+    for broadcast in snapshot.get("broadcasts", []):
+        if broadcast.get("source_system") == "assembly.webcast.go.kr":
+            broadcast.update(meeting_metadata(broadcast.get("external_id")))
     broadcast_ids = [item["broadcast_id"] for item in snapshot.get("broadcasts", [])]
     speaker_repository = SpeakerRepository(connection)
     overrides = speaker_repository.override_map(broadcast_ids)
@@ -1549,7 +1553,10 @@ def ended_live_broadcasts(
     limit: int = 5,
     offset: int = 0,
     include_latest_content: bool = False,
+    collection: str = "regular",
 ) -> dict[str, object]:
+    if collection not in {"regular", "expansion_test"}:
+        raise HTTPException(status_code=422, detail="invalid report collection")
     committee = _validate_live_committee(committee)
     if not 1 <= limit <= 20:
         raise HTTPException(status_code=422, detail="limit must be between 1 and 20")
@@ -1561,6 +1568,7 @@ def ended_live_broadcasts(
                 committee,
                 limit=limit + 1,
                 offset=offset,
+                collection=collection,
             )
             has_more = len(items) > limit
             items = items[:limit]
@@ -1577,6 +1585,7 @@ def ended_live_broadcasts(
                 item["broadcast_id"] for item in items
             )
             for item in items:
+                item.update(meeting_metadata(item.get("external_id")))
                 item["meeting_brief"] = _public_meeting_brief(
                     briefs.get(item["broadcast_id"]),
                     progresses.get(item["broadcast_id"]),
@@ -1604,7 +1613,23 @@ def ended_live_broadcasts(
         "has_more": has_more,
         "authority_status": "PROVISIONAL",
         "view_mode": "BROADCAST_HISTORY",
+        "collection": collection,
     }
+
+
+@app.get("/api/live/expansion-tests", tags=["live"])
+def assembly_expansion_tests() -> dict[str, object]:
+    """Public scope/provenance only; no credentials and no collection side effects."""
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc)
+    items = []
+    for entry in configured_entries():
+        state = ("DISABLED" if not entry["enabled"] else
+                 "SCHEDULED" if now < datetime.fromisoformat(entry["capture_from"]) else
+                 "EXPIRED" if now >= datetime.fromisoformat(entry["capture_until"]) else "ENABLED")
+        items.append({**entry, "label": EXPANSION_LABEL, "state": state,
+                      "capture_allowed": capture_allowed(entry, now)})
+    return {"items": items, "count": len(items), "additional_llm_calls": 0}
 
 
 @app.get("/api/live/overview", tags=["live"])
@@ -1751,7 +1776,7 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
                 broadcast_id
             )
             institution_row = connection.execute(
-                "SELECT institution FROM live_broadcasts WHERE id = %s", (broadcast_id,)
+                "SELECT institution, external_id FROM live_broadcasts WHERE id = %s", (broadcast_id,)
             ).fetchone()
             is_legislature = bool(institution_row and institution_row[0] == "LEGISLATURE")
             current_document_id = (official_context or {}).get("official_document_id")
@@ -1942,6 +1967,8 @@ def ended_live_broadcast_brief(broadcast_id: UUID) -> dict[str, object]:
         if isinstance(displayed, dict) and id(displayed) not in seen_briefs:
             seen_briefs.add(id(displayed))
             displayed["report_summary"] = narrative_projection(displayed)
+    if institution_row and len(institution_row) > 1 and is_legislature:
+        public.update(meeting_metadata(institution_row[1]))
     return public
 
 
@@ -1949,12 +1976,19 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
     brief = dict(record.get("brief") or {})
     if not brief.get("topic_structure") and not brief.get("report_summary"):
         brief = attach_meeting_topic_groups(link_tasks_to_topics(brief))
+    def task_review_note(task: dict[str, object]) -> str:
+        # Preserve explicit source-review holds in exported documents as well as
+        # online views. A saved task or evidence ID is not a verified commitment.
+        if task.get("topic_link_status") == "REVIEW_REQUIRED":
+            return " · [근거 대조 필요 · 후속조치 확정 아님]"
+        return ""
+
     integration = dict(record.get("official_integration") or {})
     lines = [
         f"# {brief.get('headline') or '회의 결과'}",
         "",
         f"> 자료 상태: {record.get('authority_status') or 'PROVISIONAL'} · "
-        f"생성 시각: {record.get('generated_at') or '-'}",
+        f"기초 보고서 저장 시각: {record.get('generated_at') or '-'}",
         "",
         str(brief.get("summary") or "저장된 요약이 없습니다."),
         "",
@@ -1980,7 +2014,7 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
                 for task in brief.get('tasks', []):
                     if task['id'] in topic.get('task_ids', []):
                         owners = ', '.join(task.get('ministries') or [])
-                        lines.append(f"- **과제**: {task['title']}" + (f" · {owners}" if owners else ""))
+                        lines.append(f"- **과제**: {task['title']}" + (f" · {owners}" if owners else "") + task_review_note(task))
                 lines.append("")
         if not narrative.get("topics"):
             lines.extend(("AI 주요 논의 요약 생성 대기 중입니다.", ""))
@@ -2088,14 +2122,14 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
         for task in matched:
             displayed_tasks.add(str(task.get("id")))
             ministries = ", ".join(task.get("ministries") or []) or "담당 부처 미확정"
-            lines.append(f"- {task.get('title') or '과제'} ({ministries})")
+            lines.append(f"- {task.get('title') or '과제'} ({ministries})" + task_review_note(task))
         lines.append("")
     remaining_tasks = [t for t in tasks if str(t.get("id")) not in displayed_tasks]
     if remaining_tasks:
         lines.extend(("### 주제 연결 확인 필요", ""))
         for task in remaining_tasks:
             ministries = ", ".join(task.get("ministries") or []) or "담당 부처 미확정"
-            lines.append(f"- {task.get('title') or '과제'} ({ministries})")
+            lines.append(f"- {task.get('title') or '과제'} ({ministries})" + task_review_note(task))
     lines.extend(("", "## 공식자료 반영", ""))
     if integration.get("status") == "READY":
         lines.append(
@@ -2111,6 +2145,8 @@ def _meeting_brief_markdown(record: dict[str, object]) -> str:
             "",
         )
     )
+    if record.get("is_expansion_test"):
+        lines[2:2] = ["> 확장성 테스트용 · 설정 기반 위원회 확장 검증 자료", ""]
     return "\n".join(lines)
 
 

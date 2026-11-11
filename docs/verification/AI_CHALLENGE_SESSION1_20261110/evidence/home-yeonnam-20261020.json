@@ -1,0 +1,128 @@
+{
+  "applied": true,
+  "project_id": "PRO_b8e9b07eb43ee60a807ec231",
+  "source_document_id": "DOC_2587e87ac1f72a71cd250383",
+  "source_sha256": "578f4d92c7db264f4f062e800ec79e4d48696446948042941b97fd839e7d345b",
+  "source_page": 79,
+  "changes": [
+    {
+      "id": "DOC_2587e87ac1f72a71cd250383",
+      "kind": "document_evidence",
+      "result": "new",
+      "revision_no": 1
+    },
+    {
+      "id": "EVI_402f2f3906711d51c923fa97",
+      "kind": "evidence_bridge",
+      "result": "new",
+      "revision_no": 1
+    },
+    {
+      "id": "PRO_b8e9b07eb43ee60a807ec231",
+      "kind": "project",
+      "result": "changed",
+      "revision_no": 2
+    },
+    {
+      "id": "EVI_36f732e1e9da16e537b837d4",
+      "kind": "evidence_bridge",
+      "result": "changed",
+      "revision_no": 2
+    },
+    {
+      "id": "DOC_3725d8e3826e7b58dbf23eee",
+      "kind": "document_evidence",
+      "result": "changed",
+      "revision_no": 3
+    },
+    {
+      "id": "DOC_af41c4d72153e5430d45df79",
+      "kind": "document_evidence",
+      "result": "changed",
+      "revision_no": 3
+    },
+    {
+      "id": "DOC_88506a6cdf3041b29ee0deb8",
+      "kind": "document_evidence",
+      "result": "changed",
+      "revision_no": 2
+    }
+  ],
+  "added_projects": 0,
+  "added_actual_facts": 0,
+  "added_units": 0,
+  "approval_before": [
+    "POL_2025_0907",
+    "PRG_1bb8c2898f442905b7224bac",
+    "CONFIRMED"
+  ],
+  "approval_after": [
+    "POL_2025_0907",
+    "PRG_1bb8c2898f442905b7224bac",
+    "CONFIRMED"
+  ],
+  "protected_records": 3111,
+  "protected_before_hash": "92385357b4139425ac1db64c763bb82a97d2a643afddb6c81b9173067792cc40",
+  "protected_after_hash": "92385357b4139425ac1db64c763bb82a97d2a643afddb6c81b9173067792cc40",
+  "unexpected_changes": [],
+  "all_existing_agency_plans_unchanged": true,
+  "notes": [
+    "기존8호 사업 ID 재사용",
+    "정부4분기 공급8호 기등록: 재가산0",
+    "과거 월 단위 계획은 reference_only로 보관; 최신 목표·실적 자동 반영 안 함",
+    "매핑 승인 유지; 설명 근거만 새 판본으로 정정"
+  ],
+  "metrics_before": {
+    "CONSTRUCTION": {
+      "actual": 79884,
+      "year_end": 92574
+    },
+    "SUPPLY": {
+      "actual": 58541,
+      "year_end": 70005
+    },
+    "BUSINESS": {
+      "actual": 151098,
+      "year_end": 151098
+    },
+    "APPROVAL": {
+      "actual": 97889,
+      "year_end": 103169
+    },
+    "COMPLETION": {
+      "actual": 3501,
+      "year_end": 7816
+    },
+    "MOVE_IN": {
+      "actual": null,
+      "year_end": 3845
+    }
+  },
+  "metrics_after": {
+    "CONSTRUCTION": {
+      "actual": 79884,
+      "year_end": 92574
+    },
+    "SUPPLY": {
+      "actual": 58541,
+      "year_end": 70005
+    },
+    "BUSINESS": {
+      "actual": 151098,
+      "year_end": 151098
+    },
+    "APPROVAL": {
+      "actual": 97889,
+      "year_end": 103169
+    },
+    "COMPLETION": {
+      "actual": 3501,
+      "year_end": 7816
+    },
+    "MOVE_IN": {
+      "actual": null,
+      "year_end": 3845
+    }
+  },
+  "all_metrics_unchanged": true
+}

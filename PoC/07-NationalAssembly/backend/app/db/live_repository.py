@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Any
 
 from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
+from ..domain.assembly_expansion import meeting_ids, meeting_metadata
 from .schedule_repository import SourceVersionInput
 
 
@@ -249,8 +250,10 @@ class LiveRepository:
                 WHERE lifecycle_status = 'LIVE' AND caption_websocket_url IS NOT NULL
                   AND capture_status IN ('READY', 'RETRY_WAIT', 'CAPTURING')
                   AND (capture_lease_expires_at IS NULL OR capture_lease_expires_at < now())
+                  AND (source_system <> 'assembly.webcast.go.kr'
+                       OR committee_name = ANY(%s) OR external_id = ANY(%s))
                 ORDER BY detected_at
-                FOR UPDATE SKIP LOCKED LIMIT 1
+                FOR NO KEY UPDATE SKIP LOCKED LIMIT 1
             )
             UPDATE live_broadcasts broadcast
             SET capture_status = 'CAPTURING', capture_lease_owner = %s,
@@ -260,7 +263,8 @@ class LiveRepository:
             RETURNING broadcast.id, broadcast.external_id,
                       broadcast.caption_websocket_url, broadcast.lifecycle_status
             """,
-            (worker_id, lease_seconds),
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], meeting_ids(capture=True),
+             worker_id, lease_seconds),
         ).fetchone()
         if not row:
             return None
@@ -299,7 +303,7 @@ class LiveRepository:
                   )
                   AND (capture_lease_expires_at IS NULL OR capture_lease_expires_at < now())
                 ORDER BY (lifecycle_status = 'LIVE') DESC, detected_at
-                FOR UPDATE SKIP LOCKED LIMIT 1
+                FOR NO KEY UPDATE SKIP LOCKED LIMIT 1
             )
             UPDATE live_broadcasts broadcast
             SET capture_status = CASE
@@ -344,8 +348,10 @@ class LiveRepository:
                      AND stt_fallback_status IN ('AUDIO_READY','RETRY_WAIT','CAPTURING'))
                   )
                   AND (stt_capture_lease_expires_at IS NULL OR stt_capture_lease_expires_at < now())
+                  AND (source_system <> 'assembly.webcast.go.kr'
+                       OR committee_name = ANY(%s) OR external_id = ANY(%s))
                 ORDER BY (institution = 'LEGISLATURE') DESC, detected_at
-                FOR UPDATE SKIP LOCKED LIMIT 1
+                FOR NO KEY UPDATE SKIP LOCKED LIMIT 1
             )
             UPDATE live_broadcasts broadcast
             SET stt_fallback_status = 'CAPTURING',
@@ -361,7 +367,8 @@ class LiveRepository:
                       broadcast.media_stream_url, broadcast.lifecycle_status,
                       broadcast.institution
             """,
-            (worker_id, lease_seconds),
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], meeting_ids(capture=True),
+             worker_id, lease_seconds),
         ).fetchone()
         if not row:
             return None
@@ -382,9 +389,12 @@ class LiveRepository:
               AND stt_fallback_status = 'CAPTURING'
               AND stt_capture_lease_owner = %s
               AND (institution = 'EXECUTIVE' OR active_transcript_source = 'AI_STT')
+              AND (source_system <> 'assembly.webcast.go.kr'
+                   OR committee_name = ANY(%s) OR external_id = ANY(%s))
             RETURNING id
             """,
-            (lease_seconds, broadcast_id, worker_id),
+            (lease_seconds, broadcast_id, worker_id,
+             [*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], meeting_ids(capture=True)),
         ).fetchone()
         return row is not None
 
@@ -458,7 +468,7 @@ class LiveRepository:
                 SELECT id, active_transcript_source AS old_source,
                        (last_official_caption_received_at >= now() - interval '45 seconds') AS continuous,
                        (official_caption_recovery_started_at < now() - (%s * interval '1 second')) AS stable
-                FROM live_broadcasts WHERE id = %s FOR UPDATE
+                FROM live_broadcasts WHERE id = %s FOR NO KEY UPDATE
             ), changed AS (
                 UPDATE live_broadcasts b
                 SET last_official_caption_received_at = now(),
@@ -508,9 +518,12 @@ class LiveRepository:
                 updated_at = now()
             WHERE id = %s AND lifecycle_status = 'LIVE'
               AND capture_status = 'CAPTURING' AND capture_lease_owner = %s
+              AND (source_system <> 'assembly.webcast.go.kr'
+                   OR committee_name = ANY(%s) OR external_id = ANY(%s))
             RETURNING id
             """,
-            (lease_seconds, broadcast_id, worker_id),
+            (lease_seconds, broadcast_id, worker_id,
+             [*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], meeting_ids(capture=True)),
         ).fetchone()
         return row is not None
 
@@ -875,8 +888,21 @@ class LiveRepository:
         *,
         limit: int = 5,
         offset: int = 0,
+        collection: str = "regular",
     ) -> list[dict[str, Any]]:
-        parameters: list[Any] = [[*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES]]
+        if collection not in {"regular", "expansion_test"}:
+            raise ValueError("invalid report collection")
+        registered_ids = meeting_ids()
+        scope_filter = (
+            "broadcast.source_system = 'assembly.webcast.go.kr' AND broadcast.external_id = ANY(%s)"
+            if collection == "expansion_test" else
+            "(broadcast.institution <> 'LEGISLATURE' OR broadcast.committee_name = ANY(%s)) "
+            "AND NOT (broadcast.source_system = 'assembly.webcast.go.kr' AND broadcast.external_id = ANY(%s))"
+        )
+        parameters: list[Any] = (
+            [registered_ids] if collection == "expansion_test" else
+            [[*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], registered_ids]
+        )
         committee_filter = ""
         if committee_name:
             committee_filter = (
@@ -892,10 +918,7 @@ class LiveRepository:
                 SELECT broadcast.*
                 FROM live_broadcasts broadcast
                 WHERE broadcast.lifecycle_status = 'ENDED'
-                  AND (
-                        broadcast.institution <> 'LEGISLATURE'
-                        OR broadcast.committee_name = ANY(%s)
-                      )
+                  AND ({scope_filter})
                   AND broadcast.source_system NOT IN (
                     'poc07.demo', 'poc07.test', 'poc07.replay.local',
                     'poc07.replay.kakao'

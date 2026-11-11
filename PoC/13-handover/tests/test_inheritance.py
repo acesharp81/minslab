@@ -79,7 +79,9 @@ def test_demo_sets_people_numbering_and_no_automatic_paid_call(tmp_path):
   assert c.post('/api/demo-sets',json={'kind':'practice','predecessor_id':'employee1','successor_id':'employee1'}).status_code==422
 
 
-def test_old_update_cannot_overwrite_baseline_and_manual_fields_survive(tmp_path):
+def test_old_update_cannot_overwrite_baseline_and_manual_fields_survive(tmp_path,monkeypatch):
+ # Reconfirm before the dated fixture update; wall-clock dates must not change this contract.
+ monkeypatch.setattr("app.main.now", lambda: "2026-11-10T00:00:00+00:00")
  with TestClient(create_app(tmp_path)) as c:
   base,source,body=setup(c)
   accepted=c.get(source+'/revisions/confirmed').json();item=next(i for i in accepted['payload']['items'] if i['fields']['title']['value']=='지역생활서비스 운영')

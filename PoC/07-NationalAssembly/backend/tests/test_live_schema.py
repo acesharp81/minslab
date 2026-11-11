@@ -93,7 +93,8 @@ class LiveSchemaTests(unittest.TestCase):
         self.assertIn("ThreadPoolExecutor(max_workers=args.workers", worker)
         self.assertIn("MAX_CAPTION_WORKERS = 4", worker)
         self.assertIn("if not 1 <= args.workers <= MAX_CAPTION_WORKERS", worker)
-        self.assertIn("FOR UPDATE SKIP LOCKED LIMIT 1", repository)
+        # Lease updates retain exclusive writer ownership without blocking FK readers.
+        self.assertIn("FOR NO KEY UPDATE SKIP LOCKED LIMIT 1", repository)
         self.assertIn('"--workers", "4"', compose)
         self.assertIn('app.ingestion.caption_worker --workers 4', deploy_script)
         self.assertIn("poc07-national-assembly-executive-caption-worker", deploy_script)

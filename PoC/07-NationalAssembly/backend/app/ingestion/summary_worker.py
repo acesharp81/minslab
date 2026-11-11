@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
+from ..domain.assembly_expansion import meeting_ids
 from ..services.summary_cache import (
     DailyRequestLimitReached,
     MonthlyTokenLimitReached,
@@ -91,11 +92,11 @@ def process_available(
               )
               AND (
                     institution <> 'LEGISLATURE'
-                    OR committee_name = ANY(%s)
+                    OR committee_name = ANY(%s) OR external_id = ANY(%s)
                   )
             ORDER BY watched DESC, detected_at DESC
             """,
-            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],),
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES], meeting_ids()),
         ).fetchall()
     totals = {"broadcasts": 0, "eligible": 0, "cached": 0,
               "requested": 0, "saved": 0, "api_requests": 0, "failed": 0, "deferred": 0,

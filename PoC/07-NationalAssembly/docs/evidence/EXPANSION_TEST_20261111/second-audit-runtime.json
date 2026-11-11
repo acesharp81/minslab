@@ -1,0 +1,171 @@
+{
+  "official_schedule_matches": true,
+  "resolved": {
+    "committee_id": "9700513",
+    "committee_name": "문화체육관광위원회",
+    "channel_code": "59",
+    "meeting_external_id": "DCM000059224390901",
+    "scheduled_date": "2026-11-11",
+    "scheduled_time": "10:00",
+    "meeting_title": "제439회 국회(정기회) 제09차 문화체육관광위원회 [10:00]",
+    "enabled": true,
+    "capture_from": "2026-11-11T08:00:00+09:00",
+    "capture_until": "2026-11-12T09:00:00+09:00"
+  },
+  "services": [
+    {
+      "service": "poc07-national-assembly-live-monitor",
+      "running": true,
+      "restart_count": 0,
+      "command": [
+        "python",
+        "-m",
+        "app.ingestion.live_monitor",
+        "--interval",
+        "30"
+      ],
+      "scope": {
+        "path": "/app/data/config/assembly_expansion.json",
+        "registered": [
+          "DCM000059224390901"
+        ],
+        "capture": []
+      },
+      "files_match_manifest": true,
+      "config_mounts": [
+        {
+          "destination": "/app/data",
+          "rw": true
+        }
+      ]
+    },
+    {
+      "service": "poc07-national-assembly-caption-worker",
+      "running": true,
+      "restart_count": 0,
+      "command": [
+        "python",
+        "-m",
+        "app.ingestion.caption_worker",
+        "--workers",
+        "4"
+      ],
+      "scope": {
+        "path": "/app/data/config/assembly_expansion.json",
+        "registered": [
+          "DCM000059224390901"
+        ],
+        "capture": []
+      },
+      "files_match_manifest": true,
+      "config_mounts": [
+        {
+          "destination": "/app/data",
+          "rw": true
+        }
+      ]
+    },
+    {
+      "service": "poc07-national-assembly-executive-caption-worker",
+      "running": true,
+      "restart_count": 0,
+      "command": [
+        "python",
+        "-m",
+        "app.ingestion.executive_caption_worker",
+        "--interval",
+        "5"
+      ],
+      "scope": {
+        "path": "/app/data/config/assembly_expansion.json",
+        "registered": [
+          "DCM000059224390901"
+        ],
+        "capture": []
+      },
+      "files_match_manifest": true,
+      "config_mounts": [
+        {
+          "destination": "/app/data",
+          "rw": true
+        }
+      ]
+    },
+    {
+      "service": "poc07-national-assembly-summary-worker",
+      "running": true,
+      "restart_count": 0,
+      "command": [
+        "python",
+        "-m",
+        "app.ingestion.summary_worker",
+        "--interval",
+        "2"
+      ],
+      "scope": {
+        "path": "/app/data/config/assembly_expansion.json",
+        "registered": [
+          "DCM000059224390901"
+        ],
+        "capture": []
+      },
+      "files_match_manifest": true,
+      "config_mounts": [
+        {
+          "destination": "/app/data/config",
+          "rw": false
+        }
+      ]
+    },
+    {
+      "service": "poc07-national-assembly-meeting-brief-worker",
+      "running": true,
+      "restart_count": 0,
+      "command": [
+        "python",
+        "-m",
+        "app.ingestion.meeting_brief_worker",
+        "--interval",
+        "60"
+      ],
+      "scope": {
+        "path": "/app/data/config/assembly_expansion.json",
+        "registered": [
+          "DCM000059224390901"
+        ],
+        "capture": []
+      },
+      "files_match_manifest": true,
+      "config_mounts": [
+        {
+          "destination": "/app/data/config",
+          "rw": false
+        }
+      ]
+    },
+    {
+      "service": "poc07-national-assembly-api",
+      "running": true,
+      "restart_count": 0,
+      "command": [
+        "sh",
+        "-c",
+        "python -m app.db.migrate && exec uvicorn app.main:app --app-dir /app/backend --host 0.0.0.0 --port 8070"
+      ],
+      "scope": {
+        "path": "/app/data/config/assembly_expansion.json",
+        "registered": [
+          "DCM000059224390901"
+        ],
+        "capture": []
+      },
+      "files_match_manifest": true,
+      "config_mounts": [
+        {
+          "destination": "/app/data",
+          "rw": true
+        }
+      ]
+    }
+  ]
+}

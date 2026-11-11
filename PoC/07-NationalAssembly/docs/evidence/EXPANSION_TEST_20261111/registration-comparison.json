@@ -1,0 +1,64 @@
+{
+  "before_file": "20261110T152321Z-before-registration.json",
+  "after_file": "20261110T152323Z-after-registration.json",
+  "before_count": 0,
+  "after_count": 1,
+  "configuration_only_change_verified": true,
+  "frontend_cli_and_deployment_files_unchanged": true,
+  "checks": [
+    {
+      "service": "poc07-national-assembly-live-monitor",
+      "same_code_image_container_and_start": true,
+      "deployed_files_match_build": true,
+      "registered": [
+        "DCM000059224390901"
+      ],
+      "capture_now": []
+    },
+    {
+      "service": "poc07-national-assembly-caption-worker",
+      "same_code_image_container_and_start": true,
+      "deployed_files_match_build": true,
+      "registered": [
+        "DCM000059224390901"
+      ],
+      "capture_now": []
+    },
+    {
+      "service": "poc07-national-assembly-executive-caption-worker",
+      "same_code_image_container_and_start": true,
+      "deployed_files_match_build": true,
+      "registered": [
+        "DCM000059224390901"
+      ],
+      "capture_now": []
+    },
+    {
+      "service": "poc07-national-assembly-summary-worker",
+      "same_code_image_container_and_start": true,
+      "deployed_files_match_build": true,
+      "registered": [
+        "DCM000059224390901"
+      ],
+      "capture_now": []
+    },
+    {
+      "service": "poc07-national-assembly-meeting-brief-worker",
+      "same_code_image_container_and_start": true,
+      "deployed_files_match_build": true,
+      "registered": [
+        "DCM000059224390901"
+      ],
+      "capture_now": []
+    },
+    {
+      "service": "poc07-national-assembly-api",
+      "same_code_image_container_and_start": true,
+      "deployed_files_match_build": true,
+      "registered": [
+        "DCM000059224390901"
+      ],
+      "capture_now": []
+    }
+  ]
+}

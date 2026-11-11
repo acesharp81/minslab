@@ -1,0 +1,12 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:26.133233+09:00",
+  "sql": "SELECT status,count(*) AS integrations,max(generated_at) AS latest FROM meeting_official_integrations GROUP BY status",
+  "rows": [
+    {
+      "status": "READY",
+      "integrations": 1927,
+      "latest": "2026-11-08T20:37:06.094685+00:00"
+    }
+  ],
+  "error": null
+}

@@ -1,0 +1,46 @@
+{
+  "id": "WANGSUK2-OFFICIAL-START-REVIEW-20261017",
+  "status": "UNRESOLVED",
+  "official_included": true,
+  "official_value": 1100,
+  "official_period": "2026년 10월 둘째 주까지",
+  "official_event_type": "CONSTRUCTION_STARTED",
+  "official_url": "https://m.korea.kr/briefing/policyBriefingView.do?newsId=156785506",
+  "official_text_sha256": "4e8bdf8f8376b97c75d9e9b964750dcf8cdc5bb94fa4e05d2d0aa0553d775182",
+  "own_construction_value": null,
+  "numeric_gap": null,
+  "comparable": false,
+  "official_block_membership_verified": false,
+  "prior_period_block_evidence": [
+    {
+      "project_id": "PRO_8f376db71f557323a80c0fd9",
+      "name": "남양주왕숙2 A-1BL 아파트 건설공사",
+      "block": "A01",
+      "units": 812,
+      "event_date": "2025-12-31",
+      "source_base_date": "2026-07-01",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14"
+    },
+    {
+      "project_id": "PRO_4d0196c4344cf524a88ae0cc",
+      "name": "조달청)남양주왕숙2 A-3BL 아파트 건설공사 1공구",
+      "block": "A03",
+      "units": 686,
+      "event_date": "2025-12-31",
+      "source_base_date": "2026-07-01",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14"
+    }
+  ],
+  "recruitment_value": 1498,
+  "recruitment_date": "2026-04-30",
+  "related_claims": [
+    "S04",
+    "M08",
+    "M16"
+  ],
+  "parent_scope": "공식 3기 신도시 착공 7,300호의 구성 언급. 별도 가산하지 않음.",
+  "statement": "공식 성과 보고서에는 남양주왕숙2가 2026년 10월 둘째 주까지의 착공 실적 1,100호로 포함돼 있다. 이는 본청약 A-1 812호·A-3 686호(합계 1,498호)와 다른 사건·물량이다. 우리 보유 LH 원장의 두 블록 착공일은 2025-12-31이지만, 공식 1,100호의 구성 블록과 같은 대상인지 확인되지 않았다. 따라서 과거 착공일만으로 공식 성과의 제외가 정당하다고 결론 내릴 수 없으며, 공식 발표의 왕숙2 착공 성과를 자체 원장으로 아직 재현하지 못한 공백으로 기록한다.",
+  "next_action": "공식 착공 1,100호의 구성 블록·물량·실적 인정일을 원천별로 확인하고, 보유 LH 공사 원장 (2026-07-01 기준)의 이후 판본 및 건축 인허가 실제착공 사건과 대조한다. 공사 계약상 착공일과 보고 실적 인정일, 블록 차이·누락·정정 가능성을 확인한 뒤 판정한다. 공식 수치를 자체 사건으로 입력하거나 본청약 1,498호로 대체하지 않는다.",
+  "benchmark_used_as_event": false,
+  "previous_conclusion_correction": "A-1·A-3의 전년도 착공 제외와 왕숙2 공식 성과 재현 여부는 별개다."
+}

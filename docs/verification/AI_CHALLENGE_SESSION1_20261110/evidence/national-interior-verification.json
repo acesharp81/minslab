@@ -1,0 +1,40 @@
+{
+  "broadcast_id": "a242709a-df14-437f-a2bd-65f298d95eb0",
+  "brief_id": "e6a0652e-034c-4eeb-add3-b53fd4f80be5",
+  "base_generated_at": "2026-10-26T14:41:11.829561+00:00",
+  "authority_status": "PROVISIONAL",
+  "utterance_count": 1029,
+  "topic_count": 349,
+  "display_parent_count": 46,
+  "task_count": 66,
+  "tasks_with_topic_reference": 65,
+  "tasks_with_evidence_ids": 66,
+  "tasks_with_direct_spans": 58,
+  "narrative_coverage": {
+    "profile": "structured-narrative/1.2",
+    "issue_count": 349,
+    "summarized_issue_count": 349,
+    "status": "COMPLETE"
+  },
+  "structure": {
+    "projection_version": "1.5",
+    "version": "discussion-structure/1.1",
+    "revision_id": "1690c5db-74a1-403d-b0b7-2cabeb33d8d3",
+    "authority_status": "PROVISIONAL",
+    "source_brief_id": "e6a0652e-034c-4eeb-add3-b53fd4f80be5",
+    "source_hash": "6e0cfcc4150a0e80c03605d05991dfc338f5b2983829a20c3f863381e7f49602",
+    "source_transcript_hash": "992132f542963108405345dbc02473d483b5953a3cf65707ccabc40aa3356565",
+    "execution_status": "COMPLETED",
+    "quality_status": "EVIDENCE_VALIDATED",
+    "source_atom_count": 628,
+    "source_evidence_count": 628,
+    "classified_atom_count": 628,
+    "issue_count": 349,
+    "parent_count": 46,
+    "document_request_count": 7,
+    "document_request_linked_count": 7,
+    "consolidation_status": "COMPLETED"
+  },
+  "transcript_segments": 4573,
+  "audit_note": "INITIAL FIELD-ONLY COUNT: 58 counts task_evidence_spans only. Final two-field exact-source validation is national-task-final-verification.json: 62/66."
+}

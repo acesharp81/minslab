@@ -1,5 +1,11 @@
 # Data Sources
 
+## 2026-11-11 — 일회성 확장 대상의 공식 식별자 확인
+
+공식 중계 화면에서 실제 사용 중인 `https://assembly.webcast.go.kr/main/service/calendar.asp?qdate=YYYYMM`의 `xdays[].xlist[]`와 기존 `live_list.asp`의 `xlist[]`를 사용한다. `xbill`(위원회 식별자) → `xcode`(중계 채널) → 지정일의 `xcgcd`(회의 식별자)를 교차 확인한다. 달력의 `xconf/xsubj/xdesc`로 위원회명·회의명·예정 시각을 확인한다. 캘린더에 회의가 있다고 실제 생방송·자막 수신까지 성공한 것으로 해석하지 않는다.
+
+등록 도구는 확인 URL·응답 SHA-256·확인 시각을 설정에 기록한다. 실제 수집 시 원래 RawStore의 원문 우선 저장·출처 버전·발언 근거 체계를 사용한다. 이번 문체위 1건의 출처와 제한은 [적용 보고서](EXPANSION_TEST_20261111.md)에 기록한다.
+
 ## 2026-10-19 온톨로지 문맥 분류
 
 온톨로지 1.13은 저장된 구조화 쟁점의 `speaker_points.evidence_span`을 문맥 분류의 근거로 추가 사용한다. 해당 쟁점의 evidence ID와 인용문·위치·content hash·revision ID를 보존하며, 주변 발언 전체를 근거로 사용하지 않는다. 기존 공식 통합본 우선 선택을 유지한다. AI 상위 주제만으로 연결하지 않으며 보완 연결의 권위는 `PROVISIONAL`이다. [감사 결과](ONTOLOGY_CONTEXT_20261019.md).

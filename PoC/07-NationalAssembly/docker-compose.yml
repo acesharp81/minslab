@@ -348,6 +348,8 @@ services:
       OPENROUTER_BASE_URL: http://poc07-openrouter-gateway:8071/api/v1
       OPENROUTER_DAILY_LIMIT: 950
     command: ["python", "-m", "app.ingestion.summary_worker", "--interval", "2"]
+    volumes:
+      - ./data/config:/app/data/config:ro
     depends_on:
       db:
         condition: service_healthy
@@ -402,6 +404,8 @@ services:
       MISTRAL_INPUT_USD_PER_MILLION: ${MISTRAL_INPUT_USD_PER_MILLION:-0.15}
       MISTRAL_OUTPUT_USD_PER_MILLION: ${MISTRAL_OUTPUT_USD_PER_MILLION:-0.60}
     command: ["python", "-m", "app.ingestion.meeting_brief_worker", "--interval", "60"]
+    volumes:
+      - ./data/config:/app/data/config:ro
     depends_on:
       db:
         condition: service_healthy

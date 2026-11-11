@@ -1,0 +1,69 @@
+{
+  "missing_topic_reference": [
+    {
+      "id": "structured-task-de0f6c3a7b0e852d",
+      "title": "친밀관계폭력처벌법 제정을 위한 범부처 협의 및 추진",
+      "topic_id": null
+    }
+  ],
+  "without_task_evidence_spans": [
+    {
+      "id": "structured-task-4f0d5cc0e273be42",
+      "title": "한강버스 사업 수익성 재산정 및 중앙투자심사 재진행",
+      "evidence_ids": [
+        "0918eea3-7dc6-41dc-bd8c-834d53d1ab1c:1"
+      ]
+    },
+    {
+      "id": "structured-task-de0f6c3a7b0e852d",
+      "title": "친밀관계폭력처벌법 제정을 위한 범부처 협의 및 추진",
+      "evidence_ids": [
+        "209202a1-5cc1-4c48-baaf-b24ad5db5eb0:0"
+      ]
+    },
+    {
+      "id": "structured-task-c88ffecec4f296f7",
+      "title": "소방공무원 정신건강 지원 관련 법 개정 및 예산 확보",
+      "evidence_ids": [
+        "7ad9cc2c-667a-4d4b-8cd2-9aef735fa266:1"
+      ]
+    },
+    {
+      "id": "structured-task-9903b2dd6eb90896",
+      "title": "지방계약 평가위원 선정 및 운영 기준 전면 재정비",
+      "evidence_ids": [
+        "fec74a4e-9956-46bc-952f-b0b0a4c1c438:0"
+      ]
+    },
+    {
+      "id": "structured-task-279d05c13094ca64",
+      "title": "중수청 내부 공사 완료 및 장비 구축 완료 사진 제출 요구 · 자료 제출·열람 요구",
+      "evidence_ids": [
+        "ea329ec8-1d73-43ea-b228-a5c2342d3d32:0"
+      ]
+    },
+    {
+      "id": "structured-task-902f97efa902f00f",
+      "title": "이태원 참사 소방 인력 동원 현황 관련 공문 제출 요구 · 자료 제출·열람 요구",
+      "evidence_ids": [
+        "647aa09d-f74e-4dc5-b6a4-57ada36d5081:0",
+        "35011d8e-9b65-4698-8eec-ffd62cf32a95:0"
+      ]
+    },
+    {
+      "id": "structured-task-4528cf020d9ee87a",
+      "title": "행안부 장관에게 경찰 협력 방안 심도 검토 후 입장 제출 요구 · 자료 제출·열람 요구",
+      "evidence_ids": [
+        "561d6f61-ccad-476a-9bc6-5d779635d8d4:1"
+      ]
+    },
+    {
+      "id": "structured-task-af64fc5270a8fc89",
+      "title": "모바일 신분증 재점검·검증수단 연동·업주 보호 기준·공공기관 인증 정비 대책 마련 보고 요구 · 자료 제출·열람 요구",
+      "evidence_ids": [
+        "81604809-8782-4072-99e8-b167c8fbe5df:0"
+      ]
+    }
+  ],
+  "interpretation": "Field-level check only; missing task_evidence_spans does not mean no evidence because all tasks have evidence_ids."
+}
