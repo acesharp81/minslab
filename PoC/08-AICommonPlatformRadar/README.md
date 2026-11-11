@@ -3,7 +3,8 @@
 
 AI 사업 발굴과 근거별 분석부터 나라장터 의견 자동입력, 전체 기간 성과와 기관 회신, 공통기반 개선 방향까지 소개합니다. **한국어 내레이션 · 자막 · 배경음악 포함**
 
-<video src="docs/demo/jodalcheck-demo-3m05s.mp4" controls width="960">
+<!-- GitHub uses the attachment player; GitLab uses the repository MP4 fallback. -->
+<video src="https://github.com/user-attachments/assets/6529d705-5555-4913-8dda-a2a6bd76e17e" controls width="960">
   <img src="docs/demo/jodalcheck-demo-3m05s.mp4" alt="조달췤 — 범정부 AI 공통기반 edition 3분 5초 시연 영상" width="960">
 </video>
 
