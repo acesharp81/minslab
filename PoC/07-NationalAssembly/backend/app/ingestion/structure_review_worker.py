@@ -133,7 +133,7 @@ def process_available(limit: int = 1, batch_limit: int = 1, workers: int = 1) ->
     with connect(settings.database_url) as c:
         repo = TopicStructureRepository(c)
         ended = {str(r[0]) for r in c.execute("SELECT id FROM live_broadcasts WHERE lifecycle_status='ENDED'").fetchall()}
-        for item in sorted(MeetingBriefRepository(c).latest_all(), key=lambda i: i['generated_at'], reverse=True):
+        for item in sorted(MeetingBriefRepository(c).latest_all(include_expansion_tests=True), key=lambda i: i['generated_at'], reverse=True):
             if str(item['broadcast_id']) not in ended:
                 continue
             brief = repo.ready_current(item)

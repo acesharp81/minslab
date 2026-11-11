@@ -4,6 +4,7 @@ import uuid
 from typing import Any, Iterable
 
 from ..domain.scope import NATIONAL_ASSEMBLY_BODIES, TARGET_COMMITTEES
+from ..domain.assembly_expansion import meeting_ids
 
 
 class MeetingBriefRepository:
@@ -83,7 +84,7 @@ class MeetingBriefRepository:
         items = [self._row(row) for row in rows]
         return {item["broadcast_id"]: item for item in items if item}
 
-    def latest_all(self) -> list[dict[str, Any]]:
+    def latest_all(self, *, include_expansion_tests: bool = False) -> list[dict[str, Any]]:
         """Return public-scope reports for derived aggregate views."""
         rows = self.connection.execute(
             """
@@ -98,6 +99,7 @@ class MeetingBriefRepository:
             WHERE (
                 broadcast.institution <> 'LEGISLATURE'
                 OR broadcast.committee_name = ANY(%s)
+                OR broadcast.external_id = ANY(%s)
             )
               AND broadcast.source_system NOT IN (
                 'poc07.demo', 'poc07.test', 'poc07.replay.local',
@@ -107,7 +109,8 @@ class MeetingBriefRepository:
                      (brief.provider IN ('mistral', 'nvidia', 'openrouter', 'openai', 'gemini', 'groq')) DESC,
                      brief.generated_at DESC, brief.id DESC
             """,
-            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],),
+            ([*TARGET_COMMITTEES, *NATIONAL_ASSEMBLY_BODIES],
+             meeting_ids() if include_expansion_tests else []),
         ).fetchall()
         return [item for row in rows if (item := self._row(row))]
 

@@ -9,6 +9,7 @@ from urllib import parse as url_parse
 import requests
 
 from .national_assembly.base import AdapterError, SourcePayload
+from ..domain.assembly_expansion import match_source, capture_allowed, LABEL
 
 ASSEMBLY_LIVE_LIST_URL = "https://assembly.webcast.go.kr/main/service/live_list.asp"
 KTV_REFERENCE_URL = "https://www.ktv.go.kr/content/player?content_id=758125"
@@ -68,14 +69,17 @@ def parse_assembly_live_list(content: bytes) -> dict[str, object]:
             (keyword for keyword in NATIONAL_SESSION_KEYWORDS if keyword in scope_text),
             "",
         )
-        if short_name not in TARGET_NAMES and short_name not in NATIONAL_BODY_NAMES:
+        expansion = match_source(row)
+        if short_name not in TARGET_NAMES and short_name not in NATIONAL_BODY_NAMES and not expansion:
             continue
         status = str(row.get("xstat", "")).strip()
         items.append({
             "institution": "LEGISLATURE",
-            "committee_name": TARGET_NAMES.get(short_name, short_name or "국회"),
+            "committee_name": expansion["committee_name"] if expansion else TARGET_NAMES.get(short_name, short_name or "국회"),
+            **({"is_expansion_test": True, "expansion_label": LABEL,
+                "capture_allowed": capture_allowed(expansion)} if expansion else {}),
             "short_name": short_name,
-            "monitoring_scope": "CORE_COMMITTEE" if short_name in TARGET_NAMES else (
+            "monitoring_scope": "EXPANSION_TEST" if expansion else "CORE_COMMITTEE" if short_name in TARGET_NAMES else (
                 "REGULAR_SESSION" if national_session else "NATIONAL_BODY"
             ),
             "channel_code": str(row.get("xcode", "")).strip(),

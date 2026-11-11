@@ -1,0 +1,18 @@
+[
+  {
+    "file": "national-interior-report.json",
+    "path": "/api/live/broadcasts/a242709a-df14-437f-a2bd-65f298d95eb0/brief",
+    "status": 200,
+    "llm_calls_header": null,
+    "bytes": 5619676,
+    "checked_at_kst": "2026-11-11T00:01:50.727789+09:00"
+  },
+  {
+    "file": "national-interior-report.md",
+    "path": "/api/live/broadcasts/a242709a-df14-437f-a2bd-65f298d95eb0/brief.md?view=structured",
+    "status": 200,
+    "llm_calls_header": "0",
+    "bytes": 495304,
+    "checked_at_kst": "2026-11-11T00:01:50.926875+09:00"
+  }
+]

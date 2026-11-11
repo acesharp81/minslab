@@ -1,0 +1,15 @@
+{
+  "generated_at_kst": "2026-11-11T08:13:17.088700+09:00",
+  "actual_input": "Unmodified production-archived public LH landing pages and freshly fetched official PDFs",
+  "model": "solar-pro4",
+  "real_requests": 5,
+  "input_tokens": 10663,
+  "output_tokens": 4037,
+  "recorded_rate_estimate_usd": 0.0080433,
+  "invoice_cost": "NOT_VERIFIED",
+  "human_rule_review": true,
+  "new_calls_during_replay": 0,
+  "production_actuals_writes": 0,
+  "production_rule_activations": 0,
+  "fixture_data_in_live_pilot": false
+}

@@ -189,7 +189,7 @@ def process_available(limit: int = 1, batch_limit: int = 1, workers: int = 1) ->
     ids = []
     with connect(settings.database_url) as c:
         ended = {str(r[0]) for r in c.execute("SELECT id FROM live_broadcasts WHERE lifecycle_status='ENDED'").fetchall()}
-        for item in MeetingBriefRepository(c).latest_all():
+        for item in MeetingBriefRepository(c).latest_all(include_expansion_tests=True):
             if str(item['broadcast_id']) not in ended:
                 continue
             brief = selected_structure(c, item)

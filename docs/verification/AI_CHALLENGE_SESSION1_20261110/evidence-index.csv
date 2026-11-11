@@ -1,0 +1,77 @@
+﻿파일,작품,자료 구분,원본/설명,바이트,SHA-256
+application-copy.md,공통,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,5256,6fc536d9fe6c431aea3c5506744029ca310991cfa0db4cf6e2f96126eac9c1c9
+code-excerpts.html,공통,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,179752,8e448d11b0c9b787408df31969b56e9908b3b8a250484581eb08862c0b34b73a
+code-excerpts.md,공통,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,169123,c285933f51c94d75ff47b45ef654c9e5af3c16faf841e2a2e6ec99c55354ceb2
+evidence/code-references.json,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,6480,81814c9a33297e427596e2473aa71044af8e3cce0c78fe01603179e42bfdd7b6
+evidence/code-version.json,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,280,04a1d9106ab32e65680f794bf9250cbfc2fcb477789f300731f29806343a1ddf
+evidence/deployed-code-comparison.json,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,3029,d38a4bc0dd0b9deb08fc263c5392b2e7c47055634d6b9977128e87e4b647d570
+evidence/document-validation.json,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,224,2b823d84c14d4e10d891fc36d600fcedefee099ab8ad682335a24acfaab3c444
+evidence/historical-sources.json,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,1655,e6fdd79b44d9ca8c9c3104fa93cba5c5b17311b3849a95229433521bc26a2e90
+evidence/home-S1-view-policy.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,3362289,1570714e703ac89e582fa2d7f1fcb7e67dbb87bfbcb8c135cb8cb75be52a8245
+evidence/home-ai-ledger.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,5308,8ca1a58e906b87f9a87c9ec0abdfc9fa3a57de77094bf18dceabceeb8c403f1c
+evidence/home-algorithm-20261102.md,더주택,과거 실제 기록,PoC/10-home/docs/evidence/ALGORITHM_REVIEW_20261102/README.md,3445,d15fbf17cdb3117df8814a71d5baa34b0d35e3a009ce6817e9aca7e4a2bdb823
+evidence/home-batches.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,23394,5859bf8664bfe92c6aa4905c4db19ce0e34bf2548454f864e28f0ffae3c23d6a
+evidence/home-current-counts.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,304,ab49aa722ffdb99e4c4e12e53452a6ba3c7cd18d4bd4dfbbafa8ab3ac180055a
+evidence/home-health.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,170,6bf040c61d5c7f6c6c370beeeb0e39834858a9be5cc5fcfd49ab21bdf4d270c9
+evidence/home-identity-examples.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,13658,f9cd719a6e2bebaf65b25bd65cf8a6cf4eda2952706c3bcdce932194a034d4c8
+evidence/home-identity.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,1141,670f0539ea3119d6c7730968b8a8a8e421b02103bd93620d7bc0201f2aec3dbe
+evidence/home-officer-20261105.json,더주택,과거 실제 기록,PoC/10-home/docs/evidence/OFFICER_DELEGATED_DECISIONS_20261105/verification.json,13217,852752334b2672adda9293bc3adeca5bceac2b3a71573e8334511dd1c9956497
+evidence/home-offline-tests.txt,더주택,격리/회귀 시험,파일 내 기준시각·검사 범위를 확인,611,6959af3af034b21a4fc6e92d5c78372b4608c6d1b57512b40cd9d4447393ede3
+evidence/home-policy-audit-20261103.json,더주택,과거 실제 기록,PoC/10-home/docs/evidence/POLICY_REVIEW_REFLECTION_20261103/audit.json,14300,ef9d97b386751bc795c675b8bdcfb0a600a20303543d8fb0e7bde89ce2ca3d47
+evidence/home-policy-plan-97.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,3362289,1570714e703ac89e582fa2d7f1fcb7e67dbb87bfbcb8c135cb8cb75be52a8245
+evidence/home-policy-screen-20261023.png,더주택,과거 실제 기록,PoC/10-home/docs/evidence/HOME_POLICY_BRIEF_20261023/preview.png,80679,c2a557cbc21c6a00cdc8000e8ff37a20f1e1db319519f3e20fc83ebc0fa8be9f
+evidence/home-projects-policy-delivery-97.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,3362289,1570714e703ac89e582fa2d7f1fcb7e67dbb87bfbcb8c135cb8cb75be52a8245
+evidence/home-slices-manifest.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,24398,d03bef44abd75ab7a990a09257086a0ab729d3af7e4f1f54edb3c7feb184ddf0
+evidence/home-slices-state.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,561,2fc3030e8dcc8e0dcfac83cc32d2b1f1be9d6d0b95dc22e24cf7561ee1b4d90b
+evidence/home-slices-submission-redacted.zip,더주택,로컬 보완·재현,파일 내 기준시각·검사 범위를 확인,25395892,bc677c3ad64e76426be46755dc28ea049e60aeb0fcba900fcc9e3d95b53400ae
+evidence/home-slices-verification.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,6040,1c58f3ab9063335080652ae0265f9ff004fb1c4be0fbd481ab7d47d41eaf4b8c
+evidence/home-source-examples.json,더주택,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,13144,048ba7151137147fbbf247272b84a174dd6e68a9a129f6a9fb5e437f4576ffcd
+evidence/home-submission-redaction.json,더주택,로컬 보완·재현,파일 내 기준시각·검사 범위를 확인,711,2e21e232a7c45c80c4a2cf4538d8f849f927ac8933165dcc159789beb8b0ac17
+evidence/home-wangsuk2-20261017.json,더주택,과거 실제 기록,PoC/10-home/docs/evidence/HOME_WANGSUK2_OFFICIAL_REVIEW_20261017/review.json,2743,ec77118c4b74b2f7ae6ad532e61721faa81aa8d75a04f6fe98a579e27fc28435
+evidence/home-yeonnam-20261020.json,더주택,과거 실제 기록,PoC/10-home/data/yeonnam-sh-20261020/applied.json,3024,06caa56a7266c0f571ecb75f4f12f24e63e8b56c6f114a813c58d4231f494e57
+evidence/home-yeonnam-source-20261020.json,더주택,과거 실제 기록,PoC/10-home/data/yeonnam-sh-20261020/source_manifest.json,441,72dd83fcddbcbda9748631e0a36bdb0ebc9078dd5e120eec6ca48f861a4bab3d
+evidence/national-audio-usage.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,520,9067f357d755e2a44faece17401149226612c123b4694c573dc0c51345e8ee8c
+evidence/national-cost-audit-20261030.md,국정온,과거 실제 기록,PoC/07-NationalAssembly/docs/evidence/MODEL_DAILY_20261030/README.md,5076,724fb876596c46399ca8fb647711efb882cf682aac90d0231d3688dd391b0559
+evidence/national-cost-metrics-20261030.json,국정온,과거 실제 기록,PoC/07-NationalAssembly/docs/evidence/MODEL_DAILY_20261030/metrics.json,3148,70082125bc426a5b5cc4f31682121bc01aa1f85f802baa5acf65481be3a83bbc
+evidence/national-export-focused-tests.txt,국정온,격리/회귀 시험,파일 내 기준시각·검사 범위를 확인,98,e685482bc79b1c30a576069e042ca8daa87ca3224ee46f3a4ddf9dfe075a69f7
+evidence/national-export-only.patch,국정온,로컬 보완·재현,파일 내 기준시각·검사 범위를 확인,2796,2ddda3bf2dabe1d7f3fec6eecdc82f4bf11717404f91ac61105c5b3f37d0acdf
+evidence/national-export-regression-summary.json,국정온,격리/회귀 시험,파일 내 기준시각·검사 범위를 확인,528,f3fcc88c450515daec691cafd8edaf698b82508f1a8230e43ea95a10c34a2425
+evidence/national-health.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,271,ea9cc9c906d7f301931ded4062e246f5d2017cb3d8e4a11118fedeeab721f130
+evidence/national-insights.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,9817,f6da5cf3846188b7c300824faf9e40ae4c0882889085f89b367840b01105db01
+evidence/national-interior-report-reviewed.md,국정온,로컬 보완·재현,파일 내 기준시각·검사 범위를 확인,495769,94fa8e58e1855f2a5d2453bd46f518771cf48cfd2ae6cfe25e47784ef8a9edbe
+evidence/national-interior-report.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,5619676,ca01a3d8f95c8d947a887cb75c4e509ecdb17e36672bbd86be9224715acc87fe
+evidence/national-interior-report.md,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,495304,19bf998a7948cae263ffeba05602cdc64f15c69e161bf0ba2cb5d9df650f1d44
+evidence/national-interior-reports.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,2713,ee9c25ae11c962411e5efbf80c690f5eea99e0212c0504fb45b75ac8d62671fd
+evidence/national-interior-transcript.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,5760906,883392046ea95d1364d3f0a76bfe88a78adb52a03c96648a49c573ffc81c4fae
+evidence/national-interior-verification.json,국정온,현재 조회/저장 산출물,초기 한 필드 기준 감사; 최종 수치는 national-task-final-verification.json 참고,1554,3757d26ad9e4f9e48cf5a1abb80bf2cdc8842ae6842ae56c0382112f61d6e4f2
+evidence/national-model-comparison-20261030.md,국정온,과거 실제 기록,PoC/07-NationalAssembly/docs/evidence/MODEL_REPLACEMENT_20261030/README.md,5241,f7e40a53d6950ddc34d26dfaf6a6a1e1a976fd79bd908b62d1c01779c09f532c
+evidence/national-model-test-20261030.json,국정온,과거 실제 기록,PoC/07-NationalAssembly/docs/evidence/REAL_MINI_NEMO_10_20261030/metrics.json,463,603e36dca7c3834267518d4ce763c764af6871e01fd18488f2582edc04b510f5
+evidence/national-official-20261109.md,국정온,과거 실제 기록,PoC/07-NationalAssembly/docs/evidence/OFFICIAL_DETAIL_20261109/README.md,8754,549a2c510c0fcf440dfdf9d5a694afa9c256a9a764ec2e71ca41f31f32090caa
+evidence/national-official-counts.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,338,17cd3b3cd78c44a0b7fe4b84c6bccfd6c0c3265c787d91ac20484ed7248c390d
+evidence/national-official-diff-20261109.png,국정온,과거 실제 기록,PoC/07-NationalAssembly/docs/evidence/OFFICIAL_DETAIL_20261109/restored-diff-1440.png,60638,af6cf0b7071f3721a1b13c9b87ca8501528edd583d56e3f99d5b1dd81c22652b
+evidence/national-offline-tests-final.txt,국정온,현재 조회/저장 산출물,별도 실행 기록; 포함된 확장 시험을 N-08 평가 증거로 사용하지 않음,635,fee5493ec5bb6c1df8f59f1563c59f3bc5d8f9f2fa120b1a1a0bebb232aab680
+evidence/national-ontology-20261019.json,국정온,과거 실제 기록,PoC/07-NationalAssembly/docs/ONTOLOGY_COVERAGE_COMPARISON_20261019.json,3782,d38a3d31a0535766f90ef9bbb4434e92bc04c60dd30aef7a7628b0f88e66a21f
+evidence/national-parallel-log.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,6276,27f5ec0d8ded8350780ea33b4b0f04f768a4276fb5dda461e23aa09795d7affb
+evidence/national-report-download.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,539,cf886366fd90e727dbf4bb70fa5fff7f29fa3603e7b7140d1d0c28cbfdf2c6c9
+evidence/national-reports-20261107.md,국정온,과거 실제 기록,PoC/07-NationalAssembly/docs/evidence/REPORT_AUDIT_20261107/README.md,4665,c565156a21b1144aa314b385cb0a693a3be26df18e2856e252161b214d712e13
+evidence/national-summary-counts.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,1051,0cda25af43de2600a052f08cd1ef63715bbdd4f973e2c5e44119e5978f1599e9
+evidence/national-task-final-verification.json,국정온,로컬 보완·재현,파일 내 기준시각·검사 범위를 확인,1485,22006dee733323fbac686e7b3e228cb0f84842f9f61ff00363f571caf3356d8f
+evidence/national-task-link-gaps.json,국정온,현재 조회/저장 산출물,초기 한 필드 기준 감사; 최종 수치는 national-task-final-verification.json 참고,2495,5a0e21b7d7aa5b59f991b89e9ba020ed6663432b676bfa741c1b684b956f6ec6
+evidence/national-usage.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,1165,0d4390825e569261c0ebe418cae2836c08c97955c05281d2b460d04ac15dcd52
+evidence/national-watch-counts.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,3632,ed5c15c3d8a0c13d59a8ab9f3d4095e9e1ab3096376c1921a92b8fab0135150c
+evidence/national-watch-samples.json,국정온,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,4007,e7abc779110e334faa2fc5ac0a04a49ec87fa4158509287d7f06f464b66f3bfb
+evidence/package-safety-review.json,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,798,d062075657f376f44139cf3199b8f6c45bb2d88ac193c7aa66211eba5d9320e1
+evidence/portable-verification.json,공통,로컬 보완·재현,파일 내 기준시각·검사 범위를 확인,423,ae885cff5e6eba0fef3f02f0084e47152929a2b7f4a735b8459513097c7f35a0
+evidence/runtime.json,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,2873,6be279cd5502d7221d8cc71ec635680f63002b59803676d5cc6f0bd09e58cae9
+evidence/simple-fix-before-after.json,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,372,8b315bc169cf00d7fb8d630c8ca336bf8da3c52fd4e03579f41351a5ace0768b
+evidence/source-sha256.json,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,59373,40d6cb2471d7e8ee92a1ef54b17a0ef91cdf97fc6ecf4b3643ed10c4f878dbe3
+evidence/working-tree-status.txt,공통,현재 조회/저장 산출물,파일 내 기준시각·검사 범위를 확인,1440,5347e0802dcf9bbbd4c4f6798e341ad6428c3940776b14b95c8db0d50be34f9c
+report.html,공통,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,133815,fc998a1ddede8108afd2eadf6d8039f754ce25acb86cdbf5d2e7d8f2a8b9fe66
+report.md,공통,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,118095,12625ce53d222677eb1ab56711f86579c61d459f1ea8a3b41cc462a269e025ed
+report.pdf,공통,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,890624,e337d2dcc79f563e1aab1b38bf6bb2d8a9e74a4dff211cfd3acbbf14c3a5a2df
+tools/home-contract/schemas/home-slices/slices.json,더주택,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,43453,262d28ac0bd017f357dd2ba6b3de1c29d147f32a45acd0a8def3c37bddfd406a
+tools/home-contract/tools/ledger/home-dump.py,더주택,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,10058,cd8d7ca54047ee25f7a49749a0760e735c87a6ee5d9dd554d0bdf038f1dc8f8b
+tools/home-contract/tools/ledger/home-slice.py,더주택,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,34723,63df9101005255c2e34ca5907284e8abc8dfd460ff75cc798c02198cad23fbf2
+tools/task_span_contract.py,국정온,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,1109,5b626ce11b165b03f94f4a7ec4851d603adbbf221f28403e3edcad09a65f5871
+tools/test_report_review_export.py,국정온,격리/회귀 시험,파일 내 기준시각·검사 범위를 확인,1656,f1c15293c58e329078b98b3bada043dcb81768daecb8e01c50a023919bb8a711
+tools/verify_evidence.py,공통,제출 문서/재현 코드,파일 내 기준시각·검사 범위를 확인,2022,d4820576dccd378f13993f044e465e80849e868d28891a02fa89cc2bc22e13e0

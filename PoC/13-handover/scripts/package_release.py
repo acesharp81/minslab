@@ -25,6 +25,10 @@ for name in ['v167-pdf-citation-recovery.md','v166-comprehensive-stress.md','v16
  p=ROOT/'docs'/name
  if p.exists():files.append(p)
 files += [p for p in (ROOT/'docs/submission').rglob('*') if p.is_file()]
+# Audience views and the README video must travel with the master README.
+for name in ['docs/readme-views/USER.md','docs/readme-views/MAINTAINER.md','docs/readme-views/DEVELOPER.md','docs/media/README.md','docs/media/workbaton-demo-3m45s-chat-support.mp4']:
+ p=ROOT/name
+ if p.is_file():files.append(p)
 public=[p for p in OUT.iterdir() if p.is_file() and p.name in {x['file'] for x in json.loads((OUT/'manifest.json').read_text())['files']} and not p.name.startswith(('handover-source-', 'handover-demo-kit-'))]
 records={str(p.relative_to(ROOT)):hashlib.sha256(safe(p)).hexdigest() for p in sorted(set(files))}
 core={k:v for k,v in records.items() if k.startswith('app/') or k=='requirements.lock'}

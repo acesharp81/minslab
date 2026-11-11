@@ -109,6 +109,9 @@ deploy_worker() {
   )
   if [[ "${with_data_volume}" == "yes" ]]; then
     args+=( -v "${PROJECT_DIR}/data:/app/data" )
+  elif [[ "${short_name}" == "summary" || "${short_name}" == "meeting-brief" ]]; then
+    mkdir -p "${PROJECT_DIR}/data/config"
+    args+=( -v "${PROJECT_DIR}/data/config:/app/data/config:ro" )
   fi
   if [[ "${short_name}" == "official-minutes" ]]; then
     args+=( --memory 2g --memory-swap 2560m )

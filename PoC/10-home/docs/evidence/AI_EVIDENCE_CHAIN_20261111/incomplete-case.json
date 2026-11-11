@@ -1,0 +1,434 @@
+{
+  "project_id": "PRO_5fd2115e976e1d5bb4e90456",
+  "project_name": "시흥거모 S1",
+  "run_id": "bb6940bb-c5de-40ef-895a-862855a565fe",
+  "execution_mode": "ISOLATED_REAL_DATA",
+  "production_business_writes": 0,
+  "production_rule_activations": 0,
+  "model_calls": [
+    {
+      "task": "실제 본문 누락의 추출 규칙 개선",
+      "call_id": "73ea7319-af61-4264-9b74-db8f1556e115",
+      "model": "solar-pro4",
+      "response": {
+        "diagnosis": "수집 실패 원인은 실제 본문(LH 보도자료 제목·등록일·첨부파일 목록)이 포함된 main#main 경로 대신, 저장 단계에서 공유 버튼 클러스터(article.share)나 네비게이션·퀵메뉴·푸터가 우선 저장되어 body가 누락되었기 때문이다. 제공된 HTML 노드에서 실제 본문 텍스트는 id=contents_body와 article.board_view에 존재하며, article.share(id 없음, classes=['share'])는 본문 하단의 공유 버튼 묶음이므로 본문으로 오인하면 안 된다. 같은 호스트의 공식 PDF 다운로드 링크는 attachments 중 text에 '다운로드'가 명시된 /galleryDownload.es?... 항목 1개만 선택해야 하며, '바로보기' 갤러리 링크와 개인별 당첨/계약 명단 성격 링크는 선택 대상이 아니다.",
+        "change_type": "BODY_SELECTOR",
+        "selector": "#contents_body, article.board_view",
+        "reason": "제한된 추출 규칙은 최종 단계 블록 선택 시 본문 컨테이너를 특정하지 못해 공유 버튼·사이드/퀵메뉴·푸터가 섞여 들어온다. 개선안은 1) 저장 대상 우선순위를 본문 블록 중심(main > article.board_view 또는 div#contents_body)으로 고정하고, article.share처럼 classes에 'share'가 포함된 노드는 본문에서 제외하는 부정 필터 적용, 2) PDF 첨부 선택은 동일 호스트의 다운로드 액션 링크이면서 링크 텍스트/title에 '다운로드'가 포함된 항목만 1개 채택, 3) 브라우저 새로고침 등 접근 동적 문제, 로그인/캡차, 사람 확인이 필요한 변경사항은 이 규칙만으로 해결하지 않고 별도 분류한다. 본문 컨테이너가 HTML에 존재하지 않는 페이지는 CSS 선택자를 추측하지 말고 HUMAN_REQUIRED로 표시한다.",
+        "regression_cases": [
+          "기사형 페이지에서 article.share가 본문 하단에 존재하는 경우 -> 본문으로 잘못 채택되지 않아야 함",
+          "메인 nav/snb/visual/quick/fnb/siteinfo 등 반복 영역이 본문에 섞이지 않아야 함",
+          "동일 페이지에 여러 첨부 링크가 존재할 때 '다운로드' 링크 1개만 선택되어야 함",
+          "본문 컨테이너가 아예 없는 레이아웃에서는 선택자 변경 대신 HUMAN_REQUIRED로 처리되어야 함"
+        ]
+      }
+    },
+    {
+      "task": "규칙 검증 오류 재검토",
+      "call_id": "642b5e55-a547-4308-a095-21baef527a7c",
+      "model": "solar-pro4",
+      "response": {
+        "diagnosis": "이전 진단은 body 누락의 원인을 공유 버튼 클러스터·고유 네비게이션·퀵메뉴·푸터 우선 저장으로 보았고, 본문은 main#main 내부 div#contents_body 및 article.board_view에 존재한다고 판단했다. 현재 검증 오류(ValueError: 본문 영역이 정확히 1개여야 합니다 · 현재 2개)는 단일 요소 선택 요구를 충족하지 못한 것이다. 이전 selector를 그대로 유지하면 두 블록이 모두 수집 대상에 포함되어 오류가 재현된다. 따라서 최종 규칙을 고정 우선순위 본문 컨테이너 1개로 좁혀야 한다. HTML 노드상 article.board_view는 보도자료의 제목·등록일·첨부파일 목록 등 핵심 본문을 담고 있고 div#contents_body는 페이지 크롬·공유·인쇄 안내가 섞여 있어 본문 품질을 기준에 부합하게 유지하는 쪽으로 우선순위를 단일화해야 한다. 공유 버튼(article.share)은 classes에 'share'가 포함되어 본문 하단의 액션 영역이므로 본문에서 제외하는 부정 필터가 필요하다. 접근 차단·로그인·캡차·사람 확인 필요 요소는 이번 규칙 조정만으로 해결된 것으로 해석하지 않고 별도 분류한다.",
+        "change_type": "BODY_SELECTOR",
+        "selector": "#contents_body",
+        "reason": "제한된 추출 규칙은 최종 단계 블록 선택 시 본문을 단일 컨테이너로 특정하지 못해 이전 검토의 selector가 두 HTML 요소를 함께 반환하고 있다. 개선안은 본문 저장 우선순위를 article.board_view(가용 본문) 또는 div#contents_body 중 1개로 고정하고, article.share 같은 'share' 클래스 노드는 본문에서 제외하는 부정 필터를 적용한다. PDF 첨부 선택은 동일 호스트에서 제공되는 다운로드 액션 링크 중 링크 텍스트/title에 '다운로드'가 포함되고 '바로보기' 등 갤러리형 링크가 아닌 항목 1개만 채택한다. 본 문서에는 /galleryDownload.es 다운로드 링크 1개가 해당 조건을 만족한다. 같은 페이지의 인당 당첨·계약 내역 등 명단 성격 링크는 선택 대상이 아니다. 본문 컨테이너가 HTML에 아예 없는 페이지는 CSS 선택자를 추측하지 않고 HUMAN_REQUIRED로 처리한다.",
+        "regression_cases": [
+          "기사형/보도자료 페이지에서 article.share가 본문 하단에 있어도 본문으로 잘못 채택되지 않아야 함",
+          "nav·snb·visual·quick·fnb·siteinfo 등 반복 크롬 영역이 본문에 섞이지 않아야 함",
+          "동일 페이지에 여러 첨부 링크가 있을 때 '다운로드' 링크 1개만 선택되어야 함",
+          "본문 컨테이너가 존재하지 않는 레이아웃에서는 선택자 변경 대신 HUMAN_REQUIRED로 처리되어야 함",
+          "검증 단계에서 BODY_SELECTOR이 2개 이상 요소를 반환하면 규칙 재검토 대상이 되어야 함"
+        ]
+      }
+    },
+    {
+      "task": "규칙 검증 오류 재검토",
+      "call_id": "2da14a2b-ad07-4d93-a4dd-40ae2607778f",
+      "model": "solar-pro4",
+      "response": {
+        "diagnosis": "HTML 노드는 두 개의 본문 후보(main#main 내부 div#contents_body와 article.board_view)를 반환하며, 이전 selector는 다시 2개 요소를 수집해 '정확한 1개' 규칙을 위반한다. 두 영역 모두 저장 텍스트에는 제목·등록일·첨부파일 목록과 공유·인쇄·페이지 크롬 문구만 포함되고, 실제 상세 문장은 PDF iframe(embed)로 제공되어 HTML에 텍스트 본문이 없다. 따라서 검증 오류가 '본문이 PDF iframe에 있음'을 지적한 것과 현재 '2개 반환' 오류는 같은 문서에서 두 가지 문제가 동시에 나타난 것이다. 이전 진단의 방향성(공유 버튼 클러스터를 본문에서 제외, 본문 컨테이너 1개로 좁힘)은 유지하되, HTML에 상세 본문이 없으면 selector만 좁히는 방식으로 접근 차단·로그인·캡차·사람 확인 필요 문제를 해결했다고 해석하지 않는다. 이번 재검증은 규칙 우선순위와 필터 조건을 명확히 하는 데 초점을 둔다.",
+        "change_type": "BODY_SELECTOR",
+        "selector": "#contents_body",
+        "reason": "규칙 개선안은 본문 저장 대상을 단일 컨테이너로 고정하는 것이다. article.board_view는 보도자료 제목·등록일·첨부파일 목록 등 보드형 본문을 담고 있고, div#contents_body는 페이지 크롬·공유·인쇄 안내가 섞여 있어 품질 기준이 높은 쪽을 우선 선택한다. 단, 두 블록의 텍스트만으로는 상세 본문을 확보할 수 없으므로, HTML에 실제 문장이 없는 페이지는 선택자 변경으로 해결했다고 보지 않고 별도 분류한다. 공유 버튼 영역(article.share, classes에 'share' 포함)은 본문 하단의 액션이므로 본문에서 제외한다. PDF 첨부 링크는 동일 호스트에서 제공된 다운로드 동작 링크 중 링크 텍스트/title에 '다운로드'가 포함되고 '바로보기' 등 갤러리형 미리보기 링크가 아닌 항목 1개만 채택한다. 본 문서에서는 /galleryDownload.es 링크가 그 조건을 만족한다. 인당 당첨·계약 내역 등 명단 성격 링크는 선택 대상이 아니다. BODY_SELECTOR은 selector 값이 정확히 한 요소만 반환해야 하며, 그렇지 않으면 검증 단계에서 재검토 대상이 된다.",
+        "regression_cases": [
+          "기사형/보도자료 페이지에서 article.share가 본문 하단에 있어도 본문으로 잘못 채택되지 않아야 함",
+          "nav·snb·visual·quick·fnb·siteinfo 등 반복 크롬 영역이 본문에 섞이지 않아야 함",
+          "동일 페이지에 여러 첨부 링크가 있을 때 '다운로드' 링크 1개만 선택되어야 함",
+          "본문 컨테이너가 HTML에 있지만 상세 문장이 PDF iframe에만 있는 경우, selector 변경만으로 본문 확보를 성공으로 보지 않아야 함",
+          "본문 컨테이너가 존재하지 않는 레이아웃에서는 선택자 변경 대신 HUMAN_REQUIRED로 처리되어야 함",
+          "검증 단계에서 BODY_SELECTOR이 2개 이상 요소를 반환하면 규칙 재검토 대상이 되어야 함"
+        ]
+      }
+    },
+    {
+      "task": "사업 단계 누락 근거 조사 계획",
+      "call_id": "631c6137-d2e2-45f4-baf0-aae1e05af207",
+      "model": "solar-pro4",
+      "response": {
+        "project_id": "PRO_5fd2115e976e1d5bb4e90456",
+        "stage": "CONSTRUCTION",
+        "missing_information": [
+          "착공·골조·사용승인 등 사업 진행 근거(고시 승인일·분양승인일 이후 실제 공사 착수 시점의 사업 단계 전환 근거)",
+          "공고 상의 건립 규모(300호, 5개동, 최고 20층, 2개 평형 3개 타입)와 실제 사업 물량(타입별 세대수·층수·동의 수)의 일치 여부",
+          "청약·계약 일정(일반/특별공급 접수, 당첨자 발표, 계약체결, 입주예정)의 확정 근거 및 최초 공지 대비 변경 여부",
+          "공고문·모형도·전시관 안내에서 누락된 지구·블록·세대 표기, 시설(어린이집·유아놀이터·피트니스센터·작은도서관·주민카페 등) 항목 대조"
+        ],
+        "queries": [
+          "시흥거모 공공주택지구 S-1블록 입주자모집공고 원문 site:lh.or.kr",
+          "시흥거모지구 S-1블록 300호 건립 공공분양 공고분양승인 고시일 2026"
+        ],
+        "expected_sources": [
+          "LH 청약플러스 입주자모집공고문(apply.lh.or.kr)",
+          "LH 공식 보도자료 또는 경기남부지역본부 안내 자료",
+          "분양가상한제 적용 기준인 분양승인 관련 고시·승인 서류(분양가격, 전매제한·거주의무 기간 근거 포함)"
+        ],
+        "reconsider_when": "토지이용계획도·단지조감도·투시도, 견본주택(59B·84A 타입) 및 전시관 위치, 분양홈페이지(www.lhsg-s1.co.kr) 행위가 실제 공고문·승인 서류의 평면·타입·세대 표기와 다를 경우, 공고 발행 부서(경기남부지역본부) 및 담당·연락처 정보와 실제 공고물의 발행 주체·날짜가 일치하지 않을 경우, announced dates(2026.10.23 배포, 11.16~11.17 청약, 11.26 당첨자발표, 2027.2 계약체결, 2029.6 입주)가 원문/승인 서류상 일정과 불일치할 경우, 또는 타입별 물량(59A 34호·59B 52호·84A 214호) 합계 300호와 실제 승인·공고 물량 간 차이가 발견될 경우"
+      }
+    },
+    {
+      "task": "공식 원문 대조와 부분 단계 사실 연결",
+      "call_id": "fc1e8a9b-ee79-4ad3-9e19-9364a0ec0025",
+      "model": "solar-pro4",
+      "response": {
+        "project_id": "PRO_5fd2115e976e1d5bb4e90456",
+        "findings": [
+          {
+            "stage": "SUPPLY",
+            "basis": "DIRECT",
+            "occurrence": true,
+            "event_date": "2026-10-23",
+            "units": 300,
+            "scope": "PARTIAL",
+            "scope_description": "S-1블록 전체",
+            "evidence": [
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "한국토지주택공사(LH)는 시흥거모공공주택지구 공공분양 S-1블록 300호 입주자모집공고를 시행한다고 23일 밝혔다."
+              },
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "S-1블록은 지구 내 첫 일반 공공분양주택으로 총 300호이며"
+              }
+            ],
+            "identity_evidence": [
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "한국토지주택공사(LH), 시흥거모지구 S-1블록 공공분양주택 300호 공급"
+              },
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "시흥거모공공주택지구 공공분양 S-1블록 300호"
+              },
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "시흥거모공공주택지구는 배곧신도시, 안산사이언스밸리(예정)…"
+              }
+            ],
+            "inference_from_stage": null,
+            "reasoning": "시흥거모지구 S-1블록을 지구 내 첫 일반 공공분양주택으로 명시한 점과 경기도·안산·수원·광명 접근성을 함께 서술한 점에서 이전 검토의 경기도·시흥거모 사업 식별과 일치한다. 다만 본 자료는 모집공고 시행 단계의 보도자료라 착공·골조·사용승인 등 공사 진행 근거는 담지 않으므로 해당 단계 사안은 미해결로 둔다. 공고 내용상 분양가격이 59형 약 4.1억 원·84형 약 5.7억 원으로 표기되고 전매제한·거주의무기각 각 3년으로 안내되어 있으나 분양승인 고시일자나 그 근거는 인용되지 않았다. 한편 이전 검토와 달리 본 문서에서 타입별 상세 세대수는 각각 인용되며, 그 합계는 300호와 일치한다. 청약·계약·입주 일정은 모두 실제 예정된 일정이나 아직 시행되지 않은 일이므로 SUPPLY의 실제 모집공고 시행일(2026-10-23)과 분리하여 판단해야 한다. 입주 예정 시점은 2029년 6월로 남아 있다.",
+            "missing_information": [
+              "착공·골조·사용승인 등 사업 진행 단계 전환을 확인할 수 있는 근거(공고문·분양승인 고시·실제 공사 착수 시점)",
+              "분양승인 고시일 및 분양가격·전매제한·거주의무 기간의 근거 서류 확인",
+              "타입별 세대수·층수·동의 수와 실제 승인·공고 물량 일치 여부의 후속 대조",
+              "공고 발행 부서(경기남부지역본부) 및 담당 연락처와 실제 공고물의 발행 주체·일관성 확인",
+              "청약·계약·당첨자 발표 등 발표된 일정과 이후 실제 진행·변경 여부"
+            ]
+          },
+          {
+            "stage": "SUPPLY",
+            "basis": "DIRECT",
+            "occurrence": true,
+            "event_date": "2026-10-23",
+            "units": 300,
+            "scope": "PARTIAL",
+            "scope_description": "S-1블록 전체",
+            "evidence": [
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "한국토지주택공사(LH)는 시흥거모공공주택지구 공공분양 S-1블록 300호 입주자모집공고를 시행한다고 23일 밝혔다."
+              },
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "S-1블록은 지구 내 첫 일반 공공분양주택으로 총 300호이며, 2개 평형, 3개 타입(전용 59㎡·84㎡, ▲59A(34호) ▲59B(52호) ▲84A(214호))으로 구성됐다."
+              }
+            ],
+            "identity_evidence": [
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "시흥거모지구 S-1블록 공공분양주택 300호 공급"
+              },
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "시흥거모공공주택지구 공공분양 S-1블록 300호"
+              }
+            ],
+            "inference_from_stage": null,
+            "reasoning": "이전 검토에서 계획된 물량 300호(블록 S1)와 조응하며, 문서상 S-1블록이 지구 내 첫 일반 공공분양주택으로 명시되어 동일 사업 대상임이 확인된다. 다만 인용 대상은 입주자모집공고 시행 보도자료이므로 공급 단계의 시행 사실만 직접 근거가 된다. 공고 표기상 59A 34호·59B 52호·84A 214호의 합계는 300호이므로 타입별 물량 합이 전체 규모와 일치한다. 반면 실제 승인·공고 물량 대조, 층수·동의 수, 분양승인 고시 일정은 이번 인용만으로는 확정할 수 없다.",
+            "missing_information": [
+              "실제 분양승인 고시일 및 승인 서류상 타입·세대·층수·동의 수 대조",
+              "공고상 분양가격 59형 약 4.1억 원·84형 약 5.7억 원 및 전매제한·거주의무 3년 근거 확인",
+              "청약(11.16 특별공급, 11.17 일반공급), 당첨자발표(11.26), 계약체결(2027.2), 입주예정(2029.6) 일정의 실제 진행·변경 여부"
+            ]
+          },
+          {
+            "stage": "SUPPLY",
+            "basis": "DIRECT",
+            "occurrence": true,
+            "event_date": "2026-10-23",
+            "units": null,
+            "scope": "PARTIAL",
+            "scope_description": "S-1블록 입주자모집공고 시행 발표",
+            "evidence": [
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "배포 2026. 10. 23.(금) / 즉시 보도 가능합니다."
+              },
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "한국토지주택공사(LH)는 시흥거모공공주택지구 공공분양 S-1블록 300호 입주자모집공고를 시행한다고 23일 밝혔다."
+              }
+            ],
+            "identity_evidence": [
+              {
+                "document_id": "DOC_87cca7787d542e5eb6512549",
+                "quote": "한국토지주택공사(LH), 시흥거모지구 S-1블록 공공분양주택 300호 공급"
+              }
+            ],
+            "inference_from_stage": null,
+            "reasoning": "발행일(2026.10.23)과 모집공고 시행 안내가 동일 문서 내에서 연결되어 있으므로, SUPPLY 단계의 실제 발생 사건은 공고 시행 발표로 볼 수 있다. 다만 공급계약 체결·당첨자발표·입주 등은 아직 시행일 이전 일정의 안내이므로 같은 날짜의 실제 사건으로 보지 않는다.",
+            "missing_information": [
+              "모집공고문 본문(apply.lh.or.kr)과 본 보도자료 간 일정·물량·타입 표기의 일치 여부",
+              "후속 일정(청약·당첨자발표·계약체결·입주예정)의 실제 진행 결과"
+            ]
+          }
+        ],
+        "conflicts": [
+          "본 자료는 입주자모집공고 시행 발표만을 담고 있어 이전 검토에서 요구한 착공·골조·사용승인 등 사업 진행 근거는 확인되지 않는다. 따라서 공사 단계 전환 여부는 미해결이다.",
+          "이전 검토에서 타입별 세대수와 층수·동 수 대조가 미완료로 남아 있었으나, 본 문서의 59A 34호·59B 52호·84A 214호 합계는 300호와 일치한다. 다만 승인·공고 물량 및 실제 건축 규모와의 대조는 별도 확인이 필요하다.",
+          "분양가격(59형 약 4.1억 원·84형 약 5.7억 원), 전매제한·거주의무 각 3년은 공고문에 표기되어 있으나 분양승인 고시일 및 그 근거 서류는 인용되지 않았다."
+        ]
+      }
+    }
+  ],
+  "rule_review": {
+    "origin": "REVIEWED_AI_PROPOSAL",
+    "reviewer": "개발 검토",
+    "reason": "AI가 PDF 본문과 같은 호스트 다운로드 경로를 진단했으나 실행 계약은 HTML로 잘못 제안하여 코드 검사에서 차단. 원문 링크를 확인해 개발 검토자가 PDF 규칙으로 정비.",
+    "original_model_proposal": {
+      "diagnosis": "HTML 노드는 두 개의 본문 후보(main#main 내부 div#contents_body와 article.board_view)를 반환하며, 이전 selector는 다시 2개 요소를 수집해 '정확한 1개' 규칙을 위반한다. 두 영역 모두 저장 텍스트에는 제목·등록일·첨부파일 목록과 공유·인쇄·페이지 크롬 문구만 포함되고, 실제 상세 문장은 PDF iframe(embed)로 제공되어 HTML에 텍스트 본문이 없다. 따라서 검증 오류가 '본문이 PDF iframe에 있음'을 지적한 것과 현재 '2개 반환' 오류는 같은 문서에서 두 가지 문제가 동시에 나타난 것이다. 이전 진단의 방향성(공유 버튼 클러스터를 본문에서 제외, 본문 컨테이너 1개로 좁힘)은 유지하되, HTML에 상세 본문이 없으면 selector만 좁히는 방식으로 접근 차단·로그인·캡차·사람 확인 필요 문제를 해결했다고 해석하지 않는다. 이번 재검증은 규칙 우선순위와 필터 조건을 명확히 하는 데 초점을 둔다.",
+      "change_type": "BODY_SELECTOR",
+      "selector": "#contents_body",
+      "reason": "규칙 개선안은 본문 저장 대상을 단일 컨테이너로 고정하는 것이다. article.board_view는 보도자료 제목·등록일·첨부파일 목록 등 보드형 본문을 담고 있고, div#contents_body는 페이지 크롬·공유·인쇄 안내가 섞여 있어 품질 기준이 높은 쪽을 우선 선택한다. 단, 두 블록의 텍스트만으로는 상세 본문을 확보할 수 없으므로, HTML에 실제 문장이 없는 페이지는 선택자 변경으로 해결했다고 보지 않고 별도 분류한다. 공유 버튼 영역(article.share, classes에 'share' 포함)은 본문 하단의 액션이므로 본문에서 제외한다. PDF 첨부 링크는 동일 호스트에서 제공된 다운로드 동작 링크 중 링크 텍스트/title에 '다운로드'가 포함되고 '바로보기' 등 갤러리형 미리보기 링크가 아닌 항목 1개만 채택한다. 본 문서에서는 /galleryDownload.es 링크가 그 조건을 만족한다. 인당 당첨·계약 내역 등 명단 성격 링크는 선택 대상이 아니다. BODY_SELECTOR은 selector 값이 정확히 한 요소만 반환해야 하며, 그렇지 않으면 검증 단계에서 재검토 대상이 된다.",
+      "regression_cases": [
+        "기사형/보도자료 페이지에서 article.share가 본문 하단에 있어도 본문으로 잘못 채택되지 않아야 함",
+        "nav·snb·visual·quick·fnb·siteinfo 등 반복 크롬 영역이 본문에 섞이지 않아야 함",
+        "동일 페이지에 여러 첨부 링크가 있을 때 '다운로드' 링크 1개만 선택되어야 함",
+        "본문 컨테이너가 HTML에 있지만 상세 문장이 PDF iframe에만 있는 경우, selector 변경만으로 본문 확보를 성공으로 보지 않아야 함",
+        "본문 컨테이너가 존재하지 않는 레이아웃에서는 선택자 변경 대신 HUMAN_REQUIRED로 처리되어야 함",
+        "검증 단계에서 BODY_SELECTOR이 2개 이상 요소를 반환하면 규칙 재검토 대상이 되어야 함"
+      ]
+    },
+    "reviewed_rule": {
+      "diagnosis": "HTML 노드는 두 개의 본문 후보(main#main 내부 div#contents_body와 article.board_view)를 반환하며, 이전 selector는 다시 2개 요소를 수집해 '정확한 1개' 규칙을 위반한다. 두 영역 모두 저장 텍스트에는 제목·등록일·첨부파일 목록과 공유·인쇄·페이지 크롬 문구만 포함되고, 실제 상세 문장은 PDF iframe(embed)로 제공되어 HTML에 텍스트 본문이 없다. 따라서 검증 오류가 '본문이 PDF iframe에 있음'을 지적한 것과 현재 '2개 반환' 오류는 같은 문서에서 두 가지 문제가 동시에 나타난 것이다. 이전 진단의 방향성(공유 버튼 클러스터를 본문에서 제외, 본문 컨테이너 1개로 좁힘)은 유지하되, HTML에 상세 본문이 없으면 selector만 좁히는 방식으로 접근 차단·로그인·캡차·사람 확인 필요 문제를 해결했다고 해석하지 않는다. 이번 재검증은 규칙 우선순위와 필터 조건을 명확히 하는 데 초점을 둔다.",
+      "change_type": "PDF_ATTACHMENT",
+      "selector": "a[href*=\"galleryDownload.es\"][title*=\".pdf\"]",
+      "reason": "규칙 개선안은 본문 저장 대상을 단일 컨테이너로 고정하는 것이다. article.board_view는 보도자료 제목·등록일·첨부파일 목록 등 보드형 본문을 담고 있고, div#contents_body는 페이지 크롬·공유·인쇄 안내가 섞여 있어 품질 기준이 높은 쪽을 우선 선택한다. 단, 두 블록의 텍스트만으로는 상세 본문을 확보할 수 없으므로, HTML에 실제 문장이 없는 페이지는 선택자 변경으로 해결했다고 보지 않고 별도 분류한다. 공유 버튼 영역(article.share, classes에 'share' 포함)은 본문 하단의 액션이므로 본문에서 제외한다. PDF 첨부 링크는 동일 호스트에서 제공된 다운로드 동작 링크 중 링크 텍스트/title에 '다운로드'가 포함되고 '바로보기' 등 갤러리형 미리보기 링크가 아닌 항목 1개만 채택한다. 본 문서에서는 /galleryDownload.es 링크가 그 조건을 만족한다. 인당 당첨·계약 내역 등 명단 성격 링크는 선택 대상이 아니다. BODY_SELECTOR은 selector 값이 정확히 한 요소만 반환해야 하며, 그렇지 않으면 검증 단계에서 재검토 대상이 된다.",
+      "regression_cases": [
+        "기사형/보도자료 페이지에서 article.share가 본문 하단에 있어도 본문으로 잘못 채택되지 않아야 함",
+        "nav·snb·visual·quick·fnb·siteinfo 등 반복 크롬 영역이 본문에 섞이지 않아야 함",
+        "동일 페이지에 여러 첨부 링크가 있을 때 '다운로드' 링크 1개만 선택되어야 함",
+        "본문 컨테이너가 HTML에 있지만 상세 문장이 PDF iframe에만 있는 경우, selector 변경만으로 본문 확보를 성공으로 보지 않아야 함",
+        "본문 컨테이너가 존재하지 않는 레이아웃에서는 선택자 변경 대신 HUMAN_REQUIRED로 처리되어야 함",
+        "검증 단계에서 BODY_SELECTOR이 2개 이상 요소를 반환하면 규칙 재검토 대상이 되어야 함"
+      ]
+    }
+  },
+  "algorithm_proposal": {
+    "diagnosis": "HTML 노드는 두 개의 본문 후보(main#main 내부 div#contents_body와 article.board_view)를 반환하며, 이전 selector는 다시 2개 요소를 수집해 '정확한 1개' 규칙을 위반한다. 두 영역 모두 저장 텍스트에는 제목·등록일·첨부파일 목록과 공유·인쇄·페이지 크롬 문구만 포함되고, 실제 상세 문장은 PDF iframe(embed)로 제공되어 HTML에 텍스트 본문이 없다. 따라서 검증 오류가 '본문이 PDF iframe에 있음'을 지적한 것과 현재 '2개 반환' 오류는 같은 문서에서 두 가지 문제가 동시에 나타난 것이다. 이전 진단의 방향성(공유 버튼 클러스터를 본문에서 제외, 본문 컨테이너 1개로 좁힘)은 유지하되, HTML에 상세 본문이 없으면 selector만 좁히는 방식으로 접근 차단·로그인·캡차·사람 확인 필요 문제를 해결했다고 해석하지 않는다. 이번 재검증은 규칙 우선순위와 필터 조건을 명확히 하는 데 초점을 둔다.",
+    "change_type": "PDF_ATTACHMENT",
+    "selector": "a[href*=\"galleryDownload.es\"][title*=\".pdf\"]",
+    "reason": "규칙 개선안은 본문 저장 대상을 단일 컨테이너로 고정하는 것이다. article.board_view는 보도자료 제목·등록일·첨부파일 목록 등 보드형 본문을 담고 있고, div#contents_body는 페이지 크롬·공유·인쇄 안내가 섞여 있어 품질 기준이 높은 쪽을 우선 선택한다. 단, 두 블록의 텍스트만으로는 상세 본문을 확보할 수 없으므로, HTML에 실제 문장이 없는 페이지는 선택자 변경으로 해결했다고 보지 않고 별도 분류한다. 공유 버튼 영역(article.share, classes에 'share' 포함)은 본문 하단의 액션이므로 본문에서 제외한다. PDF 첨부 링크는 동일 호스트에서 제공된 다운로드 동작 링크 중 링크 텍스트/title에 '다운로드'가 포함되고 '바로보기' 등 갤러리형 미리보기 링크가 아닌 항목 1개만 채택한다. 본 문서에서는 /galleryDownload.es 링크가 그 조건을 만족한다. 인당 당첨·계약 내역 등 명단 성격 링크는 선택 대상이 아니다. BODY_SELECTOR은 selector 값이 정확히 한 요소만 반환해야 하며, 그렇지 않으면 검증 단계에서 재검토 대상이 된다.",
+    "regression_cases": [
+      "기사형/보도자료 페이지에서 article.share가 본문 하단에 있어도 본문으로 잘못 채택되지 않아야 함",
+      "nav·snb·visual·quick·fnb·siteinfo 등 반복 크롬 영역이 본문에 섞이지 않아야 함",
+      "동일 페이지에 여러 첨부 링크가 있을 때 '다운로드' 링크 1개만 선택되어야 함",
+      "본문 컨테이너가 HTML에 있지만 상세 문장이 PDF iframe에만 있는 경우, selector 변경만으로 본문 확보를 성공으로 보지 않아야 함",
+      "본문 컨테이너가 존재하지 않는 레이아웃에서는 선택자 변경 대신 HUMAN_REQUIRED로 처리되어야 함",
+      "검증 단계에서 BODY_SELECTOR이 2개 이상 요소를 반환하면 규칙 재검토 대상이 되어야 함"
+    ]
+  },
+  "algorithm": {
+    "proposal": {
+      "diagnosis": "HTML 노드는 두 개의 본문 후보(main#main 내부 div#contents_body와 article.board_view)를 반환하며, 이전 selector는 다시 2개 요소를 수집해 '정확한 1개' 규칙을 위반한다. 두 영역 모두 저장 텍스트에는 제목·등록일·첨부파일 목록과 공유·인쇄·페이지 크롬 문구만 포함되고, 실제 상세 문장은 PDF iframe(embed)로 제공되어 HTML에 텍스트 본문이 없다. 따라서 검증 오류가 '본문이 PDF iframe에 있음'을 지적한 것과 현재 '2개 반환' 오류는 같은 문서에서 두 가지 문제가 동시에 나타난 것이다. 이전 진단의 방향성(공유 버튼 클러스터를 본문에서 제외, 본문 컨테이너 1개로 좁힘)은 유지하되, HTML에 상세 본문이 없으면 selector만 좁히는 방식으로 접근 차단·로그인·캡차·사람 확인 필요 문제를 해결했다고 해석하지 않는다. 이번 재검증은 규칙 우선순위와 필터 조건을 명확히 하는 데 초점을 둔다.",
+      "change_type": "PDF_ATTACHMENT",
+      "selector": "a[href*=\"galleryDownload.es\"][title*=\".pdf\"]",
+      "reason": "규칙 개선안은 본문 저장 대상을 단일 컨테이너로 고정하는 것이다. article.board_view는 보도자료 제목·등록일·첨부파일 목록 등 보드형 본문을 담고 있고, div#contents_body는 페이지 크롬·공유·인쇄 안내가 섞여 있어 품질 기준이 높은 쪽을 우선 선택한다. 단, 두 블록의 텍스트만으로는 상세 본문을 확보할 수 없으므로, HTML에 실제 문장이 없는 페이지는 선택자 변경으로 해결했다고 보지 않고 별도 분류한다. 공유 버튼 영역(article.share, classes에 'share' 포함)은 본문 하단의 액션이므로 본문에서 제외한다. PDF 첨부 링크는 동일 호스트에서 제공된 다운로드 동작 링크 중 링크 텍스트/title에 '다운로드'가 포함되고 '바로보기' 등 갤러리형 미리보기 링크가 아닌 항목 1개만 채택한다. 본 문서에서는 /galleryDownload.es 링크가 그 조건을 만족한다. 인당 당첨·계약 내역 등 명단 성격 링크는 선택 대상이 아니다. BODY_SELECTOR은 selector 값이 정확히 한 요소만 반환해야 하며, 그렇지 않으면 검증 단계에서 재검토 대상이 된다.",
+      "regression_cases": [
+        "기사형/보도자료 페이지에서 article.share가 본문 하단에 있어도 본문으로 잘못 채택되지 않아야 함",
+        "nav·snb·visual·quick·fnb·siteinfo 등 반복 크롬 영역이 본문에 섞이지 않아야 함",
+        "동일 페이지에 여러 첨부 링크가 있을 때 '다운로드' 링크 1개만 선택되어야 함",
+        "본문 컨테이너가 HTML에 있지만 상세 문장이 PDF iframe에만 있는 경우, selector 변경만으로 본문 확보를 성공으로 보지 않아야 함",
+        "본문 컨테이너가 존재하지 않는 레이아웃에서는 선택자 변경 대신 HUMAN_REQUIRED로 처리되어야 함",
+        "검증 단계에서 BODY_SELECTOR이 2개 이상 요소를 반환하면 규칙 재검토 대상이 되어야 함"
+      ]
+    },
+    "rule_origin": "REVIEWED_AI_PROPOSAL",
+    "validation_id": "15dd0e95-eaae-4ace-b2a4-a01bcdc7ebbb",
+    "approval": {
+      "subject": "DOC_87cca7787d542e5eb6512549",
+      "result_id": "a48c1e31-acc2-40bc-84b2-09cd84d961b0",
+      "action": "APPLY",
+      "actor": "사용자 승인 범위의 격리 시연",
+      "reason": "실제 원문 및 미제시 문서 2건 검사 후 격리 원장 승인",
+      "created": 1794352199.8290534,
+      "version": 1,
+      "rule": {
+        "scope_key": "https://www.lh.or.kr/gallery.es?act=view&bid=0003&list_no=12169&mid=a10502000000",
+        "scope": "URL",
+        "selector": "a[href*=\"galleryDownload.es\"][title*=\".pdf\"]",
+        "kind": "PDF_ATTACHMENT",
+        "enabled": true,
+        "subject": "DOC_87cca7787d542e5eb6512549",
+        "validation_id": "15dd0e95-eaae-4ace-b2a4-a01bcdc7ebbb",
+        "actor": "사용자 승인 범위의 격리 시연",
+        "reason": "실제 원문 및 미제시 문서 2건 검사 후 격리 원장 승인",
+        "created": 1794352199.8290534,
+        "version": 1
+      },
+      "previous_rule": null,
+      "effect": "승인한 주소 범위의 다음 수집부터 추출 규칙 적용 · 기존 사업·실적 변경 없음"
+    },
+    "held_out": [
+      {
+        "document_id": "DOC_f331059c626ddc3b363b30f3",
+        "title": "한국토지주택공사(LH), 초고강도 PHC 말뚝 적용해 기초공사 효율성 높이고 주택공급 속도 앞당긴다",
+        "raw_sha256": "715c90c91b081af8ff93f339cadb9ce19ba0592ae4b6a2e25d1bb5f0e1996651",
+        "held_out": true,
+        "after_chars": 1291,
+        "text_sha256": "e0c5ce05e8b117d6ac55c597eac70d90654065a187c791c347a1891532b77522",
+        "metadata": {
+          "url": "https://www.lh.or.kr/galleryDownload.es?bid=0003&list_no=12187&seq=2",
+          "sha256": "431cc647a42457daf745309ec640036e9a82cb8f8e0175a03279bf6f453424df",
+          "bytes": 193852,
+          "landing_page": {
+            "url": "https://www.lh.or.kr/gallery.es?act=view&bid=0003&list_no=12187&mid=a10502000000",
+            "sha256": "715c90c91b081af8ff93f339cadb9ce19ba0592ae4b6a2e25d1bb5f0e1996651",
+            "bytes": 89290
+          },
+          "body_source": "APPROVED_PDF_ATTACHMENT",
+          "selector": "a[href*=\"galleryDownload.es\"][title*=\".pdf\"]",
+          "pages": 2
+        },
+        "passed": true
+      },
+      {
+        "document_id": "DOC_aed37925a2d723fd149f5b51",
+        "title": "한국토지주택공사(LH), 공동주택 최초 태양광 잉여전력 요금상계거래 시행",
+        "raw_sha256": "ad8b0f289212cd56aaa9faf3f151e9ebfad6754c8f968f829970533556429d73",
+        "held_out": true,
+        "after_chars": 1019,
+        "text_sha256": "90ae16ebf0f080698813ff6dfa6a96afc1c310ba5b4856929707afb83aab2142",
+        "metadata": {
+          "url": "https://www.lh.or.kr/galleryDownload.es?bid=0003&list_no=12183&seq=2",
+          "sha256": "38801f2a535d1d529604672365e45480c5beaafe3d066a1fa0c6b2c16f8209fb",
+          "bytes": 554963,
+          "landing_page": {
+            "url": "https://www.lh.or.kr/gallery.es?act=view&bid=0003&list_no=12183&mid=a10502000000",
+            "sha256": "ad8b0f289212cd56aaa9faf3f151e9ebfad6754c8f968f829970533556429d73",
+            "bytes": 89543
+          },
+          "body_source": "APPROVED_PDF_ATTACHMENT",
+          "selector": "a[href*=\"galleryDownload.es\"][title*=\".pdf\"]",
+          "pages": 3
+        },
+        "passed": true
+      }
+    ],
+    "stored_before_chars": 51,
+    "after_chars": 1535,
+    "fresh_landing": {
+      "url": "https://www.lh.or.kr/gallery.es?act=view&bid=0003&list_no=12169&mid=a10502000000",
+      "sha256": "13fc18ae77c165707cc1abc0eff8187351de68dfbd44d4bc1197184f2b75c37d",
+      "bytes": 88909
+    },
+    "repeat_capture": {
+      "url": "https://www.lh.or.kr/galleryDownload.es?bid=0003&list_no=12169&seq=1",
+      "sha256": "95309c53ccc9ef0e5611db1742f2771cdf024774a60174f0f7d0bca404017138",
+      "bytes": 884322,
+      "landing_page": {
+        "url": "https://www.lh.or.kr/gallery.es?act=view&bid=0003&list_no=12169&mid=a10502000000",
+        "sha256": "13fc18ae77c165707cc1abc0eff8187351de68dfbd44d4bc1197184f2b75c37d",
+        "bytes": 88909
+      },
+      "body_source": "APPROVED_PDF_ATTACHMENT",
+      "selector": "a[href*=\"galleryDownload.es\"][title*=\".pdf\"]",
+      "pages": 4
+    },
+    "applied": {
+      "scope_key": "https://www.lh.or.kr/gallery.es?act=view&bid=0003&list_no=12169&mid=a10502000000",
+      "version": 1,
+      "kind": "PDF_ATTACHMENT",
+      "applied": true,
+      "source_sha256": "95309c53ccc9ef0e5611db1742f2771cdf024774a60174f0f7d0bca404017138"
+    },
+    "repeat_extraction_model_calls": 0,
+    "activation_scope": "ISOLATED_URL_ONLY"
+  },
+  "research_plan": {
+    "project_id": "PRO_5fd2115e976e1d5bb4e90456",
+    "stage": "CONSTRUCTION",
+    "missing_information": [
+      "착공·골조·사용승인 등 사업 진행 근거(고시 승인일·분양승인일 이후 실제 공사 착수 시점의 사업 단계 전환 근거)",
+      "공고 상의 건립 규모(300호, 5개동, 최고 20층, 2개 평형 3개 타입)와 실제 사업 물량(타입별 세대수·층수·동의 수)의 일치 여부",
+      "청약·계약 일정(일반/특별공급 접수, 당첨자 발표, 계약체결, 입주예정)의 확정 근거 및 최초 공지 대비 변경 여부",
+      "공고문·모형도·전시관 안내에서 누락된 지구·블록·세대 표기, 시설(어린이집·유아놀이터·피트니스센터·작은도서관·주민카페 등) 항목 대조"
+    ],
+    "queries": [
+      "시흥거모 공공주택지구 S-1블록 입주자모집공고 원문 site:lh.or.kr",
+      "시흥거모지구 S-1블록 300호 건립 공공분양 공고분양승인 고시일 2026"
+    ],
+    "expected_sources": [
+      "LH 청약플러스 입주자모집공고문(apply.lh.or.kr)",
+      "LH 공식 보도자료 또는 경기남부지역본부 안내 자료",
+      "분양가상한제 적용 기준인 분양승인 관련 고시·승인 서류(분양가격, 전매제한·거주의무 기간 근거 포함)"
+    ],
+    "reconsider_when": "토지이용계획도·단지조감도·투시도, 견본주택(59B·84A 타입) 및 전시관 위치, 분양홈페이지(www.lhsg-s1.co.kr) 행위가 실제 공고문·승인 서류의 평면·타입·세대 표기와 다를 경우, 공고 발행 부서(경기남부지역본부) 및 담당·연락처 정보와 실제 공고물의 발행 주체·날짜가 일치하지 않을 경우, announced dates(2026.10.23 배포, 11.16~11.17 청약, 11.26 당첨자발표, 2027.2 계약체결, 2029.6 입주)가 원문/승인 서류상 일정과 불일치할 경우, 또는 타입별 물량(59A 34호·59B 52호·84A 214호) 합계 300호와 실제 승인·공고 물량 간 차이가 발견될 경우"
+  },
+  "collection": [
+    {
+      "query": "시흥거모 공공주택지구 S-1블록 입주자모집공고 원문 site:lh.or.kr",
+      "response": {
+        "url": "https://www.bing.com/search?format=rss&mkt=ko-KR&q=%EC%8B%9C%ED%9D%A5%EA%B1%B0%EB%AA%A8+%EA%B3%B5%EA%B3%B5%EC%A3%BC%ED%83%9D%EC%A7%80%EA%B5%AC+S-1%EB%B8%94%EB%A1%9D+%EC%9E%85%EC%A3%BC%EC%9E%90%EB%AA%A8%EC%A7%91%EA%B3%B5%EA%B3%A0+%EC%9B%90%EB%AC%B8+site%3Alh.or.kr&setlang=en-US",
+        "sha256": "c2835a1348d69a0eb3e13ab62038f1f3b588ac3460aedd26852179d30ac51348",
+        "bytes": 5590
+      },
+      "stats": {
+        "raw_items": 10,
+        "invalid_url": 0,
+        "invalid_date": 0,
+        "filtered_date": 0,
+        "parsed_rows": 10
+      },
+      "results": [],
+      "status": "COMPLETED"
+    },
+    {
+      "query": "시흥거모지구 S-1블록 300호 건립 공공분양 공고분양승인 고시일 2026",
+      "response": {
+        "url": "https://www.bing.com/search?format=rss&mkt=ko-KR&q=%EC%8B%9C%ED%9D%A5%EA%B1%B0%EB%AA%A8%EC%A7%80%EA%B5%AC+S-1%EB%B8%94%EB%A1%9D+300%ED%98%B8+%EA%B1%B4%EB%A6%BD+%EA%B3%B5%EA%B3%B5%EB%B6%84%EC%96%91+%EA%B3%B5%EA%B3%A0%EB%B6%84%EC%96%91%EC%8A%B9%EC%9D%B8+%EA%B3%A0%EC%8B%9C%EC%9D%BC+2026&setlang=en-US",
+        "sha256": "6c1029d2141eb4e187a76512bfb6c36e7bf5f1bc19d2289ed8d7967541ba6890",
+        "bytes": 6184
+      },
+      "stats": {
+        "raw_items": 10,
+        "invalid_url": 0,
+        "invalid_date": 0,
+        "filtered_date": 0,
+        "parsed_rows": 10
+      },
+      "results": [],
+      "status": "COMPLETED"
+    }
+  ],
+  "error": "ValueError: 단계별 판단 중복"
+}

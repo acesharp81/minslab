@@ -196,7 +196,7 @@ def process_run(service, store, run, fetcher=None, analyzer=evaluate, discover=d
                 raw=fetcher.get(doc['evidence_url'])
                 from .algorithm_review import extract_approved
                 try:
-                    (title,body,truncated),applied_rule=extract_approved(store,fetcher.last.get('url') or doc['evidence_url'],raw)
+                    (title,body,truncated),applied_rule=extract_approved(store,fetcher.last.get('url') or doc['evidence_url'],raw,fetcher=fetcher)
                 except ValueError:
                     from .publication_capture import capture
                     (title,body,truncated),_=capture(raw,fetcher.last.get('url') or doc['evidence_url'],fetcher)

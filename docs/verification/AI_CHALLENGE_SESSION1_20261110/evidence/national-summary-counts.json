@@ -1,0 +1,28 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:24.627832+09:00",
+  "sql": "SELECT provider,model,count(*) AS saved_summaries,min(created_at) AS first_saved,max(created_at) AS last_saved FROM transcript_utterance_summaries WHERE created_at >= '2026-11-03T00:00:00+09' AND created_at < '2026-11-11T00:00:00+09' GROUP BY provider,model ORDER BY provider,model",
+  "rows": [
+    {
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "saved_summaries": 6551,
+      "first_saved": "2026-11-03T01:33:27.535788+00:00",
+      "last_saved": "2026-11-10T14:58:24.039933+00:00"
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "saved_summaries": 710,
+      "first_saved": "2026-11-04T11:55:04.602784+00:00",
+      "last_saved": "2026-11-04T15:15:28.209255+00:00"
+    },
+    {
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3.5-super-vl:free",
+      "saved_summaries": 3014,
+      "first_saved": "2026-11-03T01:29:59.68676+00:00",
+      "last_saved": "2026-11-10T14:59:50.371187+00:00"
+    }
+  ],
+  "error": null
+}

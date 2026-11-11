@@ -1,0 +1,408 @@
+{
+  "audit_date": "2026-11-03",
+  "policy": "POL_2025_0907",
+  "scope": "수도권 전체 / 177개 대표 사업",
+  "read_only": true,
+  "uncached_matches_screen": {
+    "BUSINESS": true,
+    "APPROVAL": true,
+    "CONSTRUCTION": true,
+    "COMPLETION": true,
+    "SUPPLY": true,
+    "MOVE_IN": true
+  },
+  "ledger": {
+    "as_of": "2026-11-03",
+    "projects": 177,
+    "metrics": {
+      "BUSINESS": {
+        "last": {
+          "date": "2026-10-30",
+          "units": 152802,
+          "confirmed_units": 152794,
+          "policy_confirmed_units": 152794,
+          "review_units": 8,
+          "origin": "SOURCE_OR_MANUAL",
+          "manual_units": 151596,
+          "inferred_units": 147491,
+          "evidence_urls": [
+            "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061189&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027",
+            "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061196&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+          ]
+        },
+        "checkpoints": {
+          "2026-10-22": 152802,
+          "2026-10-23": 152802,
+          "2026-10-28": 152802,
+          "2026-10-30": 152802,
+          "2026-11-03": 152802
+        }
+      },
+      "APPROVAL": {
+        "last": {
+          "date": "2026-10-30",
+          "units": 99462,
+          "confirmed_units": 99454,
+          "policy_confirmed_units": 99454,
+          "review_units": 8,
+          "origin": "SOURCE_OR_MANUAL",
+          "manual_units": 98256,
+          "inferred_units": 86514,
+          "evidence_urls": [
+            "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061189&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027",
+            "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061196&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+          ]
+        },
+        "checkpoints": {
+          "2026-10-22": 99462,
+          "2026-10-23": 99462,
+          "2026-10-28": 99462,
+          "2026-10-30": 99462,
+          "2026-11-03": 99462
+        }
+      },
+      "CONSTRUCTION": {
+        "last": {
+          "date": "2026-10-21",
+          "units": 81131,
+          "confirmed_units": 81131,
+          "policy_confirmed_units": 81131,
+          "review_units": 0,
+          "origin": "SOURCE_OR_MANUAL",
+          "manual_units": 78015,
+          "inferred_units": 69986,
+          "evidence_urls": [
+            "https://dwce.co.kr/business/performance"
+          ]
+        },
+        "checkpoints": {
+          "2026-10-22": 81131,
+          "2026-10-23": 81131,
+          "2026-10-28": 81131,
+          "2026-10-30": 81131,
+          "2026-11-03": 81131
+        }
+      },
+      "COMPLETION": {
+        "last": {
+          "date": "2026-09-16",
+          "units": 697,
+          "confirmed_units": 697,
+          "policy_confirmed_units": 697,
+          "review_units": 0,
+          "origin": "SOURCE_OR_MANUAL",
+          "manual_units": 697,
+          "inferred_units": 0,
+          "evidence_urls": [
+            "https://apply.gh.or.kr/cs/sr/sr7900/selectNoticeDetailView.do?bbsSn=111"
+          ]
+        },
+        "checkpoints": {
+          "2026-10-22": 697,
+          "2026-10-23": 697,
+          "2026-10-28": 697,
+          "2026-10-30": 697,
+          "2026-11-03": 697
+        }
+      },
+      "SUPPLY": {
+        "last": {
+          "date": "2026-10-30",
+          "units": 37772,
+          "confirmed_units": 36348,
+          "policy_confirmed_units": 36348,
+          "review_units": 1424,
+          "origin": "SOURCE_OR_MANUAL",
+          "manual_units": 32021,
+          "inferred_units": 8136,
+          "evidence_urls": [
+            "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061189&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027",
+            "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061196&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027"
+          ]
+        },
+        "checkpoints": {
+          "2026-10-22": 35410,
+          "2026-10-23": 35710,
+          "2026-10-28": 37134,
+          "2026-10-30": 37772,
+          "2026-11-03": 37772
+        }
+      },
+      "MOVE_IN": {
+        "last": null,
+        "checkpoints": {
+          "2026-10-22": null,
+          "2026-10-23": null,
+          "2026-10-28": null,
+          "2026-10-30": null,
+          "2026-11-03": null
+        }
+      }
+    },
+    "recent_events": [
+      {
+        "project_id": "PRO_6a66b31b8f84244d491514e6",
+        "name": "과천지식정보타운 S-12",
+        "cap": 1424,
+        "event": {
+          "stage": "SUPPLY",
+          "event_date": "2026-10-28",
+          "units": 1424,
+          "status": "ACTUAL",
+          "review_status": "REVIEW",
+          "origin": "LINKED_EVIDENCE",
+          "source_id": "lh_notice_detail",
+          "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=2015122300020960&ccrCnntSysDsCd=03&uppAisTpCd=06&aisTpCd=10&mi=1026",
+          "basis": "LH 본 모집공고 게시 확인 · 계약·입주 실적 아님 · 금회 공급 1424호",
+          "date_basis": "EVENT",
+          "source_event_date": "2026-10-28",
+          "observed_on": null,
+          "method": null
+        }
+      },
+      {
+        "project_id": "PRO_6a66b31b8f84244d491514e6",
+        "name": "과천지식정보타운 S-12",
+        "cap": 1424,
+        "event": {
+          "stage": "SUPPLY",
+          "event_date": "2026-10-28",
+          "units": 1424,
+          "status": "ACTUAL",
+          "review_status": "REVIEW",
+          "origin": "LINKED_EVIDENCE",
+          "source_id": "lh_notice_detail",
+          "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=2015122300020960&ccrCnntSysDsCd=03&uppAisTpCd=06&aisTpCd=10&mi=1026",
+          "basis": "LH 본 모집공고 게시 확인 · 계약·입주 실적 아님 · 금회 공급 1424호",
+          "date_basis": "EVENT",
+          "source_event_date": "2026-10-28",
+          "observed_on": null,
+          "method": null
+        }
+      },
+      {
+        "project_id": "PRO_5fd2115e976e1d5bb4e90456",
+        "name": "시흥거모 S1",
+        "cap": 300,
+        "event": {
+          "stage": "SUPPLY",
+          "event_date": "2026-10-23",
+          "units": 300,
+          "status": "ACTUAL",
+          "review_status": "REVIEW",
+          "origin": "LINKED_EVIDENCE",
+          "source_id": "lh_notice_detail",
+          "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061195&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027",
+          "basis": "LH 본 모집공고 게시 확인 · 계약·입주 실적 아님 · 금회 공급 300호",
+          "date_basis": "EVENT",
+          "source_event_date": "2026-10-23",
+          "observed_on": null,
+          "method": null
+        }
+      },
+      {
+        "project_id": "PRO_5fd2115e976e1d5bb4e90456",
+        "name": "시흥거모 S1",
+        "cap": 300,
+        "event": {
+          "stage": "SUPPLY",
+          "event_date": "2026-10-23",
+          "units": 300,
+          "status": "ACTUAL",
+          "review_status": "REVIEW",
+          "origin": "LINKED_EVIDENCE",
+          "source_id": "lh_notice_detail",
+          "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061186&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027",
+          "basis": "LH 본 모집공고 게시 확인 · 계약·입주 실적 아님 · 금회 공급 300호",
+          "date_basis": "EVENT",
+          "source_event_date": "2026-10-23",
+          "observed_on": null,
+          "method": null
+        }
+      },
+      {
+        "project_id": "PRO_5fd2115e976e1d5bb4e90456",
+        "name": "시흥거모 S1",
+        "cap": 300,
+        "event": {
+          "stage": "SUPPLY",
+          "event_date": "2026-10-23",
+          "units": 300,
+          "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061195&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027",
+          "origin": "SOURCE",
+          "source_id": "lh_notice_detail"
+        }
+      },
+      {
+        "project_id": "PRO_f4d0df2ada51ce61f9bb6b72",
+        "name": "안산신길2 A6",
+        "cap": 251,
+        "event": {
+          "stage": "SUPPLY",
+          "event_date": "2026-10-30",
+          "units": 251,
+          "status": "ACTUAL",
+          "review_status": "REVIEW",
+          "origin": "LINKED_EVIDENCE",
+          "source_id": "lh_notice_detail",
+          "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061189&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027",
+          "basis": "LH 본 모집공고 게시 확인 · 계약·입주 실적 아님 · 금회 공급 251호 · 금회 공급 부분 범위; 전체 단지 일정 별도 확인",
+          "date_basis": "EVENT",
+          "source_event_date": "2026-10-30",
+          "observed_on": null,
+          "method": null
+        }
+      },
+      {
+        "project_id": "PRO_f4d0df2ada51ce61f9bb6b72",
+        "name": "안산신길2 A6",
+        "cap": 251,
+        "event": {
+          "stage": "SUPPLY",
+          "event_date": "2026-10-30",
+          "units": 251,
+          "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061189&ccrCnntSysDsCd=02&uppAisTpCd=39&aisTpCd=39&mi=1027",
+          "origin": "SOURCE",
+          "source_id": "lh_notice_detail"
+        }
+      },
+      {
+        "project_id": "PRO_9f9031c8f3a9ef0626b95757",
+        "name": "안산신길2 B1",
+        "cap": 387,
+        "event": {
+          "stage": "SUPPLY",
+          "event_date": "2026-10-30",
+          "units": 387,
+          "status": "ACTUAL",
+          "review_status": "REVIEW",
+          "origin": "LINKED_EVIDENCE",
+          "source_id": "lh_notice_detail",
+          "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061196&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027",
+          "basis": "LH 본 모집공고 게시 확인 · 계약·입주 실적 아님 · 금회 공급 387호",
+          "date_basis": "EVENT",
+          "source_event_date": "2026-10-30",
+          "observed_on": null,
+          "method": null
+        }
+      },
+      {
+        "project_id": "PRO_9f9031c8f3a9ef0626b95757",
+        "name": "안산신길2 B1",
+        "cap": 387,
+        "event": {
+          "stage": "SUPPLY",
+          "event_date": "2026-10-30",
+          "units": 387,
+          "evidence_url": "https://apply.lh.or.kr/lhapply/apply/wt/wrtanc/selectWrtancInfo.do?panId=0000061196&ccrCnntSysDsCd=02&uppAisTpCd=05&aisTpCd=05&mi=1027",
+          "origin": "SOURCE",
+          "source_id": "lh_notice_detail"
+        }
+      }
+    ],
+    "stage_audit_counts": {
+      "STAGE_PROPOSED": 221
+    },
+    "latest_profile": "2026-10-22 09:15:25.606116+00:00",
+    "recent_revision_counts": [
+      {
+        "kind": "evidence_bridge",
+        "source_id": "cross_source",
+        "count": 129,
+        "latest": "2026-11-03 00:32:30.288143+00:00"
+      },
+      {
+        "kind": "general_permit",
+        "source_id": "building_general_permit",
+        "count": 73421,
+        "latest": "2026-11-02 19:41:44.978866+00:00"
+      },
+      {
+        "kind": "permit",
+        "source_id": "building_hub",
+        "count": 34118,
+        "latest": "2026-11-02 16:29:56.515486+00:00"
+      },
+      {
+        "kind": "permit",
+        "source_id": "building_hub_incheon",
+        "count": 9232,
+        "latest": "2026-11-01 16:10:55.987314+00:00"
+      },
+      {
+        "kind": "project",
+        "source_id": "ih_notice",
+        "count": 42,
+        "latest": "2026-11-02 16:14:03.131784+00:00"
+      },
+      {
+        "kind": "project",
+        "source_id": "lh_progress",
+        "count": 6,
+        "latest": "2026-10-30 09:54:19.521140+00:00"
+      },
+      {
+        "kind": "project",
+        "source_id": "sh_inventory",
+        "count": 1,
+        "latest": "2026-11-02 16:08:36.489240+00:00"
+      },
+      {
+        "kind": "stage_evidence",
+        "source_id": "stage_match",
+        "count": 212034,
+        "latest": "2026-11-02 18:12:49.110595+00:00"
+      }
+    ]
+  },
+  "review": {
+    "total": 138,
+    "by_stage": {
+      "COMPLETION": 1,
+      "APPROVAL": 68,
+      "BUSINESS": 44,
+      "CONSTRUCTION": 8,
+      "SUPPLY": 17
+    },
+    "by_status": {
+      "HOLD": 138
+    },
+    "auto_eligible": 0,
+    "manual_gate_pass": 30,
+    "body_status": {
+      "PINNED_TEXT": 1,
+      "MISSING": 137
+    },
+    "identity_unconfirmed": 123,
+    "blockers": {
+      "선택한 단계 근거의 원천 판본 변경 · 단계 연결을 재검토하세요": 83,
+      "사업 목표량 이내의 확인 물량 필요": 98,
+      "확정된 착공 일자와 선후관계 상충": 24,
+      "확정된 인허가 일자와 선후관계 상충": 28,
+      "사업별 실적 물량의 적용 범위 확인 필요": 2
+    }
+  },
+  "interpretation": [
+    "checkpoints는 현재 원장에 담긴 사건일 기준 누적 재구성이며 과거 접속일별 화면 스냅샷이 아니다.",
+    "수집된 인허가 레코드/판본 개수와 정책 연결 사업의 인허가 누적 호수는 다르다.",
+    "자료 연결 승인은 단계별 실제 일자·물량 확정과 별개다. 11/03 검토 작업의 실적 추가량은 0호다.",
+    "공급 37,772호에는 검토 연결 물량 1,424호가 포함된다. 전체를 최종 확정 실적으로 표현하지 않는다.",
+    "착공의 수집 공정률 3개 사업 1,790호는 기존 추정 집계에 이미 포함되므로 확인 자료 추가로 중복 가산하지 않는다.",
+    "승인 후 집계 누락이나 캐시 불일치는 이번 점검에서 발견되지 않았다. 단계 실적 확정 전 증빙·동일 사업·물량 범위 확인이 병목이다."
+  ],
+  "verification": {
+    "tests_passed": 72,
+    "warnings": 1,
+    "suites": [
+      "stage_reconciliation",
+      "policy_delivery_comparison",
+      "policy_delivery_view",
+      "projection_cache"
+    ],
+    "health": {
+      "status": "ok",
+      "service": "home",
+      "scope": "SEOUL_GYEONGGI"
+    }
+  }
+}

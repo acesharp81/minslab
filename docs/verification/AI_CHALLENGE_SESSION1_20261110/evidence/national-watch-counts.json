@@ -1,0 +1,106 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:24.721276+09:00",
+  "sql": "SELECT n.is_test,n.notification_type,o.channel,o.status,count(*) AS notification_outbox_rows,min(n.created_at) AS first_notification,max(n.created_at) AS last_notification FROM watch_notifications n LEFT JOIN notification_outbox o ON o.notification_id=n.id GROUP BY n.is_test,n.notification_type,o.channel,o.status ORDER BY 1,2,3,4",
+  "rows": [
+    {
+      "is_test": false,
+      "notification_type": "DIGEST",
+      "channel": "IN_APP",
+      "status": "SENT",
+      "notification_outbox_rows": 819,
+      "first_notification": "2026-09-17T07:47:02.914847+00:00",
+      "last_notification": "2026-11-10T13:58:03.287964+00:00"
+    },
+    {
+      "is_test": false,
+      "notification_type": "DIGEST",
+      "channel": "KAKAO",
+      "status": "FAILED",
+      "notification_outbox_rows": 5,
+      "first_notification": "2026-11-10T02:00:43.255268+00:00",
+      "last_notification": "2026-11-10T13:49:25.468952+00:00"
+    },
+    {
+      "is_test": false,
+      "notification_type": "DIGEST",
+      "channel": "KAKAO",
+      "status": "SENT",
+      "notification_outbox_rows": 175,
+      "first_notification": "2026-10-22T04:53:49.990163+00:00",
+      "last_notification": "2026-11-10T13:58:03.287964+00:00"
+    },
+    {
+      "is_test": false,
+      "notification_type": "MATCH",
+      "channel": "IN_APP",
+      "status": "SENT",
+      "notification_outbox_rows": 991,
+      "first_notification": "2026-09-17T06:55:23.060261+00:00",
+      "last_notification": "2026-11-10T14:54:19.059352+00:00"
+    },
+    {
+      "is_test": false,
+      "notification_type": "MATCH",
+      "channel": "KAKAO",
+      "status": "FAILED",
+      "notification_outbox_rows": 16,
+      "first_notification": "2026-11-10T01:09:37.572009+00:00",
+      "last_notification": "2026-11-10T14:04:44.175801+00:00"
+    },
+    {
+      "is_test": false,
+      "notification_type": "MATCH",
+      "channel": "KAKAO",
+      "status": "SENT",
+      "notification_outbox_rows": 362,
+      "first_notification": "2026-10-06T01:30:01.478691+00:00",
+      "last_notification": "2026-11-10T14:54:19.059352+00:00"
+    },
+    {
+      "is_test": false,
+      "notification_type": "TOPIC_COMPLETE",
+      "channel": "IN_APP",
+      "status": "SENT",
+      "notification_outbox_rows": 1615,
+      "first_notification": "2026-10-22T04:53:49.990163+00:00",
+      "last_notification": "2026-11-10T14:53:50.982248+00:00"
+    },
+    {
+      "is_test": false,
+      "notification_type": "TOPIC_COMPLETE",
+      "channel": "KAKAO",
+      "status": "FAILED",
+      "notification_outbox_rows": 30,
+      "first_notification": "2026-11-10T01:19:08.09959+00:00",
+      "last_notification": "2026-11-10T14:53:50.982248+00:00"
+    },
+    {
+      "is_test": false,
+      "notification_type": "TOPIC_COMPLETE",
+      "channel": "KAKAO",
+      "status": "SENT",
+      "notification_outbox_rows": 550,
+      "first_notification": "2026-10-22T04:53:49.990163+00:00",
+      "last_notification": "2026-11-10T14:53:50.982248+00:00"
+    },
+    {
+      "is_test": true,
+      "notification_type": "DIGEST",
+      "channel": "IN_APP",
+      "status": "SENT",
+      "notification_outbox_rows": 1,
+      "first_notification": "2026-08-28T13:25:18.4884+00:00",
+      "last_notification": "2026-08-28T13:25:18.4884+00:00"
+    },
+    {
+      "is_test": true,
+      "notification_type": "MATCH",
+      "channel": "IN_APP",
+      "status": "SENT",
+      "notification_outbox_rows": 67,
+      "first_notification": "2026-08-28T11:13:55.447778+00:00",
+      "last_notification": "2026-08-28T13:25:15.371482+00:00"
+    }
+  ],
+  "error": null
+}

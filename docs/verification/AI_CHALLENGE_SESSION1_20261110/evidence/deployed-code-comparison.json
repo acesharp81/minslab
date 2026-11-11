@@ -1,0 +1,70 @@
+[
+  {
+    "project": "home",
+    "container": "poc10-home-api",
+    "local_path": "PoC/10-home/backend/dataset_slices.py",
+    "local_sha256": "e32ba513bef9e8efb4c55420c1cc40d6c3860039a5f2c1488780c211889c9610",
+    "deployed_sha256": "e32ba513bef9e8efb4c55420c1cc40d6c3860039a5f2c1488780c211889c9610",
+    "same": true
+  },
+  {
+    "project": "home",
+    "container": "poc10-home-api",
+    "local_path": "PoC/10-home/backend/algorithm_review.py",
+    "local_sha256": "5522e935a2a509448654ec624fc694bddec98c3db4fb2824a23e2ad1d16af505",
+    "deployed_sha256": "5522e935a2a509448654ec624fc694bddec98c3db4fb2824a23e2ad1d16af505",
+    "same": true
+  },
+  {
+    "project": "home",
+    "container": "poc10-home-api",
+    "local_path": "PoC/10-home/backend/ai_officer_decisions.py",
+    "local_sha256": "8dfaf349e1313a93d518233c768599b80b40b8d5b845d2b2ce548799ef308908",
+    "deployed_sha256": "8dfaf349e1313a93d518233c768599b80b40b8d5b845d2b2ce548799ef308908",
+    "same": true
+  },
+  {
+    "project": "home",
+    "container": "poc10-home-api",
+    "local_path": "PoC/10-home/backend/policy_delivery.py",
+    "local_sha256": "67087effc4c17a89f0494248e5753f7c84840f023560c1f96e0d42f805deaa87",
+    "deployed_sha256": "67087effc4c17a89f0494248e5753f7c84840f023560c1f96e0d42f805deaa87",
+    "same": true
+  },
+  {
+    "project": "national",
+    "container": "poc07-national-assembly-api",
+    "local_path": "PoC/07-NationalAssembly/backend/app/main.py",
+    "deployed_path": "/app/backend/app/main.py",
+    "local_sha256": "4b788e7b918054af9da26339fe32385e20bf23a3c6540f810969e3cabe3ad958",
+    "deployed_sha256": "4b788e7b918054af9da26339fe32385e20bf23a3c6540f810969e3cabe3ad958",
+    "same": true
+  },
+  {
+    "project": "national",
+    "container": "poc07-national-assembly-api",
+    "local_path": "PoC/07-NationalAssembly/backend/app/services/summary_contract.py",
+    "deployed_path": "/app/backend/app/services/summary_contract.py",
+    "local_sha256": "43d6ff05a5009861b7a9bba04087330e92ea23cd6948cd5e5ac1e8c17eeed91e",
+    "deployed_sha256": "43d6ff05a5009861b7a9bba04087330e92ea23cd6948cd5e5ac1e8c17eeed91e",
+    "same": true
+  },
+  {
+    "project": "national",
+    "container": "poc07-national-assembly-api",
+    "local_path": "PoC/07-NationalAssembly/backend/app/services/official_evidence_presentation.py",
+    "deployed_path": "/app/backend/app/services/official_evidence_presentation.py",
+    "local_sha256": "38f36f311ffbcbadb121e9f0c7e3af3b6cc0107e33e05f931a67f882282b8751",
+    "deployed_sha256": "38f36f311ffbcbadb121e9f0c7e3af3b6cc0107e33e05f931a67f882282b8751",
+    "same": true
+  },
+  {
+    "project": "national",
+    "container": "poc07-national-assembly-api",
+    "local_path": "PoC/07-NationalAssembly/backend/app/domain/assembly_expansion.py",
+    "deployed_path": "/app/backend/app/domain/assembly_expansion.py",
+    "local_sha256": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+    "deployed_sha256": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+    "same": true
+  }
+]

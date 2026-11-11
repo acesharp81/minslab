@@ -1,0 +1,158 @@
+{
+  "PoC/10-home/backend/general_building_permits.py": {
+    "sha256": "09c529d44a0a6c07d708fd5716077d53735402622ba41e1b59168984415e8bb5",
+    "lines": 88
+  },
+  "PoC/10-home/backend/lh_notice_detail.py": {
+    "sha256": "afe4e7e4213fb7b645146f4171e0c198f7b023c6a40c8f249ecacd3b4548260a",
+    "lines": 172
+  },
+  "PoC/10-home/backend/identity.py": {
+    "sha256": "fc8f1a691f8f385723bbbc649d6d2416e4a66653d83381ecbbd0a3dda51c7708",
+    "lines": 224
+  },
+  "PoC/10-home/backend/ai_agent_workflows.py": {
+    "sha256": "9f03f4c1012f595cf23efb9e8de23c99a69658f1882abd3f8cbfee80ba4e1b62",
+    "lines": 258
+  },
+  "PoC/10-home/backend/algorithm_review.py": {
+    "sha256": "5522e935a2a509448654ec624fc694bddec98c3db4fb2824a23e2ad1d16af505",
+    "lines": 208
+  },
+  "PoC/10-home/backend/ai_officer_decisions.py": {
+    "sha256": "8dfaf349e1313a93d518233c768599b80b40b8d5b845d2b2ce548799ef308908",
+    "lines": 427
+  },
+  "PoC/10-home/backend/officer_campaign.py": {
+    "sha256": "c164c7be7746819682bec4b9c12fdcb3cb78be08d0769fd434a84894214d397f",
+    "lines": 324
+  },
+  "PoC/10-home/backend/policy_delivery.py": {
+    "sha256": "67087effc4c17a89f0494248e5753f7c84840f023560c1f96e0d42f805deaa87",
+    "lines": 389
+  },
+  "PoC/10-home/backend/policy_delivery_comparison.py": {
+    "sha256": "28d419652fca9116259f40e6bd56c95b9ab1d355a58a033c51a6122f359d996d",
+    "lines": 253
+  },
+  "PoC/10-home/backend/policy_delivery_view.py": {
+    "sha256": "ec4dbce0cb306e6ca85b6546215a8dc50f9d409557abe5b39828d0fc532c328f",
+    "lines": 114
+  },
+  "PoC/10-home/backend/ai_collection_models.py": {
+    "sha256": "c4162732c0fe03fa5d5087316c5d418a1e24d589df106b9562ce09b1c3c4b8b9",
+    "lines": 214
+  },
+  "PoC/10-home/backend/ai_agents_store.py": {
+    "sha256": "e606ba2ed4686e0315e6a5b767dd914d551899335fe351a46ff85ef69066bb20",
+    "lines": 109
+  },
+  "PoC/10-home/backend/dataset_slices.py": {
+    "sha256": "e32ba513bef9e8efb4c55420c1cc40d6c3860039a5f2c1488780c211889c9610",
+    "lines": 490
+  },
+  "PoC/10-home/backend/app.py": {
+    "sha256": "89a5715fef8c7fe1e63ec17f49b2451a75ccb6a691f35252ce15f10c709a8d74",
+    "lines": 1471
+  },
+  "PoC/10-home/backend/slice_contract/tools/ledger/home-slice.py": {
+    "sha256": "63df9101005255c2e34ca5907284e8abc8dfd460ff75cc798c02198cad23fbf2",
+    "lines": 683
+  },
+  "PoC/10-home/backend/db.py": {
+    "sha256": "0b43f119eddaba9681e4b6624801703d9aa27ff403fce9271afbbc67e170b617",
+    "lines": 347
+  },
+  "PoC/10-home/scripts/confirm_yeonnam_sh_identity_20261020.py": {
+    "sha256": "4ae5bc781eb55e2a2f25ed451549117303edb35c97957df93b11b92a58c2f5f1",
+    "lines": 179
+  },
+  "PoC/07-NationalAssembly/backend/app/services/watch_matcher.py": {
+    "sha256": "e0a717a1b263a222466ddbd4a1d64443edcfc1062a61af58d4bcf6738c00db04",
+    "lines": 72
+  },
+  "PoC/07-NationalAssembly/backend/app/services/watch_lifecycle.py": {
+    "sha256": "bdae66b77b8a99e2c1e9541bee7eff14994d3a43604525a98f860bcc16d3aa87",
+    "lines": 152
+  },
+  "PoC/07-NationalAssembly/backend/app/db/watch_delivery_repository.py": {
+    "sha256": "6e5a812c74406a6a28b3e1af25b581b475343dc4a87a9721a2945dca37f3ef7e",
+    "lines": 333
+  },
+  "PoC/07-NationalAssembly/backend/app/main.py": {
+    "sha256": "9e1c650baa01f06dfff20eff682e389545ed4c43b39506605b84ebccdd23484a",
+    "lines": 3424
+  },
+  "PoC/07-NationalAssembly/backend/app/services/meeting_topic_groups.py": {
+    "sha256": "3091bf65674aabc2b5f004cebbb8e9f7e31e527ea3df8cc36bb54b4b9082b82a",
+    "lines": 1547
+  },
+  "PoC/07-NationalAssembly/backend/app/services/task_source_links.py": {
+    "sha256": "d47d4dd8c66cc9fa8028cefcd9465c067cb4ccd59ce299e03038865f5d94360e",
+    "lines": 102
+  },
+  "PoC/07-NationalAssembly/backend/app/services/topic_report_coverage.py": {
+    "sha256": "0559eea5a7641c62d3b3759edb5a0ab0d09a3025c4b1b072255f40041c3505d9",
+    "lines": 23
+  },
+  "PoC/07-NationalAssembly/backend/app/services/summary_contract.py": {
+    "sha256": "43d6ff05a5009861b7a9bba04087330e92ea23cd6948cd5e5ac1e8c17eeed91e",
+    "lines": 273
+  },
+  "PoC/07-NationalAssembly/backend/app/services/summary_client.py": {
+    "sha256": "b6f302fa24fa97beab814843eed89fb696903049452f5817541c94cef4a8daba",
+    "lines": 66
+  },
+  "PoC/07-NationalAssembly/backend/app/services/summary_cache.py": {
+    "sha256": "6b488ccaa682b0500791a5384412706b69858cc0717f8cc5e1dcf0f5307032a1",
+    "lines": 291
+  },
+  "PoC/07-NationalAssembly/backend/app/ingestion/summary_worker.py": {
+    "sha256": "5cd45c4e0aade04692a249d68ac4b47ced4df3596a13c7462874f11884943d5f",
+    "lines": 301
+  },
+  "PoC/07-NationalAssembly/backend/app/db/summary_repository.py": {
+    "sha256": "cd8fcb867150d82e2111396894fe5234478ab2a74fcfc7afd945fc83e046306d",
+    "lines": 433
+  },
+  "PoC/07-NationalAssembly/backend/app/services/official_evidence_presentation.py": {
+    "sha256": "38f36f311ffbcbadb121e9f0c7e3af3b6cc0107e33e05f931a67f882282b8751",
+    "lines": 287
+  },
+  "PoC/07-NationalAssembly/backend/app/db/official_integration_repository.py": {
+    "sha256": "391912dd7e179585ead071b11f7d330c3d21f87a90a71ffcb1ccfa39d404965b",
+    "lines": 310
+  },
+  "PoC/07-NationalAssembly/backend/app/services/official_change_report.py": {
+    "sha256": "6f51e4810ae703215c3e07a75422768fb6ea690f27fddd879ffd64d6319814aa",
+    "lines": 335
+  },
+  "PoC/07-NationalAssembly/web/meeting-report-document.js": {
+    "sha256": "4c3cfe5b1d1b3a8834b5c1e468fd626cabe0b083a4fb7d8646b4b3c498675bd8",
+    "lines": 268
+  },
+  "PoC/07-NationalAssembly/backend/app/db/meeting_brief_repository.py": {
+    "sha256": "e8c001ff4c43bdfd8bf9bfdedfd8fc7d63baf33cc5a64d9d1f591508220adfa3",
+    "lines": 533
+  },
+  "PoC/07-NationalAssembly/backend/app/services/cross_institution_flow.py": {
+    "sha256": "10d3aa2b4b7cef8e803fa47bbf1a68b0b3cbff786c2a06255cf0284d94f5d47f",
+    "lines": 316
+  },
+  "PoC/07-NationalAssembly/backend/app/db/policy_issue_repository.py": {
+    "sha256": "c022b0b69ac46308377fc211eff7c5dfe755b088883fd27dfb9984ab14b14b12",
+    "lines": 129
+  },
+  "PoC/07-NationalAssembly/backend/app/services/model_workloads.py": {
+    "sha256": "8dae79ac15f6699128490b89a267dcce7ed43856ba264e0d00edd628452138e4",
+    "lines": 29
+  },
+  "PoC/07-NationalAssembly/backend/app/services/shared_budget.py": {
+    "sha256": "b115a1855028ec8bc6a33784e93ac5e6097a2b43c5f12ee12602bc02c1a72a39",
+    "lines": 178
+  },
+  "PoC/07-NationalAssembly/backend/app/services/mistral_transcription.py": {
+    "sha256": "7a36a423f02d80b21732b2ca4e71355e4fd2e12390d82ae4a8682e6bb53a28d1",
+    "lines": 88
+  }
+}

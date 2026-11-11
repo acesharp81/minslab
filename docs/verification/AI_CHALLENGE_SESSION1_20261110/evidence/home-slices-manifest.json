@@ -1,0 +1,616 @@
+{
+  "alembic_version": "0018_snapshot_content",
+  "current": {
+    "area_stat": {
+      "count": 2742,
+      "digest": "04b982d3fbcd9bc4818c493692a8181a96424a0786a071ad785c43cddb45295c"
+    },
+    "block_location": {
+      "count": 288,
+      "digest": "794198ca852311e2553631a8c12a0cb13cdef45afc393800c5eacb4ce1d4b80a"
+    },
+    "collection_link": {
+      "count": 910,
+      "digest": "328213f57088f19a53f2cdf65ef9b0ac74c2999825c21f2e0d39509e81a5e5e2"
+    },
+    "delivery_setting": {
+      "count": 0,
+      "digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "district": {
+      "count": 37,
+      "digest": "4c1ebb7c7050d353b021d24314df74b7443ac0b47026ee5e4706b4826d27c6b9"
+    },
+    "document_evidence": {
+      "count": 2513,
+      "digest": "17efcf10933b247f6cdff59b5780bdae457f4f14fda227ed6590d00a2df78d96"
+    },
+    "evidence_bridge": {
+      "count": 878,
+      "digest": "42722b32955ca0facbef19cddb8ba10d74026a3965dcff55618baef88928fe37"
+    },
+    "execution_schedule": {
+      "count": 1847,
+      "digest": "eca32d1715ca2c8fd7ad29e159ef2179fc8944da423e5ee63107108b8febc43c"
+    },
+    "gh_notice": {
+      "count": 697,
+      "digest": "996e229287894e6ecf8b00425949c27249ebfc405425653244411028570601ff"
+    },
+    "home_audit": {
+      "count": 4549,
+      "digest": "21e93375be11a7877fa125073107469a9626f425b6d6b2fa73dfd88e042979f7"
+    },
+    "home_batch": {
+      "count": 16174,
+      "digest": "278d22d0b7b867f060107f3d570d2cf0f61f8b0ab380eba84c79d36108137eee"
+    },
+    "lh_completion_plan": {
+      "count": 204,
+      "digest": "fd53d8520f951ee02dcf60a18df46cb589a262e41c9f06341298a3601669d99a"
+    },
+    "lh_movein_plan": {
+      "count": 252,
+      "digest": "4ac2eb88783dff350d32964a6adb0caff51562e04feb6375f2511110aa00715b"
+    },
+    "lh_notice": {
+      "count": 4049,
+      "digest": "0ca7fa10ecae6994124990d5c1b1716a5943418199f99aa271189627574e4c2f"
+    },
+    "mapping_decision": {
+      "count": 64,
+      "digest": "916f80c2dbd57360de9b280b61a710f9c9cfad381f7fe02c26972de1d4e40e7e"
+    },
+    "municipality": {
+      "count": 56,
+      "digest": "7c07c41b4a114aa48e79f6c3f71ed81a2c2cec5f9d367755f4441b2f4149b687"
+    },
+    "notice": {
+      "count": 1363,
+      "digest": "34dc77026c199f6bb0c25b94aaa6f0d89f5383c692dd1f02c2b537377e711b05"
+    },
+    "policy": {
+      "count": 3,
+      "digest": "1cb9a41f2136d6d0c99500d340a66e76a0457ca2e5a44373acf272608aa75e52"
+    },
+    "policy_delivery_plan": {
+      "count": 1,
+      "digest": "bbd823cf9e487c017e8d94f498ea779b411050417b4718c8ff263be1e1d29759"
+    },
+    "policy_municipality": {
+      "count": 11,
+      "digest": "a979c2074089228d89192cd8c0d5f4ae2a513f2aebf1a1bc75f4ddebbcb36633"
+    },
+    "project": {
+      "count": 455,
+      "digest": "34db52d0845314ca6c8a3be15a18f833179cc47cad3b697075966a3f4b1b76b0"
+    },
+    "project_location": {
+      "count": 315,
+      "digest": "161bb0746062ad57fa5d98b266fc28deb7509e17829bd02e76872897cdb3f18e"
+    },
+    "project_profile": {
+      "count": 323,
+      "digest": "de8ed8a1be6160c9651c0882be0f595ae4f854c9e5350291aa5b004a10a415a8"
+    },
+    "project_report": {
+      "count": 1502,
+      "digest": "3a6f49b0b0381e6b2466a2325f3902fddbc55405ad0f5f7ee20f8ae64389785d"
+    },
+    "stage_evidence": {
+      "count": 910,
+      "digest": "f23b1b1f23430ef99657c973fef127039a43907cb607047be363df77390078a4"
+    },
+    "statistic": {
+      "count": 5451,
+      "digest": "217f3bf15da93197341f0e4e579c1f4debed0763baf35e2ad6d430458926fd09"
+    },
+    "unsold": {
+      "count": 1938,
+      "digest": "758d6ccc9a497d3741e45aa2305b1642c5da6f4ab52b967b9a2654756575c573"
+    }
+  },
+  "dump_sha256": null,
+  "files": {
+    "api/policy-plan-97.json": {
+      "fetched_at": "2026-11-10T08:55:47.790674+00:00",
+      "rows": null,
+      "sha256": "1570714e703ac89e582fa2d7f1fcb7e67dbb87bfbcb8c135cb8cb75be52a8245"
+    },
+    "api/projects-map-dashboard-97.json": {
+      "fetched_at": "2026-11-10T08:55:48.711218+00:00",
+      "rows": null,
+      "sha256": "4b9434f5ee6cfeb28d70a378137962be2b48dd392af433799c172154aa8260be"
+    },
+    "api/projects-map-dashboard.json": {
+      "fetched_at": "2026-11-10T08:55:58.559216+00:00",
+      "rows": null,
+      "sha256": "227f3c230eba263cc3f78ea19e42cb82740f862efb45acefbc39b5bc5646222f"
+    },
+    "api/projects-policy-delivery-97.json": {
+      "fetched_at": "2026-11-10T08:55:58.559245+00:00",
+      "rows": null,
+      "sha256": "1570714e703ac89e582fa2d7f1fcb7e67dbb87bfbcb8c135cb8cb75be52a8245"
+    },
+    "api/sources-list.json": {
+      "fetched_at": "2026-11-10T08:55:58.936343+00:00",
+      "rows": null,
+      "sha256": "de16977d35cfa4c1512dfdf54fd69f58644afe9f01bfdf1c7a35b2f4f6e1f172"
+    },
+    "api/sources-mappings.json": {
+      "fetched_at": "2026-11-10T08:55:59.707140+00:00",
+      "rows": null,
+      "sha256": "0ed55d62e0180430e59be6acc029911509d1d9150ea39ed140b9e8b98f9ea143"
+    },
+    "api/sources-requirements.json": {
+      "fetched_at": "2026-11-10T08:55:59.735933+00:00",
+      "rows": null,
+      "sha256": "0fbd8a47187125fc596df2d617980657fed466369dc66da51e464b06fa80a402"
+    },
+    "api/sources-summary.json": {
+      "fetched_at": "2026-11-10T08:56:38.341326+00:00",
+      "rows": null,
+      "sha256": "84214f4036926b05559268b1cff6f08b24052259f5000669e4cc07f20e544058"
+    },
+    "api/sources-validation.json": {
+      "fetched_at": "2026-11-10T08:56:40.439841+00:00",
+      "rows": null,
+      "sha256": "be5a694e4abc6143d95a683c14622b715986836c40cc7040c46cbc447d9a8389"
+    },
+    "api/sources-year-coverage.json": {
+      "fetched_at": "2026-11-10T08:56:40.739295+00:00",
+      "rows": null,
+      "sha256": "71b87b0d1c9f870c8c1534951c37d3d92cb9ab5359107218bf86382bacda18fa"
+    },
+    "golden/S1-mappings.json": {
+      "fetched_at": "2026-11-10T08:56:41.905341+00:00",
+      "rows": null,
+      "sha256": "0ed55d62e0180430e59be6acc029911509d1d9150ea39ed140b9e8b98f9ea143"
+    },
+    "golden/S1-policies.json": {
+      "fetched_at": "2026-11-10T08:56:40.759764+00:00",
+      "rows": null,
+      "sha256": "f3d11e8d6610902daa57ef128ea54c649bd53fb151cf667b9be61e043f1ec7d2"
+    },
+    "golden/S1-policy-monitor.json": {
+      "fetched_at": "2026-11-10T08:56:41.905316+00:00",
+      "rows": null,
+      "sha256": "24de85cee6fe0214e0c039bb1a8a162e30a7f134f472fb199f6e35612f41f067"
+    },
+    "golden/S1-view-policy.json": {
+      "fetched_at": "2026-11-10T08:56:40.739315+00:00",
+      "rows": null,
+      "sha256": "1570714e703ac89e582fa2d7f1fcb7e67dbb87bfbcb8c135cb8cb75be52a8245"
+    },
+    "golden/S1-view-program-PRG_020e0b071c49f1252a842091.json": {
+      "fetched_at": "2026-11-10T08:56:46.071502+00:00",
+      "rows": null,
+      "sha256": "6ba49bfac0930f09eabd573d2090425438ee8d0d136c9ff94a96c133dd146a91"
+    },
+    "golden/S1-view-program-PRG_04e9c4a2bb65213c39564ea6.json": {
+      "fetched_at": "2026-11-10T08:56:58.691578+00:00",
+      "rows": null,
+      "sha256": "a92f6d667f51b8fcb88d52a386b8856f9fb55261b71c1f44ff20e8735990afa0"
+    },
+    "golden/S1-view-program-PRG_0ad23744f50b40d59eb6049f.json": {
+      "fetched_at": "2026-11-10T08:56:49.720687+00:00",
+      "rows": null,
+      "sha256": "65218dcc55c64cd91ee6b90aeac522ab59a0ab8c2012e7ee7a08fefdccb401d5"
+    },
+    "golden/S1-view-program-PRG_16763ba14e91d17c6c7011de.json": {
+      "fetched_at": "2026-11-10T08:56:43.773105+00:00",
+      "rows": null,
+      "sha256": "338e4befbaf11bf984f2c6a682303df4a6699aad7b7b85d3ff9a6b6a74267c81"
+    },
+    "golden/S1-view-program-PRG_16ef9eb33f8c7592571f1d75.json": {
+      "fetched_at": "2026-11-10T08:56:50.823954+00:00",
+      "rows": null,
+      "sha256": "05998ae0f58b749a4f10c409ffb9952acac5ce8be51c70a4ef3cd46612175fec"
+    },
+    "golden/S1-view-program-PRG_1bb8c2898f442905b7224bac.json": {
+      "fetched_at": "2026-11-10T08:56:52.640121+00:00",
+      "rows": null,
+      "sha256": "2a1e075641caafb6ee83b036d31c17934726d4bfbac75ef2af2f321dca2bb2e6"
+    },
+    "golden/S1-view-program-PRG_1c5b82d3c0550e744941eb29.json": {
+      "fetched_at": "2026-11-10T08:56:45.529826+00:00",
+      "rows": null,
+      "sha256": "43a56bee1225a8e3d9a0a46e6aaec51f81f7c2bcf2133af92e6036c8dfc6305a"
+    },
+    "golden/S1-view-program-PRG_202a914f7eb0ab38a6e91d4f.json": {
+      "fetched_at": "2026-11-10T08:56:43.126428+00:00",
+      "rows": null,
+      "sha256": "c4217daf9356cfde25cdaaa30a95b56ba3531b207d6c10b7db8d3a2fccf5e6ca"
+    },
+    "golden/S1-view-program-PRG_20e942d14cb94305c9e562e8.json": {
+      "fetched_at": "2026-11-10T08:57:00.688877+00:00",
+      "rows": null,
+      "sha256": "85f8f96b46c6a285c570c25db61d9fc68a4b3eb47dd1ad6d7a95e8f7689b9cbe"
+    },
+    "golden/S1-view-program-PRG_217c28576c2d937e0d847368.json": {
+      "fetched_at": "2026-11-10T08:56:48.917984+00:00",
+      "rows": null,
+      "sha256": "09cddca48eb99092b4dd089023d3d252a425189c206009e2d991f3c292b0235a"
+    },
+    "golden/S1-view-program-PRG_42bf35c3ba4f105407591e17.json": {
+      "fetched_at": "2026-11-10T08:56:53.171033+00:00",
+      "rows": null,
+      "sha256": "b61377e13bdf01530cb7c4418ec42d5ba769995aeab6e1ccbe6295d22781d362"
+    },
+    "golden/S1-view-program-PRG_4f32948e21b9ea99b45cda59.json": {
+      "fetched_at": "2026-11-10T08:56:53.847803+00:00",
+      "rows": null,
+      "sha256": "c52f5b13f6c41594c50ec13cb9f739721672e65bc7a0539ee5cc1d6ba4ba1d86"
+    },
+    "golden/S1-view-program-PRG_61f7be0b56b1d84e8da213f4.json": {
+      "fetched_at": "2026-11-10T08:56:56.242483+00:00",
+      "rows": null,
+      "sha256": "eb1d1ba45b844dafbc2198f1aa39383abb901fa5a9d3696b2899165097eab5fc"
+    },
+    "golden/S1-view-program-PRG_6ba0492d443a87ea8b931527.json": {
+      "fetched_at": "2026-11-10T08:56:56.768740+00:00",
+      "rows": null,
+      "sha256": "74a6439036cb100d4b5a045210faea347cc695d5e0361520f2514876c043026b"
+    },
+    "golden/S1-view-program-PRG_751246a49ea169e4f0ab016d.json": {
+      "fetched_at": "2026-11-10T08:56:58.071662+00:00",
+      "rows": null,
+      "sha256": "d6a74e692fd94f20cf9e11edf2b816071fddd7a6923cec9d1f84a07ca8281ae5"
+    },
+    "golden/S1-view-program-PRG_79cf11d1011b096101f74acd.json": {
+      "fetched_at": "2026-11-10T08:56:47.121565+00:00",
+      "rows": null,
+      "sha256": "34e6f643b796260f969a52e9d16a7cbd72078be2bb58ec31693c3889b794b027"
+    },
+    "golden/S1-view-program-PRG_7fd0420ba721f1a0ca43fbe7.json": {
+      "fetched_at": "2026-11-10T08:56:44.312864+00:00",
+      "rows": null,
+      "sha256": "7c0e67f5cf4df201c9740b99a3c3080b2377aa898ad14e36c8bc7e994b35e1b4"
+    },
+    "golden/S1-view-program-PRG_86dfda4ba2c6f923c54dba2a.json": {
+      "fetched_at": "2026-11-10T08:56:52.080409+00:00",
+      "rows": null,
+      "sha256": "8788991911bdedeb7fa4c2f4688e6b3f810570d62d005bb7e026a7c63f9db9ce"
+    },
+    "golden/S1-view-program-PRG_8908e168dded9d621c66758a.json": {
+      "fetched_at": "2026-11-10T08:56:51.406155+00:00",
+      "rows": null,
+      "sha256": "5e54084522a489cf5831952e81cde004b86f01fa2b53647c07125837f9013b71"
+    },
+    "golden/S1-view-program-PRG_954aabe957c71fc89c798f3f.json": {
+      "fetched_at": "2026-11-10T08:56:46.594709+00:00",
+      "rows": null,
+      "sha256": "cb8b2095a2347db14e9feb49853ad558e69d2f370782b605a7de3991d048d441"
+    },
+    "golden/S1-view-program-PRG_998aa0e2cad1fb2d3fc231d2.json": {
+      "fetched_at": "2026-11-10T08:56:44.844124+00:00",
+      "rows": null,
+      "sha256": "f05ecec2fe9ea051e6a6891aee4bd77ecaa2b42f169b11720f6752e46b689efe"
+    },
+    "golden/S1-view-program-PRG_a72072dcef61a29049aa821d.json": {
+      "fetched_at": "2026-11-10T08:56:50.261212+00:00",
+      "rows": null,
+      "sha256": "8e0decb5ad8fc0be9925eff3a2feb198793b03ea97acdc761d0893cda1a5116a"
+    },
+    "golden/S1-view-program-PRG_a9056ec884d9e417900fd2cd.json": {
+      "fetched_at": "2026-11-10T08:56:55.670547+00:00",
+      "rows": null,
+      "sha256": "c3f34a0f0b4349078b52731fce2f5be0982b9625183f534620df0473ba6ad455"
+    },
+    "golden/S1-view-program-PRG_ae94560d30e1a7c47107d7d9.json": {
+      "fetched_at": "2026-11-10T08:56:57.367811+00:00",
+      "rows": null,
+      "sha256": "d9150a1ab4502f6ad56ec09d8d17cfc6c711ef98474cabf6af4a908deaa07797"
+    },
+    "golden/S1-view-program-PRG_b488dd0ae4b24ee985d94c17.json": {
+      "fetched_at": "2026-11-10T08:57:00.053232+00:00",
+      "rows": null,
+      "sha256": "695b472c62555db6a464efcd13859bd22f8e001bbd89b54df9b854decae815ca"
+    },
+    "golden/S1-view-program-PRG_d12abb17a52637b66bd63dcd.json": {
+      "fetched_at": "2026-11-10T08:56:54.430602+00:00",
+      "rows": null,
+      "sha256": "14b34ea36667ecf02777b1a60654a73d61daf215a4efb4fc631748c139c30f14"
+    },
+    "golden/S1-view-program-PRG_d5904c5aa7244a84be55ca87.json": {
+      "fetched_at": "2026-11-10T08:56:59.296250+00:00",
+      "rows": null,
+      "sha256": "804d644b464dbbf1e6f84e806f24ec35a22fb55dc97b51e5e3c00b720cded3a8"
+    },
+    "golden/S1-view-program-PRG_ddacbbafb1e59052ba2d1f6c.json": {
+      "fetched_at": "2026-11-10T08:56:47.785317+00:00",
+      "rows": null,
+      "sha256": "afab85072d2e9bb43844ad5293f757fee1d16a4b87c5d701e31da97c564c9a38"
+    },
+    "golden/S1-view-program-PRG_ebcb517f90886388a9700386.json": {
+      "fetched_at": "2026-11-10T08:56:42.564020+00:00",
+      "rows": null,
+      "sha256": "d4deaeadfd1896340c693b2dcb07e2fe54726f5231a201978354676f2afd8942"
+    },
+    "golden/S1-view-program-PRG_f2ab76fe83481a7a3ae1c365.json": {
+      "fetched_at": "2026-11-10T08:56:48.354728+00:00",
+      "rows": null,
+      "sha256": "ae1ddc069f18e6f4b16053d56b8c4048665bf0e56bf3ddfe69c51066b10a5dcb"
+    },
+    "golden/S1-view-program-PRG_f67c1e2ab36bb44b998fc642.json": {
+      "fetched_at": "2026-11-10T08:56:55.010594+00:00",
+      "rows": null,
+      "sha256": "5a9407cbee6419941ea97662e8c54114795f569f1eb3f4c2239c37e888605f94"
+    },
+    "golden/S1-view-region-경기도.json": {
+      "fetched_at": "2026-11-10T08:57:02.565611+00:00",
+      "rows": null,
+      "sha256": "d998e41d18d87b736bf273a8103b0f78dd014c535dd58b550696dfc729f5f8e8"
+    },
+    "golden/S1-view-region-서울특별시.json": {
+      "fetched_at": "2026-11-10T08:57:01.243981+00:00",
+      "rows": null,
+      "sha256": "aeef345d4bc5fb31c64cf8314d4c85a483b82a52815902718524adc303d979d2"
+    },
+    "golden/S1-view-region-인천광역시.json": {
+      "fetched_at": "2026-11-10T08:57:01.811832+00:00",
+      "rows": null,
+      "sha256": "8a05c46e9d7025f7206e2cb798de93bf948d8cd6eaaf5a6468681550ad8b96d9"
+    },
+    "golden/S2-raw-annual-supply.json": {
+      "fetched_at": "2026-11-10T08:57:05.451557+00:00",
+      "rows": null,
+      "sha256": "500cd17c50d530d7a4c30ec2e0c8929f1a9916d393db850510aec577c8c86d68"
+    },
+    "golden/S2-raw-area-context-gyeonggi.json": {
+      "fetched_at": "2026-11-10T08:57:05.498261+00:00",
+      "rows": null,
+      "sha256": "d4df84d39dcfb144a02b9d5e90eeb7bef6ffe89d98218e140c30bdc5e8ef63d0"
+    },
+    "golden/S2-raw-area-context-incheon.json": {
+      "fetched_at": "2026-11-10T08:57:05.479147+00:00",
+      "rows": null,
+      "sha256": "e0effa9e3a480d0215e8568e5957fa6f8154411013e8438834424e2c462dab47"
+    },
+    "golden/S2-raw-area-context-seoul.json": {
+      "fetched_at": "2026-11-10T08:57:05.462694+00:00",
+      "rows": null,
+      "sha256": "66100d85e1e9ec8f48225e7087ab876ce75d0718cece1b6ab786b20720165bb8"
+    },
+    "golden/S2-raw-area-outlook-gyeonggi.json": {
+      "fetched_at": "2026-11-10T08:57:05.505457+00:00",
+      "rows": null,
+      "sha256": "c6c61e9ab32e73655d3a1abed6f15a215f3ced34d047a72961917387fcaa6db2"
+    },
+    "golden/S2-raw-area-outlook-incheon.json": {
+      "fetched_at": "2026-11-10T08:57:05.485819+00:00",
+      "rows": null,
+      "sha256": "1375798f1954cf6271776f514e89f6276542c8cc12a489dc91a0d8cfe74de412"
+    },
+    "golden/S2-raw-area-outlook-seoul.json": {
+      "fetched_at": "2026-11-10T08:57:05.469682+00:00",
+      "rows": null,
+      "sha256": "4c1e4f00362f764ebef9f74ded6a916bb76aa8c7189fba417d72bff92510e815"
+    },
+    "golden/S2-raw-map-dashboard-js.json": {
+      "fetched_at": "2026-11-10T08:57:02.565651+00:00",
+      "rows": null,
+      "sha256": "4b9434f5ee6cfeb28d70a378137962be2b48dd392af433799c172154aa8260be"
+    },
+    "golden/S2-raw-map-dashboard.json": {
+      "fetched_at": "2026-11-10T08:57:02.565645+00:00",
+      "rows": null,
+      "sha256": "227f3c230eba263cc3f78ea19e42cb82740f862efb45acefbc39b5bc5646222f"
+    },
+    "golden/S2-raw-mappings.json": {
+      "fetched_at": "2026-11-10T08:57:02.565640+00:00",
+      "rows": null,
+      "sha256": "0ed55d62e0180430e59be6acc029911509d1d9150ea39ed140b9e8b98f9ea143"
+    },
+    "golden/S2-raw-project-workspace.json": {
+      "fetched_at": "2026-11-10T08:57:03.300502+00:00",
+      "rows": null,
+      "sha256": "3f94d06804c2846d98544c4028269ea6551a8e30c8f5d91bc7e58c1a0fc18d2d"
+    },
+    "golden/S2-raw-tree-js.json": {
+      "fetched_at": "2026-11-10T08:57:05.117081+00:00",
+      "rows": null,
+      "sha256": "709436c77c89c4085ec1320f30b1b47bcbc291e70c88dd7c997353e968e7a09c"
+    },
+    "golden/S2-raw-tree.json": {
+      "fetched_at": "2026-11-10T08:57:04.257823+00:00",
+      "rows": null,
+      "sha256": "b3abb4070a34f82eda4f530b9c7ac90d2b41d06c689c62dd3c206c2804dd87cc"
+    },
+    "golden/S3-api-requests.json": {
+      "fetched_at": "2026-11-10T08:57:51.262931+00:00",
+      "rows": null,
+      "sha256": "1c33bc9d2459bfdce8faacb375a8952778acc45c621e969244aeb398875d5fb1"
+    },
+    "golden/S3-connections.json": {
+      "fetched_at": "2026-11-10T08:57:51.092500+00:00",
+      "rows": null,
+      "sha256": "208ba0d5c2d7269d748851109657832655bbaccb447baef7138c7f8bf711a548"
+    },
+    "golden/S3-data-integrity.json": {
+      "fetched_at": "2026-11-10T08:57:51.298104+00:00",
+      "rows": null,
+      "sha256": "dcef9c2e161dfc1738967ccd47ca4443cb468b0f4e12d65b86cd69f312946404"
+    },
+    "golden/S3-mappings.json": {
+      "fetched_at": "2026-11-10T08:57:50.931929+00:00",
+      "rows": null,
+      "sha256": "0ed55d62e0180430e59be6acc029911509d1d9150ea39ed140b9e8b98f9ea143"
+    },
+    "golden/S3-project-collection.json": {
+      "fetched_at": "2026-11-10T08:57:50.931764+00:00",
+      "rows": null,
+      "sha256": "cc784e00ac7c769f7946689adb0197025dc7dc63718fcbb42916d8196934a05d"
+    },
+    "golden/S3-requirements-status.json": {
+      "fetched_at": "2026-11-10T08:57:51.298120+00:00",
+      "rows": null,
+      "sha256": "0fbd8a47187125fc596df2d617980657fed466369dc66da51e464b06fa80a402"
+    },
+    "golden/S3-samples.json": {
+      "fetched_at": "2026-11-10T08:57:35.455755+00:00",
+      "rows": null,
+      "sha256": "fbe8cb8eadcdf599bab2bac7cf000b7a3156c3ad0fb5e9dee51dfea259e5e349"
+    },
+    "golden/S3-source-summary.json": {
+      "fetched_at": "2026-11-10T08:57:05.505474+00:00",
+      "rows": null,
+      "sha256": "84214f4036926b05559268b1cff6f08b24052259f5000669e4cc07f20e544058"
+    },
+    "golden/S3-sources.json": {
+      "fetched_at": "2026-11-10T08:57:05.505470+00:00",
+      "rows": null,
+      "sha256": "de16977d35cfa4c1512dfdf54fd69f58644afe9f01bfdf1c7a35b2f4f6e1f172"
+    },
+    "golden/S3-validation.json": {
+      "fetched_at": "2026-11-10T08:57:05.505480+00:00",
+      "rows": null,
+      "sha256": "be5a694e4abc6143d95a683c14622b715986836c40cc7040c46cbc447d9a8389"
+    },
+    "slices/area_stat.json": {
+      "rows": 140,
+      "sha256": "e714854d7ac76b9e7ca944b4c7f098faf67061752414c2f5c40e830f91e698f0"
+    },
+    "slices/block_location.json": {
+      "rows": 288,
+      "sha256": "7a0898aa25a7214be54cb0b727028f8ae9165accf70d914439c719616012b1c0"
+    },
+    "slices/collection_link.json": {
+      "rows": 794,
+      "sha256": "30d4e1db5415a3fcf549374d0233dcdbdf26a1885cc417d9272afbde8563d5b0"
+    },
+    "slices/delivery_setting.json": {
+      "rows": 0,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "slices/district.json": {
+      "rows": 37,
+      "sha256": "4f0030563a4da6f4131138747d16cec5239ffbca9f77097fb753d0207a578860"
+    },
+    "slices/document_evidence.json": {
+      "rows": 2250,
+      "sha256": "b19853b7b9d2adcbfb49694e7ac4bb6cd13b08614ad3ccf56b2f1c01e577378d"
+    },
+    "slices/evidence_bridge.json": {
+      "rows": 878,
+      "sha256": "1b00d6f7839751d5568abd2daab1e57e7af9fbd3d859c0a225403fc8ccfbd686"
+    },
+    "slices/execution_schedule.json": {
+      "rows": 11,
+      "sha256": "7880860fd73c48e269cbfd2b9e0b41a7ebed02e40aa3d06857bb67add043a12b"
+    },
+    "slices/gh_notice.json": {
+      "rows": 2,
+      "sha256": "b512f744d3ed760d915d28ecc409a42b6ae4180989f7f87c4e2c2d2b13c15412"
+    },
+    "slices/home_audit.json": {
+      "rows": 3233,
+      "sha256": "07435bbb0b199ce2a1575e6a2188f69e50f66e9357822f91d8019d3211d447b8"
+    },
+    "slices/home_batch.json": {
+      "rows": 8001,
+      "sha256": "ac52e8e834a17922f00648df566ff4c36cdb530ed791856c1ff0f20a5c324bea"
+    },
+    "slices/home_identity_alias.json": {
+      "rows": 4361,
+      "sha256": "0128da1bac63e46c7311fc746800650f97cb538e8a5910f9b7d4d89b29c36c9c"
+    },
+    "slices/home_mapping.json": {
+      "rows": 455,
+      "sha256": "86d44a6674d78f1935f4ee3080d7efbd3bd2a45ce76b49cc97f052bda6c1ea42"
+    },
+    "slices/home_program_mapping.json": {
+      "rows": 45,
+      "sha256": "6d0d4946dc2be95aeab7e7cabc7e6b49dd885cc58e800aeb6bc49d0e41126f03"
+    },
+    "slices/home_project.json": {
+      "rows": 4189,
+      "sha256": "d9b8373b557b71677df51a9a6b1b83ad4ff5753565f35f35925b44f8492aeecb"
+    },
+    "slices/lh_completion_plan.json": {
+      "rows": 0,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "slices/lh_movein_plan.json": {
+      "rows": 252,
+      "sha256": "3824c8cdaff7549093510cfb8dba147849cc6e77e5bd248df2fb7f0069ff0842"
+    },
+    "slices/lh_notice.json": {
+      "rows": 4049,
+      "sha256": "23cae853f714f8754dbeb332b9fdb69ddbca2f1adc05255d2890ca6ba087c4e2"
+    },
+    "slices/mapping_decision.json": {
+      "rows": 64,
+      "sha256": "89b25fc1a4277e5e4142c6672effc09e8eecc6280bfba7db0d9086cae977f333"
+    },
+    "slices/municipality.json": {
+      "rows": 56,
+      "sha256": "2b0a39da4fad6e708348cef05e9d207d5451520694e72a807f16a88f80182c99"
+    },
+    "slices/notice.json": {
+      "rows": 1363,
+      "sha256": "ed8ab909d8e5a71b27aaac9f918a5d2a755fb6e0a130dfd20de62d494ff8b332"
+    },
+    "slices/policy.json": {
+      "rows": 0,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "slices/policy_delivery_plan.json": {
+      "rows": 1,
+      "sha256": "af3563a6c768723455caa0ec2ac6336904749cfbefb32a9f295982a74d28b7c0"
+    },
+    "slices/policy_municipality.json": {
+      "rows": 11,
+      "sha256": "6219b4918d2da368685706b8203ad6aa18b493d21e961e52cb60bb3182aaa231"
+    },
+    "slices/project.json": {
+      "rows": 22,
+      "sha256": "d68ec676673d65d8bdc547bfad01df5231f1f3bea5e43f1b2b38f6b0002d2bdf"
+    },
+    "slices/project_location.json": {
+      "rows": 315,
+      "sha256": "127a7f97dbb9fb07075de8848cb3e4be45eb0242393c42af7efa626c5a371f47"
+    },
+    "slices/project_profile.json": {
+      "rows": 323,
+      "sha256": "793a65bfafb007a662c284c8fd4dced739c0084cedf0af02976a1462cb2ae4ff"
+    },
+    "slices/project_report.json": {
+      "rows": 72,
+      "sha256": "3d67c35d835470338ac493b93863dd24982214c9ec443dd5361d86894932d0d9"
+    },
+    "slices/stage_evidence.json": {
+      "rows": 910,
+      "sha256": "17450796bbd5ccbf63fb41a3f594d4d576c40357ef546720b2b752924a499bb8"
+    },
+    "slices/statistic.json": {
+      "rows": 5437,
+      "sha256": "6281df8498bb776a1c6d29fb19c245760333617cd705b35dfc523b90e0def909"
+    },
+    "slices/unsold.json": {
+      "rows": 1800,
+      "sha256": "e057ce7176f50f3f62e4bfae4f584fd30fdd8140c0d50ffc86737ad212bb182f"
+    },
+    "web/js_policy-decision.js": {
+      "rows": null,
+      "sha256": "de357fe15cdfb1cdc0ecb2fa76b53a02fb096cc853bd6f69220d5acb15b7551d"
+    },
+    "web/js_policy-region-map.js": {
+      "rows": null,
+      "sha256": "30a1af3f2ddb772081c590ee25805f6381d58b5421da6371ac19422131647c5a"
+    },
+    "web/js_policy-stage-flow.js": {
+      "rows": null,
+      "sha256": "2a9dd7c507d7de95b41054a55e33fc3ef0112591695b4f3d08c2a22d162225ea"
+    },
+    "web/js_requirements-manual.js": {
+      "rows": null,
+      "sha256": "f51ec7f7c68a63ba36d43b8341b004b89e36ddfc5e3dda496f3e4ffdd3137cf6"
+    }
+  },
+  "format": "home-slices/1",
+  "removed": {},
+  "since": "2026-10-21 15:00:00+00",
+  "source_commit": "d9657b7f875eaf2fbb2ebed540dfa46715abf787+working-tree.ff0204e690f7",
+  "until": "2026-11-10 08:53:01.171014+00"
+}

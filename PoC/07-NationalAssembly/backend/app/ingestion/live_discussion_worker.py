@@ -15,6 +15,7 @@ from ..db.live_discussion_repository import LiveDiscussionRepository
 from ..db.summary_repository import SummaryRepository
 from ..db.openai_daily_budget import DailyTokenLimitReached
 from ..domain.scope import TARGET_COMMITTEES, NATIONAL_ASSEMBLY_BODIES
+from ..domain.assembly_expansion import meeting_ids
 from ..services.summary_client import summary_identity
 from ..services.live_discussion_classification import classification_request, build_prompt, response_schema, apply_classification, validated_partial_response
 
@@ -89,16 +90,16 @@ def _clear_resumed(c: Any, broadcast_id: Any, turns: list[dict[str, Any]], state
 
 def process_available() -> list[dict[str, Any]]:
     with connect(get_settings().database_url) as c:
-        rows=c.execute("SELECT id FROM live_broadcasts WHERE institution='LEGISLATURE' AND source_system='assembly.webcast.go.kr' AND committee_name=ANY(%s) AND (lifecycle_status='LIVE' OR (lifecycle_status='ENDED' AND ended_at>now()-interval '1 hour')) ORDER BY detected_at DESC LIMIT 2",([*TARGET_COMMITTEES,*NATIONAL_ASSEMBLY_BODIES],)).fetchall()
+        rows=c.execute("SELECT id FROM live_broadcasts WHERE institution='LEGISLATURE' AND source_system='assembly.webcast.go.kr' AND (committee_name=ANY(%s) OR external_id=ANY(%s)) AND (lifecycle_status='LIVE' OR (lifecycle_status='ENDED' AND ended_at>now()-interval '1 hour')) ORDER BY detected_at DESC LIMIT 2",([*TARGET_COMMITTEES,*NATIONAL_ASSEMBLY_BODIES], meeting_ids())).fetchall()
         recovery=c.execute("""SELECT b.id FROM live_broadcasts b WHERE b.institution='LEGISLATURE'
-            AND b.source_system='assembly.webcast.go.kr' AND b.committee_name=ANY(%s)
+            AND b.source_system='assembly.webcast.go.kr' AND (b.committee_name=ANY(%s) OR b.external_id=ANY(%s))
             AND b.lifecycle_status='ENDED' AND NOT (b.id=ANY(%s::uuid[])) AND (
                 EXISTS(SELECT 1 FROM transcript_utterance_summary_failures f WHERE f.broadcast_id=b.id
                     AND f.last_error='BUDGET_WAIT' AND f.retry_after<=now()) OR
                 ((SELECT state FROM live_discussion_classifications d WHERE d.broadcast_id=b.id
                   AND d.profile='live-discussion-classification/1.0' ORDER BY created_at DESC LIMIT 1)
                   ->'_budget_wait'->>'retry_after')::timestamptz<=now())
-            ORDER BY b.detected_at LIMIT 1""",([*TARGET_COMMITTEES,*NATIONAL_ASSEMBLY_BODIES], [r[0] for r in rows])).fetchall()
+            ORDER BY b.detected_at LIMIT 1""",([*TARGET_COMMITTEES,*NATIONAL_ASSEMBLY_BODIES], meeting_ids(), [r[0] for r in rows])).fetchall()
         rows+=recovery
     results=[]
     for (bid,) in rows:

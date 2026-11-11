@@ -1,0 +1,1597 @@
+{
+ "format": "home-slices/1",
+ "about": "HOME(the주택 PoC) → 주택공급 상황판 원천 슬라이스 정의. 명세: docs/product/HOME-데이터셋-슬라이스-명세.md, 도구: tools/ledger/home-slice.py",
+ "base_edition": "20261022T133544Z",
+ "first_since": "2026-10-22 00:00:00+09",
+ "time_text": "PostgreSQL SET TimeZone='UTC' 의 ::text 꼴(예 '2026-10-22 13:32:48.919713+00')",
+ "row_fields": [
+  "entity_id",
+  "kind",
+  "source_id",
+  "revision_no",
+  "recorded_at",
+  "payload_hash",
+  "batch_id",
+  "payload"
+ ],
+ "path_syntax": "payload 칸 경로: '.' 로 내려가고, 'x[]' 는 배열 x 의 원소, '*' 는 아무 키(키가 데이터인 사전). 경로 끝 = 그 값 통째",
+ "slices": [
+  {
+   "name": "policy",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "announced_at",
+    "id",
+    "lifecycle_status",
+    "metric",
+    "name",
+    "target_scope"
+   ],
+   "rows_20261022T133544Z": 3,
+   "readers": [
+    "convert"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.links",
+     "ledger.policies",
+     "ledger.policy_targets",
+     "ledger.programs",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-policy"
+    ]
+   }
+  },
+  {
+   "name": "policy_delivery_plan",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL — 매번 현재 판 전체(남기는 글을 판 전체의 담당자 이름·사유 목록으로 지우기 때문)",
+   "payload": [
+    "annual[].seoul_units",
+    "annual[].units",
+    "annual[].year",
+    "base_date",
+    "evidence_url",
+    "geography",
+    "joint_region_units",
+    "metric",
+    "occupancy_outlook.adoption",
+    "occupancy_outlook.adoption_basis",
+    "occupancy_outlook.annual[].role",
+    "occupancy_outlook.annual[].seoul_units",
+    "occupancy_outlook.annual[].units",
+    "occupancy_outlook.annual[].year",
+    "occupancy_outlook.evidence_url",
+    "occupancy_outlook.metric",
+    "occupancy_outlook.pdf_page",
+    "occupancy_outlook.scope",
+    "pdf_page",
+    "period_end",
+    "period_start",
+    "policy_id",
+    "programs[].annual[].units",
+    "programs[].annual[].year",
+    "programs[].id",
+    "programs[].name",
+    "programs[].target_units",
+    "region_allocations",
+    "target_units"
+   ],
+   "resend": "all",
+   "rows_20261022T133544Z": 1,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.links",
+     "ledger.policy_targets",
+     "ledger.programs"
+    ],
+    "source_ref": [
+     "home-dump-<판>-policy"
+    ]
+   }
+  },
+  {
+   "name": "project",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "address",
+    "base_date",
+    "block",
+    "completion_plan_date",
+    "developer",
+    "district",
+    "evidence_url",
+    "move_in_evidence_url",
+    "municipality",
+    "name",
+    "planned_units",
+    "policy_candidate_only",
+    "progress_date",
+    "progress_date_basis",
+    "progress_pct",
+    "region",
+    "rows[].move_in_month",
+    "rows[].move_in_raw",
+    "rows[].supply_month",
+    "rows[].supply_raw",
+    "rows[].units",
+    "schedule_basis",
+    "schedule_month",
+    "source_id",
+    "source_move_in_label",
+    "source_object_id",
+    "source_reference_id",
+    "source_supply_label",
+    "stage",
+    "start_actual_date",
+    "start_plan_date",
+    "start_plan_month",
+    "start_plan_year",
+    "tenure",
+    "warnings"
+   ],
+   "rows_20261022T133544Z": 452,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.events",
+     "ledger.identifiers",
+     "ledger.links",
+     "ledger.notice_links",
+     "ledger.project_locations",
+     "ledger.projects",
+     "ledger.sources",
+     "ledger.units"
+    ],
+    "source_ref": [
+     "home-dump-<판>"
+    ]
+   }
+  },
+  {
+   "name": "project_report",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "base_date",
+    "construction_description",
+    "current_project_id",
+    "date_precision",
+    "evidence_url",
+    "progress_pct",
+    "report_date"
+   ],
+   "rows_20261022T133544Z": 1432,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.events",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-report"
+    ]
+   }
+  },
+  {
+   "name": "stage_evidence",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL — 매번 현재 판 전체(남기는 글을 판 전체의 담당자 이름·사유 목록으로 지우기 때문)",
+   "payload": [
+    "base_date",
+    "project_id",
+    "selected.basis",
+    "selected.event_date",
+    "selected.event_type",
+    "selected.evidence_url",
+    "selected.method",
+    "selected.observed_on",
+    "selected.source_id",
+    "selected.source_name",
+    "selected.units",
+    "stage",
+    "status"
+   ],
+   "resend": "all",
+   "rows_20261022T133544Z": 904,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.events",
+     "ledger.projects",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-stage"
+    ]
+   }
+  },
+  {
+   "name": "lh_completion_plan",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "address",
+    "base_date",
+    "block",
+    "completion_plan_date",
+    "district",
+    "region",
+    "source_date",
+    "tenure",
+    "units"
+   ],
+   "rows_20261022T133544Z": 204,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-lh-plan",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.events",
+     "ledger.identifiers",
+     "ledger.project_locations",
+     "ledger.projects",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-lh-plan"
+    ]
+   }
+  },
+  {
+   "name": "lh_notice",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "base_date",
+    "dates.공고 마감일",
+    "name",
+    "notice_no",
+    "source_date"
+   ],
+   "rows_20261022T133544Z": 4020,
+   "readers": [
+    "convert"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.notice_links",
+     "ledger.notices",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-lh-notice"
+    ]
+   }
+  },
+  {
+   "name": "notice",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "address",
+    "base_date",
+    "dates.청약 시작일",
+    "dates.청약 종료일",
+    "developer",
+    "evidence_url",
+    "house_manage_no",
+    "move_in_plan_month",
+    "name",
+    "region",
+    "source_date",
+    "source_object_id",
+    "units"
+   ],
+   "rows_20261022T133544Z": 1342,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.events",
+     "ledger.notice_links",
+     "ledger.notices",
+     "ledger.projects",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-notice"
+    ]
+   }
+  },
+  {
+   "name": "gh_notice",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "base_date",
+    "name",
+    "source_date",
+    "source_object_id"
+   ],
+   "rows_20261022T133544Z": 695,
+   "readers": [
+    "convert"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.notice_links",
+     "ledger.notices",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-gh-notice"
+    ]
+   }
+  },
+  {
+   "name": "statistic",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "base_date",
+    "region",
+    "statistic_frequency",
+    "statistic_metric",
+    "statistic_period",
+    "units"
+   ],
+   "rows_20261022T133544Z": 5442,
+   "readers": [
+    "policy-progress",
+    "region-supply"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   }
+  },
+  {
+   "name": "area_stat",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "age_bands",
+    "businesses",
+    "census_housing_units",
+    "definition",
+    "employment_rate",
+    "forecast_households",
+    "half",
+    "household_total",
+    "households",
+    "housing_units",
+    "industry_workers",
+    "labor_force",
+    "metric_group",
+    "municipality",
+    "official_ratio",
+    "period",
+    "population",
+    "population_total",
+    "region",
+    "region_code",
+    "resident_employed",
+    "sizes",
+    "unit_basis",
+    "workplace_workers",
+    "year"
+   ],
+   "rows_20261022T133544Z": 2672,
+   "readers": [
+    "convert"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.area_facts",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-area-<지표 묶음>"
+    ]
+   }
+  },
+  {
+   "name": "unsold",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "metric",
+    "municipality",
+    "period",
+    "region",
+    "region_code",
+    "unit_basis",
+    "units"
+   ],
+   "rows_20261022T133544Z": 1798,
+   "readers": [
+    "convert"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.area_facts",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-unsold"
+    ]
+   }
+  },
+  {
+   "name": "district",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "base_date",
+    "geometry.coordinates",
+    "geometry.geometries[].coordinates",
+    "geometry.geometries[].type",
+    "geometry.type",
+    "latitude",
+    "link_status",
+    "longitude",
+    "name",
+    "project_ids"
+   ],
+   "rows_20261022T133544Z": 35,
+   "readers": [
+    "home-board",
+    "home-map",
+    "home-projects",
+    "map-overview",
+    "policy-progress",
+    "region-supply"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   }
+  },
+  {
+   "name": "block_location",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "block",
+    "coordinate_basis",
+    "district_name",
+    "latitude",
+    "longitude",
+    "region",
+    "status",
+    "zonecode"
+   ],
+   "rows_20261022T133544Z": 288,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-map",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 시군구 판정 보조(LH 블록 위치점) — 이번 판은 비워도 표 차이 없음"
+   }
+  },
+  {
+   "name": "project_location",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "address_original",
+    "address_query",
+    "base_date",
+    "coordinate_basis",
+    "latitude",
+    "longitude",
+    "municipality",
+    "project_id",
+    "status"
+   ],
+   "rows_20261022T133544Z": 310,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-map",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.project_locations",
+     "ledger.projects"
+    ],
+    "source_ref": [
+     "home-dump-<판>"
+    ]
+   }
+  },
+  {
+   "name": "collection_link",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "links[].basis",
+    "links[].date",
+    "links[].kind",
+    "links[].review_status",
+    "links[].source_entity_id",
+    "project_id",
+    "stage"
+   ],
+   "rows_20261022T133544Z": 904,
+   "readers": [
+    "convert"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.events",
+     "ledger.notice_links",
+     "ledger.projects",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-notice"
+    ]
+   }
+  },
+  {
+   "name": "municipality",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "admin_codes",
+    "base_date",
+    "district_names",
+    "geometry.coordinates",
+    "geometry.geometries[].coordinates",
+    "geometry.geometries[].type",
+    "geometry.type",
+    "latitude",
+    "longitude",
+    "name",
+    "region"
+   ],
+   "rows_20261022T133544Z": 56,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress",
+    "region-supply"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 시군구 판정 보조(지구 이름 → 시군구) — 이번 판은 비워도 표 차이 없음"
+   }
+  },
+  {
+   "name": "policy_municipality",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "admin_codes",
+    "base_date",
+    "geometry.coordinates",
+    "geometry.type",
+    "latitude",
+    "longitude",
+    "name",
+    "region"
+   ],
+   "rows_20261022T133544Z": 11,
+   "readers": [
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress",
+    "region-supply"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   }
+  },
+  {
+   "name": "evidence_bridge",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL — 매번 현재 판 전체(남기는 글을 판 전체의 담당자 이름·사유 목록으로 지우기 때문)",
+   "payload": [
+    "base_date",
+    "evidence_source_id",
+    "evidence_url",
+    "facts[].basis",
+    "facts[].date",
+    "facts[].date_basis",
+    "facts[].date_conversion",
+    "facts[].date_label",
+    "facts[].date_precision",
+    "facts[].kind",
+    "facts[].method",
+    "facts[].milestone",
+    "facts[].notice_round",
+    "facts[].observed_on",
+    "facts[].reference_only",
+    "facts[].scope_partial",
+    "facts[].source_event_date",
+    "facts[].stage",
+    "facts[].units",
+    "inferred",
+    "project_id",
+    "source_entity_id",
+    "source_name",
+    "source_notice_round",
+    "status"
+   ],
+   "resend": "all",
+   "rows_20261022T133544Z": 822,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-lh-plan",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.events",
+     "ledger.notice_links",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-bridge",
+     "home-dump-<판>-lh-doc",
+     "home-dump-<판>-gh-doc",
+     "home-dump-<판>-sh-doc",
+     "home-dump-<판>-local-doc"
+    ]
+   }
+  },
+  {
+   "name": "lh_movein_plan",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "base_date",
+    "block",
+    "district_name",
+    "name"
+   ],
+   "rows_20261022T133544Z": 252,
+   "readers": [
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   }
+  },
+  {
+   "name": "document_evidence",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "base_date"
+   ],
+   "rows_20261022T133544Z": 2081,
+   "readers": [
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   }
+  },
+  {
+   "name": "delivery_setting",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "events",
+    "policy_id",
+    "targets"
+   ],
+   "rows_20261022T133544Z": 0,
+   "readers": [
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   },
+   "supplement": "policy-progress.js: 담당자 목표·사건이 들어오면 멈추는 검사(22:35 판 0행이라 추적에 안 잡힘)"
+  },
+  {
+   "name": "execution_schedule",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "base_date",
+    "date_precision",
+    "due_date",
+    "evidence_url",
+    "project_id",
+    "source_precision",
+    "stage",
+    "status",
+    "units"
+   ],
+   "rows_20261022T133544Z": 1847,
+   "readers": [
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   }
+  },
+  {
+   "name": "project_profile",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL — 매번 현재 판 전체(남기는 글을 판 전체의 담당자 이름·사유 목록으로 지우기 때문)",
+   "payload": [
+    "base_date",
+    "overrides.*.inferred",
+    "overrides.*.value",
+    "progress.*.changed_at",
+    "progress.*.event_date",
+    "progress.*.evidence_url",
+    "progress.*.inferred",
+    "progress.*.input_rule",
+    "progress.*.origin",
+    "progress.*.units",
+    "project_id"
+   ],
+   "resend": "all",
+   "rows_20261022T133544Z": 323,
+   "readers": [
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   },
+   "note": "overrides·progress 는 키가 칸 이름·단계라 '*'. 담당자 이름·사유(actor·reason·actor_basis·input_basis·last_changes 등)는 빠진다"
+  },
+  {
+   "name": "mapping_decision",
+   "mode": "revision",
+   "source": "home_revision",
+   "key": [
+    "entity_id"
+   ],
+   "change": "home_revision 에서 kind = 이름, superseded_at IS NULL(until 현재 판), recorded_at > since",
+   "payload": [
+    "changed_at",
+    "status",
+    "subject_id",
+    "subject_kind"
+   ],
+   "rows_20261022T133544Z": 11,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-map",
+    "home-projects",
+    "home-sources",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "home_mapping 해제 판정(readHome withDecisions) — 이번 판은 해제된 연결이 원장에 안 들어가 표 차이 없음, 화면 정책 집계에는 들어감"
+   },
+   "supplement": "home-source.js withDecisions: 같은 사업후보 결정이 둘 이상이면 changed_at 으로 마지막 결정을 고른다(22:35 판은 사업후보마다 하나라 추적에 안 잡힘)"
+  },
+  {
+   "name": "home_project",
+   "mode": "table",
+   "source": "home_project",
+   "key": [
+    "id"
+   ],
+   "change": "until 시점 표 전체(제자리 수정이 있어 통째로 바꾼다)",
+   "columns": [
+    "id",
+    "name"
+   ],
+   "rows_20261022T133544Z": 4186,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.events",
+     "ledger.identifiers",
+     "ledger.links",
+     "ledger.notice_links",
+     "ledger.project_locations",
+     "ledger.projects",
+     "ledger.sources",
+     "ledger.units"
+    ],
+    "source_ref": [
+     "home-dump-<판>"
+    ]
+   }
+  },
+  {
+   "name": "home_identity_alias",
+   "mode": "table",
+   "source": "home_identity_alias",
+   "key": [
+    "id"
+   ],
+   "change": "until 시점 표 전체(제자리 수정이 있어 통째로 바꾼다)",
+   "columns": [
+    "id",
+    "match_rule",
+    "project_id",
+    "source_entity_id",
+    "unit_comparison"
+   ],
+   "rows_20261022T133544Z": 4358,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.events",
+     "ledger.identifiers",
+     "ledger.links",
+     "ledger.notice_links",
+     "ledger.project_locations",
+     "ledger.projects",
+     "ledger.sources",
+     "ledger.units"
+    ],
+    "source_ref": [
+     "home-dump-<판>"
+    ]
+   }
+  },
+  {
+   "name": "home_mapping",
+   "mode": "table",
+   "source": "home_mapping",
+   "key": [
+    "id"
+   ],
+   "change": "until 시점 표 전체(제자리 수정이 있어 통째로 바꾼다)",
+   "columns": [
+    "basis",
+    "evidence_url",
+    "id",
+    "policy_id",
+    "program_id",
+    "project_id",
+    "status"
+   ],
+   "rows_20261022T133544Z": 452,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-map",
+    "home-projects",
+    "home-sources",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.links",
+     "ledger.projects",
+     "ledger.review_required",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-policy"
+    ]
+   }
+  },
+  {
+   "name": "home_program_mapping",
+   "mode": "table",
+   "source": "home_program_mapping",
+   "key": [
+    "id"
+   ],
+   "change": "until 시점 표 전체(제자리 수정이 있어 통째로 바꾼다)",
+   "columns": [
+    "basis",
+    "created_at",
+    "evidence_url",
+    "id",
+    "name",
+    "policy_id",
+    "status"
+   ],
+   "rows_20261022T133544Z": 45,
+   "readers": [
+    "convert",
+    "home-board",
+    "home-projects",
+    "home-sources",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [
+     "ledger.links",
+     "ledger.programs",
+     "ledger.projects",
+     "ledger.sources"
+    ],
+    "source_ref": [
+     "home-dump-<판>-policy"
+    ]
+   }
+  },
+  {
+   "name": "home_batch",
+   "mode": "log",
+   "source": "home_batch",
+   "key": [
+    "id"
+   ],
+   "change": "home_batch 전체에서 started_at > since 또는 finished_at > since 또는 finished_at IS NULL(끝나지 않은 실행)",
+   "time_columns": [
+    "started_at",
+    "finished_at"
+   ],
+   "columns": [
+    "finished_at",
+    "id",
+    "source_id",
+    "started_at",
+    "status"
+   ],
+   "open_if_null": "finished_at",
+   "rows_20261022T133544Z": 8609,
+   "readers": [
+    "home-sources"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   },
+   "note": "home-sources.js 수집 실행 통계(원천별 성공·실패·마지막 시각)"
+  },
+  {
+   "name": "home_audit",
+   "mode": "log",
+   "source": "home_audit",
+   "key": [
+    "id"
+   ],
+   "change": "home_audit 의 action LIKE '%\\_REVIEW' 행 중 recorded_at > since",
+   "time_columns": [
+    "recorded_at"
+   ],
+   "columns": [
+    "id",
+    "recorded_at"
+   ],
+   "rows_20261022T133544Z": 1509,
+   "readers": [
+    "home-board",
+    "home-projects",
+    "map-overview",
+    "policy-progress"
+   ],
+   "supabase": {
+    "tables": [],
+    "source_ref": [],
+    "note": "원장 표에는 안 들어가고 화면 자료(data/board)만 만든다"
+   },
+   "note": "기준일 뒤 감사 기록이 있으면 policy-progress.js 가 멈춘다(되감기 미구현) — recorded_at 만 쓴다"
+  }
+ ],
+ "excluded": [
+  {
+   "name": "policy_event",
+   "source": "home_revision",
+   "rows_20261022T133544Z": 5,
+   "reason": "변환기·오프라인 생성기가 읽지 않는다(실행 추적 0, 코드에 이름 없음)"
+  },
+  {
+   "name": "sequence_review",
+   "source": "home_revision",
+   "rows_20261022T133544Z": 11,
+   "reason": "변환기·오프라인 생성기가 읽지 않는다(실행 추적 0, 코드에 이름 없음)"
+  },
+  {
+   "name": "plan_notice",
+   "source": "home_revision",
+   "rows_20261022T133544Z": 2,
+   "reason": "변환기·오프라인 생성기가 읽지 않는다(실행 추적 0, 코드에 이름 없음)"
+  },
+  {
+   "name": "home_project_evidence",
+   "source": "home_project_evidence",
+   "rows_20261022T133544Z": 4687,
+   "reason": "변환기·오프라인 생성기가 읽지 않는다(실행 추적 0, 코드에 이름 없음)"
+  },
+  {
+   "name": "home_plan",
+   "source": "home_plan",
+   "rows_20261022T133544Z": 2,
+   "reason": "변환기·오프라인 생성기가 읽지 않는다(실행 추적 0, 코드에 이름 없음)"
+  },
+  {
+   "name": "home_plan_event",
+   "source": "home_plan_event",
+   "rows_20261022T133544Z": 2,
+   "reason": "변환기·오프라인 생성기가 읽지 않는다(실행 추적 0, 코드에 이름 없음)"
+  },
+  {
+   "name": "home_plan_project_link",
+   "source": "home_plan_project_link",
+   "rows_20261022T133544Z": 0,
+   "reason": "변환기·오프라인 생성기가 읽지 않는다(실행 추적 0, 코드에 이름 없음)"
+  },
+  {
+   "name": "home_coverage",
+   "source": "home_coverage",
+   "rows_20261022T133544Z": 9566,
+   "reason": "변환기·오프라인 생성기가 읽지 않는다(실행 추적 0, 코드에 이름 없음)"
+  }
+ ],
+ "api": [
+  {
+   "name": "policy-plan-97",
+   "path": "policy-delivery/view",
+   "query": "as_of_date={until_date}&group=policy&scope=policy",
+   "save": "policy-plan-97.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/policy-plan-97.json.gz",
+   "readers": [
+    "home-board"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  },
+  {
+   "name": "projects-map-dashboard-97",
+   "path": "map/dashboard",
+   "query": "as_of_date={until_date}&policy_id=POL_2025_0907&horizon=10&measure=SUPPLY&schedule_status=all&compact=true",
+   "save": "projects-map-dashboard-97.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/projects-map-dashboard-97.json.gz",
+   "readers": [
+    "home-projects",
+    "map-overview",
+    "build_data.py"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  },
+  {
+   "name": "projects-map-dashboard",
+   "path": "map/dashboard",
+   "query": "as_of_date={until_date}&compact=true",
+   "save": "projects-map-dashboard.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/projects-map-dashboard.json.gz",
+   "readers": [
+    "home-projects",
+    "map-overview",
+    "build_data.py"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  },
+  {
+   "name": "projects-policy-delivery-97",
+   "path": "policy-delivery/view",
+   "query": "as_of_date={until_date}&group=policy&scope=policy",
+   "save": "projects-policy-delivery-97.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/projects-policy-delivery-97.json.gz",
+   "readers": [
+    "home-projects"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  },
+  {
+   "name": "sources-list",
+   "path": "sources",
+   "query": "compact=true",
+   "save": "sources-list.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/sources-list.json.gz",
+   "readers": [
+    "home-sources"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  },
+  {
+   "name": "sources-mappings",
+   "path": "mappings",
+   "query": "as_of_date={until_date}&compact=true",
+   "save": "sources-mappings.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/sources-mappings.json.gz",
+   "readers": [
+    "home-sources"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  },
+  {
+   "name": "sources-requirements",
+   "path": "requirements-status",
+   "query": "as_of_date={until_date}",
+   "save": "sources-requirements.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/sources-requirements.json.gz",
+   "readers": [
+    "requirements"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  },
+  {
+   "name": "sources-summary",
+   "path": "source-summary",
+   "query": "",
+   "save": "sources-summary.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/sources-summary.json.gz",
+   "readers": [
+    "home-sources"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  },
+  {
+   "name": "sources-validation",
+   "path": "validation",
+   "query": "as_of_date={until_date}",
+   "save": "sources-validation.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/sources-validation.json.gz",
+   "readers": [
+    "home-sources"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  },
+  {
+   "name": "sources-year-coverage",
+   "path": "sources/year-coverage",
+   "query": "",
+   "save": "sources-year-coverage.json",
+   "store": "schemas/ledger-<달>/raw/home-api/{until_date}/sources-year-coverage.json.gz",
+   "readers": [
+    "home-sources"
+   ],
+   "note": "우리 쪽이 응답을 줄이고(keep) 담당자 칸을 지워(scrub) 압축해 둔다(home-projects.js·home-sources.js POC_FILES)"
+  }
+ ],
+ "golden": [
+  {
+   "name": "S1-view-policy",
+   "path": "policy-delivery/view",
+   "query": "as_of_date={until_date}&group=policy&scope=policy",
+   "save": "S1-view-policy.json",
+   "used_by": "home-parity/s1-policy.js → golden-policy.json · home-parity/s2-projects.js → golden-projects.json(기준일) · home-parity/map-golden.js → map-golden.json · run.js(기준일)"
+  },
+  {
+   "name": "S1-policies",
+   "path": "policies",
+   "query": "",
+   "save": "S1-policies.json",
+   "used_by": "home-parity/s1-policy.js → golden-policy.json"
+  },
+  {
+   "name": "S1-policy-monitor",
+   "path": "policy-monitor",
+   "query": "as_of_date={until_date}",
+   "save": "S1-policy-monitor.json",
+   "used_by": "home-parity/s1-policy.js → golden-policy.json"
+  },
+  {
+   "name": "S1-mappings",
+   "path": "mappings",
+   "query": "as_of_date={until_date}&compact=true",
+   "save": "S1-mappings.json",
+   "used_by": "home-parity/s1-policy.js → golden-policy.json"
+  },
+  {
+   "name": "S1-view-program-{program_id}",
+   "path": "policy-delivery/view",
+   "query": "as_of_date={until_date}&group=program:{program_id}&scope=program:{program_id}",
+   "save": "S1-view-program-{program_id}.json",
+   "used_by": "home-parity/s1-policy.js → golden-policy.json",
+   "repeat": "S1-mappings.json 의 programs 중 policy_id = POL_2025_0907 이고 status 가 REJECTED·RELEASED 가 아닌 것마다(없으면 그 프로그램 정답이 missing_response)"
+  },
+  {
+   "name": "S1-view-region-서울특별시",
+   "path": "policy-delivery/view",
+   "query": "as_of_date={until_date}&group=policy&scope=region:서울특별시",
+   "save": "S1-view-region-서울특별시.json",
+   "used_by": "home-parity/s1-policy.js → golden-policy.json · home-parity/map-golden.js → map-golden.json",
+   "note": "2026-10-22 22:35 HOME 앱부터 응답이 요청 범위(scope)만 싣는다 — 시도 범위는 따로 받는다. 시도 이름은 요청 때 URL 인코딩"
+  },
+  {
+   "name": "S1-view-region-인천광역시",
+   "path": "policy-delivery/view",
+   "query": "as_of_date={until_date}&group=policy&scope=region:인천광역시",
+   "save": "S1-view-region-인천광역시.json",
+   "used_by": "home-parity/s1-policy.js → golden-policy.json · home-parity/map-golden.js → map-golden.json",
+   "note": "2026-10-22 22:35 HOME 앱부터 응답이 요청 범위(scope)만 싣는다 — 시도 범위는 따로 받는다. 시도 이름은 요청 때 URL 인코딩"
+  },
+  {
+   "name": "S1-view-region-경기도",
+   "path": "policy-delivery/view",
+   "query": "as_of_date={until_date}&group=policy&scope=region:경기도",
+   "save": "S1-view-region-경기도.json",
+   "used_by": "home-parity/s1-policy.js → golden-policy.json · home-parity/map-golden.js → map-golden.json",
+   "note": "2026-10-22 22:35 HOME 앱부터 응답이 요청 범위(scope)만 싣는다 — 시도 범위는 따로 받는다. 시도 이름은 요청 때 URL 인코딩"
+  },
+  {
+   "name": "deliv-{until_date}",
+   "path": "policy-delivery/view",
+   "query": "as_of_date={until_date}&group=policy&scope=policy",
+   "save": "deliv-{until_date}.json",
+   "used_by": "home-parity/map-golden.js → map-golden.json",
+   "optional": true,
+   "note": "S1-view-policy 와 같은 요청. 있으면 이것, 없으면 S1-view-policy.json 을 쓴다"
+  },
+  {
+   "name": "S2-raw-mappings",
+   "path": "mappings",
+   "query": "as_of_date={until_date}&compact=true",
+   "save": "S2-raw-mappings.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json"
+  },
+  {
+   "name": "S2-raw-map-dashboard",
+   "path": "map/dashboard",
+   "query": "as_of_date={until_date}&compact=true",
+   "save": "S2-raw-map-dashboard.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json · home-parity/map-golden.js → map-golden.json · run.js(받은 시각 기본값)"
+  },
+  {
+   "name": "S2-raw-map-dashboard-js",
+   "path": "map/dashboard",
+   "query": "as_of_date={until_date}&policy_id=POL_2025_0907&horizon=10&measure=SUPPLY&schedule_status=all&compact=true",
+   "save": "S2-raw-map-dashboard-js.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json · home-parity/map-golden.js → map-golden.json"
+  },
+  {
+   "name": "S2-raw-project-workspace",
+   "path": "project-workspace",
+   "query": "",
+   "save": "S2-raw-project-workspace.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json"
+  },
+  {
+   "name": "S2-raw-tree",
+   "path": "tree",
+   "query": "as_of_date={until_date}",
+   "save": "S2-raw-tree.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json"
+  },
+  {
+   "name": "S2-raw-tree-js",
+   "path": "tree",
+   "query": "as_of_date={until_date}&policy_id=POL_2025_0907",
+   "save": "S2-raw-tree-js.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json"
+  },
+  {
+   "name": "S2-raw-annual-supply",
+   "path": "annual-supply",
+   "query": "",
+   "save": "S2-raw-annual-supply.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json"
+  },
+  {
+   "name": "S2-raw-area-context-seoul",
+   "path": "area-context",
+   "query": "region=서울특별시&year=2026",
+   "save": "S2-raw-area-context-seoul.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json",
+   "note": "region 은 URL 인코딩"
+  },
+  {
+   "name": "S2-raw-area-outlook-seoul",
+   "path": "area-outlook",
+   "query": "region=서울특별시",
+   "save": "S2-raw-area-outlook-seoul.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json",
+   "note": "region 은 URL 인코딩"
+  },
+  {
+   "name": "S2-raw-area-context-incheon",
+   "path": "area-context",
+   "query": "region=인천광역시&year=2026",
+   "save": "S2-raw-area-context-incheon.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json",
+   "note": "region 은 URL 인코딩"
+  },
+  {
+   "name": "S2-raw-area-outlook-incheon",
+   "path": "area-outlook",
+   "query": "region=인천광역시",
+   "save": "S2-raw-area-outlook-incheon.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json",
+   "note": "region 은 URL 인코딩"
+  },
+  {
+   "name": "S2-raw-area-context-gyeonggi",
+   "path": "area-context",
+   "query": "region=경기도&year=2026",
+   "save": "S2-raw-area-context-gyeonggi.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json",
+   "note": "region 은 URL 인코딩"
+  },
+  {
+   "name": "S2-raw-area-outlook-gyeonggi",
+   "path": "area-outlook",
+   "query": "region=경기도",
+   "save": "S2-raw-area-outlook-gyeonggi.json",
+   "used_by": "home-parity/s2-projects.js → golden-projects.json",
+   "note": "region 은 URL 인코딩"
+  },
+  {
+   "name": "S3-sources",
+   "path": "sources",
+   "query": "compact=true",
+   "save": "S3-sources.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  },
+  {
+   "name": "S3-source-summary",
+   "path": "source-summary",
+   "query": "",
+   "save": "S3-source-summary.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  },
+  {
+   "name": "S3-validation",
+   "path": "validation",
+   "query": "as_of_date={until_date}",
+   "save": "S3-validation.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  },
+  {
+   "name": "S3-samples",
+   "path": "samples",
+   "query": "as_of_date={until_date}&page=1&page_size=100",
+   "save": "S3-samples.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  },
+  {
+   "name": "S3-project-collection",
+   "path": "project-collection",
+   "query": "",
+   "save": "S3-project-collection.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  },
+  {
+   "name": "S3-mappings",
+   "path": "mappings",
+   "query": "as_of_date={until_date}&compact=true",
+   "save": "S3-mappings.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  },
+  {
+   "name": "S3-connections",
+   "path": "connections",
+   "query": "",
+   "save": "S3-connections.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  },
+  {
+   "name": "S3-api-requests",
+   "path": "api-requests",
+   "query": "",
+   "save": "S3-api-requests.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  },
+  {
+   "name": "S3-data-integrity",
+   "path": "data-integrity",
+   "query": "",
+   "save": "S3-data-integrity.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  },
+  {
+   "name": "S3-requirements-status",
+   "path": "requirements-status",
+   "query": "as_of_date={until_date}",
+   "save": "S3-requirements-status.json",
+   "used_by": "home-parity/s3-sources.js → S3-snapshot.json·golden-sources.json (S3_FILES 원본 응답 → reduceSnapshot. 이미 줄인 S3-snapshot.json 이 정답 입력 폴더에 있으면 그것을 먼저 쓴다)"
+  }
+ ],
+ "web": [
+  {
+   "name": "policy-stage-flow",
+   "path": "/poc/home/assets/policy-stage-flow.js",
+   "save": "js_policy-stage-flow.js",
+   "used_by": "home-parity/s1-policy.js 가 vm 으로 그대로 돌린다"
+  },
+  {
+   "name": "policy-decision",
+   "path": "/poc/home/assets/policy-decision.js",
+   "save": "js_policy-decision.js",
+   "used_by": "home-parity/s1-policy.js 가 vm 으로 그대로 돌린다"
+  },
+  {
+   "name": "policy-region-map",
+   "path": "/poc/home/assets/policy-region-map.js",
+   "save": "js_policy-region-map.js",
+   "used_by": "home-parity/s1-policy.js 가 vm 으로 그대로 돌린다"
+  },
+  {
+   "name": "requirements-manual",
+   "path": "/poc/home/assets/requirements-manual.js",
+   "save": "js_requirements-manual.js",
+   "used_by": "home-parity/s3-sources.js — 요구사항정의 자체 평가 점수(assessments)"
+  }
+ ],
+ "golden_note": "정답 계산 입력(tools/ledger/home-parity/run.js --golden·--web — home-apply.js 가 패키지 golden/·web/ 을 넘긴다). 목록 = home-parity 스크립트 4개가 읽는 파일 전부(2026-11-09 대조)"
+}

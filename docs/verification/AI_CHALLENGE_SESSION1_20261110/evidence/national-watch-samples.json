@@ -1,0 +1,77 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:25.897440+09:00",
+  "sql": "SELECT d.id AS detection_id,b.id AS broadcast_id,b.title,b.committee_name,s.start_offset_ms,s.first_received_at,r.received_at AS revision_received_at,d.detected_at,n.created_at AS notification_created_at,o.sent_at,o.channel,o.status FROM watch_notifications n JOIN watch_detection_events d ON d.id=n.detection_event_id JOIN live_broadcasts b ON b.id=d.broadcast_id LEFT JOIN transcript_segments s ON s.id=d.segment_id LEFT JOIN transcript_segment_revisions r ON r.id=d.revision_id LEFT JOIN notification_outbox o ON o.notification_id=n.id WHERE n.is_test=false ORDER BY n.created_at DESC LIMIT 5",
+  "rows": [
+    {
+      "detection_id": "44a2a49f-4226-46d8-9188-e070620c039b",
+      "broadcast_id": "532ab55a-12e2-42f4-b425-ec2401139a33",
+      "title": "제439회 국회(정기회) 제07차 예산결산특별위원회",
+      "committee_name": "예산결산특별위원회",
+      "start_offset_ms": null,
+      "first_received_at": "2026-11-10T14:53:41.093777+00:00",
+      "revision_received_at": "2026-11-10T14:53:56.52186+00:00",
+      "detected_at": "2026-11-10T14:53:56.52186+00:00",
+      "notification_created_at": "2026-11-10T14:54:19.059352+00:00",
+      "sent_at": "2026-11-10T14:54:19.059352+00:00",
+      "channel": "IN_APP",
+      "status": "SENT"
+    },
+    {
+      "detection_id": "8d7762ba-74d6-4b28-b48d-9335d571ecd8",
+      "broadcast_id": "532ab55a-12e2-42f4-b425-ec2401139a33",
+      "title": "제439회 국회(정기회) 제07차 예산결산특별위원회",
+      "committee_name": "예산결산특별위원회",
+      "start_offset_ms": null,
+      "first_received_at": "2026-11-10T14:53:41.093777+00:00",
+      "revision_received_at": "2026-11-10T14:53:56.52186+00:00",
+      "detected_at": "2026-11-10T14:53:56.52186+00:00",
+      "notification_created_at": "2026-11-10T14:54:19.059352+00:00",
+      "sent_at": "2026-11-10T14:54:47.107174+00:00",
+      "channel": "KAKAO",
+      "status": "SENT"
+    },
+    {
+      "detection_id": "ea8f21ec-4d3e-4d7b-9dfa-eec52ba5193e",
+      "broadcast_id": "532ab55a-12e2-42f4-b425-ec2401139a33",
+      "title": "제439회 국회(정기회) 제07차 예산결산특별위원회",
+      "committee_name": "예산결산특별위원회",
+      "start_offset_ms": null,
+      "first_received_at": "2026-11-10T14:53:41.093777+00:00",
+      "revision_received_at": "2026-11-10T14:53:56.52186+00:00",
+      "detected_at": "2026-11-10T14:53:56.52186+00:00",
+      "notification_created_at": "2026-11-10T14:54:19.059352+00:00",
+      "sent_at": "2026-11-10T14:54:19.059352+00:00",
+      "channel": "IN_APP",
+      "status": "SENT"
+    },
+    {
+      "detection_id": "44a2a49f-4226-46d8-9188-e070620c039b",
+      "broadcast_id": "532ab55a-12e2-42f4-b425-ec2401139a33",
+      "title": "제439회 국회(정기회) 제07차 예산결산특별위원회",
+      "committee_name": "예산결산특별위원회",
+      "start_offset_ms": null,
+      "first_received_at": "2026-11-10T14:53:41.093777+00:00",
+      "revision_received_at": "2026-11-10T14:53:56.52186+00:00",
+      "detected_at": "2026-11-10T14:53:56.52186+00:00",
+      "notification_created_at": "2026-11-10T14:54:19.059352+00:00",
+      "sent_at": "2026-11-10T14:54:45.008751+00:00",
+      "channel": "KAKAO",
+      "status": "SENT"
+    },
+    {
+      "detection_id": "8d7762ba-74d6-4b28-b48d-9335d571ecd8",
+      "broadcast_id": "532ab55a-12e2-42f4-b425-ec2401139a33",
+      "title": "제439회 국회(정기회) 제07차 예산결산특별위원회",
+      "committee_name": "예산결산특별위원회",
+      "start_offset_ms": null,
+      "first_received_at": "2026-11-10T14:53:41.093777+00:00",
+      "revision_received_at": "2026-11-10T14:53:56.52186+00:00",
+      "detected_at": "2026-11-10T14:53:56.52186+00:00",
+      "notification_created_at": "2026-11-10T14:54:19.059352+00:00",
+      "sent_at": "2026-11-10T14:54:19.059352+00:00",
+      "channel": "IN_APP",
+      "status": "SENT"
+    }
+  ],
+  "error": null
+}

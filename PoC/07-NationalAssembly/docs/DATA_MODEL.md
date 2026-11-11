@@ -1,5 +1,11 @@
 # Data Model
 
+## 2026-11-11 — 일회성 위원회 확장 설정과 표시 정보
+
+DB schema 변경 없음. `data/config/assembly_expansion.json` (`schema_version=assembly-expansion/1`)은 공식 `committee_id`(xbill), `channel_code`(xcode), `meeting_external_id`(xcgcd), `committee_name`, 시간대가 포함된 `capture_from/capture_until`, `enabled`와 공식 일정 확인 근거를 보존한다. 최대 수집 허용 창은 48시간이며 등록 도구의 기본 창은 지정일 08:00부터 다음 날 09:00 KST다.
+
+`GET /api/live/expansion-tests`는 `SCHEDULED/ENABLED/EXPIRED/DISABLED`의 설정 상태를 제공한다. 이 값은 방송 생명주기·자료 권위·출처 연결 상태와 별개다. 목록·보고서 응답의 `is_expansion_test`, `expansion_label`, `expansion_committee_id`는 설정 기반 표시 정보다. `collection=regular|expansion_test`로 종료 방송 목록을 페이지 처리 전에 분리한다. 설정은 삭제 대신 비활성화하여 출처·표시·진행 중 보고서 처리를 유지한다.
+
 ## 2026-10-27 — 내부 주제값 재분류
 
 기존 구조화 배치 테이블의 request_snapshot.profile에 `discussion-placeholder-review/1`을 추가한다. 정상 역할의 parent/issue에 내부 분류 코드가 들어간 원문만 targets로 지정하며, 근거 ID·원문 위치·기존 응답을 보존한다. 읽기 projection의 `topic_structure.automatic_review.invalid_label_atom_count`는 남은 잘못된 주제 제목의 고유 발언 수이며 pending_atom_count에도 합산된다. 스키마 마이그레이션은 없다.

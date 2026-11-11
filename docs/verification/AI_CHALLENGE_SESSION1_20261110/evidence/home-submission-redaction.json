@@ -1,0 +1,15 @@
+{
+  "source": "existing production ZIP; not regenerated from DB",
+  "original_zip_sha256": "3cf27ef962a3c939755dd6d2bdf5751e64d4a68130087a8dbb10b8a364ab2239",
+  "submission_zip_sha256": "bc677c3ad64e76426be46755dc28ea049e60aeb0fcba900fcc9e3d95b53400ae",
+  "submission_file": "home-slices-submission-redacted.zip",
+  "changed_members": [
+    "golden/S3-project-collection.json",
+    "manifest.json"
+  ],
+  "email_replacements": 28,
+  "telephone_replacements": 120,
+  "staff_name_replacements": 1,
+  "slice_rows_changed": 0,
+  "meaning": "Original validation result preserved; submission copy redacts public contact snippets and recomputes that member checksum. This copy is not byte-identical to the original."
+}

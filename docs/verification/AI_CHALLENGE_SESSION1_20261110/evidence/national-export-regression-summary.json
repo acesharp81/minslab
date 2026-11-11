@@ -1,0 +1,9 @@
+{
+  "result": "8 passed, 1 failed",
+  "failed_test": "test_meeting_brief_schema.py::MeetingBriefSchemaTests::test_api_and_beta_ui_link_results_to_evidence",
+  "assertion": "existing web script contains if (ended.meeting_brief?.brief)",
+  "change_scope": "Only _meeting_brief_markdown in backend/app/main.py; web script and existing schema test unchanged by this session",
+  "focused_result": "5 passed",
+  "full_log_retained_in_workspace": "national-export-fix-tests.txt",
+  "not_a_claim": "Full regression suite is not green"
+}

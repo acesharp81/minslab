@@ -1,0 +1,15 @@
+{
+  "scan_time_kst": "2026-11-11T00:35:35.102773+09:00",
+  "files_or_zip_members_scanned": 176,
+  "findings": [],
+  "credential_or_contact_values_printed": false,
+  "review": "Original permissive mobile-pattern hits were hashes/entity IDs/URL identifiers. Original ZIP had 28 public emails in one golden attachment; the submission copy redacts contacts and one named staff contact. No subscriber/user matched-term data was queried. Public meeting speakers remain as source attribution.",
+  "excluded_from_submission": [
+    "draft-qa.json",
+    "home-slices-existing.zip",
+    "national-expansion-config.json",
+    "national-export-fix-tests.txt",
+    "national-offline-tests.txt"
+  ],
+  "limits": "Pattern-based screening and selected contextual inspection; not comprehensive PII certification."
+}

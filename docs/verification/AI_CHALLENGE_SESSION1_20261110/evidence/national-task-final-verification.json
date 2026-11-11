@@ -1,0 +1,38 @@
+{
+  "method": "verified_task_spans: both field formats; exact source text slice, content_hash and revision IDs; not semantic or commitment accuracy",
+  "task_count": 66,
+  "tasks_with_task_evidence_spans": 58,
+  "tasks_with_request_spans": 7,
+  "tasks_with_verified_direct_spans": 62,
+  "review_required": [
+    {
+      "id": "structured-task-4f0d5cc0e273be42",
+      "title": "한강버스 사업 수익성 재산정 및 중앙투자심사 재진행",
+      "topic_id": "structured-topic-2b50d268733f1682",
+      "topic_link_status": "REVIEW_REQUIRED"
+    },
+    {
+      "id": "structured-task-de0f6c3a7b0e852d",
+      "title": "친밀관계폭력처벌법 제정을 위한 범부처 협의 및 추진",
+      "topic_id": null,
+      "topic_link_status": "REVIEW_REQUIRED"
+    },
+    {
+      "id": "structured-task-c88ffecec4f296f7",
+      "title": "소방공무원 정신건강 지원 관련 법 개정 및 예산 확보",
+      "topic_id": "structured-topic-073021088cd142bd",
+      "topic_link_status": "REVIEW_REQUIRED"
+    },
+    {
+      "id": "structured-task-9903b2dd6eb90896",
+      "title": "지방계약 평가위원 선정 및 운영 기준 전면 재정비",
+      "topic_id": "structured-topic-89bf3795388d5771",
+      "topic_link_status": "REVIEW_REQUIRED"
+    }
+  ],
+  "new_model_calls": 0,
+  "database_writes": 0,
+  "review_warning_occurrences": 8,
+  "input_unchanged": true,
+  "render_source": "captured production data rendered locally with un-deployed export fix"
+}

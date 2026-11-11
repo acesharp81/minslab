@@ -1,0 +1,15 @@
+{
+  "url": "https://mas.smc.seoul.kr/attach/record/SEOUL/appendix/a11/A0069855.pdf",
+  "final_url": "https://mas.smc.seoul.kr/attach/record/SEOUL/appendix/a11/A0069855.pdf",
+  "status": 200,
+  "sha256": "578f4d92c7db264f4f062e800ec79e4d48696446948042941b97fd839e7d345b",
+  "bytes": 5355605,
+  "pages": 100,
+  "reference_date": "2026-10-20",
+  "matched_pages": [
+    41,
+    77,
+    79
+  ],
+  "verification": "DOWNLOADED_AND_TEXT_EXTRACTED"
+}

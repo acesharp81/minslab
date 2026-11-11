@@ -1,0 +1,1 @@
+{"case_id": "903dc0df-71d6-435c-b7a3-5acd53f1d171", "status": "REPLAYED_WITH_HOLDS", "summary": {"linked": 0, "held": 3, "unique_stage_count": 1, "verified_citations": 11, "source_documents": 1, "actuals_added": 0, "rule_repeat_model_calls": 0, "real_model_calls": 5}}

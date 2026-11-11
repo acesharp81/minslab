@@ -1,0 +1,7 @@
+{
+  "file": "PoC/07-NationalAssembly/backend/app/main.py",
+  "before_sha256": "4b788e7b918054af9da26339fe32385e20bf23a3c6540f810969e3cabe3ad958",
+  "after_sha256": "9e1c650baa01f06dfff20eff682e389545ed4c43b39506605b84ebccdd23484a",
+  "scope": "Markdown report metadata and explicit task review holds only; no collection/expansion changes",
+  "deployment": "not_deployed"
+}

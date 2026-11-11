@@ -1,0 +1,20 @@
+{
+  "checked_at_kst": "2026-11-11T08:18:43.642877+09:00",
+  "base_commit": "e83e39082e4f4af91dd07d2147b706b8daf8cf3f",
+  "deployment": "LOCAL_WORKTREE_AND_ISOLATED_PILOT_ONLY",
+  "file_sha256": {
+    "PoC/10-home/backend/attachment_rule.py": "8fde7f68fe94a2005b0fc0d5e0a8e892428369ada384ca909198757cd198e0f4",
+    "PoC/10-home/backend/evidence_chain.py": "16b5caa0fc00cea5a964141169850577c600cc7b571099809ba0a0717ae034bb",
+    "PoC/10-home/backend/evidence_chain_api.py": "f519b110e843b0accbae694e8d5487b14fd3ff34b134ad459db194d24f043853",
+    "PoC/10-home/backend/algorithm_review.py": "ef7eb35aac5bda7d890dae8f3ba255e793312e00ff11f96680ae98c48edddda3",
+    "PoC/10-home/backend/ai_collection.py": "29c1df96d564b30d981852473f4596ed502162cea217dacf3daefe403e57b081",
+    "PoC/10-home/backend/ai_agent_workflows.py": "ca1c1a950a2b74b6f40a15460b09645751db7fadc40321461eabe184c54a054f",
+    "PoC/10-home/backend/ai_agents_api.py": "c703e9951c0016824254effd163c476b752cd544ecf0595bc76ffc8f4dfbebd0",
+    "PoC/10-home/web/assets/algorithm-review.js": "3a68eaef7a1b9869da02dcd85fea2833ef766ec81386b15be18a366628386bbb",
+    "PoC/10-home/web/assets/evidence-chain.html": "68ed93392ffc2ec731499304ec8b01d68f201dd481f4b1f1294b1a2fcc96d0f6",
+    "PoC/10-home/scripts/run-evidence-chain-pilot.py": "00f0a192cb86550e5bc09e2bed05d076ce470da6912a0d3063d5877cb959fb02",
+    "PoC/10-home/scripts/replay-evidence-chain.py": "099fc776dc93c13ba0cedad834b430b17c8668d7e763f0562fd11a09082d814a",
+    "PoC/10-home/tests/test_evidence_chain.py": "e39299961f95318b9003fb695c7b1d7a3b6eb5b78acb33c2b6608f07e853c8ae",
+    "PoC/10-home/tests/fixtures/evidence_chain/lh-siheung-s1.html": "12373da773eaca256292528faa9527e02418cddf33f7985ec10b5ce7655e3011"
+  }
+}

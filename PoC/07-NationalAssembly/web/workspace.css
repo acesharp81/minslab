@@ -2079,3 +2079,4 @@ body.meeting-report-print-mode .meeting-source-quotes { display: none; }
 .meeting-source-view > .meeting-supplementary .meeting-supplementary-controls > button { flex:0 0 auto; padding:3px 0; font-size:11px; }
 .meeting-supplementary-hint { flex:0 0 auto; color:#7b879b; font-size:11px; line-height:1.5; }
 @media(max-width:760px) { .meeting-source-view > .meeting-supplementary { padding:4px 14px; } }
+.meeting-expansion-tag { display:inline-block; padding:3px 8px; border:1px solid #e5c674; border-radius:999px; background:#fff4d6; color:#805200; font-size:12px; font-weight:600; line-height:1.5; vertical-align:middle; }

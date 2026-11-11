@@ -1,0 +1,6 @@
+{
+  "base_commit": "402b6223d5b1804e6bdcb7c7e180008a450ff6fb",
+  "checked_at_kst": "2026-11-11T00:06:15.891184+09:00",
+  "working_tree_clean": false,
+  "note": "Source references refer to working tree; deployment equality checked only for files in deployed-code-comparison.json"
+}

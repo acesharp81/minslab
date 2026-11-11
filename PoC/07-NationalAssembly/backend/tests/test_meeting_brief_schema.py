@@ -138,7 +138,7 @@ class MeetingBriefSchemaTests(unittest.TestCase):
         self.assertIn("재시도 대기 중", script)
         self.assertNotIn("endedAt + 120 * 60 * 1000", script)
         self.assertIn("완료되면 자동으로 결과를 표시합니다", script)
-        self.assertIn("if (ended.meeting_brief?.brief)", script)
+        self.assertIn("if (ended.meeting_brief?.brief || ended.is_expansion_test)", script)
         self.assertIn('onClick: (row) => expandMeetingBrief(ended, row)', script)
         self.assertIn("meeting-topic-task-processing", styles)
         self.assertIn(".meeting-processing-card", styles)

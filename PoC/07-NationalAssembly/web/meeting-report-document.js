@@ -88,7 +88,8 @@ function buildMeetingReportDocument(item, record, brief, briefView) {
   const paper = magazineElement("article", "meeting-summary-paper", "");
   const header = magazineElement("header", "meeting-summary-paper-header", "");
   header.append(
-    magazineElement("p", "meeting-summary-paper-brand", "국정ON · 회의 요약 보고서"),
+    magazineElement("p", "meeting-summary-paper-brand", "국정ON · 회의 요약 보고서" +
+      (item.is_expansion_test || record.is_expansion_test ? " · 확장성 실험 · 1회성 수집" : "")),
     magazineElement("h1", "", brief.headline || item.title || "회의 요약 보고서"),
   );
   const viewLabel = briefView === "official" ? "공식 회의록 대조 화면 기준"

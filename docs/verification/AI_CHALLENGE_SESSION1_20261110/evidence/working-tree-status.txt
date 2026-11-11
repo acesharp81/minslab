@@ -1,0 +1,26 @@
+ M PoC/07-NationalAssembly/CHANGELOG.md
+ M PoC/07-NationalAssembly/README.md
+ M PoC/07-NationalAssembly/backend/app/adapters/live_sources.py
+ M PoC/07-NationalAssembly/backend/app/db/live_repository.py
+ M PoC/07-NationalAssembly/backend/app/db/meeting_brief_repository.py
+ M PoC/07-NationalAssembly/backend/app/ingestion/live_discussion_worker.py
+ M PoC/07-NationalAssembly/backend/app/ingestion/live_monitor.py
+ M PoC/07-NationalAssembly/backend/app/ingestion/meeting_brief_worker.py
+ M PoC/07-NationalAssembly/backend/app/ingestion/ontology_review_worker.py
+ M PoC/07-NationalAssembly/backend/app/ingestion/structure_review_worker.py
+ M PoC/07-NationalAssembly/backend/app/ingestion/summary_worker.py
+ M PoC/07-NationalAssembly/backend/app/ingestion/topic_structure_worker.py
+ M PoC/07-NationalAssembly/backend/app/main.py
+ M PoC/07-NationalAssembly/docs/DATA_MODEL.md
+ M PoC/07-NationalAssembly/docs/DATA_SOURCES.md
+ M PoC/07-NationalAssembly/docs/DECISIONS.md
+ M PoC/07-NationalAssembly/web/app.js
+ M PoC/07-NationalAssembly/web/index.html
+ M PoC/07-NationalAssembly/web/meeting-report-document.js
+ M PoC/07-NationalAssembly/web/workspace.css
+ M PoC/10-home/tests/js/policy-stage-flow.test.cjs
+ M PoC/10-home/web/assets/policy-stage-flow.js
+ M PoC/10-home/web/index.html
+?? PoC/07-NationalAssembly/data/config/
+?? PoC/07-NationalAssembly/docs/EXPANSION_TEST_20261111.md
+?? PoC/07-NationalAssembly/docs/evidence/EXPANSION_TEST_20261111/

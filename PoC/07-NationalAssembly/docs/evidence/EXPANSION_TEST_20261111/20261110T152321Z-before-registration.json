@@ -1,0 +1,99 @@
+{
+  "phase": "before-registration",
+  "checked_at": "2026-11-10T15:23:21.584516+00:00",
+  "kind": "READ_ONLY_EVIDENCE",
+  "additional_llm_calls": 0,
+  "plans": [],
+  "source_status_rows": [],
+  "reports": [],
+  "services": [
+    {
+      "service": "poc07-national-assembly-live-monitor",
+      "container_id": "bb9c800c44ea722dc1f662ad166ab22abea5200f1910110bb4f9fec60b74efcd",
+      "image_id": "sha256:76a6f9e56619826c6ef465d32f7860b98a914eb50ed2947dca6ac2ee1b831881",
+      "started_at": "2026-11-10T15:17:13.133829975Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "8d01422e575b0fd987024a53e021f9bd2a0a69c2461fbcf404543bd90460d101",
+        "adapters/live_sources.py": "cc67b14b8409749ed518fd71caaf17cf0b2d0662a42a4c5c485b3a8c21d8c48c",
+        "ingestion/live_monitor.py": "f95c0e87c8299c978d93574c32e99b378c70fdb782863db3b24bffba6ef3170e"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-caption-worker",
+      "container_id": "5bc203d2e768499b75007942b4f152976d6f4763284e815fcde37c19f331150c",
+      "image_id": "sha256:e5dcd2f392e23993582d37eee67f89153785116e5bfecba206028adbb46f3bdf",
+      "started_at": "2026-11-10T15:22:15.288366105Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "e5f4064a37dfb8eac66143d1cd97de60ef5750660b23299adb30a65129426872"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-executive-caption-worker",
+      "container_id": "d8b3a7a69ba6988ce758b875e43f5c747cda71d8d8905922036fa39229215a6f",
+      "image_id": "sha256:06190e28e41820fc9f13f53756e0855622988830b6399910eb8b82518c24f209",
+      "started_at": "2026-11-10T15:22:46.557486295Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "e5f4064a37dfb8eac66143d1cd97de60ef5750660b23299adb30a65129426872"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-summary-worker",
+      "container_id": "f1bcb486034122a85671e2b231619563d5797706251025763c014bf06a78640d",
+      "image_id": "sha256:67046f4bd5b791077a2eb607e5346506c702cd3c91468e48766cb4c01cffcaaf",
+      "started_at": "2026-11-10T15:17:44.350810819Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "8d01422e575b0fd987024a53e021f9bd2a0a69c2461fbcf404543bd90460d101",
+        "ingestion/summary_worker.py": "5cd45c4e0aade04692a249d68ac4b47ced4df3596a13c7462874f11884943d5f"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-meeting-brief-worker",
+      "container_id": "2e255b49f8a098f67de46184d3cd25b2dec175d52051c7f61d7d71dbab76b313",
+      "image_id": "sha256:c9448a28c842610f66f34c596c89880214d30b40691e276e2666cccbef2203e0",
+      "started_at": "2026-11-10T15:18:15.607872566Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "8d01422e575b0fd987024a53e021f9bd2a0a69c2461fbcf404543bd90460d101",
+        "db/meeting_brief_repository.py": "e8c001ff4c43bdfd8bf9bfdedfd8fc7d63baf33cc5a64d9d1f591508220adfa3",
+        "ingestion/meeting_brief_worker.py": "59ee9fcc394c900b8961be2f3c665c0640a503cee4bc75e243d5c978d8c983df",
+        "ingestion/live_discussion_worker.py": "efebda1958c5b9e8309f7c556ebe703ee849018a05799e5f72b3bb2baa69c680",
+        "ingestion/topic_structure_worker.py": "496d0db303098f0c752920f1165df6e9f629fca5dbca33a70c28fdb0b247b191",
+        "ingestion/structure_review_worker.py": "dd6977fb7fb84c293067bcd7a19b42de68c7d5ab3301282af974d7daa5ed38a6",
+        "ingestion/ontology_review_worker.py": "d5f1029e98bacceb539daa70b3dda91b4445bb83a9dd0f1f8e3d765b889a4030"
+      }
+    },
+    {
+      "service": "poc07-national-assembly-api",
+      "container_id": "326baae8d978ee82c6be5947408a5a4a239aa67c8dc669ef7a63f8506ccab169",
+      "image_id": "sha256:a6913b6a0964e3af4c2095efc26f0262f545eedb1e7e3352b57481b817ac4a42",
+      "started_at": "2026-11-10T15:18:17.317302793Z",
+      "running": true,
+      "files": {
+        "domain/assembly_expansion.py": "3ac89dd5ba1feeb92b7ec5b3a785c2ef31761ad84c4ba624ae40f66bb5e165ea",
+        "db/live_repository.py": "8d01422e575b0fd987024a53e021f9bd2a0a69c2461fbcf404543bd90460d101",
+        "db/meeting_brief_repository.py": "e8c001ff4c43bdfd8bf9bfdedfd8fc7d63baf33cc5a64d9d1f591508220adfa3",
+        "main.py": "4b788e7b918054af9da26339fe32385e20bf23a3c6540f810969e3cabe3ad958"
+      }
+    }
+  ],
+  "workspace_files": {
+    "web/app.js": "5d7d11ccc85a67c04989e73f3a0d2f0b8965ea81917b11c91bc295cf803c3c65",
+    "web/index.html": "59ff07f811a300955d290237ea29c33fd1f331e197a8b83237cedc1689e1dec7",
+    "web/workspace.css": "54903d82bc5ca50bac79d57e7fd2e06c28dfc6d79e144c112d0d2a17e0bcd0e6",
+    "web/meeting-report-document.js": "4c3cfe5b1d1b3a8834b5c1e468fd626cabe0b083a4fb7d8646b4b3c498675bd8",
+    "scripts/manage_assembly_expansion.py": "5ccffa230a0e4e9f1f053bf12a7aacb74e48df63e65fee6c37cc9fcfbdce81dc",
+    "scripts/collect_assembly_expansion_evidence.py": "52449ffd4c7e02ff4fa6437ac24fe1812ff0396e7dcdf33148490235b237561f",
+    "scripts/deploy_secure_workers.sh": "796f668010e088f3c263d3174e0fcd5710f01f742cb767b6dd844d71ef8e82e2",
+    "docker-compose.yml": "143f542f7de620779c091b8a7fb7fb4b518e5669a2d1cd6b62ac290b832a8e19"
+  },
+  "interpretation": "Configuration/fixtures do not prove future live capture. Confirm actual speech counts and report completion after the broadcast."
+}

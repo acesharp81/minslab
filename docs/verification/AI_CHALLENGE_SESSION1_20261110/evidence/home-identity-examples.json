@@ -1,0 +1,282 @@
+{
+  "checked_at_kst": "2026-11-11T00:00:23.772594+09:00",
+  "sql": "SELECT p.name,a.source_id,a.source_entity_id,a.relation_status,a.match_rule,a.unit_comparison,a.basis,a.evidence_url,a.reviewed_at FROM home_identity_alias a JOIN home_project p ON p.id=a.project_id WHERE p.name LIKE '%왕숙%' OR p.name LIKE '%연남%' OR p.name LIKE '%거모%' ORDER BY p.name,a.source_id LIMIT 25",
+  "rows": [
+    {
+      "name": "연남동 공공임대주택",
+      "source_id": "official_document",
+      "source_entity_id": "PRO_b8e9b07eb43ee60a807ec231",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://www.fsc.go.kr/comm/getFile?srvcId=BBSTY1&upperNo=87948&fileTy=ATTACH&fileNo=3#page=6",
+      "reviewed_at": null
+    },
+    {
+      "name": "거모동 1867 근생및주택 신축공사",
+      "source_id": "building_general_permit",
+      "source_entity_id": "GEN_a750abb3a6c9522a88274be1",
+      "relation_status": "REVIEW",
+      "match_rule": "RESIDENTIAL_NEW_BUILD_START_CANDIDATE",
+      "unit_comparison": null,
+      "basis": "원천의 주거용·신축·실제착공일 일치. 원천 고유 관리번호의 후보 앵커; 기존 사업 중복·정책 귀속·호수 범위 추가 대조.",
+      "evidence_url": "https://www.data.go.kr/data/15136267/openapi.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "연남동 241-94",
+      "source_id": "building_general_permit",
+      "source_entity_id": "GEN_153472bdd0b42ec6b6df80b1",
+      "relation_status": "REVIEW",
+      "match_rule": "RESIDENTIAL_NEW_BUILD_START_CANDIDATE",
+      "unit_comparison": null,
+      "basis": "원천의 주거용·신축·실제착공일 일치. 원천 고유 관리번호의 후보 앵커; 기존 사업 중복·정책 귀속·호수 범위 추가 대조.",
+      "evidence_url": "https://www.data.go.kr/data/15136267/openapi.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "연남동 244-16일원 LH참여형 가로주택정비사업",
+      "source_id": "seoul_cleanup",
+      "source_entity_id": "DOC_4ba0c49c045856b78d5cf56a",
+      "relation_status": "CONFIRMED",
+      "match_rule": "USER_START_LINKAGE",
+      "unit_comparison": null,
+      "basis": "기존과 동일하게 선후 관계의 값을 확인하여 연결성을 확보하고 이에 따른 추정값 반영",
+      "evidence_url": "https://cleanup.seoul.go.kr/cafe/mainIndx.do?cafeUrl=lamb3697",
+      "reviewed_at": "2026-10-19T08:05:02.455611+00:00"
+    },
+    {
+      "name": "연남동 244-16일원 LH참여형 가로주택정비사업",
+      "source_id": "seoul_cleanup",
+      "source_entity_id": "PRO_0abce10856b8c6218fa0d63e",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://cleanup.seoul.go.kr/cafe/mastr-cleanup-bsnsSumry/execute.do?cafeId=440900001559y52&stepSeCode=102&div=sumry",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙2 A01",
+      "source_id": "lh_sale",
+      "source_entity_id": "PRO_446826cdc93ccf8d880cb0f1",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙2 A03",
+      "source_id": "lh_sale",
+      "source_entity_id": "PRO_1f460bcd27c1e4573d9337b6",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙2 A-1BL 아파트 건설공사",
+      "source_id": "lh_completion_plan",
+      "source_entity_id": "LH__1bdd495a9b865fb51b82b8f3",
+      "relation_status": "REVIEW",
+      "match_rule": "REGION_DISTRICT_BLOCK",
+      "unit_comparison": "DIFFERENT",
+      "basis": "지역·지구·블록 정규화 단일 후보; LH 준공예정은 실제 준공·입주 아님. 계획 호수 차이 확인 필요",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙2 A-1BL 아파트 건설공사",
+      "source_id": "lh_construction",
+      "source_entity_id": "PRO_8f376db71f557323a80c0fd9",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "reviewed_at": null
+    },
+    {
+      "name": "조달청)남양주왕숙2 A-3BL 아파트 건설공사 1공구",
+      "source_id": "lh_completion_plan",
+      "source_entity_id": "LH__ec40b182c2007524b867a36f",
+      "relation_status": "REVIEW",
+      "match_rule": "REGION_DISTRICT_BLOCK",
+      "unit_comparison": "EQUAL",
+      "basis": "지역·지구·블록 정규화 단일 후보; LH 준공예정은 실제 준공·입주 아님. 담당자 동일 사업 확인 필요",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "조달청)남양주왕숙2 A-3BL 아파트 건설공사 1공구",
+      "source_id": "lh_construction",
+      "source_entity_id": "PRO_4d0196c4344cf524a88ae0cc",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙2 A6",
+      "source_id": "lh_policy_followup",
+      "source_entity_id": "PRO_7dbd1a018c8b1cda73879b7d",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0034&list_no=727339&seq=2#page=1",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙2 A7",
+      "source_id": "lh_policy_followup",
+      "source_entity_id": "PRO_1a399402c5ac572891b50a88",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0034&list_no=727339&seq=2#page=1",
+      "reviewed_at": null
+    },
+    {
+      "name": "거모3(일우아파트)",
+      "source_id": "molit_renewal_inventory",
+      "source_entity_id": "REN_70538c562d3dc2222a55f175",
+      "relation_status": "REVIEW",
+      "match_rule": "REFERENCE_SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "정비·허가 원천의 실사업 검토 시작점. 현재 착공·정책 귀속은 별도 확인.",
+      "evidence_url": "https://www.data.go.kr/data/15160169/fileData.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "연남동 365-8",
+      "source_id": "building_general_permit",
+      "source_entity_id": "GEN_11dfc3230e417ef0800500dd",
+      "relation_status": "REVIEW",
+      "match_rule": "RESIDENTIAL_NEW_BUILD_START_CANDIDATE",
+      "unit_comparison": null,
+      "basis": "원천의 주거용·신축·실제착공일 일치. 원천 고유 관리번호의 후보 앵커; 기존 사업 중복·정책 귀속·호수 범위 추가 대조.",
+      "evidence_url": "https://www.data.go.kr/data/15136267/openapi.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "연남동 487-284 다세대주택",
+      "source_id": "building_general_permit",
+      "source_entity_id": "GEN_e1e90be055f7f998f0ba6e9d",
+      "relation_status": "REVIEW",
+      "match_rule": "RESIDENTIAL_NEW_BUILD_START_CANDIDATE",
+      "unit_comparison": null,
+      "basis": "원천의 주거용·신축·실제착공일 일치. 원천 고유 관리번호의 후보 앵커; 기존 사업 중복·정책 귀속·호수 범위 추가 대조.",
+      "evidence_url": "https://www.data.go.kr/data/15136267/openapi.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "시흥거모 A10",
+      "source_id": "lh_sale",
+      "source_entity_id": "PRO_a2d73c8fd81adb49dfba0fa3",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙 A-17",
+      "source_id": "lh_sale",
+      "source_entity_id": "PRO_60f74ae611079cfae69ea20e",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://apply.lh.or.kr/lhapply/apply/noti/sp/list.do?sUppAisTpCd=05",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙 A-1BL 아파트 건설공사 1공구",
+      "source_id": "lh_completion_plan",
+      "source_entity_id": "LH__c1d6dfea9609cacb0b9d26b2",
+      "relation_status": "REVIEW",
+      "match_rule": "REGION_DISTRICT_BLOCK",
+      "unit_comparison": "EQUAL",
+      "basis": "지역·지구·블록 정규화 단일 후보; LH 준공예정은 실제 준공·입주 아님. 담당자 동일 사업 확인 필요",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙 A-1BL 아파트 건설공사 1공구",
+      "source_id": "lh_construction",
+      "source_entity_id": "PRO_1988cb01f60debc386947bee",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "reviewed_at": null
+    },
+    {
+      "name": "조달청)남양주왕숙 A-24BL 아파트 건설공사 4공구",
+      "source_id": "lh_completion_plan",
+      "source_entity_id": "LH__f53d1a92b7b35eaaadd48935",
+      "relation_status": "REVIEW",
+      "match_rule": "REGION_DISTRICT_BLOCK",
+      "unit_comparison": "DIFFERENT",
+      "basis": "지역·지구·블록 정규화 단일 후보; LH 준공예정은 실제 준공·입주 아님. 계획 호수 차이 확인 필요",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "조달청)남양주왕숙 A-24BL 아파트 건설공사 4공구",
+      "source_id": "lh_completion_plan",
+      "source_entity_id": "LH__f4c20caf6951447174752a00",
+      "relation_status": "REVIEW",
+      "match_rule": "REGION_DISTRICT_BLOCK",
+      "unit_comparison": "DIFFERENT",
+      "basis": "지역·지구·블록 정규화 단일 후보; LH 준공예정은 실제 준공·입주 아님. 계획 호수 차이 확인 필요",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "조달청)남양주왕숙 A-24BL 아파트 건설공사 4공구",
+      "source_id": "lh_construction",
+      "source_entity_id": "PRO_92a0bd4e283231a4a8007d2a",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙 A-25BL 아파트 건설공사",
+      "source_id": "lh_completion_plan",
+      "source_entity_id": "LH__b42e7e6608cce9f7c3223cf8",
+      "relation_status": "REVIEW",
+      "match_rule": "REGION_DISTRICT_BLOCK",
+      "unit_comparison": "EQUAL",
+      "basis": "지역·지구·블록 정규화 단일 후보; LH 준공예정은 실제 준공·입주 아님. 담당자 동일 사업 확인 필요",
+      "evidence_url": "https://www.data.go.kr/data/15141761/fileData.do",
+      "reviewed_at": null
+    },
+    {
+      "name": "남양주왕숙 A-25BL 아파트 건설공사",
+      "source_id": "lh_construction",
+      "source_entity_id": "PRO_f345f2ad0c4ce9f333d7e80d",
+      "relation_status": "REVIEW",
+      "match_rule": "SOURCE_ANCHOR",
+      "unit_comparison": null,
+      "basis": "원천 사업후보 1:1 정체성 시작점 · 다른 원천과 동일 실사업 여부 미확정",
+      "evidence_url": "https://www.lh.or.kr/boardDownload.es?bid=0007&list_no=654682&seq=14",
+      "reviewed_at": null
+    }
+  ],
+  "error": null
+}
