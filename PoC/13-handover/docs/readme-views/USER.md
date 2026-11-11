@@ -1,6 +1,6 @@
 <!-- workbaton-demo:start -->
-<!-- GitLab converts the fallback MP4 image to a player. GitHub attachment URL is pending public-upload approval. -->
-<video src="../media/workbaton-demo-3m45s-chat-support.mp4" controls playsinline preload="metadata" width="960" aria-label="업무바통 시연 영상 — 3분 45초">
+<!-- GitHub renders the attachment as a player; GitLab converts the fallback MP4 image to a player. -->
+<video src="https://github.com/user-attachments/assets/15dcdf81-1358-45a0-b600-ba03bbc857fe" controls playsinline preload="metadata" width="960" aria-label="업무바통 시연 영상 — 3분 45초">
   <img src="../media/workbaton-demo-3m45s-chat-support.mp4" alt="업무바통 — 보고서 작성과 챗봇 업무 인수 지원 시연 영상 · 3분 45초" width="960">
 </video>
 <!-- workbaton-demo:end -->

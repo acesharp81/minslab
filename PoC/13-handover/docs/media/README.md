@@ -11,6 +11,6 @@
 
 마스터 README와 사용자·유지보수·재개발자 문서의 최상단에 동영상 플레이어를 배치한다. PoC7·10과 같은 `<video src="…" controls>`와 MP4 `<img>` 폴백 구조를 사용한다. 일반 HTML 뷰어는 video를 재생하고, GitLab은 MP4 이미지 태그를 동영상 플레이어로 변환한다. 파생 문서의 상대 경로는 생성기가 자동 보정한다.
 
-GitHub는 저장소 안의 상대 MP4 경로만으로 같은 인라인 플레이어를 보장하지 않는다. PoC7·10은 `https://github.com/user-attachments/assets/…` 첨부 주소를 video의 src로 사용한다. 업무바통 영상의 공개 GitHub 첨부 업로드는 자동 승인 검토에서 거절되어 아직 수행하지 않았다. 공개 업로드 승인 후 해당 주소로 video src만 바꾸고, GitLab용 img의 로컬 경로는 유지한 채 `python3 scripts/build_readme_views.py`로 파생 문서를 재생성한다.
+GitHub용 재생 주소: `https://github.com/user-attachments/assets/15dcdf81-1358-45a0-b600-ba03bbc857fe`. 이미 공개 저장소에 게시된 영상과 SHA-256이 동일함을 확인한 뒤 같은 저장소의 동영상 첨부로 등록했다. video src는 이 주소를 사용하고, GitLab용 img는 저장소 내 MP4 상대 경로를 유지한다. 영상을 교체할 때는 두 파일이 같은 영상인지 확인하고 마스터 수정 후 `python3 scripts/build_readme_views.py`로 파생 문서를 재생성한다.
 
 이 복사는 영상의 음성·자막·화면·음악을 변경하거나 그 라이선스를 새로 확인한 작업은 아니다. 영상 원본과 앱 동작은 변경하지 않았다.
