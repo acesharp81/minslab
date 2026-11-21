@@ -1,7 +1,20 @@
 name: Sync service projects to GitLab
-run-name: "GitLab 수동 게시 · ${{ inputs.project }} · ${{ inputs.source_sha }}"
+run-name: "GitLab ${{ github.event_name }} · ${{ inputs.project || 'changed projects' }} · ${{ inputs.source_sha || github.sha }}"
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'PoC/07-NationalAssembly/**'
+      - 'PoC/08-AICommonPlatformRadar/**'
+      - 'PoC/10-home/**'
+      - 'PoC/13-handover/**'
+      - '!PoC/**/docs/evidence/**'
+      - '!PoC/**/data/recovery/**'
+      - '.github/workflows/sync-gitlab-projects.yml'
+      - 'deploy/gitlab_sync*.py'
+      - 'deploy/gitlab-runner/**'
+      - 'deploy/gitlab-projects/**'
   workflow_dispatch:
     inputs:
       project:
@@ -29,12 +42,13 @@ concurrency:
 
 jobs:
   sync:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, linux, x64, minslab-gitlab-sync]
     timeout-minutes: 30
+    env:
+      GITLAB_SYNC_POLICY: project-auto-v1
     steps:
-      # Pin the controller to the dispatch commit, and export only source_sha.
-      # Neither a queued execution nor a rerun may implicitly choose newer main.
+      # Pin both push and manual runs to their event commit, never a newer main.
       - name: Check out complete source history
         uses: actions/checkout@v6
         with:
@@ -42,19 +56,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Publish approved projects and source
+      - name: Publish selected project snapshots
         env:
-          PROJECT: ${{ inputs.project }}
-          SOURCE_SHA: ${{ inputs.source_sha }}
-          APPROVED: ${{ inputs.approved }}
           GITLAB_USERNAME: gitlab-sync
           GITLAB_KJON_TOKEN: ${{ secrets.GITLAB_KJON_TOKEN }}
           GITLAB_HOME_TOKEN: ${{ secrets.GITLAB_HOME_TOKEN }}
           GITLAB_CHECK_TOKEN: ${{ secrets.GITLAB_CHECK_TOKEN }}
           GITLAB_BATON_TOKEN: ${{ secrets.GITLAB_BATON_TOKEN }}
-        run: |
-          if [[ "$APPROVED" != true ]]; then
-            echo "::error::제출본 갱신 승인이 필요합니다."
-            exit 1
-          fi
-          python3 deploy/gitlab_sync.py "$PROJECT" --source "$SOURCE_SHA" --approve-source "$SOURCE_SHA" --push --diagnose
+        run: python3 deploy/gitlab_sync_event.py

@@ -16,20 +16,22 @@ PoC 8·13의 최초 공개 기준 원본은 `72d1af3ffdd3cc2761f83f778dc16f9d7c7
 
 두 신규 대상에는 GitLab이 만든 README 초기 커밋이 있어 이를 보존합니다. `bootstrap/check.bundle`은 `efc284a162c818a9ece07b15e10ef32d9442ef19`, `bootstrap/baton.bundle`은 `e0157718d5e903c616fc465d5385c8c0239e1969` 한 커밋의 공개 README만 담습니다. 원본 공개 기준 커밋의 부모를 이 초기 이력으로 연결하는 작업은 임시 bare 저장소에서 수행하며 원본 refs를 변경하지 않습니다. bundle의 SHA와 최종 이력의 선조 관계를 검사하고 이후에도 동일하게 재현합니다. GitLab 기본 README는 프로젝트 README로 교체됩니다. 새로운 원격 이력이 생기면 일반 push가 거부하므로 강제로 지우지 않습니다.
 
-## 승인 후 수동 게시
+## 자동 동기화와 수동 게시
 
-2026-11-11부터 네 프로젝트 모두 **자동 게시를 중단**합니다. GitHub에서 개발·커밋·push·병합해도 GitLab 제출본은 변경되지 않습니다. [sync-gitlab-projects.yml](../../.github/workflows/sync-gitlab-projects.yml)은 `workflow_dispatch`만 허용합니다.
+2026-11-21 사용자 요청으로 네 프로젝트의 **자동 동기화를 재개**합니다. GitHub `main`에 프로젝트 변경을 push하거나 PR을 병합하면 네 프로젝트의 현재 스냅샷을 대조하고 변경된 내용만 각각의 GitLab `main`에 반영합니다. 로컬 미커밋 변경, 다른 브랜치·PR 자체는 게시하지 않습니다. 전체 MinsLab 저장소를 복제하는 방식은 사용하지 않습니다.
 
-GitHub **Actions → Sync service projects to GitLab → Run workflow**에서:
+[sync-gitlab-projects.yml](../../.github/workflows/sync-gitlab-projects.yml)은 프로젝트 경로와 연동 설정 경로에 대한 `push`를 처리합니다. 실행 코드는 이벤트의 `before`와 `after`를 비교하여 관련 변경을 감지하고, 해당 이벤트의 40자리 `after` SHA를 고정해 내보냅니다. 관련 변경이 있으면 네 프로젝트 모두를 점검하므로 GitHub concurrency가 대기 실행을 최신 실행으로 대체해도 중간 커밋의 다른 프로젝트 변경이 누락되지 않습니다. 생성 증빙 경로만 변경되면 게시하지 않습니다. 연동 설정 변경 또는 이전 커밋을 조회할 수 없는 경우에는 네 프로젝트 모두를 점검합니다. 실제 내용이 같으면 GitLab 커밋은 바뀌지 않습니다.
+
+수동 게시도 GitHub **Actions → Sync service projects to GitLab → Run workflow**에서 가능합니다.
 
 1. 브랜치 `main`을 선택합니다.
-2. 게시할 `check`·`baton`·`kjon`·`home` 중 하나를 선택합니다. `all`은 네 프로젝트 모두를 갱신합니다.
-3. 사용자가 검토하고 승인한 GitHub 원본 커밋 SHA **40자리 전체**를 입력합니다.
-4. 제출본 갱신 승인 항목을 체크하고 실행합니다.
+2. 게시할 `check`·`baton`·`kjon`·`home` 중 하나를 선택합니다. `all`은 네 프로젝트 모두를 선택합니다.
+3. 게시할 GitHub 원본 커밋 SHA **40자리 전체**를 입력합니다.
+4. 갱신 승인 항목을 체크하고 실행합니다.
 
-SHA는 실행 시점의 controller 커밋에 포함된 이력이어야 합니다. 승인 입력이 없거나 형식이 다르면 게시하지 않습니다. 대기 중 새 커밋이 올라와도 입력한 SHA만 내보내며, 재실행도 같은 승인 SHA를 사용합니다. SHA가 오래되어 GitLab 이력을 되돌려야 하는 경우 일반 push가 거부합니다. 서로 다른 수동 실행도 한 번에 하나만 처리합니다. `all`은 토큰과 미커밋 상태를 사전 검사한 뒤 순서대로 게시하지만, 별도 저장소 네 개의 원격 반영은 원자적이지 않으므로 중간 서버 오류 시 일부만 반영될 수 있습니다.
+수동 SHA는 실행 시점의 controller 커밋에 포함된 이력이어야 합니다. 자동·수동 모두 대기 중 새 커밋이 올라와도 이벤트에 고정된 원본만 게시합니다. 일반 push만 사용하므로 오래된 실행을 재실행해도 GitLab 이력을 강제로 되돌리지 않습니다. 기존 공유 concurrency 그룹을 유지해 자동·수동 실행을 직렬화하고 실행 중인 전송은 취소하지 않습니다. 각 프로젝트는 독립적으로 처리하여 한 프로젝트 실패 시 나머지도 시도하고, 실패한 프로젝트가 있으면 전체 실행은 실패로 표시합니다.
 
-출품 이후 새 버전 게시 여부는 사용자가 결정합니다. 작업 요청이나 GitHub 병합 자체를 GitLab 게시 승인으로 간주하지 않습니다. 실행기 이미지의 읽기 전용 hook도 자동 `push` 이벤트와 승인 정보가 없는 과거 수동 실행의 재실행을 거부합니다. 토큰을 가진 사용자 또는 저장소 관리자가 직접 실행하는 변경까지 이 워크플로가 제한하는 것은 아닙니다.
+실행기의 읽기 전용 hook은 이 저장소 `main`의 지정 workflow만 허용합니다. 자동 실행은 `project-auto-v1` 정책과 일치하는 push SHA를, 수동 실행은 프로젝트·원본 SHA·승인을 확인합니다. 예전 자동 workflow 재실행이나 PR·fork·다른 workflow에는 토큰을 사용하는 사용자 단계를 열지 않습니다.
 
 GitHub 저장소의 **Settings → Secrets and variables → Actions → New repository secret**에 다음 값을 각각 등록합니다.
 
@@ -44,7 +46,7 @@ GitHub 저장소의 **Settings → Secrets and variables → Actions → New rep
 
 workflow는 네 토큰을 게시 도구에 전달하고, 도구는 각 Git 자식 프로세스에 선택한 프로젝트의 토큰 하나만 전달합니다. 기존 `GITLAB_TOKEN`·`GITLAB_USERNAME`·`GITLAB_REPOSITORY` secrets는 workflow에서 사용하지 않습니다. 인증값은 URL이나 파일 내용에 기록하지 않고 임시 `GIT_ASKPASS`를 통해 전달합니다. 실행 가능한 `RUNNER_TEMP`에 인증 도구를 만들고 삭제합니다.
 
-최초 PoC 8·13 게시도 자동으로 시작하지 않습니다. 현재 버전으로 게시해 달라는 사용자 요청에 따라 검증된 초기 커밋 SHA를 지정하여 두 프로젝트만 수동 실행합니다. 기존 국정ON·the주택 제출본은 이 최초 게시에 포함하지 않습니다. 네 프로젝트 모두 이후 변경에는 별도 승인이 필요합니다.
+2026-11-11에는 제출본 고정을 위해 수동 승인 방식으로 전환했고, PoC 8·13의 최초 게시는 승인된 커밋으로 완료했습니다. 2026-11-21 이후에는 위 자동 동기화 정책을 적용합니다.
 
 전체 저장소 미러링 workflow는 제거된 상태를 유지합니다. 기존 GitLab 전체 미러 저장소와 이미 게시한 코드는 별도로 유지됩니다.
 
@@ -91,7 +93,7 @@ Home은 전송량과 최초 이력을 줄여도 업로드 후 약 60초 응답 �
 ## 검증
 
 ```bash
-python3 -m unittest discover -s tests -p 'test_gitlab_sync.py' -v
+python3 -m unittest discover -s tests -p 'test_gitlab*.py' -v
 ```
 
 테스트는 임시 원본 저장소와 로컬 bare 저장소 네 개만 사용합니다. 실제 GitLab에는 접속하거나 게시하지 않습니다. 프로젝트 범위·이력 분리, 반복 실행, 선택 갱신·삭제, 미커밋 변경 차단, 대상의 독립 수정 보호, 승인 누락 차단과 오래된 승인 버전의 고정 게시를 검증합니다. 실행기 검사는 `python3 -m unittest discover -s tests -p 'test_gitlab_runner_guard.py' -v`로 실행합니다.

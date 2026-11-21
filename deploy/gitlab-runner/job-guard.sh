@@ -9,13 +9,13 @@ if [[ "${GITHUB_REPOSITORY:-}" != acesharp81/minslab \
   exit 1
 fi
 case "${GITHUB_EVENT_NAME:-}" in
-  workflow_dispatch) ;;
+  workflow_dispatch|push) ;;
   *)
     echo "This runner does not execute pull request or other event jobs." >&2
     exit 1
     ;;
 esac
-# Reject old automatic/manual runs: their payload has no explicit source approval.
+# Push jobs require the restored project-only policy; manual jobs still require approval.
 # This hook lives in the read-only image, outside the checkout.
 python3 - <<'PYTHON'
 import json
@@ -25,14 +25,25 @@ import sys
 
 try:
     with open(os.environ["GITHUB_EVENT_PATH"], encoding="utf-8") as event_file:
-        inputs = json.load(event_file).get("inputs") or {}
+        event = json.load(event_file)
+    inputs = event.get("inputs") or {}
     valid = (
         inputs.get("approved") in (True, "true")
         and inputs.get("project") in ("kjon", "home", "check", "baton", "all")
         and re.fullmatch(r"[0-9a-f]{40}", inputs.get("source_sha", ""))
     )
+    if os.environ["GITHUB_EVENT_NAME"] == "push":
+        after = event.get("after", "")
+        valid = (
+            os.environ.get("GITLAB_SYNC_POLICY") == "project-auto-v1"
+            and event.get("ref") == "refs/heads/main"
+            and not event.get("deleted")
+            and re.fullmatch(r"[0-9a-f]{40}", after)
+            and after != "0" * 40
+            and after == os.environ.get("GITHUB_SHA")
+        )
 except (OSError, KeyError, ValueError, TypeError, AttributeError):
     valid = False
 if not valid:
-    sys.exit("Manual project selection and explicit source SHA approval are required.")
+    sys.exit("A valid project-auto-v1 main push or explicitly approved manual source is required.")
 PYTHON
