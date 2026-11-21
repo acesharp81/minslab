@@ -38,14 +38,15 @@ class GitLabRunnerGuardTests(unittest.TestCase):
 
     def test_accepts_only_pinned_main_pushes_with_current_policy(self):
         event = {"ref": "refs/heads/main", "after": "b" * 40, "deleted": False}
-        env = dict(GITHUB_EVENT_NAME="push", GITHUB_SHA="b" * 40, GITLAB_SYNC_POLICY="project-auto-v1")
+        workflow_name = (GUARD.parents[2] / ".github/workflows/sync-gitlab-projects.yml").read_text().splitlines()[0].removeprefix("name: ")
+        env = dict(GITHUB_EVENT_NAME="push", GITHUB_SHA="b" * 40, GITHUB_WORKFLOW=workflow_name)
         result = self.run_guard(event=event, **env)
         self.assertEqual(result.returncode, 0, result.stderr)
         for changes in ({"deleted": True}, {"ref": "refs/heads/other"}, {"after": "c" * 40},
                         {"after": "0" * 40}, {"after": "main"}):
             with self.subTest(changes=changes):
                 self.assertNotEqual(self.run_guard(event=dict(event, **changes), **env).returncode, 0)
-        for changes in ({"GITLAB_SYNC_POLICY": ""}, {"GITHUB_SHA": "c" * 40}):
+        for changes in ({"GITHUB_WORKFLOW": "Sync service projects to GitLab"}, {"GITHUB_SHA": "c" * 40}):
             self.assertNotEqual(self.run_guard(event=event, **dict(env, **changes)).returncode, 0)
 
     def test_rejects_pull_requests_other_repositories_branches_and_workflows(self):

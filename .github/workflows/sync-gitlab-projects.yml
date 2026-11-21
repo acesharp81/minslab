@@ -1,4 +1,4 @@
-name: Sync service projects to GitLab
+name: Sync service projects to GitLab (automatic and manual)
 run-name: "GitLab ${{ github.event_name }} · ${{ inputs.project || 'changed projects' }} · ${{ inputs.source_sha || github.sha }}"
 
 on:
@@ -45,8 +45,6 @@ jobs:
     if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, linux, x64, minslab-gitlab-sync]
     timeout-minutes: 30
-    env:
-      GITLAB_SYNC_POLICY: project-auto-v1
     steps:
       # Pin both push and manual runs to their event commit, never a newer main.
       - name: Check out complete source history

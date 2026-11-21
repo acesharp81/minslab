@@ -46,8 +46,8 @@ def publication_request(root: Path, event: dict, env: dict) -> tuple[str, list[s
         if inputs.get("approved") not in (True, "true") or not full_sha(source) or project not in (*sync.PROJECTS, "all"):
             raise sync.SyncError("Manual publication requires project, full source SHA and approval.")
         return source, list(sync.PROJECTS) if project == "all" else [project]
-    if event_name != "push" or env.get("GITLAB_SYNC_POLICY") != "project-auto-v1":
-        raise sync.SyncError("Unsupported publication event or policy.")
+    if event_name != "push":
+        raise sync.SyncError("Unsupported publication event.")
     source = event.get("after")
     if event.get("ref") != "refs/heads/main" or event.get("deleted") or not full_sha(source) or source != env.get("GITHUB_SHA"):
         raise sync.SyncError("Push source must match the pinned main event commit.")

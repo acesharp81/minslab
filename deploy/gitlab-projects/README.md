@@ -22,7 +22,7 @@ PoC 8·13의 최초 공개 기준 원본은 `72d1af3ffdd3cc2761f83f778dc16f9d7c7
 
 [sync-gitlab-projects.yml](../../.github/workflows/sync-gitlab-projects.yml)은 프로젝트 경로와 연동 설정 경로에 대한 `push`를 처리합니다. 실행 코드는 이벤트의 `before`와 `after`를 비교하여 관련 변경을 감지하고, 해당 이벤트의 40자리 `after` SHA를 고정해 내보냅니다. 관련 변경이 있으면 네 프로젝트 모두를 점검하므로 GitHub concurrency가 대기 실행을 최신 실행으로 대체해도 중간 커밋의 다른 프로젝트 변경이 누락되지 않습니다. 생성 증빙 경로만 변경되면 게시하지 않습니다. 연동 설정 변경 또는 이전 커밋을 조회할 수 없는 경우에는 네 프로젝트 모두를 점검합니다. 실제 내용이 같으면 GitLab 커밋은 바뀌지 않습니다.
 
-수동 게시도 GitHub **Actions → Sync service projects to GitLab → Run workflow**에서 가능합니다.
+수동 게시도 GitHub **Actions → Sync service projects to GitLab (automatic and manual) → Run workflow**에서 가능합니다.
 
 1. 브랜치 `main`을 선택합니다.
 2. 게시할 `check`·`baton`·`kjon`·`home` 중 하나를 선택합니다. `all`은 네 프로젝트 모두를 선택합니다.
@@ -31,7 +31,7 @@ PoC 8·13의 최초 공개 기준 원본은 `72d1af3ffdd3cc2761f83f778dc16f9d7c7
 
 수동 SHA는 실행 시점의 controller 커밋에 포함된 이력이어야 합니다. 자동·수동 모두 대기 중 새 커밋이 올라와도 이벤트에 고정된 원본만 게시합니다. 일반 push만 사용하므로 오래된 실행을 재실행해도 GitLab 이력을 강제로 되돌리지 않습니다. 기존 공유 concurrency 그룹을 유지해 자동·수동 실행을 직렬화하고 실행 중인 전송은 취소하지 않습니다. 각 프로젝트는 독립적으로 처리하여 한 프로젝트 실패 시 나머지도 시도하고, 실패한 프로젝트가 있으면 전체 실행은 실패로 표시합니다.
 
-실행기의 읽기 전용 hook은 이 저장소 `main`의 지정 workflow만 허용합니다. 자동 실행은 `project-auto-v1` 정책과 일치하는 push SHA를, 수동 실행은 프로젝트·원본 SHA·승인을 확인합니다. 예전 자동 workflow 재실행이나 PR·fork·다른 workflow에는 토큰을 사용하는 사용자 단계를 열지 않습니다.
+실행기의 읽기 전용 hook은 이 저장소 `main`의 지정 workflow만 허용합니다. 자동 실행은 GitHub가 지정한 현재 workflow 이름과 일치하는 push SHA를, 수동 실행은 프로젝트·원본 SHA·승인을 확인합니다. 예전 자동 workflow 재실행이나 PR·fork·다른 workflow에는 토큰을 사용하는 사용자 단계를 열지 않습니다.
 
 GitHub 저장소의 **Settings → Secrets and variables → Actions → New repository secret**에 다음 값을 각각 등록합니다.
 

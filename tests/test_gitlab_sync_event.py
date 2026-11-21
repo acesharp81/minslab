@@ -14,7 +14,7 @@ import gitlab_sync_event as event_sync
 class GitLabEventTests(unittest.TestCase):
     def setUp(self):
         self.env = dict(GITHUB_REPOSITORY='acesharp81/minslab', GITHUB_REF='refs/heads/main',
-                        GITHUB_EVENT_NAME='push', GITHUB_SHA='b' * 40, GITLAB_SYNC_POLICY='project-auto-v1')
+                        GITHUB_EVENT_NAME='push', GITHUB_SHA='b' * 40)
         self.event = dict(ref='refs/heads/main', before='a' * 40, after='b' * 40, deleted=False)
 
     def test_selects_changed_projects_including_deleted_and_moved_paths(self):
@@ -55,7 +55,7 @@ class GitLabEventTests(unittest.TestCase):
             with self.assertRaises(event_sync.sync.SyncError):
                 event_sync.publication_request(DEPLOY, dict(self.event, **changes), self.env)
         for changes in ({'GITHUB_EVENT_NAME': 'pull_request'}, {'GITHUB_REPOSITORY': 'fork/minslab'},
-                        {'GITHUB_REF': 'refs/heads/feature'}, {'GITLAB_SYNC_POLICY': ''}):
+                        {'GITHUB_REF': 'refs/heads/feature'}):
             with self.assertRaises(event_sync.sync.SyncError):
                 event_sync.publication_request(DEPLOY, self.event, dict(self.env, **changes))
 
