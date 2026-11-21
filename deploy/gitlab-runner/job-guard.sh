@@ -35,7 +35,7 @@ try:
     if os.environ["GITHUB_EVENT_NAME"] == "push":
         after = event.get("after", "")
         valid = (
-            os.environ.get("GITLAB_SYNC_POLICY") == "project-auto-v1"
+            os.environ.get("GITHUB_WORKFLOW") == "Sync service projects to GitLab (automatic and manual)"
             and event.get("ref") == "refs/heads/main"
             and not event.get("deleted")
             and re.fullmatch(r"[0-9a-f]{40}", after)
@@ -45,5 +45,5 @@ try:
 except (OSError, KeyError, ValueError, TypeError, AttributeError):
     valid = False
 if not valid:
-    sys.exit("A valid project-auto-v1 main push or explicitly approved manual source is required.")
+    sys.exit("A pinned main push from the current sync workflow or an approved manual source is required.")
 PYTHON
